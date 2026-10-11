@@ -1,6 +1,7 @@
 import type { GameDefinition } from "./core.ts";
 import { balon } from "./balon.ts";
 import { chinczyk } from "./chinczyk.ts";
+import { dziesiatki } from "./dziesiatki.ts";
 import { inny } from "./inny.ts";
 import { kampusTour } from "./kampus-tour.ts";
 import { kat } from "./kat.ts";
@@ -69,6 +70,7 @@ export { VISIBLE_MS as STOPER_VISIBLE_MS, type View as StoperView } from "./stop
 export { COLORS as STROOP_COLORS, type View as StroopView } from "./stroop.ts";
 export type { View as LiczenieView } from "./liczenie.ts";
 export type { Symbol as InnySymbol, View as InnyView } from "./inny.ts";
+export { SIDE as DZIESIATKI_SIDE, take as dziesiatkiTake, TARGET as DZIESIATKI_TARGET, type View as DziesiatkiView } from "./dziesiatki.ts";
 export { type Cells as ObrotCells, score as obrotScore, type View as ObrotView } from "./obrot.ts";
 export { score as literowkaScore, type View as LiterowkaView } from "./literowka.ts";
 export { ATTEMPTS as KOLO_ATTEMPTS, judge as koloJudge, MAX_POINTS as KOLO_MAX_POINTS, type Point as KoloPoint, type View as KoloView } from "./kolo.ts";
@@ -120,6 +122,7 @@ export const GAMES: Record<string, GameDefinition<any, any>> = Object.assign(Obj
   [przytrzymaj.id]: przytrzymaj,
   [balon.id]: balon,
   [wPamieci.id]: wPamieci,
+  [dziesiatki.id]: dziesiatki,
   [panstwaMiasta.id]: panstwaMiasta,
 });
 
