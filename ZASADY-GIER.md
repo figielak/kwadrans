@@ -35,6 +35,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Przytrzymaj | `przytrzymaj` | 1-6 | 120 s | mini-gra |
 | Balon | `balon` | 1-6 | 120 s | mini-gra |
 | W pamięci | `w-pamieci` | 1-6 | 300 s | mini-gra |
+| Dziesiątki | `dziesiatki` | 1-6 | 90 s | mini-gra |
 
 Nazwy w UI zmieniały się (2026-10-10), `id`, nazwy plików i typów zostały stare: Sekwencja = `simon`, Kolor liter = `stroop`,
 Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, więc `id` nie wolno zmieniać.
@@ -402,6 +403,21 @@ Przebieg, walidacja, punktacja i ekran końcowy jak w Obrocie (`quiz.ts`, `Quiz.
 - Bez ruchu `progress`: rywale nie widzą numeru rundy (jak w Śledzeniu).
 - Ekran: kwadratowy kafel, pozycje ciągu wskakują jedna po drugiej (dwa takie same działania z rzędu widać jako dwa), nad nim numer rundy
   i działania. Po dobrej odpowiedzi od razu następna runda; po złej wibracja 60 i cały ciąg z prawdziwym wynikiem.
+
+### Dziesiątki (`dziesiatki`)
+Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Results` z `Quiz.tsx`); inny jest przebieg planszy.
+- 30 s. Siatka 4×4 (`SIDE`) z liczbami 1-9. Gracz dotyka dwóch pól, które w sumie dają 10 (`TARGET`); pola nie muszą sąsiadować.
+  Trafiona para znika, a w jej miejsce wchodzą dwie nowe liczby.
+- Serwer losuje to samo dla wszystkich: planszę startową `board` (16 liczb) i dostawy `refills` (400 liczb, starczy przy 150 ms na parę).
+  Para nr `n` (liczona od 0) dostaje `refills[2n]` w pierwszym dotkniętym polu i `refills[2n + 1]` w drugim.
+  Dwie liczby jednej dostawy nigdy nie dają razem 10 (inaczej opłacałoby się klepać w te same dwa pola).
+- Na planszy zawsze jest co najmniej jedna para. Jeśli po dostawie żadnej nie ma, drugie nowe pole dostaje `10 − wartość` pierwszego pola
+  spoza tej dwójki. Tak samo poprawiana jest plansza startowa (pole 1 = `10 − pole 0`). Liczy to `take` (ta sama funkcja na ekranie i w testach),
+  bo plansza gracza zależy od tego, które pary wybrał.
+- Pierwsze dotknięcie zaznacza pole, dotknięcie zaznaczonego pola je odznacza (bez kary). Drugie pole, które nie daje 10, to pomyłka:
+  blokada 1 s, zaznaczenie znika, plansza zostaje.
+- Czas pary liczy się od poprzedniej pary (albo startu) do drugiego dotknięcia; szukanie dłuższe niż 5 s liczy się jak 5 s.
+- Wynik liczy klient (jak w Kolorze liter), serwer odrzuca tylko nierealne wartości. Limit czasu: zero par.
 
 ## 2. Gomoku (`piec-w-rzedzie`)
 
