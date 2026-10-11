@@ -444,7 +444,8 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 ### Nożyczki (`nozyczki`)
 - 5 kształtów (`SHAPES`), te same dla wszystkich; gracz jednym ruchem palca przecina każdy prostą tak, żeby obie części miały równe pole.
 - Kształt to gęsty wielokąt (64 wierzchołki, współrzędne 0-1 w ułamkach pola, zaokrąglone do 3 miejsc). Promień jest funkcją kąta:
-  `BASE` razy (1 + suma czterech fal o losowej amplitudzie i fazie), więc kształt jest gładki, nie przecina sam siebie i nie ma symetrii.
+  losowa baza (0,20-0,26 boku pola, więc rozmiar też się zmienia) razy (1 + suma czterech fal o losowej amplitudzie i fazie),
+  więc kształt jest gładki, nie przecina sam siebie i nie ma symetrii.
   Całość jest losowo przesunięta w polu (margines 0,05 od krawędzi), żeby środek kafla niczego nie podpowiadał.
   Ekran rysuje ten sam wielokąt, więc pole na ekranie i na serwerze jest to samo.
 - Cięcie to prosta przez punkt dotknięcia i punkt puszczenia palca (`a`, `b`), przedłużona w obie strony; jak długi był ruch, nie ma znaczenia.

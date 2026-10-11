@@ -12,6 +12,7 @@ import { liczenie } from "./liczenie.ts";
 import { mapa } from "./mapa.ts";
 import { memory } from "./memory.ts";
 import { literowka } from "./literowka.ts";
+import { nozyczki } from "./nozyczki.ts";
 import { obrot } from "./obrot.ts";
 import { panstwaMiasta } from "./panstwa-miasta.ts";
 import { piecWRzedzie } from "./piec-w-rzedzie.ts";
@@ -90,6 +91,7 @@ export { DURATION_MS as STOJ_DURATION_MS, SCHEDULE as STOJ_SCHEDULE, score as st
 export { BEATS as RYTM_BEATS, MAX_TAPS as RYTM_MAX_TAPS, TAP_MS as RYTM_TAP_MS, type View as RytmView } from "./rytm.ts";
 export { deviation as przytrzymajDeviation, ROUNDS as PRZYTRZYMAJ_ROUNDS, type View as PrzytrzymajView } from "./przytrzymaj.ts";
 export { type Cake as TortCake, CAKES as TORT_CAKES, error as tortError, type View as TortView } from "./tort.ts";
+export { accepts as nozyczkiAccepts, type Cut as NozyczkiCut, error as nozyczkiError, type Point as NozyczkiPoint, share as nozyczkiShare, SHAPES as NOZYCZKI_SHAPES, split as nozyczkiSplit, type View as NozyczkiView } from "./nozyczki.ts";
 export { DURATION_MS as QUIZ_DURATION_MS, type QuizMove } from "./quiz.ts";
 export { around as shipAround, isValidFleet, MODES as STATKI_MODES, randomFleet, type Rules as StatkiRules, type Ship, shipCells, type Shot, type View as StatkiView } from "./statki.ts";
 
@@ -126,6 +128,7 @@ export const GAMES: Record<string, GameDefinition<any, any>> = Object.assign(Obj
   [wPamieci.id]: wPamieci,
   [dziesiatki.id]: dziesiatki,
   [tort.id]: tort,
+  [nozyczki.id]: nozyczki,
   [panstwaMiasta.id]: panstwaMiasta,
 });
 
