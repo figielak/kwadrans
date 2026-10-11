@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { type GameDefinition, type PlayerId, rankResults, shuffle } from "./core.ts";
 
-/** Liczba różnych symboli; ekran ma tyle ikon (`ICONS` w Memory.tsx). */
+/** Liczba różnych symboli; ekran ma tyle emoji (`EMOJI` w Memory.tsx). */
 export const SYMBOLS = 18;
 
 /** Tryby do wyboru w lobby, od najkrótszej partii do najdłuższej. Liczba rzędów wynika z `pairs * 2 / cols`. */

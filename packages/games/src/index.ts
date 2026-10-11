@@ -27,6 +27,7 @@ import { statki } from "./statki.ts";
 import { stoj } from "./stoj.ts";
 import { stoper } from "./stoper.ts";
 import { stroop } from "./stroop.ts";
+import { tort } from "./tort.ts";
 import { wieza } from "./wieza.ts";
 import { wPamieci } from "./w-pamieci.ts";
 
@@ -88,6 +89,7 @@ export { OUTLINE as MAPA_OUTLINE } from "./mapa-dane.ts";
 export { DURATION_MS as STOJ_DURATION_MS, SCHEDULE as STOJ_SCHEDULE, score as stojScore, VISIBLE as STOJ_VISIBLE, type View as StojView } from "./stoj.ts";
 export { BEATS as RYTM_BEATS, MAX_TAPS as RYTM_MAX_TAPS, TAP_MS as RYTM_TAP_MS, type View as RytmView } from "./rytm.ts";
 export { deviation as przytrzymajDeviation, ROUNDS as PRZYTRZYMAJ_ROUNDS, type View as PrzytrzymajView } from "./przytrzymaj.ts";
+export { type Cake as TortCake, CAKES as TORT_CAKES, error as tortError, type View as TortView } from "./tort.ts";
 export { DURATION_MS as QUIZ_DURATION_MS, type QuizMove } from "./quiz.ts";
 export { around as shipAround, isValidFleet, MODES as STATKI_MODES, randomFleet, type Rules as StatkiRules, type Ship, shipCells, type Shot, type View as StatkiView } from "./statki.ts";
 
@@ -123,6 +125,7 @@ export const GAMES: Record<string, GameDefinition<any, any>> = Object.assign(Obj
   [balon.id]: balon,
   [wPamieci.id]: wPamieci,
   [dziesiatki.id]: dziesiatki,
+  [tort.id]: tort,
   [panstwaMiasta.id]: panstwaMiasta,
 });
 
