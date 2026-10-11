@@ -36,6 +36,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Balon | `balon` | 1-6 | 120 s | mini-gra |
 | W pamięci | `w-pamieci` | 1-6 | 300 s | mini-gra |
 | Dziesiątki | `dziesiatki` | 1-6 | 90 s | mini-gra |
+| Tort | `tort` | 1-6 | 120 s | mini-gra |
 
 Nazwy w UI zmieniały się (2026-10-10), `id`, nazwy plików i typów zostały stare: Sekwencja = `simon`, Kolor liter = `stroop`,
 Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, więc `id` nie wolno zmieniać.
@@ -46,7 +47,7 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
   więc nic nie jest ukryte (da się podejrzeć; świadoma decyzja, komentarze `ponytail:`).
 - Partia toczy się na kliencie. Każdy gracz wysyła jeden ruch `{ type: "result", ... }`; drugi ruch tego samego gracza jest odrzucany.
   Wyjątki: Narysuj koło (do 10 ruchów na gracza), Tabela Schultego, Policz kropki, Kąt, Który rok?, Wieża i Balon (dodatkowy ruch `progress` po każdym trafieniu, rundzie, klocku albo balonie).
-- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon, W pamięci),
+- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon, W pamięci, Tort),
   w reszcie ufa klientowi.
 - Partia zaczyna się ekranem instrukcji (platforma, nie zasady gry): każdy klika „Start” osobno (wiadomość pokoju `begin`) i gra od razu,
   po `INTRO_SECONDS` (15 s) gra rusza sama. Limit tury startuje, gdy wystartują wszyscy albo minie 15 s; wynik oddany wcześniej go nie uruchamia.
@@ -418,6 +419,26 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
   blokada 1 s, zaznaczenie znika, plansza zostaje.
 - Czas pary liczy się od poprzedniej pary (albo startu) do drugiego dotknięcia; szukanie dłuższe niż 5 s liczy się jak 5 s.
 - Wynik liczy klient (jak w Kolorze liter), serwer odrzuca tylko nierealne wartości. Limit czasu: zero par.
+
+### Tort (`tort`)
+- 5 tortów (`CAKES`), każdy okrągły; gracz dzieli go cięciami od środka do brzegu na podaną liczbę równych kawałków.
+- Liczby kawałków to potasowane 3, 4, 5, 6, 7 (każda dokładnie raz w partii). Każdy tort ma jedno gotowe cięcie pod losowym kątem
+  (`first`, int 0-359°), to samo dla wszystkich; bez niego obrót całości byłby dowolny i nie byłoby czego odsłaniać jako ideału.
+- Gracz stawia pozostałe `pieces − 1` cięć; każde to kąt w stopniach (liczba, 0 ≤ kąt < 360, niekoniecznie całkowita).
+- Jeden ruch z 5 listami kątów, i-ta ma dokładnie `pieces − 1` pozycji. Wynik liczy serwer.
+- Błąd tortu (`error`): kawałki to odstępy między kolejnymi cięciami po okręgu (razem z gotowym); błąd = suma |kawałek − 360°/n| / 2,
+  w procentach całego tortu. Czyli tyle tortu trzeba by przełożyć między talerzami, żeby każdy miał równo.
+  Kolejność cięć na liście nie ma znaczenia. Dwa cięcia w tym samym miejscu to kawałek o zerowej szerokości (dozwolone, po prostu drogie).
+- Najgorszy uczciwy tort to wszystkie cięcia na gotowym: (n − 1)/n tortu, przy 7 kawałkach 85,7%.
+- Wynik = suma błędów z 5 tortów, zapisana w dziesiątych częściach procenta (int), mniej lepiej.
+- Pusta lista = limit czasu = 5 × 100% (`MAX_ERROR`, więcej niż najgorsza uczciwa partia).
+- Bez ruchu `progress` (5 krótkich rund).
+- Ekran: kwadratowy kafel z tortem, nad nim liczba kawałków. Gotowe cięcie jest w kolorze tekstu, własne w kolorze gracza.
+  Dotknięcie tortu stawia cięcie pod kątem palca (dopóki brakuje) i można je od razu przeciągnąć; dotknięcie do 10° (`GRAB`) od własnego
+  cięcia łapie je i przesuwa. Gotowego cięcia nie da się ruszyć. Po komplecie cięć przycisk „Pokrój” (kolor gracza).
+  Potem przez 1,5 s widać idealne cięcia (przerywane, liczone od gotowego) i błąd w %; kolor według celności: do 2% zielony z „Idealnie!”,
+  do 8% zwykły, dalej ostrzegawczy. Potem sam wskakuje następny tort; po piątym wynik idzie na serwer.
+- Ekran końcowy: jedna tabela, torty 1-5 w kolumnach (z liczbą kawałków), gracze w wierszach. Najlepszy w rundzie (bez remisu) ma tło w kolorze gracza.
 
 ## 2. Gomoku (`piec-w-rzedzie`)
 
