@@ -12,6 +12,7 @@ import { memory } from "./memory.ts";
 import { obrot } from "./obrot.ts";
 import { panstwaMiasta } from "./panstwa-miasta.ts";
 import { piecWRzedzie } from "./piec-w-rzedzie.ts";
+import { przytrzymaj } from "./przytrzymaj.ts";
 import { refleks } from "./refleks.ts";
 import { rok } from "./rok.ts";
 import { rytm } from "./rytm.ts";
@@ -78,6 +79,7 @@ export { ASPECT as MAPA_ASPECT, distance as mapaDistance, error as mapaError, lo
 export { OUTLINE as MAPA_OUTLINE } from "./mapa-dane.ts";
 export { DURATION_MS as STOJ_DURATION_MS, SCHEDULE as STOJ_SCHEDULE, score as stojScore, VISIBLE as STOJ_VISIBLE, type View as StojView } from "./stoj.ts";
 export { BEATS as RYTM_BEATS, MAX_TAPS as RYTM_MAX_TAPS, TAP_MS as RYTM_TAP_MS, type View as RytmView } from "./rytm.ts";
+export { deviation as przytrzymajDeviation, ROUNDS as PRZYTRZYMAJ_ROUNDS, type View as PrzytrzymajView } from "./przytrzymaj.ts";
 export { DURATION_MS as QUIZ_DURATION_MS, type QuizMove } from "./quiz.ts";
 export { around as shipAround, isValidFleet, MODES as STATKI_MODES, randomFleet, type Rules as StatkiRules, type Ship, shipCells, type Shot, type View as StatkiView } from "./statki.ts";
 
@@ -108,6 +110,7 @@ export const GAMES: Record<string, GameDefinition<any, any>> = Object.assign(Obj
   [obrot.id]: obrot,
   [mapa.id]: mapa,
   [kat.id]: kat,
+  [przytrzymaj.id]: przytrzymaj,
   [panstwaMiasta.id]: panstwaMiasta,
 });
 
