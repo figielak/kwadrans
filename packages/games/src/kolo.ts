@@ -143,6 +143,7 @@ export const kolo: GameDefinition<State, Move> = {
 
   isOver: (state) => (kolo.waitingFor(state).length ? null : rankResults(state.players, state.best, byScore)),
   places: (state) => rankPlaces(state.players, state.best, byScore),
+  record: { lower: false, score: (state, player) => state.best[player].score },
 
   waitingFor: (state) => state.players.filter((p) => (state.attempts[p] ?? 0) < ATTEMPTS),
 

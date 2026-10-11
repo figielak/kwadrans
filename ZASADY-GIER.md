@@ -29,8 +29,15 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Rytm | `rytm` | 1-6 | 60 s | mini-gra |
 | Inny element | `inny` | 1-6 | 90 s | mini-gra |
 | Obrót | `obrot` | 1-6 | 90 s | mini-gra |
+| Literówka | `literowka` | 1-6 | 90 s | mini-gra |
 | Mapa | `mapa` | 1-6 | 180 s | mini-gra |
 | Kąt | `kat` | 1-6 | 120 s | mini-gra |
+| Przytrzymaj | `przytrzymaj` | 1-6 | 120 s | mini-gra |
+| Balon | `balon` | 1-6 | 120 s | mini-gra |
+| W pamięci | `w-pamieci` | 1-6 | 300 s | mini-gra |
+| Dziesiątki | `dziesiatki` | 1-6 | 90 s | mini-gra |
+| Tort | `tort` | 1-6 | 120 s | mini-gra |
+| Nożyczki | `nozyczki` | 1-6 | 60 s | mini-gra |
 
 Nazwy w UI zmieniały się (2026-10-10), `id`, nazwy plików i typów zostały stare: Sekwencja = `simon`, Kolor liter = `stroop`,
 Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, więc `id` nie wolno zmieniać.
@@ -40,8 +47,8 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
 - Wyzwanie losuje serwer w `setup` (to samo dla wszystkich) i od razu wysyła w widoku. `playerView` zwraca cały stan,
   więc nic nie jest ukryte (da się podejrzeć; świadoma decyzja, komentarze `ponytail:`).
 - Partia toczy się na kliencie. Każdy gracz wysyła jeden ruch `{ type: "result", ... }`; drugi ruch tego samego gracza jest odrzucany.
-  Wyjątki: Narysuj koło (do 10 ruchów na gracza), Tabela Schultego, Policz kropki, Kąt, Który rok? i Wieża (dodatkowy ruch `progress` po każdym trafieniu, rundzie albo klocku).
-- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt),
+  Wyjątki: Narysuj koło (do 10 ruchów na gracza), Tabela Schultego, Policz kropki, Kąt, Który rok?, Wieża i Balon (dodatkowy ruch `progress` po każdym trafieniu, rundzie, klocku albo balonie).
+- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon, W pamięci, Tort, Nożyczki),
   w reszcie ufa klientowi.
 - Partia zaczyna się ekranem instrukcji (platforma, nie zasady gry): każdy klika „Start” osobno (wiadomość pokoju `begin`) i gra od razu,
   po `INTRO_SECONDS` (15 s) gra rusza sama. Limit tury startuje, gdy wystartują wszyscy albo minie 15 s; wynik oddany wcześniej go nie uruchamia.
@@ -83,7 +90,7 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
 - Ekran: trafiony kafelek błyska na zielono, pomyłka na czerwono z potrząśnięciem; lokalny zegar ma etykietę „Twój czas”.
 
 ### Kolor liter (`stroop`) i Liczenie (`liczenie`)
-Wspólne zasady w `quiz.ts`, wspólny ekran `Quiz.tsx` (dzielą je też Inny element i Obrót).
+Wspólne zasady w `quiz.ts`, wspólny ekran `Quiz.tsx` (dzielą je też Inny element, Obrót i Literówka).
 - 30 s pytań z czterema odpowiedziami; serwer losuje 200 pytań (starczy przy 150 ms na odpowiedź).
 - Pomyłka blokuje na 1 s (inaczej losowe klepanie byłoby szybsze niż myślenie).
 - Wynik: `times` (czasy poprawnych) i `errors`. Ranking jak w Refleksie: trafienia, potem niższa średnia. `errors` nie wpływa na ranking, ale jest widoczne w pasku statystyk i w wynikach.
@@ -318,6 +325,20 @@ Przebieg, walidacja i ekran końcowy jak w Kolorze liter (`quiz.ts`, `Quiz.tsx`)
 - Limit czasu: zero trafień i zero pomyłek.
 - Ekran końcowy: tabela z punktami, średnim czasem i błędami (jak w Stój!).
 
+### Literówka (`literowka`)
+Przebieg, walidacja, punktacja i ekran końcowy jak w Obrocie (`quiz.ts`, `Quiz.tsx`); inne są plansze.
+- 30 s. Plansza to 4 słowa w siatce 2×2 (`WORDS`): trzy napisane poprawnie, jedno z błędem ortograficznym. Gracz dotyka błędnego.
+- Błędy są tylko trzech rodzajów: ó/u, rz/ż, ch/h („żeka”, „chałas”). Lista par `[poprawne, błędne]` jest w `literowka-dane.ts` (`PAIRS`):
+  co najmniej 100 par, małe litery, 4-12 liter. Błędna forma nie może być prawdziwym słowem (odpadają pary typu morze/może, lód/lud).
+- Serwer losuje 200 plansz, te same dla wszystkich: tasuje listę par i rozdaje po 4 na planszę, a po wyczerpaniu listy tasuje od nowa,
+  więc w pierwszych 45 planszach (na tyle starcza lista 181 par) żadne słowo się nie powtarza. Jedna z czterech par pokazuje formę błędną, pozostałe poprawną.
+  Plansza `{ words, wrong }`: `wrong` to pozycja błędnego słowa (0-3), losowana po równo.
+- Pomyłka blokuje na 1 s i zabiera punkt, potem przychodzi następna plansza (bez drugiej próby i bez pokazywania poprawnej pisowni).
+- Wynik = trafienia − pomyłki, nie mniej niż 0, więcej lepiej. Przy remisie niższa średnia czasu trafień; dwa wyniki bez trafień to remis.
+  Liczy go klient jak w Obrocie (serwer zna `wrong`, więc mógłby liczyć sam z listy odpowiedzi, gdyby ktoś zaczął oszukiwać).
+- Limit czasu: zero trafień i zero pomyłek.
+- Ekran: cztery kafle ze słowami, pod nimi „Które słowo ma błąd?”; na końcu tabela z punktami, średnim czasem i błędami (jak w Obrocie).
+
 ### Mapa (`mapa`)
 - 10 rund, w każdej nazwa miasta; gracz wskazuje je na konturze Polski (sam kontur, bez rzek i województw).
 - Serwer losuje 10 różnych miast z puli 62 (`CITIES` w `mapa-dane.ts`), te same i w tej samej kolejności dla wszystkich.
@@ -337,6 +358,111 @@ Przebieg, walidacja i ekran końcowy jak w Kolorze liter (`quiz.ts`, `Quiz.tsx`)
   „Zatwierdź” kończy rundę. Potem przez 1,5 s widać prawdziwe miejsce (pierścień), linię do znacznika i odległość w km:
   do 20 km na zielono z „Idealnie!”, ponad 150 km kolorem ostrzeżenia.
 - Ekran końcowy: suma każdego gracza i tabela rund (miasto, km każdego gracza, najlepszy w rundzie na tle w swoim kolorze).
+
+### Przytrzymaj (`przytrzymaj`)
+- 5 rund (`ROUNDS`). W każdej po 1 s przerwy pole świeci się przez czas celu i gaśnie, potem gracz przykłada palec i trzyma go tak długo,
+  jak świeciło pole. Po puszczeniu przez 1,5 s widać czas trzymania, cel i odchyłkę ze znakiem.
+- Cele (`targets`) losuje serwer: 5 czasów w pełnych ms, każdy 1000-5000 (`MIN_MS`, `MAX_MS`), losowane niezależnie, te same dla wszystkich.
+  Bez `nonce`: pięć losowych ms praktycznie się nie powtarza, więc rewanż montuje ekran od nowa po samych celach.
+- Jeden ruch z `holds`: czasy trzymania w ms (int) w kolejnych rundach, mierzone na kliencie między dotknięciem a puszczeniem.
+- Wynik liczy serwer: odchyłka rundy (`deviation`) = |czas trzymania − cel|, ucięta do celu; wynik = suma z 5 rund w ms (int), mniej lepiej,
+  równe to remis. Ucięcie sprawia, że puszczenie od razu i trzymanie bez końca kosztują tyle samo (jak w Stoperze).
+- Walidacja: lista pusta albo dokładnie 5 czasów, każdy całkowity od 0 do 10 000 (`2 × MAX_MS`). Pusta lista = limit czasu = suma celów,
+  czyli najgorszy możliwy wynik.
+- Ekran sam kończy trzymanie po dwukrotności celu (dalej odchyłka i tak jest ucięta). Grający nie widzi limitu tury ani żadnego licznika
+  sekund (podawałyby czas), jak w Stoperze i Rytmie.
+- Stan trzyma też `holds` każdego gracza: ekran końcowy to jedna tabela (bez osobnej listy wyników): w wierszu gracza suma, pod nim odchyłki rund ze znakiem, nad nimi cele; najlepszy w rundzie wyróżniony.
+
+### Balon (`balon`)
+- 10 balonów po kolei (`BALLOONS`). Każde stuknięcie pompuje balon i dodaje do niego 1 punkt.
+- Serwer losuje dla każdego balonu wytrzymałość (`limits`, liczba całkowita 1-30, równomiernie; `MIN_SAFE`, `MAX_SAFE`), tę samą
+  dla wszystkich: tyle stuknięć balon wytrzymuje, następne go rozrywa. Pierwsze stuknięcie jest zawsze bezpieczne.
+- „Zgarnij” dopisuje punkty balonu do sumy i daje następny balon. Pęknięcie daje za ten balon 0 (zgarnięte wcześniej punkty zostają).
+  Zgarnąć można też pusty balon (0 stuknięć, 0 punktów, bez pęknięcia).
+- Jeden ruch z `pumps`: liczba stuknięć w każdym z 10 balonów (int 0-31; 31 to zawsze pęknięcie). Wynik liczy serwer (`score`):
+  balon z `pumps[i] > limits[i]` jest pęknięty i daje 0, inaczej daje `pumps[i]`; `score` = suma (0-300), `popped` = liczba pękniętych.
+- Ranking: więcej punktów wyżej, przy równych mniej pękniętych balonów; równe oba to remis.
+- Walidacja: dokładnie 10 liczb całkowitych 0-31 albo pusta lista. Pusta lista = limit czasu = najgorszy wynik: 0 punktów i 10 pękniętych.
+- Ruch `progress` (`done` = liczba zakończonych balonów, int 1-9) po każdym balonie poza ostatnim: tylko do podglądu u rywali
+  (pasek „3/10” w pigułce gracza), nie odnawia limitu (`turn` ma stały klucz), może spaść po odświeżeniu strony.
+  Punktów rywali w trakcie nie widać: zdradzałyby, ile balon wytrzymuje.
+- Ekran: kwadratowy kafel z balonem w kolorze gracza, dotknięcie kafla pompuje. Rozmiar balonu zależy tylko od liczby stuknięć,
+  nie od wytrzymałości. Pod kaflem „Zgarnij 12 pkt”. Po zgarnięciu „+12”, po pęknięciu „Pękł!” i wibracja 60, przez 0,8 s.
+  Na końcu tabela: ile każdy balon wytrzymywał i ile stuknięć zrobił każdy gracz (pęknięty: przekreślona czerwona liczba, pusty: kreska).
+
+### W pamięci (`w-pamieci`)
+- Do 12 rund (`ROUNDS`). W każdej na ekranie pojawia się liczba startowa, a po niej kolejne działania („+7”, „−3”, „×2”), każda pozycja
+  przez 1,5 s (`SHOW_MS`); wyniku pośredniego nie widać. Na końcu gracz wpisuje, ile wyszło.
+- Ciąg się wydłuża: runda `i` (od 0) ma `i + 2` działań (`START_OPS`), ostatnia 13. Każda runda to nowy ciąg, nie przedłużenie poprzedniego.
+- Pierwsza zła odpowiedź kończy partię (jak w Sekwencji i Śledzeniu).
+- Serwer losuje `rounds` (`{ start, ops: { op, n }[] }`), te same dla wszystkich: start 1-9, działanie to +1..9, −1..9, ×2 albo ×3,
+  losowane tak, żeby wartość po każdym kroku była w 1-99 (`MAX_VALUE`). Działania liczy się po kolei od lewej (`value(round)`).
+- Jeden ruch z `answers`: odpowiedzi w kolejnych rozegranych rundach (int 0-999, `MAX_ANSWER`). Wynik liczy serwer:
+  `rounds` = liczba poprawnych odpowiedzi od początku, `diff` = odchyłka odpowiedzi od wyniku w pierwszej rundzie niezaliczonej
+  (brak odpowiedzi w tej rundzie = 999, komplet 12 rund = 0). Wszystko po pierwszym błędzie jest ignorowane.
+- Ranking: więcej rund wyżej, przy równych mniejsza odchyłka („prawie dobrze” wygrywa ze strzałem na oślep); równe oba to remis.
+- Walidacja: najwyżej 12 liczb całkowitych 0-999. Pusta lista = limit czasu = 0 rund i odchyłka 999.
+- Bez ruchu `progress`: rywale nie widzą numeru rundy (jak w Śledzeniu).
+- Ekran: kwadratowy kafel, pozycje ciągu wskakują jedna po drugiej (dwa takie same działania z rzędu widać jako dwa), nad nim numer rundy
+  i działania. Po dobrej odpowiedzi od razu następna runda; po złej wibracja 60 i cały ciąg z prawdziwym wynikiem.
+
+### Dziesiątki (`dziesiatki`)
+Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Results` z `Quiz.tsx`); inny jest przebieg planszy.
+- 30 s. Siatka 4×4 (`SIDE`) z liczbami 1-9. Gracz dotyka dwóch pól, które w sumie dają 10 (`TARGET`); pola nie muszą sąsiadować.
+  Trafiona para znika, a w jej miejsce wchodzą dwie nowe liczby.
+- Serwer losuje to samo dla wszystkich: planszę startową `board` (16 liczb) i dostawy `refills` (400 liczb, starczy przy 150 ms na parę).
+  Para nr `n` (liczona od 0) dostaje `refills[2n]` w pierwszym dotkniętym polu i `refills[2n + 1]` w drugim.
+  Dwie liczby jednej dostawy nigdy nie dają razem 10 (inaczej opłacałoby się klepać w te same dwa pola).
+- Na planszy zawsze jest co najmniej jedna para. Jeśli po dostawie żadnej nie ma, drugie nowe pole dostaje `10 − wartość` pierwszego pola
+  spoza tej dwójki. Tak samo poprawiana jest plansza startowa (pole 1 = `10 − pole 0`). Liczy to `take` (ta sama funkcja na ekranie i w testach),
+  bo plansza gracza zależy od tego, które pary wybrał.
+- Pierwsze dotknięcie zaznacza pole, dotknięcie zaznaczonego pola je odznacza (bez kary). Drugie pole, które nie daje 10, to pomyłka:
+  blokada 1 s, zaznaczenie znika, plansza zostaje.
+- Czas pary liczy się od poprzedniej pary (albo startu) do drugiego dotknięcia; szukanie dłuższe niż 5 s liczy się jak 5 s.
+- Wynik liczy klient (jak w Kolorze liter), serwer odrzuca tylko nierealne wartości. Limit czasu: zero par.
+
+### Tort (`tort`)
+- 5 tortów (`CAKES`), każdy okrągły; gracz dzieli go cięciami od środka do brzegu na podaną liczbę równych kawałków.
+- Liczby kawałków to potasowane 3, 4, 5, 6, 7 (każda dokładnie raz w partii). Każdy tort ma jedno gotowe cięcie pod losowym kątem
+  (`first`, int 0-359°), to samo dla wszystkich; bez niego obrót całości byłby dowolny i nie byłoby czego odsłaniać jako ideału.
+- Gracz stawia pozostałe `pieces − 1` cięć; każde to kąt w stopniach (liczba, 0 ≤ kąt < 360, niekoniecznie całkowita).
+- Jeden ruch z 5 listami kątów, i-ta ma dokładnie `pieces − 1` pozycji. Wynik liczy serwer.
+- Błąd tortu (`error`): kawałki to odstępy między kolejnymi cięciami po okręgu (razem z gotowym); błąd = suma |kawałek − 360°/n| / 2,
+  w procentach całego tortu. Czyli tyle tortu trzeba by przełożyć między talerzami, żeby każdy miał równo.
+  Kolejność cięć na liście nie ma znaczenia. Dwa cięcia w tym samym miejscu to kawałek o zerowej szerokości (dozwolone, po prostu drogie).
+- Najgorszy uczciwy tort to wszystkie cięcia na gotowym: (n − 1)/n tortu, przy 7 kawałkach 85,7%.
+- Wynik = suma błędów z 5 tortów, zapisana w dziesiątych częściach procenta (int), mniej lepiej.
+- Pusta lista = limit czasu = 5 × 100% (`MAX_ERROR`, więcej niż najgorsza uczciwa partia).
+- Bez ruchu `progress` (5 krótkich rund).
+- Ekran: kwadratowy kafel z tortem, nad nim liczba kawałków. Gotowe cięcie jest w kolorze tekstu, własne w kolorze gracza.
+  Dotknięcie tortu stawia cięcie pod kątem palca (dopóki brakuje) i można je od razu przeciągnąć; dotknięcie do 10° (`GRAB`) od własnego
+  cięcia łapie je i przesuwa. Gotowego cięcia nie da się ruszyć. Po komplecie cięć przycisk „Pokrój” (kolor gracza).
+  Potem przez 1,5 s widać idealne cięcia (przerywane, liczone od gotowego) i błąd w %; kolor według celności: do 2% zielony z „Idealnie!”,
+  do 8% zwykły, dalej ostrzegawczy. Potem sam wskakuje następny tort; po piątym wynik idzie na serwer.
+- Ekran końcowy: jedna tabela, torty 1-5 w kolumnach (z liczbą kawałków), gracze w wierszach. Najlepszy w rundzie (bez remisu) ma tło w kolorze gracza.
+
+### Nożyczki (`nozyczki`)
+- 5 kształtów (`SHAPES`), te same dla wszystkich; gracz jednym ruchem palca przecina każdy prostą tak, żeby obie części miały równe pole.
+- Kształt to gęsty wielokąt (64 wierzchołki, współrzędne 0-1 w ułamkach pola, zaokrąglone do 3 miejsc). Promień jest funkcją kąta:
+  losowa baza (0,20-0,26 boku pola, więc rozmiar też się zmienia) razy (1 + suma czterech fal o losowej amplitudzie i fazie),
+  więc kształt jest gładki, nie przecina sam siebie i nie ma symetrii.
+  Całość jest losowo przesunięta w polu (margines 0,05 od krawędzi), żeby środek kafla niczego nie podpowiadał.
+  Ekran rysuje ten sam wielokąt, więc pole na ekranie i na serwerze jest to samo.
+- Cięcie to prosta przez punkt dotknięcia i punkt puszczenia palca (`a`, `b`), przedłużona w obie strony; jak długi był ruch, nie ma znaczenia.
+- Wynik liczy serwer: `split` obcina wielokąt do obu stron prostej, `share` to udział jednej strony w polu kształtu.
+  Gdy prosta tnie kształt na więcej niż dwa kawałki, liczą się strony prostej (kawałki po tej samej stronie się sumują).
+- Błąd kształtu = |udział − 50%| w punktach procentowych (części 53% i 47% to błąd 3,0), od 0 do 50. Kierunek ruchu nie ma znaczenia.
+- Cięcie nie jest odpowiedzią, gdy punkty leżą bliżej niż 0,05 boku pola (`MIN_CUT`: kierunek prostej byłby przypadkowy)
+  albo mniejsza część ma poniżej 1% pola kształtu (`MIN_PART`: prosta minęła kształt albo ledwie go drasnęła).
+  Ekran je ignoruje bez kary, serwer odrzuca cały ruch z takim cięciem (jak strefa akceptacji w Środku).
+- Jeden ruch z 5 cięciami. Wynik = suma błędów, zapisana w dziesiątych częściach punktu procentowego (int), mniej lepiej.
+- Pusta lista = limit czasu = 5 × 50% (`MAX_ERROR`, tyle co cięcie obok kształtu; każda uczciwa runda kosztuje mniej).
+- Bez ruchu `progress` (5 krótkich rund).
+- Ekran: kwadratowy kafel z kształtem. Przeciąganie pokazuje prostą przez cały kafel w kolorze gracza, puszczenie tnie.
+  Cięcie, które nie jest odpowiedzią: potrząśnięcie, wibracja 60 i „Przetnij kształt”, runda trwa dalej.
+  Po cięciu przez 1,5 s obie części mają kolor gracza o różnym kryciu, pod kaflem ich udziały („53,0% | 47,0%”); kolor według celności:
+  do 1 zielony z „Idealnie!”, do 5 zwykły, dalej ostrzegawczy. Potem sam wskakuje następny kształt; po piątym wynik idzie na serwer.
+- Ekran końcowy: jedna tabela, kształty 1-5 w kolumnach, gracze w wierszach. Najlepszy w rundzie (bez remisu) ma tło w kolorze gracza.
 
 ## 2. Gomoku (`piec-w-rzedzie`)
 

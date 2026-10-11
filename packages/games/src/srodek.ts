@@ -105,7 +105,7 @@ export const srodek: GameDefinition<State, Move> = {
 
   playerView: (state): View => state,
 
-  ...ranked((state: State) => state.results, (a, b) => a - b),
+  ...ranked((state: State) => state.results, (a, b) => a - b, { lower: true, score: (r) => r }),
 
   waitingFor: (state) => state.players.filter((p) => !(p in state.results)),
 

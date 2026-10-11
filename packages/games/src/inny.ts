@@ -1,4 +1,4 @@
-import { byHitsThenAverage, type GameDefinition, type PlayerId, ranked } from "./core.ts";
+import { average, byHitsThenAverage, type GameDefinition, type PlayerId, ranked } from "./core.ts";
 import { QUESTIONS, type QuizMove, quizMoveSchema, type QuizResult, validQuiz } from "./quiz.ts";
 
 /** Największy bok siatki: przy 360 px szerokości kafel ma wtedy jeszcze 48 px. */
@@ -75,7 +75,7 @@ export const inny: GameDefinition<State, Move> = {
 
   playerView: (state): View => state,
 
-  ...ranked((state: State) => state.results, byHitsThenAverage),
+  ...ranked((state: State) => state.results, byHitsThenAverage, { lower: false, score: (r) => r.times.length, tie: { lower: true, score: (r) => Math.round(average(r.times)) } }),
 
   waitingFor: (state) => state.players.filter((p) => !(p in state.results)),
 

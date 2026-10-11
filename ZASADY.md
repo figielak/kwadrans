@@ -88,7 +88,7 @@ Te rzeczy działają tak samo w każdej grze. Odstępstwo wymaga wpisu w `ZASADY
 
 - **Po limicie tury jest ruch, nie przegrana.** `timeoutMove` wybiera ruch neutralny albo losowy dozwolony;
   w mini-grze jest to najgorszy możliwy wynik.
-- **Remis nie ma zwycięzcy.** `isOver` zwraca wtedy samo `ranking`. Mini-gry używają `ranked` (czyli `rankResults` i `places` z jednego komparatora) i nie liczą remisu ani gry solo do statystyk;
+- **Remis nie ma zwycięzcy.** `isOver` zwraca wtedy samo `ranking`. Mini-gry używają `ranked` (czyli `rankResults` i `places` z jednego komparatora) i nie liczą remisu ani gry solo do wygranych (rekord zapisuje się zawsze, także solo);
   bez `places` mini-gra nie przejdzie testu kontraktu, bo turniej liczy z niego punkty.
 - **Kto zaczyna**: pierwszy z `players`. Kolejność miejsc rotuje platforma przy rewanżu, gra nie losuje startu sama.
 - **Losowość tylko z `rng`** przekazanego do `setup` i `applyMove`. Żadnego `Math.random` ani `Date.now` w zasadach.
@@ -107,7 +107,7 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
 (oraz `canMove` albo `ranking`) i nie wie nic o sieci.
 
 **Czego gra nie rysuje sama**
-- Nagłówek ze statusem („Twój ruch!”, „Czekamy na: ...”, „Wygrywasz!”), pasek czasu, lista graczy z liczbą wygranych partii (puchar przed liczbą, „+1” nad pigułką zwycięzcy),
+- Nagłówek ze statusem („Twój ruch!”, „Czekamy na: ...”, „Wygrywasz!”), pasek czasu, lista graczy z liczbą wygranych partii (puchar i podpis „wygrane” przed liczbą, „+1” nad pigułką zwycięzcy),
   „Oglądasz”, komunikat o rozłączeniu, przyciski „Rewanż” i „Do lobby”. To wszystko daje `screens/Game.tsx`.
 - Własny nagłówek ma tylko gra, której wspólny nie wystarcza (Państwa-miasta, Kampus Tour), i wtedy przejmuje cały jego zakres.
 
@@ -182,6 +182,7 @@ Podpięcie, w tej kolejności:
 3. `packages/games/src/<id>.ts`, wpis w `GAMES` i eksport typu `View` oraz stałych w `index.ts`,
 4. `apps/web/src/games/<Gra>.tsx`,
 5. gałąź w `screens/Game.tsx` (mini-gra: `key` z wyzwania i wpis w `MINI_GAMES`), ikona w `ICONS` w `screens/Lobby.tsx`,
+   mini-gra: `record` w definicji (trzeci argument `ranked`; z `tie`, jeśli komparator ma drugie kryterium), przypadek w `RECORDS` w `index.test.ts` i jednostka w `FORMAT` w `screens/Records.tsx`,
 6. opis w `KONCEPT.md` (sekcja 2 i tabela etapów).
 
 Po zmianie w `packages/games` serwer deweloperski trzeba zrestartować.
@@ -193,6 +194,6 @@ Gra jest gotowa, gdy w `/dev` (`/dev?n=...` dla większej liczby graczy) przesz�
 - [ ] dobiegnięcie limitu tury w każdej fazie,
 - [ ] wyjście gracza w trakcie (walkower),
 - [ ] remis, rewanż i powrót do lobby,
-- [ ] wynik w rankingu na stronie głównej,
+- [ ] wynik w rankingu na stronie głównej (mini-gra: na ekranie „Rekordy” i w panelu po partii),
 - [ ] ekran 360×640, w wiadomościach WebSocket nie ma ukrytych danych,
 - [ ] punkty z sekcji 3, 4 i 5 tego pliku.

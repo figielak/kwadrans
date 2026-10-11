@@ -118,7 +118,7 @@ export const sledzenie: GameDefinition<State, Move> = {
 
   playerView: (state): View => state,
 
-  ...ranked((state: State) => state.results, (a, b) => b.rounds - a.rounds || b.hits - a.hits),
+  ...ranked((state: State) => state.results, (a, b) => b.rounds - a.rounds || b.hits - a.hits, { lower: false, score: (r) => r.rounds, tie: { lower: false, score: (r) => r.hits } }),
 
   waitingFor: (state) => state.players.filter((player) => !(player in state.results)),
 

@@ -1,7 +1,8 @@
-import { ArrowRight, Plus } from "@phosphor-icons/react";
-import { cleanNick, GAMES, NICK_MAX, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, TOURNAMENT_ID } from "@mini-games/games";
+import { ArrowRight, Plus, Trophy } from "@phosphor-icons/react";
+import { cleanNick, GAMES, NICK_MAX, nickKey, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, TOURNAMENT_ID } from "@mini-games/games";
 import { useEffect, useState } from "react";
 import type { Room } from "@colyseus/sdk";
+import { Records } from "./Records.tsx";
 import { codeFromUrl, createRoom, errorText, fetchRanking, joinRoom, type RankingRow, savedNick } from "../net.ts";
 
 /** Wklejony link `/?kod=ABCD` daje sam kod, nie litery z adresu. */
@@ -15,6 +16,7 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
   const [roomError, setRoomError] = useState(notice ?? "");
   const [busy, setBusy] = useState<"create" | "join" | null>(null);
   const [ranking, setRanking] = useState<Record<string, RankingRow[]>>({});
+  const [records, setRecords] = useState(false);
 
   useEffect(() => {
     fetchRanking().then(setRanking);
@@ -34,6 +36,8 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
       setBusy(null);
     }
   }
+
+  if (records) return <Records nick={cleanNick(nick)} onBack={() => setRecords(false)} />;
 
   return (
     <main className="mx-auto flex min-h-[100dvh] max-w-md flex-col gap-3 px-4 pt-10 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
@@ -108,14 +112,20 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
         )}
       </button>
 
+      <button type="button" className="btn btn-ghost w-full" onClick={() => setRecords(true)}>
+        <Trophy size={18} aria-hidden />
+        Rekordy mini-gier
+      </button>
+
       <Ranking ranking={ranking} me={cleanNick(nick)} />
     </main>
   );
 }
 
 function Ranking({ ranking, me }: { ranking: Record<string, RankingRow[]>; me: string | null }) {
-  // Turniej nie jest grą z rejestru, ale ma własny ranking.
-  const title = (id: string) => (id === TOURNAMENT_ID ? "Turniej" : GAMES[id]?.name);
+  // Turniej nie jest grą z rejestru, ale ma własny ranking. Mini-gry mają rekordy na osobnym ekranie.
+  const title = (id: string) => (id === TOURNAMENT_ID ? "Turniej" : GAMES[id]?.minPlayers > 1 ? GAMES[id].name : undefined);
+  const key = me && nickKey(me);
   const games = Object.entries(ranking).filter(([id]) => title(id));
   if (games.length === 0) return null;
   return (
@@ -128,7 +138,7 @@ function Ranking({ ranking, me }: { ranking: Record<string, RankingRow[]>; me: s
           <h3 className="mb-1 font-semibold">{title(id)}</h3>
           <ol className="flex flex-col text-sm">
             {rows.map((r, i) => (
-              <li key={r.nick} className={`flex gap-3 py-0.5 ${r.nick === me ? "text-accent" : ""}`}>
+              <li key={r.nick} className={`flex gap-3 py-0.5 ${nickKey(r.nick) === key ? "text-accent" : ""}`}>
                 <span className="w-5 font-mono text-fg-subtle">{i + 1}</span>
                 <span className="flex-1 truncate">{r.nick}</span>
                 <span className="font-mono tabular-nums" aria-label={`${r.wins} wygranych z ${r.played} partii`}>

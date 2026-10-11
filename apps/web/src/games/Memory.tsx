@@ -1,25 +1,4 @@
-import {
-  Anchor,
-  Bell,
-  Bicycle,
-  Butterfly,
-  Cactus,
-  Cat,
-  Coffee,
-  Crown,
-  DiamondsFour,
-  Fish,
-  Ghost,
-  Guitar,
-  type Icon,
-  Key,
-  Moon,
-  Rocket,
-  Scissors,
-  Sun,
-  Tree,
-  Umbrella,
-} from "@phosphor-icons/react";
+import { DiamondsFour } from "@phosphor-icons/react";
 import type { LobbyPlayer, MemoryView } from "@mini-games/games";
 import { useEffect, useState } from "react";
 
@@ -33,26 +12,27 @@ interface Props {
 /** Jak długo widać nietrafioną parę. Tura już wtedy należy do następnego gracza, a jego ruch zakrywa karty wcześniej. */
 const MISS_MS = 1500;
 
-/** Ikona i nazwa (dla czytników ekranu) każdego symbolu; kolejność to numer symbolu z serwera (MEMORY_SYMBOLS = 18). */
-const ICONS: [Icon, string][] = [
-  [Cat, "kot"],
-  [Rocket, "rakieta"],
-  [Coffee, "kawa"],
-  [Bicycle, "rower"],
-  [Umbrella, "parasol"],
-  [Key, "klucz"],
-  [Moon, "księżyc"],
-  [Sun, "słońce"],
-  [Tree, "drzewo"],
-  [Fish, "ryba"],
-  [Anchor, "kotwica"],
-  [Bell, "dzwonek"],
-  [Crown, "korona"],
-  [Ghost, "duch"],
-  [Scissors, "nożyczki"],
-  [Guitar, "gitara"],
-  [Butterfly, "motyl"],
-  [Cactus, "kaktus"],
+/** Emoji i nazwa (dla czytników ekranu) każdego symbolu; kolejność to numer symbolu z serwera (MEMORY_SYMBOLS = 18).
+ * Dobrane tak, żeby żadne dwa nie miały podobnego koloru i kształtu naraz. */
+const EMOJI: [string, string][] = [
+  ["🍎", "jabłko"],
+  ["🐸", "żaba"],
+  ["⭐", "gwiazda"],
+  ["🐳", "wieloryb"],
+  ["🍇", "winogrona"],
+  ["🎃", "dynia"],
+  ["🐷", "świnia"],
+  ["🐼", "panda"],
+  ["👻", "duch"],
+  ["🌈", "tęcza"],
+  ["🚀", "rakieta"],
+  ["🎸", "gitara"],
+  ["💎", "diament"],
+  ["🍄", "grzyb"],
+  ["🌵", "kaktus"],
+  ["🍪", "ciastko"],
+  ["🦄", "jednorożec"],
+  ["🌍", "Ziemia"],
 ];
 
 export function Memory({ view, players, canMove, onMove }: Props) {
@@ -81,7 +61,7 @@ export function Memory({ view, players, canMove, onMove }: Props) {
         {view.faces.map((face, i) => {
           const owner = view.owner[i];
           const up = face !== null && (owner !== null || i === view.first || (missShown && !!view.miss?.includes(i)));
-          const [Symbol, name] = face === null ? [null, ""] : ICONS[face];
+          const [emoji, name] = face === null ? ["", ""] : EMOJI[face];
           // Karta „w grze” (pierwsza w tej turze) świeci i pulsuje kolorem gracza na ruchu; zebrana para jest przygaszona
           // w kolorze właściciela, a pudło zostaje neutralne.
           const live = owner === null && i === view.first;
@@ -106,7 +86,7 @@ export function Memory({ view, players, canMove, onMove }: Props) {
                   <DiamondsFour className="size-[38%]" weight="fill" />
                 </span>
                 <span
-                  className={`absolute inset-0 grid rotate-y-180 place-items-center rounded-inset border bg-surface-inset backface-hidden ${
+                  className={`@container absolute inset-0 grid rotate-y-180 place-items-center rounded-inset border bg-surface-inset backface-hidden ${
                     live ? "animate-[ring-pulse_1.2s_ease-in-out_infinite] border-2 outline-2" : owner !== null ? "opacity-60" : "border-line-hover"
                   }`}
                   style={
@@ -120,8 +100,8 @@ export function Memory({ view, players, canMove, onMove }: Props) {
                   }
                   aria-hidden
                 >
-                  {/* Animacja na ikonie, nie na ściance: transform z keyframes nadpisałby jej obrót. */}
-                  {Symbol && <Symbol className={`size-[55%] ${owner !== null ? "animate-[stone-pop_0.35s_ease-out]" : ""}`} weight={owner !== null ? "fill" : "regular"} />}
+                  {/* Animacja na emoji, nie na ściance: transform z keyframes nadpisałby jej obrót. */}
+                  <span className={`text-[50cqw] leading-none ${owner !== null ? "animate-[stone-pop_0.35s_ease-out]" : ""}`}>{emoji}</span>
                 </span>
               </span>
             </button>

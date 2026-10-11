@@ -3,7 +3,7 @@ import { Trophy } from "@phosphor-icons/react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
 
-/** Wspólny przebieg Koloru liter, Liczenia, Innego elementu i Obrotu: 30 s pytań z odpowiedziami do wyboru, pomyłka blokuje na chwilę. */
+/** Wspólny przebieg Koloru liter, Liczenia, Innego elementu, Obrotu i Literówki: 30 s pytań z odpowiedziami do wyboru, pomyłka blokuje na chwilę. */
 interface Props {
   view: { players: string[]; results: Record<string, { times: number[]; errors: number }> };
   me: string;
@@ -20,7 +20,7 @@ interface Props {
   question: (i: number) => { prompt?: ReactNode; options: ReactNode[]; correct: number; cols?: number; status?: ReactNode };
   /** Po pomyłce wraca to samo pytanie zamiast następnego; czas trafienia liczy się od pierwszego pokazania. */
   retry?: boolean;
-  /** Gra, w której błędy odejmują punkty (Obrót): wynik zamiast trafień w pasku i w tabeli, z własną notką i opisem punktacji. */
+  /** Gra, w której błędy odejmują punkty (Obrót, Literówka): wynik zamiast trafień w pasku i w tabeli, z własną notką i opisem punktacji. */
   points?: (res: { times: number[]; errors: number }) => number;
   note?: string;
   score?: string;
@@ -30,9 +30,9 @@ interface Props {
 }
 
 /** Bez kary losowe klepanie byłoby szybsze niż myślenie. */
-const BLOCK_MS = 1000;
-const MIN_ANSWER = 150;
-const MAX_ANSWER = 5000;
+export const BLOCK_MS = 1000;
+export const MIN_ANSWER = 150;
+export const MAX_ANSWER = 5000;
 
 type Phase = "intro" | "play" | "wrong" | "sent";
 
@@ -51,8 +51,9 @@ export function Results({
   ranking,
   winner,
   points,
+  label = "Trafienia",
   note = "Wygrywa najwięcej trafień, przy remisie niższy średni czas. Błędy nie odejmują trafień, każdy kosztował sekundę blokady.",
-}: Pick<Props, "view" | "me" | "players" | "ranking" | "winner"> & { points?: (res: Props["view"]["results"][string]) => number; note?: string }) {
+}: Pick<Props, "view" | "me" | "players" | "ranking" | "winner"> & { points?: (res: Props["view"]["results"][string]) => number; label?: string; note?: string }) {
   const rows = (ranking ?? view.players).map((id) => {
     const p = players.find((pl) => pl.id === id);
     const res = view.results[id];
@@ -78,7 +79,7 @@ export function Results({
         <thead>
           <tr className="label text-right">
             <th className="w-full px-2 text-left font-normal">Gracz</th>
-            <th className="px-1.5 font-normal">{points ? "Punkty" : "Trafienia"}</th>
+            <th className="px-1.5 font-normal">{points ? "Punkty" : label}</th>
             <th className="px-1.5 font-normal">Śr. czas</th>
             <th className="px-1.5 font-normal">Błędy</th>
           </tr>

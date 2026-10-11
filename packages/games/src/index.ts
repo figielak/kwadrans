@@ -1,5 +1,7 @@
 import type { GameDefinition } from "./core.ts";
+import { balon } from "./balon.ts";
 import { chinczyk } from "./chinczyk.ts";
+import { dziesiatki } from "./dziesiatki.ts";
 import { inny } from "./inny.ts";
 import { kampusTour } from "./kampus-tour.ts";
 import { kat } from "./kat.ts";
@@ -9,9 +11,12 @@ import { kropki } from "./kropki.ts";
 import { liczenie } from "./liczenie.ts";
 import { mapa } from "./mapa.ts";
 import { memory } from "./memory.ts";
+import { literowka } from "./literowka.ts";
+import { nozyczki } from "./nozyczki.ts";
 import { obrot } from "./obrot.ts";
 import { panstwaMiasta } from "./panstwa-miasta.ts";
 import { piecWRzedzie } from "./piec-w-rzedzie.ts";
+import { przytrzymaj } from "./przytrzymaj.ts";
 import { refleks } from "./refleks.ts";
 import { rok } from "./rok.ts";
 import { rytm } from "./rytm.ts";
@@ -23,7 +28,9 @@ import { statki } from "./statki.ts";
 import { stoj } from "./stoj.ts";
 import { stoper } from "./stoper.ts";
 import { stroop } from "./stroop.ts";
+import { tort } from "./tort.ts";
 import { wieza } from "./wieza.ts";
+import { wPamieci } from "./w-pamieci.ts";
 
 export * from "./core.ts";
 export * from "./lobby.ts";
@@ -54,7 +61,6 @@ export {
   CATEGORIES as PM_CATEGORIES,
   fits as pmFits,
   type Move as PanstwaMiastaMove,
-  normalize as pmNormalize,
   type View as PanstwaMiastaView,
 } from "./panstwa-miasta.ts";
 export type { View as PiecWRzedzieView } from "./piec-w-rzedzie.ts";
@@ -66,10 +72,14 @@ export { VISIBLE_MS as STOPER_VISIBLE_MS, type View as StoperView } from "./stop
 export { COLORS as STROOP_COLORS, type View as StroopView } from "./stroop.ts";
 export type { View as LiczenieView } from "./liczenie.ts";
 export type { Symbol as InnySymbol, View as InnyView } from "./inny.ts";
+export { SIDE as DZIESIATKI_SIDE, take as dziesiatkiTake, TARGET as DZIESIATKI_TARGET, type View as DziesiatkiView } from "./dziesiatki.ts";
 export { type Cells as ObrotCells, score as obrotScore, type View as ObrotView } from "./obrot.ts";
+export { score as literowkaScore, type View as LiterowkaView } from "./literowka.ts";
 export { ATTEMPTS as KOLO_ATTEMPTS, judge as koloJudge, MAX_POINTS as KOLO_MAX_POINTS, type Point as KoloPoint, type View as KoloView } from "./kolo.ts";
 export { COUNT as KOLOR_COUNT, distance as kolorDistance, type Hsb, hints as kolorHints, hsbToRgb as kolorHsbToRgb, SHOW_MS as KOLOR_SHOW_MS, type View as KolorView } from "./kolor.ts";
 export { MAX_ANSWER as KAT_MAX_ANSWER, type Round as KatRound, SHOW_MS as KAT_SHOW_MS, type View as KatView } from "./kat.ts";
+export { BALLOONS as BALON_BALLOONS, MAX_SAFE as BALON_MAX_SAFE, score as balonScore, type View as BalonView } from "./balon.ts";
+export { MAX_ANSWER as W_PAMIECI_MAX_ANSWER, ROUNDS as W_PAMIECI_ROUNDS, type Round as WPamieciRound, SHOW_MS as W_PAMIECI_SHOW_MS, value as wPamieciValue, type View as WPamieciView } from "./w-pamieci.ts";
 export { ROUNDS as KROPKI_ROUNDS, SHOW_MS as KROPKI_SHOW_MS, type View as KropkiView } from "./kropki.ts";
 export { MAX_YEAR as ROK_MAX_YEAR, MIN_YEAR as ROK_MIN_YEAR, REVEAL_MS as ROK_REVEAL_MS, ROUND_MS as ROK_ROUND_MS, ROUNDS as ROK_ROUNDS, type Event as RokEvent, type View as RokView } from "./rok.ts";
 export { BALLS, MOVE_MS, RADIUS, ROUNDS, SHOW_MS, SPEED_START, SPEED_STEP, TARGETS, position as sledzeniePosition, type Ball as SledzenieBall, type Move as SledzenieMove, type Result as SledzenieResult, type State as SledzenieState, type View as SledzenieView } from "./sledzenie.ts";
@@ -79,6 +89,9 @@ export { ASPECT as MAPA_ASPECT, distance as mapaDistance, error as mapaError, lo
 export { OUTLINE as MAPA_OUTLINE } from "./mapa-dane.ts";
 export { DURATION_MS as STOJ_DURATION_MS, SCHEDULE as STOJ_SCHEDULE, score as stojScore, VISIBLE as STOJ_VISIBLE, type View as StojView } from "./stoj.ts";
 export { BEATS as RYTM_BEATS, MAX_TAPS as RYTM_MAX_TAPS, TAP_MS as RYTM_TAP_MS, type View as RytmView } from "./rytm.ts";
+export { deviation as przytrzymajDeviation, ROUNDS as PRZYTRZYMAJ_ROUNDS, type View as PrzytrzymajView } from "./przytrzymaj.ts";
+export { type Cake as TortCake, CAKES as TORT_CAKES, error as tortError, type View as TortView } from "./tort.ts";
+export { accepts as nozyczkiAccepts, type Cut as NozyczkiCut, error as nozyczkiError, type Point as NozyczkiPoint, share as nozyczkiShare, SHAPES as NOZYCZKI_SHAPES, split as nozyczkiSplit, type View as NozyczkiView } from "./nozyczki.ts";
 export { DURATION_MS as QUIZ_DURATION_MS, type QuizMove } from "./quiz.ts";
 export { around as shipAround, isValidFleet, MODES as STATKI_MODES, randomFleet, type Rules as StatkiRules, type Ship, shipCells, type Shot, type View as StatkiView } from "./statki.ts";
 
@@ -107,8 +120,15 @@ export const GAMES: Record<string, GameDefinition<any, any>> = Object.assign(Obj
   [rytm.id]: rytm,
   [inny.id]: inny,
   [obrot.id]: obrot,
+  [literowka.id]: literowka,
   [mapa.id]: mapa,
   [kat.id]: kat,
+  [przytrzymaj.id]: przytrzymaj,
+  [balon.id]: balon,
+  [wPamieci.id]: wPamieci,
+  [dziesiatki.id]: dziesiatki,
+  [tort.id]: tort,
+  [nozyczki.id]: nozyczki,
   [panstwaMiasta.id]: panstwaMiasta,
 });
 

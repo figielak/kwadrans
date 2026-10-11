@@ -1,5 +1,5 @@
 import { Client, type Room } from "@colyseus/sdk";
-import type { RoomView } from "@mini-games/games";
+import type { RecordRow, RoomView } from "@mini-games/games";
 
 // W dev serwer gry stoi obok Vite na porcie 2567 tego samego hosta (działa też z telefonu w LAN).
 const serverUrl = import.meta.env.DEV ? `http://${location.hostname}:2567` : location.origin;
@@ -14,6 +14,12 @@ export interface RankingRow {
 /** Ranking po nicku dla każdej gry; przy błędzie pusty (sekcja się po prostu nie pokaże). */
 export const fetchRanking = (): Promise<Record<string, RankingRow[]>> =>
   fetch(`${serverUrl}/api/stats`)
+    .then((r) => (r.ok ? r.json() : {}))
+    .catch(() => ({}));
+
+/** Rekordy mini-gier: wszyscy gracze każdej gry, od najlepszego. */
+export const fetchRecords = (): Promise<Record<string, RecordRow[]>> =>
+  fetch(`${serverUrl}/api/records`)
     .then((r) => (r.ok ? r.json() : {}))
     .catch(() => ({}));
 

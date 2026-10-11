@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { Server } from "@colyseus/core";
 import { WebSocketTransport } from "@colyseus/ws-transport";
+import { GAMES, MINI_GAME_IDS } from "@mini-games/games";
 import express from "express";
 import { LobbyRoom, stats } from "./LobbyRoom.ts";
 
@@ -16,6 +17,9 @@ const server = new Server({
     app.get("/api/stats", (_req, res) => {
       // W dev frontend stoi na innym porcie; ranking i tak widzi każdy na stronie.
       res.set("Access-Control-Allow-Origin", "*").json(stats.ranking());
+    });
+    app.get("/api/records", (_req, res) => {
+      res.set("Access-Control-Allow-Origin", "*").json(stats.records(MINI_GAME_IDS.map((id) => ({ id, ...GAMES[id].record! }))));
     });
     app.use(express.static(webDist));
   },

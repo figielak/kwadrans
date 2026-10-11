@@ -36,4 +36,82 @@ describe("statystyki", () => {
     for (let i = 0; i < 12; i++) stats.record("statki", [`G${i}`, "X"], `G${i}`);
     expect(stats.ranking().statki).toHaveLength(10);
   });
+
+  it("nick bez wielkości liter i polskich znaków to jeden gracz, z ostatnią pisownią", () => {
+    const stats = openStats(":memory:");
+    stats.record("statki", ["Łukasz", "Ola"], "Łukasz");
+    stats.record("statki", ["lukasz", "Ola"], "lukasz");
+    stats.record("statki", ["LUKASZ", "Ola"], "Ola");
+    expect(stats.ranking().statki).toEqual([
+      { nick: "LUKASZ", wins: 2, played: 3 },
+      { nick: "Ola", wins: 1, played: 3 },
+    ]);
+  });
+});
+
+describe("rekordy mini-gier", () => {
+  const GAMES = [
+    { id: "stoper", lower: true },
+    { id: "simon", lower: false },
+    { id: "refleks", lower: false, tie: { lower: true } },
+    { id: "wieza", lower: false, tie: { lower: false } },
+  ];
+  const one = (nick: string, score: number, tie: number | null = null) => [{ nick, score, tie }];
+
+  it("rekord to najlepszy wynik gracza: mniej albo więcej zależnie od gry", () => {
+    const stats = openStats(":memory:");
+    stats.recordScores("stoper", [...one("Ala", 120), ...one("Ola", 40)]);
+    stats.recordScores("stoper", [...one("Ala", 30), ...one("Ola", 300)]);
+    stats.recordScores("simon", [...one("Ala", 5), ...one("Ola", 9)]);
+    stats.recordScores("simon", [...one("Ala", 7), ...one("Ola", 2)]);
+    const records = stats.records(GAMES);
+    expect(records.stoper).toEqual([
+      { nick: "Ala", best: 30, tie: null, played: 2 },
+      { nick: "Ola", best: 40, tie: null, played: 2 },
+    ]);
+    expect(records.simon).toEqual([
+      { nick: "Ola", best: 9, tie: null, played: 2 },
+      { nick: "Ala", best: 7, tie: null, played: 2 },
+    ]);
+  });
+
+  it("partia solo też się liczy, a nick skleja się jak w rankingu wygranych", () => {
+    const stats = openStats(":memory:");
+    stats.recordScores("stoper", one("Łukasz", 50));
+    stats.recordScores("stoper", one("lukasz", 20));
+    stats.recordScores("stoper", one("LUKASZ", 80));
+    expect(stats.records(GAMES).stoper).toEqual([{ nick: "LUKASZ", best: 20, tie: null, played: 3 }]);
+  });
+
+  it("przy równym głównym wyniku rozstrzyga drugie kryterium, w swoim kierunku", () => {
+    const stats = openStats(":memory:");
+    stats.recordScores("refleks", [...one("Ala", 13, 260), ...one("Ola", 13, 240), ...one("Ela", 14, 400)]);
+    // Własny rekord też: te same 13 trafień, ale szybciej.
+    stats.recordScores("refleks", one("Ala", 13, 230));
+    stats.recordScores("refleks", one("Ala", 12, 100));
+    expect(stats.records(GAMES).refleks).toEqual([
+      { nick: "Ela", best: 14, tie: 400, played: 1 },
+      { nick: "Ala", best: 13, tie: 230, played: 3 },
+      { nick: "Ola", best: 13, tie: 240, played: 1 },
+    ]);
+    stats.recordScores("wieza", [...one("Ala", 7, 0.25), ...one("Ola", 7, 0.5)]);
+    expect(stats.records(GAMES).wieza.map((r) => r.nick)).toEqual(["Ola", "Ala"]);
+  });
+
+  it("przy całkiem równych rekordach wyżej ten, kto ustanowił go wcześniej", () => {
+    const stats = openStats(":memory:");
+    stats.recordScores("simon", one("Ola", 4));
+    stats.recordScores("simon", one("Ala", 8));
+    stats.recordScores("simon", one("Ola", 8));
+    stats.recordScores("simon", one("Ela", 8));
+    expect(stats.records(GAMES).simon.map((r) => r.nick)).toEqual(["Ala", "Ola", "Ela"]);
+  });
+
+  it("zwraca wszystkich graczy, a gra bez wyników ma pustą listę", () => {
+    const stats = openStats(":memory:");
+    stats.recordScores("stoper", Array.from({ length: 15 }, (_, i) => ({ nick: `G${i}`, score: i, tie: null })));
+    const records = stats.records(GAMES);
+    expect(records.stoper).toHaveLength(15);
+    expect(records.simon).toEqual([]);
+  });
 });

@@ -19,6 +19,9 @@ export const quizMoveSchema = z.object({
   errors: z.number().int().min(0),
 });
 
+/** Punkty w grach, w których pomyłka zabiera punkt (Obrót, Literówka): trafienia − pomyłki, nie mniej niż 0. */
+export const netScore = ({ times, errors }: QuizResult) => Math.max(0, times.length - errors);
+
 // ponytail: wynik liczony na kliencie jak w Refleksie, serwer odrzuca tylko nierealne wartości.
 export const validQuiz = (state: { players: PlayerId[]; results: Record<PlayerId, unknown> }, player: PlayerId, { times, errors }: QuizResult) =>
   state.players.includes(player) &&

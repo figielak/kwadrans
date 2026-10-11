@@ -1,6 +1,6 @@
 import { ArrowLeft, Check, HandTap, ShareNetwork, SignOut, Timer, Trophy, WifiSlash } from "@phosphor-icons/react";
 import type { RoomView } from "@mini-games/games";
-import { createContext, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, Fragment, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 export type Send = (type: string, payload?: unknown) => void;
 
@@ -82,6 +82,72 @@ export function Stats({ items }: { items: { label: string; value: ReactNode; war
   );
 }
 
+/** „12,3”: jedno miejsce po przecinku, z przecinkiem. */
+export const tenth = (n: number) => n.toFixed(1).replace(".", ",");
+
+/** Kolor według celności błędu: do `perfect` zielony, powyżej `close` ostrzegawczy. */
+export const grade = (d: number, perfect: number, close: number) =>
+  d <= perfect ? { text: "text-success", stroke: "stroke-success" } : d <= close ? { text: "", stroke: "stroke-fg" } : { text: "text-warning", stroke: "stroke-warning" };
+
+/**
+ * Tabela rund po mini-grze „na oko”: rundy w kolumnach, gracze w wierszach, w komórce błąd rundy (mniej lepiej).
+ * Jedyny najmniejszy błąd w rundzie ma tło w kolorze gracza; przy remisie albo jednym graczu nikt.
+ */
+export function RoundTable({
+  heads,
+  rows,
+  perfect,
+  close,
+  unit,
+}: {
+  heads: ReactNode[];
+  /** Pusta lista `errors` = gracz nie odpowiedział (limit czasu). */
+  rows: { id: string; nick: string; color?: string; me: boolean; errors: number[] }[];
+  perfect: number;
+  close: number;
+  /** Czego dotyczy liczba, np. „% tortu”. */
+  unit: string;
+}) {
+  const played = rows.filter((r) => r.errors.length);
+  const best = (round: number) => {
+    const sorted = [...played].sort((a, b) => a.errors[round] - b.errors[round]);
+    return sorted.length > 1 && sorted[0].errors[round] < sorted[1].errors[round] ? sorted[0].id : null;
+  };
+  return (
+    <section className="tile flex flex-col gap-2 p-3">
+      <div className="grid gap-1 text-center font-mono text-xs tabular-nums" style={{ gridTemplateColumns: `repeat(${heads.length}, minmax(0, 1fr))` }}>
+        {heads.map((head, i) => (
+          <span key={i} className="text-fg-muted">
+            {head}
+          </span>
+        ))}
+        {rows.map((r) => (
+          <Fragment key={r.id}>
+            <span className="col-span-full mt-1 flex items-center gap-2 text-left font-sans text-sm">
+              <span className="size-2 rounded-full" style={{ backgroundColor: r.color }} aria-hidden />
+              {r.nick}
+              {r.me && <span className="text-fg-muted">(ty)</span>}
+              {!r.errors.length && <span className="text-fg-muted">bez odpowiedzi</span>}
+            </span>
+            {r.errors.map((d, i) => (
+              <span
+                key={i}
+                className={`rounded-md border py-1 ${grade(d, perfect, close).text} ${d <= perfect ? "font-semibold" : ""} ${best(i) === r.id ? "" : "border-line"}`}
+                style={best(i) === r.id ? { borderColor: r.color, backgroundColor: `color-mix(in srgb, ${r.color} 28%, transparent)` } : undefined}
+              >
+                {tenth(d)}
+              </span>
+            ))}
+          </Fragment>
+        ))}
+      </div>
+      <p className="text-xs text-fg-muted">
+        Błąd w każdej rundzie ({unit}){played.length > 1 && "; tło w kolorze gracza ma najlepszy w rundzie"}. Zielony: do {perfect}%, czerwony: ponad {close}%.
+      </p>
+    </section>
+  );
+}
+
 /** Przycisk przyklejony do dołu ekranu: przy otwartej klawiaturze i długiej liście zostaje pod kciukiem. */
 export function StickyBar({ children }: { children: ReactNode }) {
   return <div className="sticky bottom-0 -mx-4 flex items-center gap-3 bg-bg/90 px-4 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">{children}</div>;
@@ -92,6 +158,8 @@ export const IntroContext = createContext<{
   game: NonNullable<RoomView["game"]>;
   others: { id: string; nick: string; color: string; began: boolean }[];
   begin: () => void;
+  /** Rekord gry do pobicia, jedna linia pod przyciskiem „Start”. */
+  record?: string;
 } | null>(null);
 
 /**
@@ -151,6 +219,7 @@ export function Intro({ time, task, score, preview, onStart }: { time: ReactNode
         {deadline !== null && (
           <p className="text-center text-sm text-fg-muted tabular-nums">Start automatycznie za {Math.max(0, Math.ceil((deadline - now) / 1000))} s</p>
         )}
+        {room?.record && <p className="text-center text-sm text-fg-muted tabular-nums">{room.record}</p>}
       </div>
       {room && room.others.length > 0 && (
         <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm text-fg-muted" role="status">
