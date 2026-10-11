@@ -103,6 +103,7 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
 - **Inny element** (`inny`): 30 s, siatka identycznych wielokątów, jeden różni się obrotem, odcieniem, rozmiarem albo kształtem (rodzaj losowany co planszę; kształt tylko dopóki siatka rośnie); dotykasz go. Siatka rośnie z każdym trafieniem na przemian o kolumnę i wiersz od 2×2 do 6×6, a różnica maleje. Pomyłka blokuje na 1 s i plansza zostaje; wynik jak w Kolorze liter.
 - **Obrót** (`obrot`): 30 s, dwie figury z klocków (poliomino z 4-7 kwadratów, klocków przybywa co 3 pary); druga to pierwsza obrócona o 90, 180 albo 270° albo jej obrócone lustrzane odbicie, gracz wybiera „Ta sama” albo „Lustro”. Figury są zawsze chiralne, więc odpowiedź jest jedna. Pomyłka blokuje na 1 s i zabiera punkt; wynik = trafienia − pomyłki (nie mniej niż 0), przy remisie niższa średnia.
 - **Mapa** (`mapa`): 10 rund, w każdej nazwa jednego z 62 większych miast Polski; gracz stawia znacznik na konturze kraju (sam kontur, bez rzek i województw), może go przenieść i zatwierdza. Wynik = suma odległości w km (haversine, każda runda zaokrąglona, mniej lepiej), liczona na serwerze z punktów w ułamkach pola. Po każdej odpowiedzi przez 1,5 s widać prawdziwe miejsce i odległość; na końcu tabela rund z wyróżnionym najlepszym w każdej.
+- **Przytrzymaj** (`przytrzymaj`): 5 rund, w każdej pole świeci się przez losowy czas 1-5 s, potem gracz trzyma palec na ekranie tak samo długo. Wynik = suma odchyłek w ms (każda ucięta do celu, mniej lepiej), liczona na serwerze z czasów trzymania. Po puszczeniu przez 1,5 s widać czas, cel i odchyłkę ze znakiem; grający nie widzi limitu tury ani licznika sekund. Na końcu tabela rund z wyróżnionym najlepszym w każdej.
 - 1-6 graczy naraz, każdy gra u siebie to samo wyzwanie (wylosowane na serwerze), na końcu ranking.
   Partia toczy się na kliencie (opóźnienie Wi-Fi zepsułoby pomiar), serwer dostaje tylko wynik i odrzuca nierealne wartości.
 - Każda mini-gra zaczyna od ekranu instrukcji (`Intro` w ui.tsx: animowany podgląd, trzy punkty z ikonami, „Start”). Każdy klika „Start” osobno i gra od razu;
@@ -190,7 +191,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
 - Rewanż po zgodzie wszystkich grających, kolejność miejsc rotuje (poza mini-grami, gdzie wszyscy grają naraz); do lobby może wrócić każdy.
 - W mini-grach (gry solo, `minPlayers: 1`) limit rusza po ekranie instrukcji: gdy wszyscy klikną „Start” albo po 15 s.
 - Limit tury: 60 s w większości gier; dłużej w Sekwencji i Śledzeniu (300 s), Który rok? (240 s), Tabeli Schultego, Odcieniu, Wieży i Mapie (180 s),
-  Narysuj koło, Policz kropki i Kąt (120 s), Kolorze liter, Liczeniu, Innym elemencie i Obrocie (90 s); Państwa-miasta mają limit per faza, Statki 90 s na całe rozstawianie, Chińczyk w trybie Szybkim 20 s.
+  Narysuj koło, Policz kropki, Kąt i Przytrzymaj (120 s), Kolorze liter, Liczeniu, Innym elemencie i Obrocie (90 s); Państwa-miasta mają limit per faza, Statki 90 s na całe rozstawianie, Chińczyk w trybie Szybkim 20 s.
 - Gdy gracz z miejscem zniknie z pokoju w trakcie partii (wyjdzie sam albo nie wróci w 10 minut), partia się kończy:
   jeśli został jeden gracz, wygrywa walkowerem; przy większej liczbie kończy się bez zwycięzcy.
 - Lobby: gospodarz wybiera grę i daje start, goście potwierdzają gotowość; każdy może zmienić swój kolor
@@ -284,7 +285,7 @@ podpięcie w `screens/Game.tsx` i ikona w `screens/Lobby.tsx`.
 | 5 | Kampus Tour: dodatki (Kolokwium, Juwenalia, karty, wykupienie, Bilet MPK, monopol) | Pełna wersja (gotowe) |
 | 6 | Poprawka | Gra karciana (do zrobienia) |
 | 7 | PWA, animacje, statystyki, szlify | Polerka (PWA, ranking po nicku i rekordy mini-gier gotowe) |
-| + | Chińczyk, Memory, mini-gry (19 sztuk), Państwa-miasta, Turniej z mini-gier | Poza planem (gotowe) |
+| + | Chińczyk, Memory, mini-gry (20 sztuk), Państwa-miasta, Turniej z mini-gier | Poza planem (gotowe) |
 | dalej | Zapis stanu pokoi w SQLite | Do zrobienia |
 
 ## 8a. Sposób pracy
