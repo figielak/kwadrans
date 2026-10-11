@@ -31,6 +31,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Obrót | `obrot` | 1-6 | 90 s | mini-gra |
 | Mapa | `mapa` | 1-6 | 180 s | mini-gra |
 | Kąt | `kat` | 1-6 | 120 s | mini-gra |
+| Przytrzymaj | `przytrzymaj` | 1-6 | 120 s | mini-gra |
 
 Nazwy w UI zmieniały się (2026-10-10), `id`, nazwy plików i typów zostały stare: Sekwencja = `simon`, Kolor liter = `stroop`,
 Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, więc `id` nie wolno zmieniać.
@@ -41,7 +42,7 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
   więc nic nie jest ukryte (da się podejrzeć; świadoma decyzja, komentarze `ponytail:`).
 - Partia toczy się na kliencie. Każdy gracz wysyła jeden ruch `{ type: "result", ... }`; drugi ruch tego samego gracza jest odrzucany.
   Wyjątki: Narysuj koło (do 10 ruchów na gracza), Tabela Schultego, Policz kropki, Kąt, Który rok? i Wieża (dodatkowy ruch `progress` po każdym trafieniu, rundzie albo klocku).
-- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt),
+- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj),
   w reszcie ufa klientowi.
 - Partia zaczyna się ekranem instrukcji (platforma, nie zasady gry): każdy klika „Start” osobno (wiadomość pokoju `begin`) i gra od razu,
   po `INTRO_SECONDS` (15 s) gra rusza sama. Limit tury startuje, gdy wystartują wszyscy albo minie 15 s; wynik oddany wcześniej go nie uruchamia.
@@ -337,6 +338,20 @@ Przebieg, walidacja i ekran końcowy jak w Kolorze liter (`quiz.ts`, `Quiz.tsx`)
   „Zatwierdź” kończy rundę. Potem przez 1,5 s widać prawdziwe miejsce (pierścień), linię do znacznika i odległość w km:
   do 20 km na zielono z „Idealnie!”, ponad 150 km kolorem ostrzeżenia.
 - Ekran końcowy: suma każdego gracza i tabela rund (miasto, km każdego gracza, najlepszy w rundzie na tle w swoim kolorze).
+
+### Przytrzymaj (`przytrzymaj`)
+- 5 rund (`ROUNDS`). W każdej po 1 s przerwy pole świeci się przez czas celu i gaśnie, potem gracz przykłada palec i trzyma go tak długo,
+  jak świeciło pole. Po puszczeniu przez 1,5 s widać czas trzymania, cel i odchyłkę ze znakiem.
+- Cele (`targets`) losuje serwer: 5 czasów w pełnych ms, każdy 1000-5000 (`MIN_MS`, `MAX_MS`), losowane niezależnie, te same dla wszystkich.
+  Bez `nonce`: pięć losowych ms praktycznie się nie powtarza, więc rewanż montuje ekran od nowa po samych celach.
+- Jeden ruch z `holds`: czasy trzymania w ms (int) w kolejnych rundach, mierzone na kliencie między dotknięciem a puszczeniem.
+- Wynik liczy serwer: odchyłka rundy (`deviation`) = |czas trzymania − cel|, ucięta do celu; wynik = suma z 5 rund w ms (int), mniej lepiej,
+  równe to remis. Ucięcie sprawia, że puszczenie od razu i trzymanie bez końca kosztują tyle samo (jak w Stoperze).
+- Walidacja: lista pusta albo dokładnie 5 czasów, każdy całkowity od 0 do 10 000 (`2 × MAX_MS`). Pusta lista = limit czasu = suma celów,
+  czyli najgorszy możliwy wynik.
+- Ekran sam kończy trzymanie po dwukrotności celu (dalej odchyłka i tak jest ucięta). Grający nie widzi limitu tury ani żadnego licznika
+  sekund (podawałyby czas), jak w Stoperze i Rytmie.
+- Stan trzyma też `holds` każdego gracza: ekran końcowy to jedna tabela (bez osobnej listy wyników): w wierszu gracza suma, pod nim odchyłki rund ze znakiem, nad nimi cele; najlepszy w rundzie wyróżniony.
 
 ## 2. Gomoku (`piec-w-rzedzie`)
 
