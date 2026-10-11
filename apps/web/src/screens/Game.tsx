@@ -1,5 +1,5 @@
 import { ArrowCounterClockwise, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { CHINCZYK_TRACK, type ChinczykView, GAMES, type InnyView, isDone, type KampusTourView, type KatView, type KolorView, type KoloView, type KropkiView, type LiczenieView, type MapaView, type MemoryView, type ObrotView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RefleksView, type RokView, type RoomView, type RytmView, type SledzenieView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, type SrodekView, standing, standings, type StatkiView, type StojView, type StoperView, type StroopView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@mini-games/games";
+import { CHINCZYK_TRACK, type ChinczykView, GAMES, type InnyView, isDone, type KampusTourView, type KatView, type KolorView, type KoloView, type KropkiView, type LiczenieView, type MapaView, type MemoryView, type ObrotView, type PrzytrzymajView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RefleksView, type RokView, type RoomView, type RytmView, type SledzenieView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, type SrodekView, standing, standings, type StatkiView, type StojView, type StoperView, type StroopView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@mini-games/games";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
@@ -22,6 +22,7 @@ import { Srodek } from "../games/Srodek.tsx";
 import { FleetLeft, Statki } from "../games/Statki.tsx";
 import { Inny } from "../games/Inny.tsx";
 import { Stoj } from "../games/Stoj.tsx";
+import { Przytrzymaj } from "../games/Przytrzymaj.tsx";
 import { Rytm } from "../games/Rytm.tsx";
 import { Stoper } from "../games/Stoper.tsx";
 import { Stroop } from "../games/Stroop.tsx";
@@ -179,8 +180,8 @@ export function Game({ view, me, dropped, send }: Props) {
                 {status}
               </h1>
             </div>
-            {/* Na ekranie instrukcji limit jeszcze nie ruszył. Stoper i Rytm: tykający limit zdradzałby upływ sekund, więc grający go nie widzi. */}
-            {view.phase === "playing" && !game.intro && !((def.id === "stoper" || def.id === "rytm") && myTurn) && (
+            {/* Na ekranie instrukcji limit jeszcze nie ruszył. Stoper, Rytm i Przytrzymaj: tykający limit zdradzałby upływ sekund, więc grający go nie widzi. */}
+            {view.phase === "playing" && !game.intro && !((def.id === "stoper" || def.id === "rytm" || def.id === "przytrzymaj") && myTurn) && (
               <Countdown
                 game={round ?? game}
                 total={round ? QUIZ_DURATION_MS / 1000 : (def.turn?.(game.view).seconds ?? def.turnSeconds)}
@@ -420,6 +421,17 @@ export function Game({ view, me, dropped, send }: Props) {
           />
         )}
 
+        {def.id === "przytrzymaj" && (
+          <Przytrzymaj
+            key={JSON.stringify((game.view as PrzytrzymajView).targets)}
+            view={game.view as PrzytrzymajView}
+            me={me}
+            players={view.players}
+            ranking={game.result?.ranking}
+            onMove={(move) => send("move", move)}
+          />
+        )}
+
         {def.id === "rytm" && (
           <Rytm
             key={(game.view as RytmView).nonce}
@@ -605,7 +617,7 @@ function recordHint(gameId: string, rows: RecordRow[] | null, nick: string) {
   return `${top} (${rows[0].nick})${mine ? ` · twój: ${formatRecord(gameId, mine)}` : ""}`;
 }
 
-const MINI_GAMES = new Set(["refleks", "simon", "stoper", "schulte", "stroop", "liczenie", "kolo", "kolor", "kropki", "rok", "srodek", "stoj", "sledzenie", "wieza", "rytm", "inny", "obrot", "mapa", "kat", "panstwa-miasta"]);
+const MINI_GAMES = new Set(["refleks", "simon", "stoper", "schulte", "stroop", "liczenie", "kolo", "kolor", "kropki", "rok", "srodek", "stoj", "sledzenie", "wieza", "rytm", "inny", "obrot", "mapa", "kat", "przytrzymaj", "panstwa-miasta"]);
 
 const SCHULTE_LAST = SCHULTE_SIZE * SCHULTE_SIZE;
 
