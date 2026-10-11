@@ -33,6 +33,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Kąt | `kat` | 1-6 | 120 s | mini-gra |
 | Przytrzymaj | `przytrzymaj` | 1-6 | 120 s | mini-gra |
 | Balon | `balon` | 1-6 | 120 s | mini-gra |
+| W pamięci | `w-pamieci` | 1-6 | 300 s | mini-gra |
 
 Nazwy w UI zmieniały się (2026-10-10), `id`, nazwy plików i typów zostały stare: Sekwencja = `simon`, Kolor liter = `stroop`,
 Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, więc `id` nie wolno zmieniać.
@@ -43,7 +44,7 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
   więc nic nie jest ukryte (da się podejrzeć; świadoma decyzja, komentarze `ponytail:`).
 - Partia toczy się na kliencie. Każdy gracz wysyła jeden ruch `{ type: "result", ... }`; drugi ruch tego samego gracza jest odrzucany.
   Wyjątki: Narysuj koło (do 10 ruchów na gracza), Tabela Schultego, Policz kropki, Kąt, Który rok?, Wieża i Balon (dodatkowy ruch `progress` po każdym trafieniu, rundzie, klocku albo balonie).
-- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon),
+- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon, W pamięci),
   w reszcie ufa klientowi.
 - Partia zaczyna się ekranem instrukcji (platforma, nie zasady gry): każdy klika „Start” osobno (wiadomość pokoju `begin`) i gra od razu,
   po `INTRO_SECONDS` (15 s) gra rusza sama. Limit tury startuje, gdy wystartują wszyscy albo minie 15 s; wynik oddany wcześniej go nie uruchamia.
@@ -370,6 +371,22 @@ Przebieg, walidacja i ekran końcowy jak w Kolorze liter (`quiz.ts`, `Quiz.tsx`)
 - Ekran: kwadratowy kafel z balonem w kolorze gracza, dotknięcie kafla pompuje. Rozmiar balonu zależy tylko od liczby stuknięć,
   nie od wytrzymałości. Pod kaflem „Zgarnij 12 pkt”. Po zgarnięciu „+12”, po pęknięciu „Pękł!” i wibracja 60, przez 0,8 s.
   Na końcu tabela: ile każdy balon wytrzymywał i ile stuknięć zrobił każdy gracz (pęknięty: przekreślona czerwona liczba, pusty: kreska).
+
+### W pamięci (`w-pamieci`)
+- Do 12 rund (`ROUNDS`). W każdej na ekranie pojawia się liczba startowa, a po niej kolejne działania („+7”, „−3”, „×2”), każda pozycja
+  przez 1,5 s (`SHOW_MS`); wyniku pośredniego nie widać. Na końcu gracz wpisuje, ile wyszło.
+- Ciąg się wydłuża: runda `i` (od 0) ma `i + 2` działań (`START_OPS`), ostatnia 13. Każda runda to nowy ciąg, nie przedłużenie poprzedniego.
+- Pierwsza zła odpowiedź kończy partię (jak w Sekwencji i Śledzeniu).
+- Serwer losuje `rounds` (`{ start, ops: { op, n }[] }`), te same dla wszystkich: start 1-9, działanie to +1..9, −1..9, ×2 albo ×3,
+  losowane tak, żeby wartość po każdym kroku była w 1-99 (`MAX_VALUE`). Działania liczy się po kolei od lewej (`value(round)`).
+- Jeden ruch z `answers`: odpowiedzi w kolejnych rozegranych rundach (int 0-999, `MAX_ANSWER`). Wynik liczy serwer:
+  `rounds` = liczba poprawnych odpowiedzi od początku, `diff` = odchyłka odpowiedzi od wyniku w pierwszej rundzie niezaliczonej
+  (brak odpowiedzi w tej rundzie = 999, komplet 12 rund = 0). Wszystko po pierwszym błędzie jest ignorowane.
+- Ranking: więcej rund wyżej, przy równych mniejsza odchyłka („prawie dobrze” wygrywa ze strzałem na oślep); równe oba to remis.
+- Walidacja: najwyżej 12 liczb całkowitych 0-999. Pusta lista = limit czasu = 0 rund i odchyłka 999.
+- Bez ruchu `progress`: rywale nie widzą numeru rundy (jak w Śledzeniu).
+- Ekran: kwadratowy kafel, pozycje ciągu wskakują jedna po drugiej (dwa takie same działania z rzędu widać jako dwa), nad nim numer rundy
+  i działania. Po dobrej odpowiedzi od razu następna runda; po złej wibracja 60 i cały ciąg z prawdziwym wynikiem.
 
 ## 2. Gomoku (`piec-w-rzedzie`)
 
