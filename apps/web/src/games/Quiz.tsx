@@ -3,7 +3,7 @@ import { Trophy } from "@phosphor-icons/react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
 
-/** Wspólny przebieg Koloru liter, Liczenia, Innego elementu i Obrotu: 30 s pytań z odpowiedziami do wyboru, pomyłka blokuje na chwilę. */
+/** Wspólny przebieg Koloru liter, Liczenia, Innego elementu, Obrotu i Literówki: 30 s pytań z odpowiedziami do wyboru, pomyłka blokuje na chwilę. */
 interface Props {
   view: { players: string[]; results: Record<string, { times: number[]; errors: number }> };
   me: string;
@@ -20,7 +20,7 @@ interface Props {
   question: (i: number) => { prompt?: ReactNode; options: ReactNode[]; correct: number; cols?: number; status?: ReactNode };
   /** Po pomyłce wraca to samo pytanie zamiast następnego; czas trafienia liczy się od pierwszego pokazania. */
   retry?: boolean;
-  /** Gra, w której błędy odejmują punkty (Obrót): wynik zamiast trafień w pasku i w tabeli, z własną notką i opisem punktacji. */
+  /** Gra, w której błędy odejmują punkty (Obrót, Literówka): wynik zamiast trafień w pasku i w tabeli, z własną notką i opisem punktacji. */
   points?: (res: { times: number[]; errors: number }) => number;
   note?: string;
   score?: string;

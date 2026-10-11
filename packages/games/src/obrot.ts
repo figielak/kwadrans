@@ -1,5 +1,5 @@
 import { average, byScoreThenAverage, type GameDefinition, type PlayerId, ranked } from "./core.ts";
-import { QUESTIONS, type QuizMove, quizMoveSchema, type QuizResult, validQuiz } from "./quiz.ts";
+import { netScore, QUESTIONS, type QuizMove, quizMoveSchema, type QuizResult, validQuiz } from "./quiz.ts";
 
 /** Klocków w figurze: od MIN na pierwszych parach, o jeden więcej co STEP par, do MAX. */
 export const MIN_CELLS = 4;
@@ -20,7 +20,7 @@ export interface State {
 
 export type View = State;
 
-export const score = ({ times, errors }: QuizResult) => Math.max(0, times.length - errors);
+export const score = netScore;
 
 /** Dosuwa figurę do rogu i sortuje pola: dwie takie same figury dają wtedy ten sam zapis. */
 function norm(cells: Cells): Cells {

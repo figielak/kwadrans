@@ -29,6 +29,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Rytm | `rytm` | 1-6 | 60 s | mini-gra |
 | Inny element | `inny` | 1-6 | 90 s | mini-gra |
 | Obrót | `obrot` | 1-6 | 90 s | mini-gra |
+| Literówka | `literowka` | 1-6 | 90 s | mini-gra |
 | Mapa | `mapa` | 1-6 | 180 s | mini-gra |
 | Kąt | `kat` | 1-6 | 120 s | mini-gra |
 | Przytrzymaj | `przytrzymaj` | 1-6 | 120 s | mini-gra |
@@ -86,7 +87,7 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
 - Ekran: trafiony kafelek błyska na zielono, pomyłka na czerwono z potrząśnięciem; lokalny zegar ma etykietę „Twój czas”.
 
 ### Kolor liter (`stroop`) i Liczenie (`liczenie`)
-Wspólne zasady w `quiz.ts`, wspólny ekran `Quiz.tsx` (dzielą je też Inny element i Obrót).
+Wspólne zasady w `quiz.ts`, wspólny ekran `Quiz.tsx` (dzielą je też Inny element, Obrót i Literówka).
 - 30 s pytań z czterema odpowiedziami; serwer losuje 200 pytań (starczy przy 150 ms na odpowiedź).
 - Pomyłka blokuje na 1 s (inaczej losowe klepanie byłoby szybsze niż myślenie).
 - Wynik: `times` (czasy poprawnych) i `errors`. Ranking jak w Refleksie: trafienia, potem niższa średnia. `errors` nie wpływa na ranking, ale jest widoczne w pasku statystyk i w wynikach.
@@ -320,6 +321,20 @@ Przebieg, walidacja i ekran końcowy jak w Kolorze liter (`quiz.ts`, `Quiz.tsx`)
   Liczy go klient jak w Kolorze liter (serwer zna `mirror`, więc mógłby liczyć sam z listy odpowiedzi, gdyby ktoś zaczął oszukiwać).
 - Limit czasu: zero trafień i zero pomyłek.
 - Ekran końcowy: tabela z punktami, średnim czasem i błędami (jak w Stój!).
+
+### Literówka (`literowka`)
+Przebieg, walidacja, punktacja i ekran końcowy jak w Obrocie (`quiz.ts`, `Quiz.tsx`); inne są plansze.
+- 30 s. Plansza to 4 słowa w siatce 2×2 (`WORDS`): trzy napisane poprawnie, jedno z błędem ortograficznym. Gracz dotyka błędnego.
+- Błędy są tylko trzech rodzajów: ó/u, rz/ż, ch/h („żeka”, „chałas”). Lista par `[poprawne, błędne]` jest w `literowka-dane.ts` (`PAIRS`):
+  co najmniej 100 par, małe litery, 4-12 liter. Błędna forma nie może być prawdziwym słowem (odpadają pary typu morze/może, lód/lud).
+- Serwer losuje 200 plansz, te same dla wszystkich: tasuje listę par i rozdaje po 4 na planszę, a po wyczerpaniu listy tasuje od nowa,
+  więc w pierwszych 45 planszach (na tyle starcza lista 181 par) żadne słowo się nie powtarza. Jedna z czterech par pokazuje formę błędną, pozostałe poprawną.
+  Plansza `{ words, wrong }`: `wrong` to pozycja błędnego słowa (0-3), losowana po równo.
+- Pomyłka blokuje na 1 s i zabiera punkt, potem przychodzi następna plansza (bez drugiej próby i bez pokazywania poprawnej pisowni).
+- Wynik = trafienia − pomyłki, nie mniej niż 0, więcej lepiej. Przy remisie niższa średnia czasu trafień; dwa wyniki bez trafień to remis.
+  Liczy go klient jak w Obrocie (serwer zna `wrong`, więc mógłby liczyć sam z listy odpowiedzi, gdyby ktoś zaczął oszukiwać).
+- Limit czasu: zero trafień i zero pomyłek.
+- Ekran: cztery kafle ze słowami, pod nimi „Które słowo ma błąd?”; na końcu tabela z punktami, średnim czasem i błędami (jak w Obrocie).
 
 ### Mapa (`mapa`)
 - 10 rund, w każdej nazwa miasta; gracz wskazuje je na konturze Polski (sam kontur, bez rzek i województw).

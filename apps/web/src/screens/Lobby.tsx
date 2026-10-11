@@ -34,6 +34,7 @@ import {
   SignOut,
   SquaresFour,
   Stack,
+  TextAa,
   Timer,
   Trophy,
 } from "@phosphor-icons/react";

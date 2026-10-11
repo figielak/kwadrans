@@ -22,7 +22,7 @@ const EAGER: Record<string, (rng: () => number) => unknown[]> = {
 
 test("rejestr: id z sieci nie trafia w pola prototypu obiektu, a klucz to id gry", () => {
   for (const id of ["constructor", "toString", "__proto__", "hasOwnProperty", "nie-ma-takiej"]) expect(GAMES[id], id).toBeUndefined();
-  expect(Object.keys(GAMES)).toHaveLength(28);
+  expect(Object.keys(GAMES)).toHaveLength(29);
   for (const [id, game] of Object.entries(GAMES)) expect(game.id).toBe(id);
 });
 
@@ -136,6 +136,7 @@ const RECORDS: Record<string, { lower: boolean; good: unknown; bad: unknown; fie
   liczenie: { lower: false, good: quiz(2), bad: quiz(1), tied: [timed(2, 400), timed(2, 600)] },
   inny: { lower: false, good: quiz(2), bad: quiz(1), tied: [timed(2, 400), timed(2, 600)] },
   obrot: { lower: false, good: quiz(3), bad: quiz(3, 2), tied: [timed(3, 400), timed(3, 600)] },
+  literowka: { lower: false, good: quiz(3), bad: quiz(3, 2), tied: [timed(3, 400), timed(3, 600)] },
   stoj: { lower: false, good: quiz(4), bad: quiz(4, 1), tied: [timed(4, 400), timed(4, 600)] },
   sledzenie: { lower: false, good: { rounds: 5, hits: 0 }, bad: { rounds: 3, hits: 2 }, tied: [{ rounds: 4, hits: 2 }, { rounds: 4, hits: 1 }] },
   wieza: { lower: false, good: { height: 10, width: 0.2 }, bad: { height: 5, width: 0.5 }, tied: [{ height: 7, width: 0.5 }, { height: 7, width: 0.25 }] },
