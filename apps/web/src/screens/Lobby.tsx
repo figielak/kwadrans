@@ -17,6 +17,7 @@ import {
   GlobeHemisphereEast,
   GridNine,
   HandPalm,
+  Balloon,
   HandTap,
   HandWaving,
   type Icon,
@@ -288,6 +289,7 @@ export const ICONS: Record<string, Icon> = {
   mapa: MapTrifold,
   kat: Angle,
   przytrzymaj: HandTap,
+  balon: Balloon,
 };
 
 export function seats(g: { minPlayers: number; maxPlayers: number }) {
@@ -321,6 +323,7 @@ export const BLURBS: Record<string, string> = {
   mapa: "Nazwa miasta, wskazujesz je na konturze Polski. 10 rund, wygrywa najmniejsza suma kilometrów.",
   kat: "Kąt miga przez 1,5 s, wpisujesz jego miarę w stopniach. 10 rund, wygrywa najmniejsza suma błędów.",
   przytrzymaj: "Pole świeci się od 1 do 5 s, a ty trzymasz palec tak samo długo. 5 rund, wygrywa najmniejsza suma odchyłek.",
+  balon: "Pompujesz balon stuknięciami, każde to punkt. Zgarniasz punkty, kiedy chcesz, ale pęknięty balon daje 0. 10 balonów, liczy się suma.",
   wieza: "Klocek jeździ w poziomie, zatrzymujesz go nad poprzednim. To, co wystaje, zostaje ucięte. Liczy się wysokość wieży.",
 };
 

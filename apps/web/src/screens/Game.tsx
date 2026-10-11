@@ -1,6 +1,7 @@
 import { ArrowCounterClockwise, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { CHINCZYK_TRACK, type ChinczykView, GAMES, type InnyView, isDone, type KampusTourView, type KatView, type KolorView, type KoloView, type KropkiView, type LiczenieView, type MapaView, type MemoryView, type ObrotView, type PrzytrzymajView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RefleksView, type RokView, type RoomView, type RytmView, type SledzenieView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, type SrodekView, standing, standings, type StatkiView, type StojView, type StoperView, type StroopView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@mini-games/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, type InnyView, isDone, type KampusTourView, type KatView, type KolorView, type KoloView, type KropkiView, type LiczenieView, type MapaView, type MemoryView, type ObrotView, type PrzytrzymajView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RefleksView, type RokView, type RoomView, type RytmView, type SledzenieView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, type SrodekView, standing, standings, type StatkiView, type StojView, type StoperView, type StroopView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@mini-games/games";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { Balon } from "../games/Balon.tsx";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
 import { Kolo } from "../games/Kolo.tsx";
@@ -111,6 +112,8 @@ export function Game({ view, me, dropped, send }: Props) {
   const kropki = (def.id === "kropki" || def.id === "kat") && view.phase === "playing" ? (game.view as KropkiView | KatView) : null;
   // Wieża: wysokość wieży każdego gracza (po oddaniu wyniku ta z wyniku).
   const wieza = def.id === "wieza" && view.phase === "playing" ? (game.view as WiezaView) : null;
+  // Balon: numer balonu każdego gracza (bez punktów, zdradzałyby wytrzymałość).
+  const balon = def.id === "balon" && view.phase === "playing" ? (game.view as BalonView) : null;
   // Który rok? też.
   const rok = def.id === "rok" && view.phase === "playing" ? (game.view as RokView) : null;
   const myColor = view.players.find((p) => p.id === me)?.color;
@@ -228,6 +231,8 @@ export function Game({ view, me, dropped, send }: Props) {
                       <Progress done={id in kropki.results ? kropki.rounds.length : (kropki.progress[id] ?? 0)} total={kropki.rounds.length} color={p?.color} />
                     ) : wieza ? (
                       <Progress done={wieza.results[id]?.height ?? wieza.progress[id] ?? 0} total={WIEZA_LEVELS} color={p?.color} />
+                    ) : balon ? (
+                      <Progress done={id in balon.results ? BALON_BALLOONS : (balon.progress[id] ?? 0)} total={BALON_BALLOONS} color={p?.color} />
                     ) : rok ? (
                       <Progress done={id in rok.results ? ROK_ROUNDS : (rok.progress[id] ?? 0)} total={ROK_ROUNDS} color={p?.color} />
                     ) : table ? (
@@ -414,6 +419,17 @@ export function Game({ view, me, dropped, send }: Props) {
           <Sledzenie
             key={JSON.stringify((game.view as SledzenieView).rounds)}
             view={game.view as SledzenieView}
+            me={me}
+            players={view.players}
+            ranking={game.result?.ranking}
+            onMove={(move) => send("move", move)}
+          />
+        )}
+
+        {def.id === "balon" && (
+          <Balon
+            key={JSON.stringify((game.view as BalonView).limits)}
+            view={game.view as BalonView}
             me={me}
             players={view.players}
             ranking={game.result?.ranking}
@@ -617,7 +633,7 @@ function recordHint(gameId: string, rows: RecordRow[] | null, nick: string) {
   return `${top} (${rows[0].nick})${mine ? ` · twój: ${formatRecord(gameId, mine)}` : ""}`;
 }
 
-const MINI_GAMES = new Set(["refleks", "simon", "stoper", "schulte", "stroop", "liczenie", "kolo", "kolor", "kropki", "rok", "srodek", "stoj", "sledzenie", "wieza", "rytm", "inny", "obrot", "mapa", "kat", "przytrzymaj", "panstwa-miasta"]);
+const MINI_GAMES = new Set(["refleks", "simon", "stoper", "schulte", "stroop", "liczenie", "kolo", "kolor", "kropki", "rok", "srodek", "stoj", "sledzenie", "wieza", "rytm", "inny", "obrot", "mapa", "kat", "przytrzymaj", "balon", "panstwa-miasta"]);
 
 const SCHULTE_LAST = SCHULTE_SIZE * SCHULTE_SIZE;
 

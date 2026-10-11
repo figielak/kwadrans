@@ -30,6 +30,7 @@ const FORMAT: Record<string, { value: (n: number) => string; gap?: (n: number) =
   stoper: { value: ms },
   rytm: { value: ms },
   przytrzymaj: { value: ms },
+  balon: { value: points, tie: (n) => plural(n, "pęknięty", "pęknięte", "pękniętych") },
   schulte: { value: (n) => `${num(n / 1000)} s` },
   kolor: { value: (n) => `${num(100 - n / (10 * KOLOR_COUNT))}%`, gap: (n) => `${num(n / (10 * KOLOR_COUNT))}%` },
   kropki: { value: (n) => plural(n, "kropka", "kropki", "kropek") },
