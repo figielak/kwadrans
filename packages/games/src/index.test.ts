@@ -155,6 +155,7 @@ const RECORDS: Record<string, { lower: boolean; good: unknown; bad: unknown; fie
   rok: { lower: true, good: 10, bad: 200 },
   srodek: { lower: true, good: 10, bad: 200 },
   mapa: { lower: true, good: 10, bad: 200 },
+  tort: { lower: true, good: 10, bad: 200 },
 };
 
 test.each(MINI_GAME_IDS)("%s: rekord idzie w tę samą stronę co miejsca", (id) => {
