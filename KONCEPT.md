@@ -107,13 +107,14 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
 - **Przytrzymaj** (`przytrzymaj`): 5 rund, w każdej pole świeci się przez losowy czas 1-5 s, potem gracz trzyma palec na ekranie tak samo długo. Wynik = suma odchyłek w ms (każda ucięta do celu, mniej lepiej), liczona na serwerze z czasów trzymania. Po puszczeniu przez 1,5 s widać czas, cel i odchyłkę ze znakiem; grający nie widzi limitu tury ani licznika sekund. Na końcu tabela rund z wyróżnionym najlepszym w każdej.
 - **Balon** (`balon`): 10 balonów, każde stuknięcie pompuje balon i dodaje punkt; gracz w dowolnej chwili zgarnia punkty balonu, a pęknięcie je zabiera. Każdy balon wytrzymuje wylosowaną liczbę stuknięć (1-30, u wszystkich tak samo), następne go rozrywa. Wynik = suma zgarniętych punktów, przy remisie mniej pękniętych balonów, liczony na serwerze z liczby stuknięć w każdym balonie. Numer balonu rywali widać w pigułkach graczy (ruch `progress`), punktów nie; na końcu tabela z wytrzymałością balonów.
 - **W pamięci** (`w-pamieci`): do 12 rund, w każdej liczba startowa i kolejne działania („+7”, „−3”, „×2”) migają po 1,5 s, wyniku pośredniego nie widać; gracz wpisuje, ile wyszło. Ciąg wydłuża się o jedno działanie co rundę (od 2 do 13), wartości zostają w 1-99. Pierwsza pomyłka kończy partię; wynik = zaliczone rundy, przy remisie mniejsza odchyłka w rundzie z pomyłką, liczony na serwerze z odpowiedzi.
+- **Dziesiątki** (`dziesiatki`): 30 s, siatka 4×4 z liczbami 1-9; gracz dotyka dwóch pól dających razem 10 (nie muszą sąsiadować), para znika i wchodzą dwie nowe liczby z dostaw wylosowanych na serwerze (te same dla wszystkich). Na planszy zawsze jest co najmniej jedna para (`take`). Pomyłka blokuje na 1 s; wynik = liczba par, przy remisie niższa średnia, jak w Kolorze liter.
 - 1-6 graczy naraz, każdy gra u siebie to samo wyzwanie (wylosowane na serwerze), na końcu ranking.
   Partia toczy się na kliencie (opóźnienie Wi-Fi zepsułoby pomiar), serwer dostaje tylko wynik i odrzuca nierealne wartości.
 - Każda mini-gra zaczyna od ekranu instrukcji (`Intro` w ui.tsx: animowany podgląd, trzy punkty z ikonami, „Start”). Każdy klika „Start” osobno i gra od razu;
   po 15 s (`INTRO_SECONDS`) gra rusza sama. Limit platformy startuje dopiero, gdy wystartuje ostatni gracz (wiadomość pokoju `begin`); na ekranie widać, kto już gra, a kto czyta zasady.
 - Każda mini-gra ma jeden typ ruchu `result` (Narysuj koło wysyła go po każdej próbie, Tabela Schultego, Policz kropki, Kąt, Który rok?, Wieża i Balon mają jeszcze `progress`); ranking liczy wspólne `rankResults` (core.ts), zwycięzca tylko przy 2+ graczach bez remisu;
   `places` podaje miejsca z remisami (oba z jednego komparatora przez `ranked`), z których turniej liczy punkty.
-  Kolor liter, Liczenie, Inny element, Obrót i Literówka dzielą `quiz.ts` i `Quiz.tsx`, a Policz kropki i Kąt ekran `Szacowanie.tsx`. Pasek statystyk w trakcie partii to wspólne `Stats` (ui.tsx). Odświeżenie w trakcie = partia od nowa.
+  Kolor liter, Liczenie, Inny element, Obrót i Literówka dzielą `quiz.ts` i `Quiz.tsx` (Dziesiątki biorą z nich walidację i tabelę wyników), a Policz kropki i Kąt ekran `Szacowanie.tsx`. Pasek statystyk w trakcie partii to wspólne `Stats` (ui.tsx). Odświeżenie w trakcie = partia od nowa.
 
 - **Rekordy**: po każdej skończonej mini-grze (także solo i w turnieju) serwer zapisuje wynik każdego gracza jako jedną liczbę
   (`record` w `GameDefinition`: `score` i kierunek `lower`) oraz, jeśli gra rozstrzyga remisy drugim kryterium, także je (`tie`: średnia reakcji
@@ -194,7 +195,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
 - Rewanż po zgodzie wszystkich grających, kolejność miejsc rotuje (poza mini-grami, gdzie wszyscy grają naraz); do lobby może wrócić każdy.
 - W mini-grach (gry solo, `minPlayers: 1`) limit rusza po ekranie instrukcji: gdy wszyscy klikną „Start” albo po 15 s.
 - Limit tury: 60 s w większości gier; dłużej w Sekwencji, Śledzeniu i W pamięci (300 s), Który rok? (240 s), Tabeli Schultego, Odcieniu, Wieży i Mapie (180 s),
-  Narysuj koło, Policz kropki, Kąt, Przytrzymaj i Balon (120 s), Kolorze liter, Liczeniu, Innym elemencie, Obrocie i Literówce (90 s); Państwa-miasta mają limit per faza, Statki 90 s na całe rozstawianie, Chińczyk w trybie Szybkim 20 s.
+  Narysuj koło, Policz kropki, Kąt, Przytrzymaj i Balon (120 s), Kolorze liter, Liczeniu, Innym elemencie, Obrocie, Literówce i Dziesiątkach (90 s); Państwa-miasta mają limit per faza, Statki 90 s na całe rozstawianie, Chińczyk w trybie Szybkim 20 s.
 - Gdy gracz z miejscem zniknie z pokoju w trakcie partii (wyjdzie sam albo nie wróci w 10 minut), partia się kończy:
   jeśli został jeden gracz, wygrywa walkowerem; przy większej liczbie kończy się bez zwycięzcy.
 - Lobby: gospodarz wybiera grę i daje start, goście potwierdzają gotowość; każdy może zmienić swój kolor
@@ -288,7 +289,7 @@ podpięcie w `screens/Game.tsx` i ikona w `screens/Lobby.tsx`.
 | 5 | Kampus Tour: dodatki (Kolokwium, Juwenalia, karty, wykupienie, Bilet MPK, monopol) | Pełna wersja (gotowe) |
 | 6 | Poprawka | Gra karciana (do zrobienia) |
 | 7 | PWA, animacje, statystyki, szlify | Polerka (PWA, ranking po nicku i rekordy mini-gier gotowe) |
-| + | Chińczyk, Memory, mini-gry (23 sztuki), Państwa-miasta, Turniej z mini-gier | Poza planem (gotowe) |
+| + | Chińczyk, Memory, mini-gry (24 sztuki), Państwa-miasta, Turniej z mini-gier | Poza planem (gotowe) |
 | dalej | Zapis stanu pokoi w SQLite | Do zrobienia |
 
 ## 8a. Sposób pracy
