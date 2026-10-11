@@ -41,6 +41,7 @@ const FORMAT: Record<string, { value: (n: number) => string; gap?: (n: number) =
   rok: { value: (n) => plural(n, "rok", "lata", "lat") },
   srodek: { value: tenthsPercent },
   tort: { value: tenthsPercent },
+  nozyczki: { value: tenthsPercent },
   mapa: { value: (n) => `${n} km` },
 };
 

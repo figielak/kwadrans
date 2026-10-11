@@ -460,7 +460,7 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 - Bez ruchu `progress` (5 krótkich rund).
 - Ekran: kwadratowy kafel z kształtem. Przeciąganie pokazuje prostą przez cały kafel w kolorze gracza, puszczenie tnie.
   Cięcie, które nie jest odpowiedzią: potrząśnięcie, wibracja 60 i „Przetnij kształt”, runda trwa dalej.
-  Po cięciu przez 1,5 s obie części mają kolor gracza o różnym kryciu, pod kaflem „53,0% | 47,0%” i błąd; kolor według celności:
+  Po cięciu przez 1,5 s obie części mają kolor gracza o różnym kryciu, pod kaflem ich udziały („53,0% | 47,0%”); kolor według celności:
   do 1 zielony z „Idealnie!”, do 5 zwykły, dalej ostrzegawczy. Potem sam wskakuje następny kształt; po piątym wynik idzie na serwer.
 - Ekran końcowy: jedna tabela, kształty 1-5 w kolumnach, gracze w wierszach. Najlepszy w rundzie (bez remisu) ma tło w kolorze gracza.
 
