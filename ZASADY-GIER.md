@@ -32,6 +32,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Mapa | `mapa` | 1-6 | 180 s | mini-gra |
 | Kąt | `kat` | 1-6 | 120 s | mini-gra |
 | Przytrzymaj | `przytrzymaj` | 1-6 | 120 s | mini-gra |
+| Balon | `balon` | 1-6 | 120 s | mini-gra |
 
 Nazwy w UI zmieniały się (2026-10-10), `id`, nazwy plików i typów zostały stare: Sekwencja = `simon`, Kolor liter = `stroop`,
 Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, więc `id` nie wolno zmieniać.
@@ -41,8 +42,8 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
 - Wyzwanie losuje serwer w `setup` (to samo dla wszystkich) i od razu wysyła w widoku. `playerView` zwraca cały stan,
   więc nic nie jest ukryte (da się podejrzeć; świadoma decyzja, komentarze `ponytail:`).
 - Partia toczy się na kliencie. Każdy gracz wysyła jeden ruch `{ type: "result", ... }`; drugi ruch tego samego gracza jest odrzucany.
-  Wyjątki: Narysuj koło (do 10 ruchów na gracza), Tabela Schultego, Policz kropki, Kąt, Który rok? i Wieża (dodatkowy ruch `progress` po każdym trafieniu, rundzie albo klocku).
-- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj),
+  Wyjątki: Narysuj koło (do 10 ruchów na gracza), Tabela Schultego, Policz kropki, Kąt, Który rok?, Wieża i Balon (dodatkowy ruch `progress` po każdym trafieniu, rundzie, klocku albo balonie).
+- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon),
   w reszcie ufa klientowi.
 - Partia zaczyna się ekranem instrukcji (platforma, nie zasady gry): każdy klika „Start” osobno (wiadomość pokoju `begin`) i gra od razu,
   po `INTRO_SECONDS` (15 s) gra rusza sama. Limit tury startuje, gdy wystartują wszyscy albo minie 15 s; wynik oddany wcześniej go nie uruchamia.
@@ -352,6 +353,23 @@ Przebieg, walidacja i ekran końcowy jak w Kolorze liter (`quiz.ts`, `Quiz.tsx`)
 - Ekran sam kończy trzymanie po dwukrotności celu (dalej odchyłka i tak jest ucięta). Grający nie widzi limitu tury ani żadnego licznika
   sekund (podawałyby czas), jak w Stoperze i Rytmie.
 - Stan trzyma też `holds` każdego gracza: ekran końcowy to jedna tabela (bez osobnej listy wyników): w wierszu gracza suma, pod nim odchyłki rund ze znakiem, nad nimi cele; najlepszy w rundzie wyróżniony.
+
+### Balon (`balon`)
+- 10 balonów po kolei (`BALLOONS`). Każde stuknięcie pompuje balon i dodaje do niego 1 punkt.
+- Serwer losuje dla każdego balonu wytrzymałość (`limits`, liczba całkowita 1-30, równomiernie; `MIN_SAFE`, `MAX_SAFE`), tę samą
+  dla wszystkich: tyle stuknięć balon wytrzymuje, następne go rozrywa. Pierwsze stuknięcie jest zawsze bezpieczne.
+- „Zgarnij” dopisuje punkty balonu do sumy i daje następny balon. Pęknięcie daje za ten balon 0 (zgarnięte wcześniej punkty zostają).
+  Zgarnąć można też pusty balon (0 stuknięć, 0 punktów, bez pęknięcia).
+- Jeden ruch z `pumps`: liczba stuknięć w każdym z 10 balonów (int 0-31; 31 to zawsze pęknięcie). Wynik liczy serwer (`score`):
+  balon z `pumps[i] > limits[i]` jest pęknięty i daje 0, inaczej daje `pumps[i]`; `score` = suma (0-300), `popped` = liczba pękniętych.
+- Ranking: więcej punktów wyżej, przy równych mniej pękniętych balonów; równe oba to remis.
+- Walidacja: dokładnie 10 liczb całkowitych 0-31 albo pusta lista. Pusta lista = limit czasu = najgorszy wynik: 0 punktów i 10 pękniętych.
+- Ruch `progress` (`done` = liczba zakończonych balonów, int 1-9) po każdym balonie poza ostatnim: tylko do podglądu u rywali
+  (pasek „3/10” w pigułce gracza), nie odnawia limitu (`turn` ma stały klucz), może spaść po odświeżeniu strony.
+  Punktów rywali w trakcie nie widać: zdradzałyby, ile balon wytrzymuje.
+- Ekran: kwadratowy kafel z balonem w kolorze gracza, dotknięcie kafla pompuje. Rozmiar balonu zależy tylko od liczby stuknięć,
+  nie od wytrzymałości. Pod kaflem „Zgarnij 12 pkt”. Po zgarnięciu „+12”, po pęknięciu „Pękł!” i wibracja 60, przez 0,8 s.
+  Na końcu tabela: ile każdy balon wytrzymywał i ile stuknięć zrobił każdy gracz (pęknięty: przekreślona czerwona liczba, pusty: kreska).
 
 ## 2. Gomoku (`piec-w-rzedzie`)
 
