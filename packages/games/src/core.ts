@@ -32,6 +32,11 @@ export interface GameDefinition<State, Move> {
   /** Zamiast turnSeconds: limit zależny od fazy. Odlicza od nowa tylko przy zmianie key (np. STOP w Państwach-miastach). */
   turn?(state: State): { key: string; seconds: number };
   timeoutMove?(state: State, player: PlayerId, rng: Rng): Move;
+  /**
+   * Mini-gry: główny wynik gracza po końcu partii jako liczba, do rankingu rekordów; `lower` = mniej znaczy lepiej.
+   * `tie` to drugie kryterium, którym gra rozstrzyga remisy (np. średnia reakcji); wynik nieskończony znaczy „brak”.
+   */
+  record?: { lower: boolean; score(state: State, player: PlayerId): number; tie?: { lower: boolean; score(state: State, player: PlayerId): number } };
 }
 
 /** mulberry32: mały, deterministyczny generator. Ten sam seed daje ten sam ciąg (testy, powtórki). */
@@ -74,11 +79,91 @@ export function rankPlaces<R>(players: PlayerId[], results: Record<PlayerId, R>,
   return Object.fromEntries(players.map((p) => [p, 1 + players.filter((q) => compare(results[q], results[p]) < 0).length]));
 }
 
-/** `isOver` i `places` mini-gry z jednego komparatora, żeby ranking i miejsca nie mogły się rozjechać. */
-export const ranked = <S extends { players: PlayerId[] }, R>(results: (state: S) => Record<PlayerId, R>, compare: (a: R, b: R) => number) => ({
-  isOver: (state: S) => rankResults(state.players, results(state), compare),
-  places: (state: S) => rankPlaces(state.players, results(state), compare),
-});
+type Ranked<S> = { isOver: (state: S) => GameResult | null; places: (state: S) => Record<PlayerId, number> };
+type Scored<T> = { lower: boolean; score: T };
+
+/**
+ * `isOver` i `places` mini-gry z jednego komparatora, żeby ranking i miejsca nie mogły się rozjechać.
+ * `record` (wynik jako liczba i kierunek, opcjonalnie drugie kryterium `tie`) dokłada pole do rankingu rekordów.
+ */
+export function ranked<S extends { players: PlayerId[] }, R>(results: (state: S) => Record<PlayerId, R>, compare: (a: R, b: R) => number): Ranked<S>;
+export function ranked<S extends { players: PlayerId[] }, R>(
+  results: (state: S) => Record<PlayerId, R>,
+  compare: (a: R, b: R) => number,
+  record: Scored<(result: R) => number> & { tie?: Scored<(result: R) => number> },
+): Ranked<S> & { record: Scored<(state: S, player: PlayerId) => number> & { tie?: Scored<(state: S, player: PlayerId) => number> } };
+export function ranked<S extends { players: PlayerId[] }, R>(
+  results: (state: S) => Record<PlayerId, R>,
+  compare: (a: R, b: R) => number,
+  record?: Scored<(result: R) => number> & { tie?: Scored<(result: R) => number> },
+) {
+  const of = ({ lower, score }: Scored<(result: R) => number>) => ({ lower, score: (state: S, player: PlayerId) => score(results(state)[player]) });
+  return {
+    isOver: (state: S) => rankResults(state.players, results(state), compare),
+    places: (state: S) => rankPlaces(state.players, results(state), compare),
+    ...(record && { record: { ...of(record), ...(record.tie && { tie: of(record.tie) }) } }),
+  };
+}
+
+/** Bez wielkości liter, polskich znaków i nadmiarowych spacji: duplikaty odpowiedzi w Państwach-miastach i klucz nicku. */
+export const normalize = (text: string) => text.trim().toLowerCase().replace(/ł/g, "l").normalize("NFD").replace(/\p{M}/gu, "").replace(/\s+/g, " ");
+
+/** „Ala”, „ala” i „ALA” to w rankingach jeden gracz. */
+export const nickKey = normalize;
+
+/** Wiersz rankingu rekordów mini-gry: najlepszy wynik gracza, jego drugie kryterium (null: gra go nie ma) i liczba partii. */
+export interface RecordRow {
+  nick: string;
+  best: number;
+  tie: number | null;
+  played: number;
+}
+
+/** Kierunki rekordu gry; pasuje do niego `record` z `GameDefinition`. */
+export type RecordOrder = { lower: boolean; tie?: { lower: boolean } };
+
+/** Sąsiad w rankingu i różnica do niego: w głównym wyniku albo, przy równym (`onTie`), w drugim kryterium. */
+type Neighbour = { nick: string; gap: number; onTie: boolean };
+
+export interface RecordStanding {
+  /** Od 1; remis = to samo miejsce, jak w `rankPlaces`. */
+  place: number;
+  of: number;
+  best: number;
+  tie: number | null;
+  played: number;
+  /** Najbliższy gracz ze ściśle lepszym rekordem. */
+  ahead?: Neighbour;
+  /** Najbliższy gracz ze ściśle gorszym rekordem. */
+  behind?: Neighbour;
+}
+
+type Score = { best: number; tie: number | null };
+
+/** Porównanie dwóch rekordów: ujemne, gdy `a` lepszy. Drugie kryterium liczy się tylko przy równym głównym wyniku. */
+export const compareRecords = (order: RecordOrder) => (a: Score, b: Score) =>
+  (order.lower ? a.best - b.best : b.best - a.best) || (order.tie && a.tie !== null && b.tie !== null ? (order.tie.lower ? a.tie - b.tie : b.tie - a.tie) : 0);
+
+/** Pozycja gracza w rankingu rekordów; `rows` od najlepszego (tak przychodzą z serwera). null, gdy gracz nie ma rekordu. */
+export function standing(rows: RecordRow[], nick: string, order: RecordOrder): RecordStanding | null {
+  const key = nickKey(nick);
+  const mine = rows.find((r) => nickKey(r.nick) === key);
+  if (!mine) return null;
+  const compare = compareRecords(order);
+  const neighbour = (r?: RecordRow): Neighbour | undefined =>
+    r && (r.best !== mine.best ? { nick: r.nick, gap: Math.abs(r.best - mine.best), onTie: false } : { nick: r.nick, gap: Math.abs(r.tie! - mine.tie!), onTie: true });
+  const ahead = neighbour(rows.findLast((r) => compare(r, mine) < 0));
+  const behind = neighbour(rows.find((r) => compare(mine, r) < 0));
+  return {
+    place: 1 + rows.filter((r) => compare(r, mine) < 0).length,
+    of: rows.length,
+    best: mine.best,
+    tie: mine.tie,
+    played: mine.played,
+    ...(ahead && { ahead }),
+    ...(behind && { behind }),
+  };
+}
 
 /** Tasuje kopię tablicy (Fisher-Yates). */
 export function shuffle<T>(items: readonly T[], rng: Rng): T[] {

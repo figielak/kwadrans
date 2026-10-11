@@ -68,7 +68,7 @@ export const schulte: GameDefinition<State, Move> = {
 
   playerView: (state): View => state,
 
-  ...ranked((state: State) => state.results, (a, b) => total(a) - total(b)),
+  ...ranked((state: State) => state.results, (a, b) => total(a) - total(b), { lower: true, score: total }),
 
   waitingFor: (state) => state.players.filter((p) => !(p in state.results)),
 

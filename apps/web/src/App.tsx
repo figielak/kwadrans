@@ -7,6 +7,7 @@ import { Home } from "./screens/Home.tsx";
 import { Game } from "./screens/Game.tsx";
 import { Lobby } from "./screens/Lobby.tsx";
 import { MiniGames } from "./screens/MiniGames.tsx";
+import { Records } from "./screens/Records.tsx";
 import { Setup, TournamentSetup } from "./screens/Setup.tsx";
 
 export function App() {
@@ -17,6 +18,12 @@ export function App() {
   const [notice, setNotice] = useState<string>();
   // Gospodarz otworzył listę mini-gier; samo otwarcie nie zmienia nic w pokoju.
   const [mini, setMini] = useState(false);
+  // Ekran „Rekordy” otwarty z pokoju: lokalny jak lista mini-gier; start partii go zamyka.
+  const [records, setRecords] = useState(false);
+  const inLobby = view?.phase === "lobby";
+  useEffect(() => {
+    if (!inLobby) setRecords(false);
+  }, [inLobby]);
 
   useEffect(() => {
     resumeRoom().then((r) => {
@@ -55,7 +62,11 @@ export function App() {
       setMini(false);
       send("pickGame", { gameId: null });
     };
-    return <MiniGames view={view} {...screen} onBack={back} />;
+    if (records) {
+      const self = view.players.find((p) => p.id === me);
+      return <Records nick={self?.nick ?? null} color={self?.color} onBack={() => setRecords(false)} />;
+    }
+    return <MiniGames view={view} {...screen} onBack={back} onRecords={() => setRecords(true)} />;
   }
   return <Lobby view={view} {...screen} onMini={() => setMini(true)} />;
 }

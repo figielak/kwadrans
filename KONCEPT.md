@@ -9,6 +9,7 @@ Jedna strona, kod pokoju, każdy gra na swoim telefonie.
   (Kampus Tour i Chińczyk 2-4, Gomoku i Statki 2); reszta ogląda.
 - **Mobile-first**: telefon w pionie, bez instalacji (PWA z ikoną na ekranie głównym).
 - **Bez kont**: gracz wpisuje nick i kod pokoju. Token sesji w `localStorage` pozwala wrócić do gry po odświeżeniu strony.
+  W rankingach gracza rozpoznaje `nickKey` (bez wielkości liter, polskich znaków i nadmiarowych spacji: „Ala” i „ala” to jedna osoba), pokazywana jest ostatnia pisownia.
 - **Dostęp**: strona publiczna, ale do gry trzeba znać kod pokoju. Brak publicznej listy pokoi.
 - **Odporność na słabe Wi-Fi**: automatyczne ponowne łączenie, stan gry zawsze po stronie serwera.
 - **Tryb wykładowy**: domyślnie bez dźwięku (jedyny wyjątek to klik metronomu w Rytmie), ciemny motyw, wibracje zamiast powiadomień, limit czasu na turę.
@@ -110,6 +111,13 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
   `places` podaje miejsca z remisami (oba z jednego komparatora przez `ranked`), z których turniej liczy punkty.
   Kolor liter, Liczenie, Inny element i Obrót dzielą `quiz.ts` i `Quiz.tsx`, a Policz kropki i Kąt ekran `Szacowanie.tsx`. Pasek statystyk w trakcie partii to wspólne `Stats` (ui.tsx). Odświeżenie w trakcie = partia od nowa.
 
+- **Rekordy**: po każdej skończonej mini-grze (także solo i w turnieju) serwer zapisuje wynik każdego gracza jako jedną liczbę
+  (`record` w `GameDefinition`: `score` i kierunek `lower`) oraz, jeśli gra rozstrzyga remisy drugim kryterium, także je (`tie`: średnia reakcji
+  w grach na trafienia i punkty, trafione cele w Śledzeniu, szerokość klocka w Wieży). Ranking gry to najlepszy wynik każdego nicku: główny wynik,
+  potem drugie kryterium („12 traf. · 256 ms”), a przy całkiem równych wyżej wcześniejszy. Widać go w trzech miejscach: panel po partii (`RecordPanel`: miejsce wszech czasów, „Nowy rekord!”, awans,
+  ile brakuje do osoby wyżej), lista po wybraniu gry i linia „Rekord: …” na ekranie instrukcji, oraz ekran „Rekordy” (`Records.tsx`, z ekranu głównego i z listy mini-gier):
+  wszystkie mini-gry od tej, w której gracz jest najwyżej. Miejsca liczy wspólne `standing` (core.ts), jednostki wyniku trzyma `FORMAT` w `Records.tsx`.
+
 ### 2.5 Państwa-miasta
 
 - 2-6 graczy, 5 rund, każda na inną literę (bez Ą Ć Ę Ń Ó Ś Ź Ż Q V X Y), kategorie: Państwo, Miasto, Zwierzę, Roślina, Rzecz, Imię.
@@ -137,7 +145,7 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
 Telefon (PWA, React)  ⇄  WebSocket  ⇄  Serwer Colyseus (Node)
                                           │
                                           ├─ logika gier (czyste funkcje TS)
-                                          └─ SQLite (na razie tylko ranking po nicku; stan pokoi w pamięci)
+                                          └─ SQLite (ranking wygranych i rekordy mini-gier po nicku; stan pokoi w pamięci)
 ```
 
 **Zasada:** serwer jest jedynym źródłem prawdy. Klient wysyła intencje („rzucam kośćmi”),
@@ -166,11 +174,13 @@ interface GameDefinition<State, Move> {
   turnSeconds?: number;                 // limit tury
   turn?(state: State): { key: string; seconds: number }; // limit zależny od fazy, licznik od nowa przy zmianie key
   timeoutMove?(state: State, player: PlayerId, rng: Rng): Move;  // ruch za gracza po limicie
+  record?: { lower: boolean; score(state, player): number; tie?: { lower: boolean; score(state, player): number } }; // mini-gry: wynik do rankingu rekordów i drugie kryterium
 }
 ```
 
 Rejestr gier: `GAMES` w `packages/games/src/index.ts`. Wiadomości pokoju: `ROOM_MESSAGES` w `lobby.ts`.
-Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResults`, `rankPlaces`, `ranked`, `shuffle`, `average`, `byHitsThenAverage`, `byScoreThenAverage`.
+Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResults`, `rankPlaces`, `ranked`, `shuffle`, `average`, `byHitsThenAverage`, `byScoreThenAverage`,
+`normalize`, `nickKey`, `standing`, `compareRecords`.
 
 ### Reguły platformy (obowiązują każdą grę)
 
@@ -207,7 +217,7 @@ Prościej i bezpiecznie dla gier z ukrytymi informacjami.
 |---|---|
 | Język | TypeScript (wszędzie) |
 | Monorepo | pnpm workspaces |
-| Serwer / pokoje | Colyseus (Node.js) + Express (statyczny frontend, `/api/stats`) |
+| Serwer / pokoje | Colyseus (Node.js) + Express (statyczny frontend, `/api/stats`, `/api/records`) |
 | Walidacja wiadomości | zod |
 | Frontend | Vite + React |
 | Style / animacje | Tailwind, Motion (planowane, jeszcze niezainstalowane; na razie animacje w CSS) |
@@ -226,9 +236,9 @@ mini-games/
 │  └─ games/src/   # core.ts (kontrakt, RNG, utilsy), lobby.ts, turniej.ts, index.ts (GAMES),
 │                  # <gra>.ts + <gra>.test.ts dla każdej gry (płasko)
 ├─ apps/
-│  ├─ server/src/  # index.ts, LobbyRoom.ts (pokój Colyseus), stats.ts + stats.test.ts (SQLite, GET /api/stats)
+│  ├─ server/src/  # index.ts, LobbyRoom.ts (pokój Colyseus), stats.ts + stats.test.ts (SQLite, GET /api/stats i /api/records)
 │  └─ web/src/     # main.tsx, App.tsx, net.ts (połączenie, token, reconnect), Dev.tsx (tryb testowy),
-│                  # screens/ (Home, Lobby, Setup (ekran gry głównej i turnieju przed partią), MiniGames, Game,
+│                  # screens/ (Home, Lobby, Setup (ekran gry głównej i turnieju przed partią), MiniGames, Records (rekordy mini-gier), Game,
 │                  # ui.tsx ze wspólnymi Screen/TopBar/StickyBar/Scores),
 │                  # games/<Gra>.tsx (UI każdej gry), index.css (klasy .tile .label .btn .field)
 ├─ .github/workflows/ci.yml
@@ -273,7 +283,7 @@ podpięcie w `screens/Game.tsx` i ikona w `screens/Lobby.tsx`.
 | 4 | Kampus Tour: rdzeń (ruch, kupno, czynsz, budowanie, bankructwo) | Grywalna wersja główna (gotowe) |
 | 5 | Kampus Tour: dodatki (Kolokwium, Juwenalia, karty, wykupienie, Bilet MPK, monopol) | Pełna wersja (gotowe) |
 | 6 | Poprawka | Gra karciana (do zrobienia) |
-| 7 | PWA, animacje, statystyki, szlify | Polerka (PWA i ranking po nicku gotowe) |
+| 7 | PWA, animacje, statystyki, szlify | Polerka (PWA, ranking po nicku i rekordy mini-gier gotowe) |
 | + | Chińczyk, Memory, mini-gry (19 sztuk), Państwa-miasta, Turniej z mini-gier | Poza planem (gotowe) |
 | dalej | Zapis stanu pokoi w SQLite | Do zrobienia |
 

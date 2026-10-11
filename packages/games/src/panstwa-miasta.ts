@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type GameDefinition, type PlayerId, rankResults } from "./core.ts";
+import { type GameDefinition, normalize, type PlayerId, rankResults } from "./core.ts";
 
 export const CATEGORIES = ["Państwo", "Miasto", "Zwierzę", "Roślina", "Rzecz", "Imię"] as const;
 /** Bez Ą Ę Ń Ó Ś Ź Ż Q V X Y: na nie prawie nic nie ma. */
@@ -42,10 +42,6 @@ export type View = State;
 
 const SECONDS = { write: 90, stop: 7, vote: 45, summary: 20 };
 const EMPTY = CATEGORIES.map(() => "");
-
-/** Porównanie duplikatów: bez wielkości liter, polskich znaków i nadmiarowych spacji. */
-export const normalize = (answer: string) =>
-  answer.trim().toLowerCase().replace(/ł/g, "l").normalize("NFD").replace(/\p{M}/gu, "").replace(/\s+/g, " ");
 
 /** Niepusta i na właściwą literę (Ł to inna litera niż L). */
 export const fits = (letter: string, answer: string) => answer.trim().slice(0, 1).toLocaleUpperCase("pl") === letter;

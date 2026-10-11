@@ -1,5 +1,5 @@
 import { ArrowCounterClockwise, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { CHINCZYK_TRACK, type ChinczykView, GAMES, type InnyView, isDone, type KampusTourView, type KatView, type KolorView, type KoloView, type KropkiView, type LiczenieView, type MapaView, type MemoryView, type ObrotView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RefleksView, type RokView, type RoomView, type RytmView, type SledzenieView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, type SrodekView, standings, type StatkiView, type StojView, type StoperView, type StroopView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@mini-games/games";
+import { CHINCZYK_TRACK, type ChinczykView, GAMES, type InnyView, isDone, type KampusTourView, type KatView, type KolorView, type KoloView, type KropkiView, type LiczenieView, type MapaView, type MemoryView, type ObrotView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RefleksView, type RokView, type RoomView, type RytmView, type SledzenieView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, type SrodekView, standing, standings, type StatkiView, type StojView, type StoperView, type StroopView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@mini-games/games";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
@@ -26,6 +26,8 @@ import { Rytm } from "../games/Rytm.tsx";
 import { Stoper } from "../games/Stoper.tsx";
 import { Stroop } from "../games/Stroop.tsx";
 import { Wieza } from "../games/Wieza.tsx";
+import { fetchRecords } from "../net.ts";
+import { formatRecord, RecordPanel } from "./Records.tsx";
 import { IntroContext, Screen, type Send } from "./ui.tsx";
 
 interface Props {
@@ -60,6 +62,24 @@ export function Game({ view, me, dropped, send }: Props) {
       document.body.style.removeProperty("--ambient");
     };
   }, [turnColor]);
+
+  // Rekordy mini-gry: stan sprzed partii (cel na ekranie instrukcji, porównanie po partii) i po niej, gdy serwer zapisał wyniki.
+  const [records, setRecords] = useState<{ before: RecordRow[] | null; after: RecordRow[] | null }>({ before: null, after: null });
+  const scored = !!def.record && (view.phase === "playing" || !!game.result?.ranking);
+  useEffect(() => {
+    if (!scored) return;
+    let stale = false;
+    const over = view.phase === "over";
+    if (!over) setRecords({ before: null, after: null });
+    fetchRecords().then((all) => {
+      if (stale) return;
+      const rows = all[def.id] ?? [];
+      setRecords((r) => (over ? { ...r, after: rows } : { before: rows, after: null }));
+    });
+    return () => {
+      stale = true;
+    };
+  }, [def.id, view.phase, scored]);
 
   // Kampus Tour ma własny, poziomy układ na cały ekran: gracze w rogach, licznik i rewanż w środku planszy.
   if (def.id === "kampus-tour") {
@@ -136,6 +156,7 @@ export function Game({ view, me, dropped, send }: Props) {
     game,
     others: view.seats.filter((id) => id !== me).map((id) => ({ id, nick: nick(id), color: view.players.find((p) => p.id === id)?.color ?? "", began: game.began.includes(id) })),
     begin: () => send("begin"),
+    record: recordHint(def.id, records.before, nick(me)),
   };
 
   return (
@@ -522,6 +543,17 @@ export function Game({ view, me, dropped, send }: Props) {
           </ol>
         )}
 
+        {view.phase === "over" && def.record && game.result?.ranking && records.after && (
+          <RecordPanel
+            gameId={def.id}
+            before={records.before}
+            after={records.after}
+            nick={nick(me)}
+            color={myColor}
+            score={seated ? { best: def.record.score(game.view, me), tie: finite(def.record.tie?.score(game.view, me)) } : undefined}
+          />
+        )}
+
         {view.phase === "over" && t && table && (
           <section className="tile p-4">
             <h2 className="label mb-2">{tournamentOver ? "Wyniki turnieju" : "Tabela turnieju"}</h2>
@@ -559,6 +591,18 @@ export function Game({ view, me, dropped, send }: Props) {
       </Screen>
     </IntroContext.Provider>
   );
+}
+
+/** Drugie kryterium rekordu, jak na serwerze: brak albo wynik nieskończony (średnia z zera trafień) to null. */
+const finite = (n: number | undefined) => (n !== undefined && Number.isFinite(n) ? n : null);
+
+/** „Rekord: 215 ms (Ola) · twój: 240 ms”: cel do pobicia na ekranie instrukcji. */
+function recordHint(gameId: string, rows: RecordRow[] | null, nick: string) {
+  if (!rows?.length) return undefined;
+  const mine = standing(rows, nick, GAMES[gameId].record!);
+  const top = `Rekord: ${formatRecord(gameId, rows[0])}`;
+  if (mine?.place === 1) return `${top} (twój)`;
+  return `${top} (${rows[0].nick})${mine ? ` · twój: ${formatRecord(gameId, mine)}` : ""}`;
 }
 
 const MINI_GAMES = new Set(["refleks", "simon", "stoper", "schulte", "stroop", "liczenie", "kolo", "kolor", "kropki", "rok", "srodek", "stoj", "sledzenie", "wieza", "rytm", "inny", "obrot", "mapa", "kat", "panstwa-miasta"]);

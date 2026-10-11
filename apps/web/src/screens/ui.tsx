@@ -92,6 +92,8 @@ export const IntroContext = createContext<{
   game: NonNullable<RoomView["game"]>;
   others: { id: string; nick: string; color: string; began: boolean }[];
   begin: () => void;
+  /** Rekord gry do pobicia, jedna linia pod przyciskiem „Start”. */
+  record?: string;
 } | null>(null);
 
 /**
@@ -151,6 +153,7 @@ export function Intro({ time, task, score, preview, onStart }: { time: ReactNode
         {deadline !== null && (
           <p className="text-center text-sm text-fg-muted tabular-nums">Start automatycznie za {Math.max(0, Math.ceil((deadline - now) / 1000))} s</p>
         )}
+        {room?.record && <p className="text-center text-sm text-fg-muted tabular-nums">{room.record}</p>}
       </div>
       {room && room.others.length > 0 && (
         <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm text-fg-muted" role="status">

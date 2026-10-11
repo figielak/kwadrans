@@ -38,7 +38,7 @@ export const simon: GameDefinition<State, Move> = {
 
   playerView: (state): View => state,
 
-  ...ranked((state: State) => state.results, (a, b) => b - a),
+  ...ranked((state: State) => state.results, (a, b) => b - a, { lower: false, score: (r) => r }),
 
   waitingFor: (state) => state.players.filter((p) => !(p in state.results)),
 

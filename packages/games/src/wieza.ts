@@ -95,7 +95,7 @@ export const wieza: GameDefinition<State, Move> = {
 
   playerView: (state): View => state,
 
-  ...ranked((state: State) => state.results, (a, b) => b.height - a.height || b.width - a.width),
+  ...ranked((state: State) => state.results, (a, b) => b.height - a.height || b.width - a.width, { lower: false, score: (r) => r.height, tie: { lower: false, score: (r) => r.width } }),
 
   waitingFor: (state) => state.players.filter((p) => !(p in state.results)),
 

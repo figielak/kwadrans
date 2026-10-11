@@ -54,7 +54,6 @@ export {
   CATEGORIES as PM_CATEGORIES,
   fits as pmFits,
   type Move as PanstwaMiastaMove,
-  normalize as pmNormalize,
   type View as PanstwaMiastaView,
 } from "./panstwa-miasta.ts";
 export type { View as PiecWRzedzieView } from "./piec-w-rzedzie.ts";

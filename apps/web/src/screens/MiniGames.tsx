@@ -1,6 +1,9 @@
-import { Play } from "@phosphor-icons/react";
-import { GAMES, type RoomView } from "@mini-games/games";
+import { Play, Trophy } from "@phosphor-icons/react";
+import { GAMES, type RecordRow, type RoomView } from "@mini-games/games";
+import { useEffect, useRef, useState } from "react";
+import { fetchRecords } from "../net.ts";
 import { BLURBS, GameTile, ICONS, MINI_GAMES, Players, seats, StartBar } from "./Lobby.tsx";
+import { RecordList } from "./Records.tsx";
 import { Screen, type Send, TopBar } from "./ui.tsx";
 
 interface Props {
@@ -10,13 +13,24 @@ interface Props {
   send: Send;
   onLeave: () => void;
   onBack: () => void;
+  onRecords: () => void;
 }
 
 /** Lista mini-gier: gospodarz wybiera jedną i daje start, gość widzi opis wybranej. Zasady mini-gier są narzucone z góry. */
-export function MiniGames({ view, me, dropped, send, onLeave, onBack }: Props) {
+export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords }: Props) {
   const isHost = view.hostId === me;
   const def = view.gameId ? GAMES[view.gameId] : undefined;
   const DefIcon = (def && ICONS[def.id]) || Play;
+  const self = view.players.find((p) => p.id === me);
+  const [records, setRecords] = useState<Record<string, RecordRow[]>>({});
+  useEffect(() => {
+    fetchRecords().then(setRecords);
+  }, []);
+  // U gospodarza ranking leży pod długą siatką kafli, więc po wyborze gry sam wjeżdża na ekran.
+  const ranking = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (isHost) ranking.current?.scrollIntoView({ block: "center" });
+  }, [view.gameId]);
 
   return (
     <Screen dropped={dropped}>
@@ -46,6 +60,17 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack }: Props) {
           <p className="mt-3 text-sm text-fg-muted">{BLURBS[def.id]}</p>
         </section>
       )}
+
+      {def && (
+        <section ref={ranking} className="tile flex flex-col gap-3">
+          <h2 className="label">Rekordy · {def.name}</h2>
+          <RecordList gameId={def.id} rows={records[def.id] ?? []} me={self?.nick ?? null} color={self?.color} />
+        </section>
+      )}
+      <button type="button" className="btn btn-ghost w-full" onClick={onRecords}>
+        <Trophy size={18} aria-hidden />
+        Rekordy wszystkich mini-gier
+      </button>
 
       <Players view={view} me={me} send={send} />
       <StartBar view={view} me={me} send={send} />
