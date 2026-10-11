@@ -40,6 +40,7 @@ const FORMAT: Record<string, { value: (n: number) => string; gap?: (n: number) =
   kat: { value: (n) => `${n}°` },
   rok: { value: (n) => plural(n, "rok", "lata", "lat") },
   srodek: { value: tenthsPercent },
+  tort: { value: tenthsPercent },
   mapa: { value: (n) => `${n} km` },
 };
 
