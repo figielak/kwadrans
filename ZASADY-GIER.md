@@ -37,6 +37,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | W pamięci | `w-pamieci` | 1-6 | 300 s | mini-gra |
 | Dziesiątki | `dziesiatki` | 1-6 | 90 s | mini-gra |
 | Tort | `tort` | 1-6 | 120 s | mini-gra |
+| Nożyczki | `nozyczki` | 1-6 | 60 s | mini-gra |
 
 Nazwy w UI zmieniały się (2026-10-10), `id`, nazwy plików i typów zostały stare: Sekwencja = `simon`, Kolor liter = `stroop`,
 Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, więc `id` nie wolno zmieniać.
@@ -47,7 +48,7 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
   więc nic nie jest ukryte (da się podejrzeć; świadoma decyzja, komentarze `ponytail:`).
 - Partia toczy się na kliencie. Każdy gracz wysyła jeden ruch `{ type: "result", ... }`; drugi ruch tego samego gracza jest odrzucany.
   Wyjątki: Narysuj koło (do 10 ruchów na gracza), Tabela Schultego, Policz kropki, Kąt, Który rok?, Wieża i Balon (dodatkowy ruch `progress` po każdym trafieniu, rundzie, klocku albo balonie).
-- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon, W pamięci, Tort),
+- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon, W pamięci, Tort, Nożyczki),
   w reszcie ufa klientowi.
 - Partia zaczyna się ekranem instrukcji (platforma, nie zasady gry): każdy klika „Start” osobno (wiadomość pokoju `begin`) i gra od razu,
   po `INTRO_SECONDS` (15 s) gra rusza sama. Limit tury startuje, gdy wystartują wszyscy albo minie 15 s; wynik oddany wcześniej go nie uruchamia.
@@ -439,6 +440,28 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
   Potem przez 1,5 s widać idealne cięcia (przerywane, liczone od gotowego) i błąd w %; kolor według celności: do 2% zielony z „Idealnie!”,
   do 8% zwykły, dalej ostrzegawczy. Potem sam wskakuje następny tort; po piątym wynik idzie na serwer.
 - Ekran końcowy: jedna tabela, torty 1-5 w kolumnach (z liczbą kawałków), gracze w wierszach. Najlepszy w rundzie (bez remisu) ma tło w kolorze gracza.
+
+### Nożyczki (`nozyczki`)
+- 5 kształtów (`SHAPES`), te same dla wszystkich; gracz jednym ruchem palca przecina każdy prostą tak, żeby obie części miały równe pole.
+- Kształt to gęsty wielokąt (64 wierzchołki, współrzędne 0-1 w ułamkach pola, zaokrąglone do 3 miejsc). Promień jest funkcją kąta:
+  `BASE` razy (1 + suma czterech fal o losowej amplitudzie i fazie), więc kształt jest gładki, nie przecina sam siebie i nie ma symetrii.
+  Całość jest losowo przesunięta w polu (margines 0,05 od krawędzi), żeby środek kafla niczego nie podpowiadał.
+  Ekran rysuje ten sam wielokąt, więc pole na ekranie i na serwerze jest to samo.
+- Cięcie to prosta przez punkt dotknięcia i punkt puszczenia palca (`a`, `b`), przedłużona w obie strony; jak długi był ruch, nie ma znaczenia.
+- Wynik liczy serwer: `split` obcina wielokąt do obu stron prostej, `share` to udział jednej strony w polu kształtu.
+  Gdy prosta tnie kształt na więcej niż dwa kawałki, liczą się strony prostej (kawałki po tej samej stronie się sumują).
+- Błąd kształtu = |udział − 50%| w punktach procentowych (części 53% i 47% to błąd 3,0), od 0 do 50. Kierunek ruchu nie ma znaczenia.
+- Cięcie nie jest odpowiedzią, gdy punkty leżą bliżej niż 0,05 boku pola (`MIN_CUT`: kierunek prostej byłby przypadkowy)
+  albo mniejsza część ma poniżej 1% pola kształtu (`MIN_PART`: prosta minęła kształt albo ledwie go drasnęła).
+  Ekran je ignoruje bez kary, serwer odrzuca cały ruch z takim cięciem (jak strefa akceptacji w Środku).
+- Jeden ruch z 5 cięciami. Wynik = suma błędów, zapisana w dziesiątych częściach punktu procentowego (int), mniej lepiej.
+- Pusta lista = limit czasu = 5 × 50% (`MAX_ERROR`, tyle co cięcie obok kształtu; każda uczciwa runda kosztuje mniej).
+- Bez ruchu `progress` (5 krótkich rund).
+- Ekran: kwadratowy kafel z kształtem. Przeciąganie pokazuje prostą przez cały kafel w kolorze gracza, puszczenie tnie.
+  Cięcie, które nie jest odpowiedzią: potrząśnięcie, wibracja 60 i „Przetnij kształt”, runda trwa dalej.
+  Po cięciu przez 1,5 s obie części mają kolor gracza o różnym kryciu, pod kaflem „53,0% | 47,0%” i błąd; kolor według celności:
+  do 1 zielony z „Idealnie!”, do 5 zwykły, dalej ostrzegawczy. Potem sam wskakuje następny kształt; po piątym wynik idzie na serwer.
+- Ekran końcowy: jedna tabela, kształty 1-5 w kolumnach, gracze w wierszach. Najlepszy w rundzie (bez remisu) ma tło w kolorze gracza.
 
 ## 2. Gomoku (`piec-w-rzedzie`)
 
