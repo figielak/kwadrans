@@ -27,6 +27,7 @@ import {
   MagnifyingGlass,
   MapTrifold,
   Metronome,
+  NumberCircleZero,
   NumberSquareOne,
   Palette,
   Play,
@@ -294,6 +295,7 @@ export const ICONS: Record<string, Icon> = {
   przytrzymaj: HandTap,
   balon: Balloon,
   "w-pamieci": Brain,
+  dziesiatki: NumberCircleZero,
 };
 
 export function seats(g: { minPlayers: number; maxPlayers: number }) {
@@ -328,6 +330,7 @@ export const BLURBS: Record<string, string> = {
   mapa: "Nazwa miasta, wskazujesz je na konturze Polski. 10 rund, wygrywa najmniejsza suma kilometrów.",
   kat: "Kąt miga przez 1,5 s, wpisujesz jego miarę w stopniach. 10 rund, wygrywa najmniejsza suma błędów.",
   przytrzymaj: "Pole świeci się od 1 do 5 s, a ty trzymasz palec tak samo długo. 5 rund, wygrywa najmniejsza suma odchyłek.",
+  dziesiatki: "Siatka liczb od 1 do 9. Dotykasz dwóch, które razem dają 10, a w ich miejsce wchodzą nowe. 30 s, liczą się pary.",
   "w-pamieci": "Liczba i kolejne działania migają po kolei, wyniku nie widać. Wpisujesz, ile wyszło. Ciąg jest coraz dłuższy, pierwsza pomyłka kończy grę.",
   balon: "Pompujesz balon stuknięciami, każde to punkt. Zgarniasz punkty, kiedy chcesz, ale pęknięty balon daje 0. 10 balonów, liczy się suma.",
   wieza: "Klocek jeździ w poziomie, zatrzymujesz go nad poprzednim. To, co wystaje, zostaje ucięte. Liczy się wysokość wieży.",

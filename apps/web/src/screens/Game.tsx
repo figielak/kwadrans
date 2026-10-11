@@ -1,8 +1,9 @@
 import { ArrowCounterClockwise, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, type InnyView, isDone, type KampusTourView, type KatView, type KolorView, type KoloView, type KropkiView, type LiterowkaView, type LiczenieView, type MapaView, type MemoryView, type ObrotView, type PrzytrzymajView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RefleksView, type RokView, type RoomView, type RytmView, type SledzenieView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, type SrodekView, standing, standings, type StatkiView, type StojView, type StoperView, type StroopView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner, type WPamieciView } from "@mini-games/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, type DziesiatkiView, GAMES, type InnyView, isDone, type KampusTourView, type KatView, type KolorView, type KoloView, type KropkiView, type LiterowkaView, type LiczenieView, type MapaView, type MemoryView, type ObrotView, type PrzytrzymajView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RefleksView, type RokView, type RoomView, type RytmView, type SledzenieView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, type SrodekView, standing, standings, type StatkiView, type StojView, type StoperView, type StroopView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner, type WPamieciView } from "@mini-games/games";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Balon } from "../games/Balon.tsx";
 import { Chinczyk } from "../games/Chinczyk.tsx";
+import { Dziesiatki } from "../games/Dziesiatki.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
 import { Kolo } from "../games/Kolo.tsx";
 import { Kolor } from "../games/Kolor.tsx";
@@ -54,7 +55,7 @@ export function Game({ view, me, dropped, send }: Props) {
     if (myTurn) navigator.vibrate?.(40);
   }, [myTurn]);
 
-  // Quizy (Kolor liter, Liczenie, Inny element): w rundzie pasek w nagłówku pokazuje jej 30 s zamiast limitu platformy.
+  // Quizy (Kolor liter, Liczenie, Inny element, Dziesiątki): w rundzie pasek w nagłówku pokazuje jej 30 s zamiast limitu platformy.
   const [round, setRound] = useState<{ msLeft: number } | null>(null);
   const onRound = (msLeft: number | null) => setRound(msLeft === null ? null : { msLeft });
   // Poświata tła w kolorze gracza, na którego czekamy; poza turą jednej osoby zostaje akcent.
@@ -497,6 +498,19 @@ export function Game({ view, me, dropped, send }: Props) {
           />
         )}
 
+        {def.id === "dziesiatki" && (
+          <Dziesiatki
+            key={[...(game.view as DziesiatkiView).board, ...(game.view as DziesiatkiView).refills.slice(0, 8)].join("")}
+            view={game.view as DziesiatkiView}
+            me={me}
+            players={view.players}
+            ranking={game.result?.ranking}
+            winner={winner}
+            onMove={(move) => send("move", move)}
+            onRound={onRound}
+          />
+        )}
+
         {def.id === "literowka" && (
           <Literowka
             key={(game.view as LiterowkaView).trials.map((t) => t.wrong).join("")}
@@ -662,7 +676,7 @@ function recordHint(gameId: string, rows: RecordRow[] | null, nick: string) {
   return `${top} (${rows[0].nick})${mine ? ` · twój: ${formatRecord(gameId, mine)}` : ""}`;
 }
 
-const MINI_GAMES = new Set(["refleks", "simon", "stoper", "schulte", "stroop", "liczenie", "kolo", "kolor", "kropki", "rok", "srodek", "stoj", "sledzenie", "wieza", "rytm", "inny", "obrot", "literowka", "mapa", "kat", "przytrzymaj", "balon", "w-pamieci", "panstwa-miasta"]);
+const MINI_GAMES = new Set(["refleks", "simon", "stoper", "schulte", "stroop", "liczenie", "kolo", "kolor", "kropki", "rok", "srodek", "stoj", "sledzenie", "wieza", "rytm", "inny", "obrot", "literowka", "mapa", "kat", "przytrzymaj", "balon", "w-pamieci", "dziesiatki", "panstwa-miasta"]);
 
 const SCHULTE_LAST = SCHULTE_SIZE * SCHULTE_SIZE;
 

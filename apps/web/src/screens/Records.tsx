@@ -21,6 +21,7 @@ const FORMAT: Record<string, { value: (n: number) => string; gap?: (n: number) =
   stroop: { value: hits, tie: ms },
   liczenie: { value: hits, tie: ms },
   inny: { value: hits, tie: ms },
+  dziesiatki: { value: (n) => plural(n, "para", "pary", "par"), tie: ms },
   obrot: { value: points, tie: ms },
   literowka: { value: points, tie: ms },
   stoj: { value: points, tie: ms },
