@@ -132,14 +132,17 @@ export function RecordPanel({ gameId, before, after, nick, color, score }: Panel
     <section className="tile flex flex-col gap-3 p-4" aria-live="polite">
       <div className="flex items-center justify-between gap-3">
         {title}
-        {fresh && (
-          <span
-            className="animate-[set-glow_0.9s_ease-in-out_4] rounded-full border border-success px-3 py-0.5 text-sm font-semibold text-success"
-            style={{ "--glow": "var(--color-success)" } as CSSProperties}
-          >
-            Nowy rekord!
-          </span>
-        )}
+        {fresh &&
+          (was ? (
+            <span
+              className="animate-[set-glow_0.9s_ease-in-out_4] rounded-full border border-success px-3 py-0.5 text-sm font-semibold text-success"
+              style={{ "--glow": "var(--color-success)" } as CSSProperties}
+            >
+              Nowy rekord!
+            </span>
+          ) : (
+            <span className="rounded-full border border-line px-3 py-0.5 text-sm text-fg-muted">Pierwszy wynik</span>
+          ))}
       </div>
 
       <div>
@@ -150,18 +153,16 @@ export function RecordPanel({ gameId, before, after, nick, color, score }: Panel
           <span className="font-mono text-sm text-fg-muted">z {now.of}</span>
         </p>
         <p className="mt-1 text-sm text-fg-muted">
-          {was && was.place > now.place ? `Awans z ${was.place}. miejsca. ` : ""}
+          Ranking wszech czasów. {was && was.place > now.place ? `Awans z ${was.place}. miejsca. ` : ""}
           {fresh
             ? was
               ? `Poprzedni rekord: ${formatRecord(gameId, was)}.`
-              : "Twój pierwszy wynik w tej grze."
+              : `Twój wynik: ${formatRecord(gameId, now)}.`
             : missed
               ? `Twój rekord: ${formatRecord(gameId, now)}, teraz zabrakło ${formatGap(gameId, missed)}.`
               : `Wyrównany rekord: ${formatRecord(gameId, now)}.`}
         </p>
       </div>
-
-      {now.of > 1 && <PlaceBar place={now.place} of={now.of} color={color} />}
 
       {(now.ahead || now.behind) && (
         <p className="text-sm">

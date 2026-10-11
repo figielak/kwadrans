@@ -243,6 +243,9 @@ export function Game({ view, me, dropped, send }: Props) {
                       // Puchar odróżnia wygrane partie w pokoju od wyniku bieżącej partii.
                       <span className="relative flex items-center gap-1 text-base font-semibold text-fg tabular-nums" aria-label={`Wygrane partie: ${view.scores[id] ?? 0}`}>
                         <Trophy size={14} weight="fill" className="text-fg-muted" aria-hidden />
+                        <span className="text-xs font-normal text-fg-muted" aria-hidden>
+                          wygrane
+                        </span>
                         {/* Klucz z wyniku: po wygranej liczba montuje się od nowa i wskakuje. */}
                         <span key={view.scores[id] ?? 0} className={id === winner ? "animate-[stone-pop_0.5s_ease-out]" : ""}>
                           {view.scores[id] ?? 0}
