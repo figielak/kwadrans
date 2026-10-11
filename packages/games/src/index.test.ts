@@ -1,12 +1,13 @@
 import { describe, expect, test } from "vitest";
-import { createRng, GAMES, ROOM_MESSAGES } from "./index.ts";
+import { createRng, GAMES, MINI_GAME_IDS, ROOM_MESSAGES } from "./index.ts";
 
 // Kontrakt wspólny dla każdej gry z rejestru, sprawdzany na losowych partiach granych ruchami po limicie czasu:
 // - ruch po limicie czasu każdego gracza, na którego czekamy, przechodzi przez moveSchema i validateMove,
 // - ten sam ruch od kogoś spoza gry albo od gracza, na którego nie czekamy, jest odrzucany,
 // - partia się kończy, po końcu nikt nie może już nic zrobić, a wynik wskazuje tylko graczy tej partii,
 // - widok każdego gracza i obserwatora ("") da się wysłać jako JSON na każdym etapie,
-// - mini-gra podaje po końcu miejsca z remisami (`places`), zgodne z rankingiem i zwycięzcą.
+// - mini-gra podaje po końcu miejsca z remisami (`places`), zgodne z rankingiem i zwycięzcą,
+// - mini-gra podaje wynik każdego gracza do rankingu rekordów (`record`) jako liczbę skończoną.
 
 const STRANGER = "obcy";
 const SEEDS = [1, 2, 3];
@@ -103,6 +104,7 @@ describe.each(CASES)("$name: kontrakt", ({ game, mode }) => {
         expect(order, `seed ${seed}: miejsca rosną wzdłuż rankingu`).toEqual([...order].sort((a, b) => a - b));
         expect(order[0]).toBe(1);
         expect(winner !== undefined, `seed ${seed}: zwycięzca tylko przy samodzielnym 1. miejscu`).toBe(n > 1 && order.filter((x) => x === 1).length === 1);
+        for (const p of players) expect(Number.isFinite(game.record!.score(s, p)), `seed ${seed}: rekord ${p}`).toBe(true);
       }
       for (const move of seen.values()) {
         for (const player of [...players, STRANGER]) {
@@ -121,4 +123,52 @@ test("losowe partie przeszły przez każdą fazę gier wielofazowych (timeoutMov
     "panstwa-miasta": ["write", "vote", "summary"],
   };
   for (const [id, phases] of Object.entries(expected)) expect([...visited[id]].sort(), id).toEqual([...phases].sort());
+});
+
+// Rekord mini-gry to jedna liczba na gracza. Musi iść w tę samą stronę co miejsca: lepszy wynik (`good`) to 1. miejsce.
+const quiz = (hits: number, errors = 0) => ({ times: Array.from({ length: hits }, () => 500), errors });
+const timed = (hits: number, ms: number, errors = 0) => ({ times: Array.from({ length: hits }, () => ms), errors });
+/** `tied`: ten sam główny wynik, o miejscu decyduje drugie kryterium (ta sama para: lepszy, gorszy). */
+const RECORDS: Record<string, { lower: boolean; good: unknown; bad: unknown; field?: string; tied?: [unknown, unknown] }> = {
+  refleks: { lower: false, good: { times: [300, 300], falseStarts: 0 }, bad: { times: [300], falseStarts: 0 }, tied: [{ times: [250, 251], falseStarts: 0 }, { times: [300, 300], falseStarts: 0 }] },
+  simon: { lower: false, good: 7, bad: 3 },
+  stroop: { lower: false, good: quiz(2), bad: quiz(1), tied: [timed(2, 400), timed(2, 600)] },
+  liczenie: { lower: false, good: quiz(2), bad: quiz(1), tied: [timed(2, 400), timed(2, 600)] },
+  inny: { lower: false, good: quiz(2), bad: quiz(1), tied: [timed(2, 400), timed(2, 600)] },
+  obrot: { lower: false, good: quiz(3), bad: quiz(3, 2), tied: [timed(3, 400), timed(3, 600)] },
+  stoj: { lower: false, good: quiz(4), bad: quiz(4, 1), tied: [timed(4, 400), timed(4, 600)] },
+  sledzenie: { lower: false, good: { rounds: 5, hits: 0 }, bad: { rounds: 3, hits: 2 }, tied: [{ rounds: 4, hits: 2 }, { rounds: 4, hits: 1 }] },
+  wieza: { lower: false, good: { height: 10, width: 0.2 }, bad: { height: 5, width: 0.5 }, tied: [{ height: 7, width: 0.5 }, { height: 7, width: 0.25 }] },
+  kolo: { lower: false, good: { score: 900, points: [] }, bad: { score: 500, points: [] }, field: "best" },
+  stoper: { lower: true, good: 10, bad: 200 },
+  rytm: { lower: true, good: 10, bad: 200 },
+  // Szybszy czas z pomyłką przegrywa: liczy się czas z karą.
+  schulte: { lower: true, good: { ms: 20_000, mistakes: 0, splits: [] }, bad: { ms: 19_000, mistakes: 1, splits: [] } },
+  kolor: { lower: true, good: 10, bad: 200 },
+  kropki: { lower: true, good: 10, bad: 200 },
+  kat: { lower: true, good: 10, bad: 200 },
+  rok: { lower: true, good: 10, bad: 200 },
+  srodek: { lower: true, good: 10, bad: 200 },
+  mapa: { lower: true, good: 10, bad: 200 },
+};
+
+test.each(MINI_GAME_IDS)("%s: rekord idzie w tę samą stronę co miejsca", (id) => {
+  const game = GAMES[id];
+  const fixture = RECORDS[id];
+  expect(fixture, "każda mini-gra ma przypadek w RECORDS").toBeDefined();
+  const state = { ...game.setup(["a", "b"], createRng(1)), [fixture.field ?? "results"]: { a: fixture.good, b: fixture.bad } };
+  const { lower, score } = game.record!;
+  expect(lower).toBe(fixture.lower);
+  const [good, bad] = [score(state, "a"), score(state, "b")];
+  expect(lower ? good < bad : good > bad, `${good} ma być lepsze niż ${bad}`).toBe(true);
+  expect(game.places!(state)).toEqual({ a: 1, b: 2 });
+
+  // Gra, która rozstrzyga remisy drugim kryterium, podaje je też w rekordzie; inaczej ranking rekordów byłby pełen remisów.
+  if (!fixture.tied) return expect(game.record!.tie, "gra bez drugiego kryterium nie ma `tie`").toBeUndefined();
+  const tied = { ...state, [fixture.field ?? "results"]: { a: fixture.tied[0], b: fixture.tied[1] } };
+  const tie = game.record!.tie!;
+  expect(score(tied, "a")).toBe(score(tied, "b"));
+  const [first, second] = [tie.score(tied, "a"), tie.score(tied, "b")];
+  expect(tie.lower ? first < second : first > second, `${first} ma być lepsze niż ${second}`).toBe(true);
+  expect(game.places!(tied)).toEqual({ a: 1, b: 2 });
 });

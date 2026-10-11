@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { byHitsThenAverage, createRng, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle } from "./core.ts";
+import { byHitsThenAverage, createRng, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing } from "./core.ts";
 
 test("ten sam seed daje ten sam ciąg", () => {
   const a = createRng(42);
@@ -104,5 +104,70 @@ describe("rankPlaces: miejsca z remisami (potrzebne w turnieju)", () => {
     const over = { players: ["a", "b", "c"], results: { a: 2, b: 2, c: 9 } };
     expect(game.isOver(over)).toEqual({ winner: "c", ranking: ["c", "a", "b"] });
     expect(game.places(over)).toEqual({ a: 2, b: 2, c: 1 });
+  });
+});
+
+describe("rekordy mini-gier", () => {
+  test("nickKey: bez wielkości liter, polskich znaków i nadmiarowych spacji", () => {
+    expect(nickKey("Łukasz")).toBe("lukasz");
+    expect(nickKey("ŻÓŁW")).toBe(nickKey("zolw"));
+    expect(nickKey("  Ala   B ")).toBe("ala b");
+    expect(nickKey("Ala")).not.toBe(nickKey("Ola"));
+  });
+
+  test("ranked z rekordem: wynik gracza jako liczba, z tego samego źródła co miejsca", () => {
+    const game = ranked((s: { players: string[]; results: Record<string, { hits: number }> }) => s.results, (a, b) => b.hits - a.hits, {
+      lower: false,
+      score: (r) => r.hits,
+    });
+    expect(game.record.lower).toBe(false);
+    expect(game.record.score({ players: ["a", "b"], results: { a: { hits: 4 }, b: { hits: 7 } } }, "b")).toBe(7);
+    expect("record" in ranked((s: { players: string[]; results: Record<string, number> }) => s.results, (a, b) => a - b)).toBe(false);
+  });
+
+  test("ranked z rekordem i drugim kryterium: remis w głównym wyniku rozstrzyga `tie`", () => {
+    const game = ranked((s: { players: string[]; results: Record<string, { hits: number; avg: number }> }) => s.results, (a, b) => b.hits - a.hits || a.avg - b.avg, {
+      lower: false,
+      score: (r) => r.hits,
+      tie: { lower: true, score: (r) => r.avg },
+    });
+    expect(game.record.tie!.lower).toBe(true);
+    expect(game.record.tie!.score({ players: ["a"], results: { a: { hits: 4, avg: 250 } } }, "a")).toBe(250);
+  });
+
+  // Wiersze przychodzą z serwera posortowane od najlepszego rekordu.
+  const row = (nick: string, best: number, played: number, tie: number | null = null) => ({ nick, best, tie, played });
+  const lower = [row("Ola", 20, 3), row("Ala", 35, 1), row("Ela", 35, 2), row("Ula", 90, 5)];
+  const LOWER = { lower: true };
+
+  test("standing: miejsce, liczba graczy, sąsiad wyżej i niżej z różnicą", () => {
+    expect(standing(lower, "Ula", LOWER)).toEqual({ place: 4, of: 4, best: 90, tie: null, played: 5, ahead: { nick: "Ela", gap: 55, onTie: false } });
+    expect(standing(lower, "Ola", LOWER)).toEqual({ place: 1, of: 4, best: 20, tie: null, played: 3, behind: { nick: "Ala", gap: 15, onTie: false } });
+  });
+
+  test("standing: remis daje to samo miejsce, a sąsiad to ktoś ze ściśle innym wynikiem", () => {
+    expect(standing(lower, "Ala", LOWER)).toMatchObject({ place: 2, ahead: { nick: "Ola", gap: 15 }, behind: { nick: "Ula", gap: 55 } });
+    expect(standing(lower, "Ela", LOWER)).toMatchObject({ place: 2, ahead: { nick: "Ola", gap: 15 } });
+  });
+
+  test("standing: więcej znaczy lepiej", () => {
+    const higher = [row("Ola", 12, 1), row("Ala", 9, 1)];
+    expect(standing(higher, "Ala", { lower: false })).toMatchObject({ place: 2, of: 2, best: 9, ahead: { nick: "Ola", gap: 3, onTie: false } });
+  });
+
+  test("standing: przy równym głównym wyniku miejsce i różnicę daje drugie kryterium", () => {
+    // Trafienia (więcej lepiej), potem średnia reakcji (mniej lepiej).
+    const hits = [row("Ola", 13, 1, 240), row("Ala", 13, 1, 256), row("Ela", 13, 1, 256), row("Ula", 12, 1, 200)];
+    const order = { lower: false, tie: { lower: true } };
+    expect(standing(hits, "Ola", order)).toMatchObject({ place: 1, behind: { nick: "Ala", gap: 16, onTie: true } });
+    expect(standing(hits, "Ala", order)).toMatchObject({ place: 2, tie: 256, ahead: { nick: "Ola", gap: 16, onTie: true }, behind: { nick: "Ula", gap: 1, onTie: false } });
+    expect(standing(hits, "Ela", order)?.place).toBe(2);
+    expect(standing(hits, "Ula", order)).toMatchObject({ place: 4, ahead: { nick: "Ela", gap: 1, onTie: false } });
+  });
+
+  test("standing: gracza szuka po kluczu nicku; bez rekordu null", () => {
+    expect(standing(lower, "ola", LOWER)?.place).toBe(1);
+    expect(standing(lower, "Iga", LOWER)).toBeNull();
+    expect(standing([], "Ola", LOWER)).toBeNull();
   });
 });
