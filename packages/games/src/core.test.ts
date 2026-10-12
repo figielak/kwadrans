@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { byHitsThenAverage, createRng, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing, withSum } from "./core.ts";
+import { byHitsThenAverage, createRng, dailyGame, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing, withSum } from "./core.ts";
 
 test("ten sam seed daje ten sam ciąg", () => {
   const a = createRng(42);
@@ -181,5 +181,28 @@ describe("rekordy mini-gier", () => {
     expect(standing(lower, "ola", LOWER)?.place).toBe(1);
     expect(standing(lower, "Iga", LOWER)).toBeNull();
     expect(standing([], "Ola", LOWER)).toBeNull();
+  });
+});
+
+describe("wyzwanie dnia", () => {
+  const ids = ["a", "b", "c", "d", "e"];
+
+  test("ten sam dzień daje tę samą grę z listy", () => {
+    for (let day = 20_000; day < 20_050; day++) {
+      expect(ids).toContain(dailyGame(day, ids));
+      expect(dailyGame(day, ids)).toBe(dailyGame(day, ids));
+    }
+  });
+
+  test("w jednym cyklu każda gra wypada dokładnie raz", () => {
+    const start = 20_000 - (20_000 % ids.length);
+    for (const cycle of [start, start + ids.length, start + 7 * ids.length]) {
+      expect(ids.map((_, i) => dailyGame(cycle + i, ids)).sort()).toEqual(ids);
+    }
+  });
+
+  test("kolejne cykle mają różną kolejność", () => {
+    const order = (cycle: number) => ids.map((_, i) => dailyGame(cycle * ids.length + i, ids)).join();
+    expect(new Set(Array.from({ length: 10 }, (_, c) => order(4000 + c))).size).toBeGreaterThan(1);
   });
 });

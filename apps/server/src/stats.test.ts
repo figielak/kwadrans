@@ -2,7 +2,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { openStats } from "./stats.ts";
 
 describe("statystyki", () => {
@@ -194,5 +194,25 @@ describe("rekordowa partia", () => {
     play(stats, STOPER, "Ola", 10, { results: { 1: 10 } });
     expect(openStats(path).top(STOPER)).toEqual({ results: { 1: 10 } });
     expect(stats.records([STOPER]).stoper.map((r) => r.nick)).toEqual(["Ola", "Ala"]);
+  });
+
+  it("ranking dnia: liczą się tylko wyniki od podanej chwili", () => {
+    vi.useFakeTimers();
+    try {
+      const stats = openStats(":memory:");
+      vi.setSystemTime(1_000);
+      play(stats, STOPER, "Ala", 10);
+      play(stats, STOPER, "Ola", 50);
+      vi.setSystemTime(5_000);
+      play(stats, STOPER, "Ala", 40);
+      play(stats, STOPER, "Ela", 30);
+      expect(stats.records([STOPER], 5_000).stoper).toEqual([
+        { nick: "Ela", best: 30, tie: null, played: 1 },
+        { nick: "Ala", best: 40, tie: null, played: 1 },
+      ]);
+      expect(stats.records([STOPER]).stoper.map((r) => r.nick)).toEqual(["Ala", "Ela", "Ola"]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
