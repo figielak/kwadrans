@@ -123,7 +123,7 @@ describe("rekordy mini-gier", () => {
 describe("migracja rekordów", () => {
   const GAMES = ["balon", "refleks", "przytrzymaj", "kropki", "stroop", "inny", "stoper"].map((id) => ({ id, lower: true }));
 
-  it("kasuje stare rekordy gier ze zmienionym losowaniem, raz; reszta i ranking wygranych zostają", () => {
+  it("kasuje stare rekordy tylko Refleksu (inna jednostka wyniku), raz; reszta i ranking wygranych zostają", () => {
     const path = join(mkdtempSync(join(tmpdir(), "stats-")), "stats.db");
     // Baza sprzed zmiany: bez wersji schematu.
     const old = new DatabaseSync(path);
@@ -135,12 +135,12 @@ describe("migracja rekordów", () => {
 
     const stats = openStats(path);
     const kept = [{ nick: "Ala", best: 5, tie: null, played: 1 }];
-    expect(stats.records(GAMES)).toEqual({ balon: [], refleks: [], przytrzymaj: [], kropki: [], stroop: [], inny: [], stoper: kept });
+    expect(stats.records(GAMES)).toEqual({ balon: kept, refleks: [], przytrzymaj: kept, kropki: kept, stroop: kept, inny: kept, stoper: kept });
     expect(stats.ranking().balon).toEqual([{ nick: "Ala", wins: 1, played: 1 }]);
 
     // Wyniki zapisane po migracji przeżywają kolejny start serwera.
-    stats.recordScores("balon", [{ nick: "Ola", score: 90, tie: 2 }]);
-    expect(openStats(path).records(GAMES).balon).toEqual([{ nick: "Ola", best: 90, tie: 2, played: 1 }]);
+    stats.recordScores("refleks", [{ nick: "Ola", score: 240, tie: null }]);
+    expect(openStats(path).records(GAMES).refleks).toEqual([{ nick: "Ola", best: 240, tie: null, played: 1 }]);
   });
 });
 
