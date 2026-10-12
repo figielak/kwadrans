@@ -27,6 +27,7 @@ const FORMAT: Record<string, { value: (n: number) => string; gap?: (n: number) =
   literowka: { value: points, tie: ms },
   stoj: { value: points, tie: ms },
   simon: { value: points },
+  kubki: { value: (n) => plural(n, "runda", "rundy", "rund") },
   sledzenie: { value: (n) => plural(n, "runda", "rundy", "rund"), tie: (n) => plural(n, "cel", "cele", "celów") },
   "w-pamieci": { value: (n) => plural(n, "runda", "rundy", "rund"), tie: (n) => `o ${n}` },
   wieza: { value: (n) => plural(n, "piętro", "piętra", "pięter"), tie: (n) => `${Math.round(n * 100)}%` },

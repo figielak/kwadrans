@@ -1,4 +1,4 @@
-import { type BalonView, type DziesiatkiView, type InnyView, type KatView, type KoloView, type KolorView, type KropkiView, type LiczenieView, type LiterowkaView, type MapaView, type NozyczkiView, type ObrotView, type PrzytrzymajView, type RefleksView, type RokView, type RytmView, type SchulteView, type SimonView, type SledzenieView, type SrodekView, type StojView, type StoperView, type StroopView, type TortView, type WPamieciView, type WiezaView, type LobbyPlayer } from "@mini-games/games";
+import { type BalonView, type DziesiatkiView, type InnyView, type KatView, type KoloView, type KolorView, type KropkiView, type KubkiView, type LiczenieView, type LiterowkaView, type MapaView, type NozyczkiView, type ObrotView, type PrzytrzymajView, type RefleksView, type RokView, type RytmView, type SchulteView, type SimonView, type SledzenieView, type SrodekView, type StojView, type StoperView, type StroopView, type TortView, type WPamieciView, type WiezaView, type LobbyPlayer } from "@mini-games/games";
 import { Balon } from "./Balon.tsx";
 import { Dziesiatki } from "./Dziesiatki.tsx";
 import { Inny } from "./Inny.tsx";
@@ -17,6 +17,7 @@ import { Rok } from "./Rok.tsx";
 import { Rytm } from "./Rytm.tsx";
 import { Schulte } from "./Schulte.tsx";
 import { Simon } from "./Simon.tsx";
+import { Kubki } from "./Kubki.tsx";
 import { Sledzenie } from "./Sledzenie.tsx";
 import { Srodek } from "./Srodek.tsx";
 import { Stoj } from "./Stoj.tsx";
@@ -160,6 +161,17 @@ export function MiniGame({ id, view, me, players, ranking, winner, onMove, onRou
         <Sledzenie
           key={JSON.stringify((view as SledzenieView).rounds)}
           view={view as SledzenieView}
+          me={me}
+          players={players}
+          ranking={ranking}
+          onMove={onMove}
+        />
+      )}
+
+      {id === "kubki" && (
+        <Kubki
+          key={JSON.stringify((view as KubkiView).rounds)}
+          view={view as KubkiView}
           me={me}
           players={players}
           ranking={ranking}
