@@ -88,7 +88,8 @@ export function Kubki({ view, me, players, ranking, onMove }: Props) {
     };
     const start = performance.now();
     let id = requestAnimationFrame(function frame(now) {
-      const t = now - start;
+      // Znacznik klatki bywa sprzed `start`: ujemny czas dałby krok -1 i wyjątek, który zamraża tasowanie.
+      const t = Math.max(0, now - start);
       if (t >= total) {
         settle(swaps).forEach((slot, cup) => put(cup, slotX(slot), 0));
         return setPhase("pick");
