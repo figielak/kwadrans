@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { createRng, GAMES, MINI_GAME_IDS, ROOM_MESSAGES } from "./index.ts";
+import { createRng, GAMES, MINI_GAME_IDS, ROOM_MESSAGES, soloState } from "./index.ts";
 
 // Kontrakt wspólny dla każdej gry z rejestru, sprawdzany na losowych partiach granych ruchami po limicie czasu:
 // - ruch po limicie czasu każdego gracza, na którego czekamy, przechodzi przez moveSchema i validateMove,
@@ -178,4 +178,28 @@ test.each(MINI_GAME_IDS)("%s: rekord idzie w tę samą stronę co miejsca", (id)
   const [first, second] = [tie.score(tied, "a"), tie.score(tied, "b")];
   expect(tie.lower ? first < second : first > second, `${first} ma być lepsze niż ${second}`).toBe(true);
   expect(game.places!(tied)).toEqual({ a: 1, b: 2 });
+});
+
+// Rekordowa partia w rankingu: stan przycięty do jednego gracza pod kluczem "1", bez id sesji; wyzwanie zostaje, a wynik się nie zmienia.
+test.each(MINI_GAME_IDS)("%s: soloState zostawia jednego gracza i ten sam wynik", (id) => {
+  const game = GAMES[id];
+  const rng = createRng(3);
+  let state = game.setup(["sesja-a", "sesja-b"], rng);
+  for (let i = 0; i < 500 && !game.isOver(state); i++) {
+    const player = game.waitingFor(state)[0];
+    state = game.applyMove(state, player, game.timeoutMove!(state, player, rng), rng);
+  }
+  expect(game.isOver(state)).not.toBeNull();
+
+  const solo = soloState(state, "sesja-b") as { players: string[] };
+  expect(solo.players).toEqual(["1"]);
+  expect(JSON.stringify(solo)).not.toContain("sesja-");
+  expect(game.record!.score(solo, "1")).toBe(game.record!.score(state, "sesja-b"));
+  expect(game.isOver(solo)?.ranking).toEqual(["1"]);
+  // Wspólne dane wyzwania (wszystko poza mapami per gracz) zostają bez zmian.
+  for (const [key, value] of Object.entries(state as Record<string, unknown>)) {
+    const perPlayer = key === "players" || (typeof value === "object" && value !== null && !Array.isArray(value) && "sesja-b" in value);
+    if (!perPlayer) expect((solo as Record<string, unknown>)[key]).toEqual(value);
+  }
+  expect(state.players).toEqual(["sesja-a", "sesja-b"]);
 });
