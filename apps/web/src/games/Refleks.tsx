@@ -1,9 +1,9 @@
-import { type LobbyPlayer, REFLEKS_DURATION_MS, type RefleksView } from "@mini-games/games";
+import { type LobbyPlayer, REFLEKS_PENALTY_MS, REFLEKS_ROUNDS, type RefleksView } from "@mini-games/games";
 import { Trophy } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
 
-type Move = { type: "result"; times: number[]; falseStarts: number };
+type Move = { type: "result"; times: number[] };
 
 interface Props {
   view: RefleksView;
@@ -18,19 +18,19 @@ type Phase = "intro" | "wait" | "go" | "early" | "sent";
 
 /** Reakcja szybsza niż 100 ms to zgadywanie: liczy się jak falstart (serwer i tak by ją odrzucił). */
 const MIN_REACTION = 100;
-const MAX_REACTION = 5000;
 
-/** Wyniki: tabela (trafienia, średnia, najlepszy czas) i wykres czasów kolejnych reakcji w kolorach graczy. */
+/** Wyniki: tabela (średnia, kary, najlepszy czas) i wykres czasów kolejnych reakcji w kolorach graczy. */
 function Results({ view, me, players, ranking, winner }: Omit<Props, "onMove">) {
   const rows = (ranking ?? view.players).map((id) => {
     const p = players.find((pl) => pl.id === id);
-    const times = view.results[id]?.times;
+    const times = view.times[id];
     return {
       id,
       nick: p?.nick ?? "Gracz",
       color: p?.color,
       times,
-      avg: times?.length ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : null,
+      avg: times?.length ? view.results[id] : null,
+      penalties: times?.filter((t) => t === REFLEKS_PENALTY_MS).length,
       best: times?.length ? Math.min(...times) : null,
     };
   });
@@ -49,8 +49,8 @@ function Results({ view, me, players, ranking, winner }: Omit<Props, "onMove">) 
         <thead>
           <tr className="label text-right">
             <th className="w-full px-2 text-left font-normal">Gracz</th>
-            <th className="px-1.5 font-normal">Trafień</th>
             <th className="px-1.5 font-normal">Średnio</th>
+            <th className="px-1.5 font-normal">Kary</th>
             <th className="px-1.5 font-normal">Najlepszy</th>
           </tr>
         </thead>
@@ -77,12 +77,12 @@ function Results({ view, me, players, ranking, winner }: Omit<Props, "onMove">) 
                 </td>
               ) : r.avg === null ? (
                 <td colSpan={3} className="rounded-r-inset px-2 text-fg-muted">
-                  brak trafień
+                  limit czasu
                 </td>
               ) : (
                 <>
-                  <td className="px-1.5">{r.times.length}</td>
                   <td className="px-1.5">{r.avg} ms</td>
+                  <td className="px-1.5">{r.penalties}</td>
                   <td className="rounded-r-inset pr-2 pl-1.5">{r.best} ms</td>
                 </>
               )}
@@ -136,8 +136,17 @@ export function Refleks({ view, me, players, ranking, winner, onMove }: Props) {
   const playing = view.players.includes(me) && !(me in view.results);
   const [phase, setPhase] = useState<Phase>("intro");
   const [last, setLast] = useState<number | null>(null);
-  const [now, setNow] = useState(0);
-  const run = useRef({ start: 0, goAt: 0, round: 0, times: [] as number[], falseStarts: 0, timer: 0 });
+  const run = useRef({ goAt: 0, times: [] as number[], timer: 0 });
+
+  /** Zapisuje czas rundy i daje następną albo oddaje wynik po ostatniej. */
+  function next(time: number) {
+    const r = run.current;
+    r.times.push(time);
+    setLast(time);
+    if (r.times.length < REFLEKS_ROUNDS) return wait();
+    setPhase("sent");
+    onMove({ type: "result", times: r.times });
+  }
 
   function wait() {
     const r = run.current;
@@ -145,43 +154,29 @@ export function Refleks({ view, me, players, ranking, winner, onMove }: Props) {
     r.timer = window.setTimeout(() => {
       r.goAt = performance.now();
       setPhase("go");
-    }, view.delays[r.round++ % view.delays.length]);
+      // Bez dotknięcia runda sama kończy się karą.
+      r.timer = window.setTimeout(() => next(REFLEKS_PENALTY_MS), REFLEKS_PENALTY_MS);
+    }, view.delays[r.times.length]);
   }
 
   function start() {
-    run.current = { start: performance.now(), goAt: 0, round: 0, times: [], falseStarts: 0, timer: 0 };
+    run.current = { goAt: 0, times: [], timer: 0 };
     setLast(null);
     wait();
   }
 
   function tap() {
     const r = run.current;
-    const reaction = performance.now() - r.goAt;
-    clearTimeout(r.timer);
+    const reaction = Math.round(performance.now() - r.goAt);
     if (phase === "go" && reaction >= MIN_REACTION) {
-      if (reaction <= MAX_REACTION) r.times.push(Math.round(reaction));
-      setLast(Math.round(reaction));
-      wait();
+      clearTimeout(r.timer);
+      next(Math.min(reaction, REFLEKS_PENALTY_MS));
     } else if (phase === "wait" || phase === "go") {
-      r.falseStarts++;
+      clearTimeout(r.timer);
       setPhase("early");
-      r.timer = window.setTimeout(wait, 800);
+      r.timer = window.setTimeout(() => next(REFLEKS_PENALTY_MS), 800);
     }
   }
-
-  // Zegar gry: odświeża licznik i kończy partię po 30 s.
-  useEffect(() => {
-    if (phase === "intro" || phase === "sent") return;
-    const id = setInterval(() => {
-      const r = run.current;
-      setNow(performance.now());
-      if (performance.now() - r.start < REFLEKS_DURATION_MS) return;
-      clearTimeout(r.timer);
-      setPhase("sent");
-      onMove({ type: "result", times: r.times, falseStarts: r.falseStarts });
-    }, 100);
-    return () => clearInterval(id);
-  }, [phase === "intro" || phase === "sent"]);
 
   useEffect(() => () => clearTimeout(run.current.timer), []);
 
@@ -191,22 +186,23 @@ export function Refleks({ view, me, players, ranking, winner, onMove }: Props) {
     return (
       <Intro
         preview={<Preview />}
-        time={`${REFLEKS_DURATION_MS / 1000} sekund`}
+        time={`${REFLEKS_ROUNDS} zmian koloru`}
         task="Dotknij pola, gdy zmieni kolor"
-        score="Liczą się trafienia; dotknięcie przed zmianą to falstart i strata czasu"
+        score="Liczy się średni czas reakcji; falstart albo reakcja ponad 1 s to 1000 ms"
         onStart={start}
       />
     );
   }
 
-  const left = Math.max(0, Math.ceil((REFLEKS_DURATION_MS - (now - run.current.start)) / 1000));
+  const { times } = run.current;
+  const penalties = times.filter((t) => t === REFLEKS_PENALTY_MS).length;
   return (
     <div className="flex flex-1 flex-col gap-3">
       <Stats
         items={[
-          { label: "Trafienia", value: run.current.times.length },
-          { label: "Falstarty", value: run.current.falseStarts, warn: run.current.falseStarts > 0 },
-          { label: "Do końca", value: `${left} s` },
+          { label: "Runda", value: `${Math.min(times.length + 1, REFLEKS_ROUNDS)}/${REFLEKS_ROUNDS}` },
+          { label: "Kary", value: penalties, warn: penalties > 0 },
+          { label: "Średnia", value: times.length ? `${Math.round(times.reduce((a, b) => a + b, 0) / times.length)} ms` : "…" },
         ]}
       />
       <button
@@ -216,7 +212,7 @@ export function Refleks({ view, me, players, ranking, winner, onMove }: Props) {
           phase === "go" ? "bg-accent text-accent-fg" : "bg-surface text-fg-muted"
         }`}
       >
-        {phase === "go" ? "Teraz!" : phase === "early" ? "Falstart!" : last !== null ? `${last} ms` : "Czekaj…"}
+        {phase === "go" ? "Teraz!" : phase === "early" ? "Falstart!" : last === null ? "Czekaj…" : last === REFLEKS_PENALTY_MS ? "Za wolno!" : `${last} ms`}
       </button>
     </div>
   );

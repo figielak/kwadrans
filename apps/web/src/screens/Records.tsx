@@ -17,7 +17,7 @@ const tenthsPercent = (n: number) => `${num(n / 10)}%`;
  * `tie` to drugie kryterium gry (średnia reakcji, trafione cele, szerokość klocka), pokazywane obok wyniku.
  */
 const FORMAT: Record<string, { value: (n: number) => string; gap?: (n: number) => string; tie?: (n: number) => string }> = {
-  refleks: { value: hits, tie: ms },
+  refleks: { value: ms },
   stroop: { value: hits, tie: ms },
   liczenie: { value: hits, tie: ms },
   inny: { value: hits, tie: ms },
