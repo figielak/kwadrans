@@ -230,7 +230,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                 label={round ? "Czas" : MINI_GAMES.has(def.id) ? "Limit" : undefined}
               />
             )}
-            <ul className={`flex flex-wrap gap-2 ${dots && !open ? "hidden" : ""}`}>
+            {/* Sam w partii: pigułka z własnym nickiem i postępem nic nie mówi, zostaje tytuł i czas. */}
+            <ul className={`flex flex-wrap gap-2 ${(dots && !open) || (seated && view.seats.length === 1) ? "hidden" : ""}`}>
               {view.seats.map((id) => {
                 const p = view.players.find((pl) => pl.id === id);
                 const active = id === winner || (view.phase === "playing" && game.waitingFor.includes(id));
