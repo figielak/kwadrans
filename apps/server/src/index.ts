@@ -9,7 +9,8 @@ const port = Number(process.env.PORT ?? 2567);
 const webDist = fileURLToPath(new URL("../../web/dist", import.meta.url));
 
 const server = new Server({
-  transport: new WebSocketTransport(),
+  // Domyślne 4 KB nie mieści rysunku z Narysuj koło (do 1000 punktów, ok. 19 KB): ws zamykał połączenie kodem 1009 i gracz wypadał z pokoju.
+  transport: new WebSocketTransport({ maxPayload: 32 * 1024 }),
   express: (app) => {
     app.get("/health", (_req, res) => {
       res.send("ok");
