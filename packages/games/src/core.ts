@@ -201,6 +201,12 @@ export function shuffle<T>(items: readonly T[], rng: Rng): T[] {
   return a;
 }
 
+/**
+ * Gra wyzwania dnia: lista tasowana raz na cykl (tyle dni, ile gier), więc w cyklu każda gra wypada raz. `day` to numer dnia (liczy go serwer).
+ */
+// ponytail: ostatnia gra cyklu może się powtórzyć jako pierwsza następnego (1 na liczbę gier); osobna poprawka, gdyby to raziło
+export const dailyGame = (day: number, ids: readonly string[]) => shuffle(ids, createRng(Math.floor(day / ids.length)))[day % ids.length];
+
 export const average = (times: number[]) => (times.length ? times.reduce((a, b) => a + b, 0) / times.length : Infinity);
 
 /** Porównanie wyników „na trafienia”: więcej trafień wyżej, przy równej liczbie niższa średnia czasu. */

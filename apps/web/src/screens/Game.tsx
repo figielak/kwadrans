@@ -1,4 +1,4 @@
-import { ArrowCounterClockwise, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
 import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, isDone, type KampusTourView, type KatView, type KropkiView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, standing, standings, type StatkiView, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@mini-games/games";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
@@ -17,9 +17,10 @@ interface Props {
   me: string;
   dropped: boolean;
   send: Send;
+  onLeave: () => void;
 }
 
-export function Game({ view, me, dropped, send }: Props) {
+export function Game({ view, me, dropped, send, onLeave }: Props) {
   const game = view.game!;
   const def = GAMES[view.gameId!];
   const nick = (id: string | undefined) => view.players.find((p) => p.id === id)?.nick ?? "Gracz";
@@ -148,6 +149,13 @@ export function Game({ view, me, dropped, send }: Props) {
   return (
     <IntroContext.Provider value={intro}>
       <Screen dropped={dropped}>
+        {/* Gra solo nie ma lobby, więc z trwającej partii wychodzi się prosto na ekran główny. */}
+        {view.solo && view.phase === "playing" && (
+          <button type="button" className="-my-2 -ml-2 flex min-h-12 items-center gap-1.5 self-start px-2 text-sm text-fg-muted" onClick={onLeave}>
+            <ArrowLeft size={16} aria-hidden />
+            Wyjdź
+          </button>
+        )}
         {!ownHeader && (
           <header className="tile flex flex-col gap-3 p-4">
             {t && (
@@ -360,7 +368,7 @@ export function Game({ view, me, dropped, send }: Props) {
 
         {view.phase === "over" && (
           <div className="mt-auto flex flex-col gap-2 pt-4">
-            {t && !tournamentOver ? <NextActions view={view} me={me} send={send} countdown={<Countdown game={game} />} /> : <OverActions view={view} me={me} send={send} />}
+            {t && !tournamentOver ? <NextActions view={view} me={me} send={send} countdown={<Countdown game={game} />} /> : <OverActions view={view} me={me} send={send} onLeave={onLeave} />}
           </div>
         )}
       </Screen>
@@ -399,7 +407,21 @@ function Progress({ done, total, color }: { done: number; total: number; color?:
 }
 
 /** Rewanż rusza, gdy kliknie go każdy grający; „Do lobby” od jednej osoby kończy serię. */
-function OverActions({ view, me, send }: { view: RoomView; me: string; send: Send }) {
+function OverActions({ view, me, send, onLeave }: { view: RoomView; me: string; send: Send; onLeave?: () => void }) {
+  // Gra solo z ekranu głównego nie ma lobby ani rywali: gramy jeszcze raz albo wracamy na start.
+  if (view.solo) {
+    return (
+      <>
+        <button type="button" className="btn btn-primary flex-1" onClick={() => send("rematch")}>
+          <ArrowCounterClockwise size={18} weight="bold" aria-hidden />
+          Jeszcze raz
+        </button>
+        <button type="button" className="btn btn-ghost flex-1" onClick={onLeave}>
+          Wyjdź
+        </button>
+      </>
+    );
+  }
   const seated = view.players.filter((p) => view.seats.includes(p.id));
   const wants = seated.filter((p) => p.ready);
   const waiting = seated.filter((p) => !p.ready);

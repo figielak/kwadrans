@@ -26,6 +26,8 @@ export interface RoomView {
   hostId: PlayerId;
   players: LobbyPlayer[];
   phase: Phase;
+  /** Pokój gry solo z ekranu głównego: jeden gracz, od razu mini-gra, bez lobby, kodu i wpisu w ostatnich pokojach. */
+  solo: boolean;
   gameId: string | null;
   /** Tryb wybranej gry (id z `modes`); null, gdy gra nie ma trybów. */
   mode: string | null;

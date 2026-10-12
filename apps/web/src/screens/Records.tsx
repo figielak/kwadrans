@@ -1,8 +1,8 @@
 import { ArrowLeft, CaretDown, Crown, Play } from "@phosphor-icons/react";
-import { compareRecords, GAMES, KOLOR_COUNT, MINI_GAME_IDS, nickKey, type RecordRow, SOLO, standing } from "@mini-games/games";
+import { compareRecords, GAMES, KOLOR_COUNT, MINI_GAME_IDS, nickKey, type RecordRow, SOLO, standing, TOURNAMENT_ID } from "@mini-games/games";
 import { type CSSProperties, useEffect, useState } from "react";
 import { MiniGame } from "../games/MiniGame.tsx";
-import { fetchRecords, fetchTopRecord } from "../net.ts";
+import { fetchRanking, fetchRecords, fetchTopRecord, type RankingRow } from "../net.ts";
 import { ICONS } from "./Lobby.tsx";
 import { Screen } from "./ui.tsx";
 
@@ -294,8 +294,10 @@ export function Records({ nick, color, onBack, onPlay }: { nick: string | null; 
   /** Gry rozwinięte choć raz: dopiero wtedy pobieramy ich rekordową partię. */
   const [opened, setOpened] = useState<string[]>([]);
   const [allFresh, setAllFresh] = useState(false);
+  const [ranking, setRanking] = useState<Record<string, RankingRow[]>>({});
   useEffect(() => {
     fetchRecords().then(setRecords);
+    fetchRanking().then(setRanking);
   }, []);
 
   const games: Entry[] = MINI_GAME_IDS.map((id) => {
@@ -394,8 +396,54 @@ export function Records({ nick, color, onBack, onPlay }: { nick: string | null; 
               </ul>
             </section>
           )}
+
+          <Wins ranking={ranking} me={nick} color={color} />
         </>
       )}
     </Screen>
+  );
+}
+
+/** Wygrane partie w grach głównych i turniejach (mini-gry mają rekordy wyżej). Równe wygrane i partie to to samo miejsce. */
+function Wins({ ranking, me, color }: { ranking: Record<string, RankingRow[]>; me: string | null; color?: string }) {
+  // Turniej nie jest grą z rejestru, ale ma własny ranking.
+  const title = (id: string) => (id === TOURNAMENT_ID ? "Turniej" : GAMES[id]?.minPlayers > 1 ? GAMES[id].name : undefined);
+  const key = me && nickKey(me);
+  const games = Object.entries(ranking).filter(([id]) => title(id));
+  if (games.length === 0) return null;
+  return (
+    <section className="flex flex-col gap-2">
+      <h2 className="text-sm text-fg-muted">Wygrane partie</h2>
+      {games.map(([id, rows]) => (
+        <div key={id} className="rounded-inset border border-line bg-surface px-3 py-2">
+          <div className="flex justify-between gap-3">
+            <h3>{title(id)}</h3>
+            <span className="text-xs text-fg-subtle" aria-hidden>
+              wygrane z partii
+            </span>
+          </div>
+          <ol className="flex flex-col text-sm">
+            {rows.map((r) => {
+              const place = rows.findIndex((x) => x.wins === r.wins && x.played === r.played) + 1;
+              const mine = nickKey(r.nick) === key;
+              return (
+                <li key={r.nick} className="flex items-center gap-3 py-0.5" style={mine ? { color } : undefined}>
+                  <span className={`flex w-6 font-mono tabular-nums ${mine ? "" : "text-fg-muted"}`}>
+                    {place === 1 ? <Crown size={14} weight="fill" className={mine ? "" : "text-accent"} aria-label="1. miejsce" /> : `${place}.`}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate">
+                    {r.nick}
+                    {mine && " (ty)"}
+                  </span>
+                  <span className="font-mono tabular-nums" aria-label={`${r.wins} wygranych z ${r.played} partii`}>
+                    {r.wins} z {r.played}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      ))}
+    </section>
   );
 }

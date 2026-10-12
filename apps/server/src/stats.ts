@@ -43,7 +43,7 @@ export function openStats(path: string) {
           COUNT(*) OVER (PARTITION BY nick_key(nick)) AS played,
           FIRST_VALUE(nick) OVER (PARTITION BY nick_key(nick) ORDER BY rowid DESC) AS nick,
           ROW_NUMBER() OVER (PARTITION BY nick_key(nick) ORDER BY ${order}, rowid) AS n
-        FROM scores WHERE game_id = ?
+        FROM scores WHERE game_id = ? AND at >= ?
       ) WHERE n = 1 ORDER BY ${order.replace("score", "best")}, id`);
   // Najlepszy wiersz całej gry, w tej samej kolejności co wyżej: jego partię pokazuje ranking, reszta jej nie trzyma.
   const leader = (order: string) => `SELECT rowid FROM scores WHERE game_id = ?1 ORDER BY ${order}, rowid LIMIT 1`;
@@ -96,8 +96,9 @@ export function openStats(path: string) {
     },
 
     // ponytail: wszyscy gracze każdej gry w jednej odpowiedzi (klient liczy z niej miejsca); przy setkach nicków limit i osobne zapytanie o miejsce gracza
-    records(games: ({ id: string } & RecordOrder)[]): Record<string, RecordRow[]> {
-      return Object.fromEntries(games.map((game) => [game.id, query(game).best.all(game.id) as unknown as RecordRow[]]));
+    /** `since` zawęża do wyników od tej chwili (ranking wyzwania dnia). */
+    records(games: ({ id: string } & RecordOrder)[], since = 0): Record<string, RecordRow[]> {
+      return Object.fromEntries(games.map((game) => [game.id, query(game).best.all(game.id, since) as unknown as RecordRow[]]));
     },
   };
 }

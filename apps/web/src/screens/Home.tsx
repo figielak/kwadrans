@@ -1,22 +1,12 @@
-import { ArrowRight, Crown, Plus, Trophy } from "@phosphor-icons/react";
-import { cleanNick, GAMES, NICK_MAX, nickKey, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, TOURNAMENT_ID } from "@mini-games/games";
+import { ArrowLeft, ArrowRight, CaretRight, Play, Plus, Shuffle, SquaresFour, Trophy, User, UsersThree } from "@phosphor-icons/react";
+import { cleanNick, GAMES, MINI_GAME_IDS, NICK_MAX, type RecordRow, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, standing } from "@mini-games/games";
 import { useEffect, useState } from "react";
 import type { Room } from "@colyseus/sdk";
-import { Records } from "./Records.tsx";
-import { StickyBar } from "./ui.tsx";
-import {
-  codeFromUrl,
-  createRoom,
-  errorText,
-  fetchRanking,
-  forgetRecent,
-  joinRoom,
-  NO_ROOM,
-  type RankingRow,
-  recentRooms,
-  saveNick,
-  savedNick,
-} from "../net.ts";
+import { ICONS } from "./Lobby.tsx";
+import { MiniGameGrid } from "./MiniGames.tsx";
+import { formatBest, Records } from "./Records.tsx";
+import { Screen } from "./ui.tsx";
+import { codeFromUrl, createRoom, errorText, fetchDaily, fetchRecords, fetchRooms, forgetRecent, joinRoom, NO_ROOM, recentRooms, saveNick, savedNick } from "../net.ts";
 
 /** Wklejony link `/?kod=ABCD` daje sam kod, nie litery z adresu. */
 const onlyCodeChars = (s: string) =>
@@ -37,6 +27,8 @@ const Logo = () => (
   </svg>
 );
 
+type Busy = "create" | "join" | "solo" | null;
+
 export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?: string }) {
   const [nick, setNick] = useState(savedNick);
   // Zapamiętany nick to jedna linijka; pole widać tylko za pierwszym razem albo po „zmień”.
@@ -44,13 +36,21 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
   const [code, setCode] = useState(() => onlyCodeChars(codeFromUrl()));
   const [nickError, setNickError] = useState("");
   const [roomError, setRoomError] = useState(notice ?? "");
-  const [busy, setBusy] = useState<"create" | "join" | null>(null);
-  const [ranking, setRanking] = useState<Record<string, RankingRow[]>>({});
-  const [records, setRecords] = useState(false);
+  const [soloError, setSoloError] = useState("");
+  const [busy, setBusy] = useState<Busy>(null);
+  const [screen, setScreen] = useState<"records" | "all" | null>(null);
   const [recent, setRecent] = useState(recentRooms);
+  /** Które z ostatnich pokoi jeszcze istnieją (kod → liczba graczy); dopóki serwer nie odpowie, sekcji nie ma. */
+  const [alive, setAlive] = useState<Record<string, number>>({});
+  const [daily, setDaily] = useState<{ gameId: string; rows: RecordRow[] } | null>(null);
+  const [records, setRecords] = useState<Record<string, RecordRow[]>>({});
 
   useEffect(() => {
-    fetchRanking().then(setRanking);
+    fetchDaily().then(setDaily);
+    fetchRecords().then(setRecords);
+    // Wracać jest do czego tylko tam, gdzie byli inni gracze.
+    const codes = recentRooms().filter((r) => r.players >= 2).map((r) => r.code);
+    if (codes.length > 0) fetchRooms(codes).then(setAlive);
   }, []);
 
   function checkNick() {
@@ -60,34 +60,204 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
     return clean;
   }
 
-  async function go(action: "create" | "join", joinCode = code) {
+  /** `arg`: kod pokoju przy dołączaniu, id mini-gry przy grze solo. */
+  async function go(action: Exclude<Busy, null>, arg = code) {
     const clean = checkNick();
     setRoomError("");
+    setSoloError("");
     if (!clean) return;
     setBusy(action);
     try {
-      onRoom(action === "create" ? await createRoom(clean) : await joinRoom(joinCode, clean));
+      onRoom(action === "join" ? await joinRoom(arg, clean) : await createRoom(clean, action === "solo" ? arg : undefined));
       history.replaceState(null, "", "/");
     } catch (e) {
       const text = errorText(e);
       // Pokój z listy ostatnich już nie istnieje, więc nie ma po co go dalej pokazywać.
       if (text === NO_ROOM) {
-        forgetRecent(joinCode);
+        forgetRecent(arg);
         setRecent(recentRooms());
       }
-      setRoomError(text);
+      (action === "solo" ? setSoloError : setRoomError)(text);
+      setScreen(null);
       setBusy(null);
     }
   }
+  const play = (gameId: string) => go("solo", gameId);
 
-  if (records) return <Records nick={cleanNick(nick)} onBack={() => setRecords(false)} />;
+  const me = cleanNick(nick);
+  if (screen === "records") return <Records nick={me} onBack={() => setScreen(null)} onPlay={play} />;
+  if (screen === "all") {
+    return (
+      <Screen dropped={false}>
+        <button type="button" className="-ml-2 flex min-h-12 items-center gap-1.5 self-start px-2 text-sm text-fg-muted" onClick={() => setScreen(null)}>
+          <ArrowLeft size={16} aria-hidden />
+          Wróć
+        </button>
+        <h1 className="text-3xl font-semibold tracking-tight">Mini-gry</h1>
+        <p className="text-sm text-fg-muted">Dotknij gry, żeby zagrać {busy === "solo" ? "…" : "samemu."}</p>
+        <MiniGameGrid records={records} nick={me} disabled={!!busy} onPick={play} />
+      </Screen>
+    );
+  }
+
+  // Dwie gry pod rekordy: cudzy rekord, do którego mam najbliżej (najwyższe miejsce poza pierwszym), i mój, którego broni się przed największą liczbą rywali.
+  // ponytail: bliskość liczona miejscem, nie różnicą wyniku (gry mają różne jednostki); do zmiany, gdyby podpowiedzi były nietrafione
+  const mine = MINI_GAME_IDS.filter((id) => id !== daily?.gameId).flatMap((id) => {
+    const rows = records[id] ?? [];
+    const at = me ? standing(rows, me, GAMES[id].record!) : null;
+    return at ? [{ id, at, top: rows[0] }] : [];
+  });
+  const chase = mine.filter((g) => g.at.place > 1).sort((a, b) => a.at.place - b.at.place || b.at.of - a.at.of)[0];
+  const defend = mine.filter((g) => g.at.place === 1 && g.at.of > 1).sort((a, b) => b.at.of - a.at.of)[0];
+  const picks = [
+    chase && { id: chase.id, text: `ty ${formatBest(chase.id, chase.at.best)} · rekord ${formatBest(chase.id, chase.top.best)}` },
+    defend && { id: defend.id, text: `twój rekord ${formatBest(defend.id, defend.at.best)}` },
+  ].filter((p) => !!p);
+
+  const DailyIcon = (daily && ICONS[daily.gameId]) || Play;
+  const today = daily && me ? standing(daily.rows, me, GAMES[daily.gameId].record!) : null;
+  const full = code.length === ROOM_CODE_LENGTH;
+  const back = recent.filter((r) => r.players >= 2 && alive[r.code]);
+
+  const solo = (
+    <section key="solo" aria-labelledby="solo">
+      <h2 id="solo" className="label mt-3 mb-2 flex items-center gap-1.5 px-1">
+        <User size={14} aria-hidden />
+        Sam
+      </h2>
+      <div className="tile flex flex-col gap-3">
+        {daily && (
+          <>
+            <div className="flex items-center gap-3">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-inset bg-accent-soft text-accent">
+                <DailyIcon size={24} weight="fill" aria-hidden />
+              </span>
+              <p className="flex min-w-0 flex-col leading-tight">
+                <span className="truncate font-semibold">Wyzwanie dnia: {GAMES[daily.gameId].name}</span>
+                <span className="truncate text-sm text-fg-muted">
+                  {daily.rows.length === 0
+                    ? "Dziś nikt jeszcze nie grał"
+                    : today?.place === 1
+                      ? `Prowadzisz: ${formatBest(daily.gameId, today.best)}`
+                      : `Lider ${daily.rows[0].nick} ${formatBest(daily.gameId, daily.rows[0].best)} · ty: ${today ? formatBest(daily.gameId, today.best) : "brak wyniku"}`}
+                </span>
+              </p>
+            </div>
+            <button type="button" className="btn btn-primary w-full" disabled={!!busy} onClick={() => play(daily.gameId)}>
+              <Play size={18} weight="fill" aria-hidden />
+              Zagraj
+            </button>
+          </>
+        )}
+        {picks.length > 0 && (
+          <ul className="flex flex-col divide-y divide-line border-y border-line">
+            {picks.map(({ id, text }) => {
+              const PickIcon = ICONS[id] ?? Play;
+              return (
+                <li key={id}>
+                  <button type="button" className="flex min-h-12 w-full items-center gap-3 text-left" disabled={!!busy} onClick={() => play(id)}>
+                    <PickIcon size={20} className="shrink-0" aria-hidden />
+                    <span className="flex min-w-0 flex-1 flex-col py-1.5 leading-tight">
+                      <span className="truncate">{GAMES[id].name}</span>
+                      <span className="truncate font-mono text-sm text-fg-muted tabular-nums">{text}</span>
+                    </span>
+                    <CaretRight size={14} className="shrink-0 text-fg-muted" aria-hidden />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            className="btn btn-ghost px-2 whitespace-nowrap"
+            disabled={!!busy}
+            onClick={() => play(MINI_GAME_IDS[Math.floor(Math.random() * MINI_GAME_IDS.length)])}
+          >
+            <Shuffle size={18} weight="bold" className="shrink-0" aria-hidden />
+            Losowa gra
+          </button>
+          <button type="button" className="btn btn-ghost px-2 whitespace-nowrap" disabled={!!busy} onClick={() => setScreen("all")}>
+            <SquaresFour size={18} className="shrink-0" aria-hidden />
+            Wszystkie ({MINI_GAME_IDS.length})
+          </button>
+        </div>
+        <p role="alert" className="text-sm text-accent empty:hidden">
+          {soloError}
+        </p>
+      </div>
+    </section>
+  );
+
+  const friends = (
+    <section key="friends" aria-labelledby="friends">
+      <h2 id="friends" className="label mt-3 mb-2 flex items-center gap-1.5 px-1">
+        <UsersThree size={14} aria-hidden />
+        Ze znajomymi
+      </h2>
+      <div className="tile flex flex-col gap-3">
+        <form
+          className="flex flex-col gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (full) go("join");
+          }}
+        >
+          <div className="flex gap-2">
+            <input
+              className="field font-mono text-xl tracking-[0.4em] uppercase"
+              value={code}
+              placeholder="KOD"
+              aria-label="Kod pokoju"
+              inputMode="text"
+              autoCapitalize="characters"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint="go"
+              aria-invalid={!!roomError}
+              aria-describedby="room-error"
+              onChange={(e) => {
+                const next = onlyCodeChars(e.target.value);
+                setCode(next);
+                // Ostatni znak kodu dołącza od razu; kod z linku czeka na przycisk.
+                if (next.length === ROOM_CODE_LENGTH && next !== code && !busy) go("join", next);
+              }}
+            />
+            {/* Jedyny wypełniony przycisk ekranu to „Zagraj”; „Dołącz” dostaje akcent dopiero z pełnym kodem. */}
+            <button type="submit" className={`btn shrink-0 ${full ? "btn-primary" : "btn-ghost"}`} disabled={!!busy || !full}>
+              {busy === "join" ? "Łączenie…" : "Dołącz"}
+              {busy !== "join" && <ArrowRight size={18} weight="bold" aria-hidden />}
+            </button>
+          </div>
+          <p id="room-error" role="alert" className="text-sm text-accent empty:hidden">
+            {roomError}
+          </p>
+        </form>
+        <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
+          <span className="text-sm text-fg-muted">Albo zaproś innych</span>
+          <button type="button" className="btn btn-ghost shrink-0" disabled={!!busy} onClick={() => go("create")}>
+            {busy === "create" ? (
+              "Tworzenie…"
+            ) : (
+              <>
+                <Plus size={18} weight="bold" aria-hidden />
+                Utwórz pokój
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </section>
+  );
 
   return (
-    <main className="mx-auto flex min-h-[100dvh] max-w-md flex-col gap-3 px-4 pt-6">
+    <main className="mx-auto flex min-h-[100dvh] max-w-md flex-col gap-3 px-4 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <header className="flex items-center gap-3">
         <Logo />
         <h1 className="flex-1 text-3xl font-semibold tracking-tight">Kwadrans</h1>
-        <button type="button" className="btn btn-ghost size-12 p-0" aria-label="Rekordy mini-gier" onClick={() => setRecords(true)}>
+        <button type="button" className="btn btn-ghost size-12 p-0" aria-label="Rekordy i rankingi" onClick={() => setScreen("records")}>
           <Trophy size={20} aria-hidden />
         </button>
       </header>
@@ -137,62 +307,21 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
         </p>
       )}
 
-      <form
-        className="tile flex flex-col gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (code.length === ROOM_CODE_LENGTH) go("join");
-        }}
-      >
-        <label htmlFor="code" className="label">
-          Dołącz do znajomych
-        </label>
-        <div className="flex gap-2">
-          <input
-            id="code"
-            className="field font-mono text-xl tracking-[0.4em] uppercase"
-            value={code}
-            placeholder="KOD"
-            inputMode="text"
-            autoCapitalize="characters"
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-            enterKeyHint="go"
-            aria-invalid={!!roomError}
-            aria-describedby="room-error code-hint"
-            onChange={(e) => {
-              const next = onlyCodeChars(e.target.value);
-              setCode(next);
-              // Ostatni znak kodu dołącza od razu; kod z linku czeka na przycisk.
-              if (next.length === ROOM_CODE_LENGTH && next !== code && !busy) go("join", next);
-            }}
-          />
-          <button type="submit" className="btn btn-primary shrink-0" disabled={!!busy || code.length !== ROOM_CODE_LENGTH}>
-            {busy === "join" ? "Łączenie…" : "Dołącz"}
-            {busy !== "join" && <ArrowRight size={18} weight="bold" aria-hidden />}
-          </button>
-        </div>
-        <p id="room-error" role="alert" className="text-sm text-accent empty:hidden">
-          {roomError}
-        </p>
-        <p id="code-hint" className="text-sm text-fg-subtle">
-          Dołączysz automatycznie po wpisaniu pełnego kodu.
-        </p>
-      </form>
+      {/* Kto wchodzi z linku z kodem, przyszedł do znajomych: ich sekcja idzie na górę. */}
+      {codeFromUrl() ? [friends, solo] : [solo, friends]}
 
-      {recent.length > 0 && (
+      {back.length > 0 && (
         <section aria-labelledby="recent">
           <h2 id="recent" className="label mt-3 mb-2 px-1">
-            Ostatnie pokoje
+            Wróć do pokoju
           </h2>
           <ul className="tile flex flex-col divide-y divide-line py-1">
-            {recent.map((r) => (
+            {back.map((r) => (
               <li key={r.code}>
                 <button type="button" className="flex min-h-12 w-full items-center gap-3 text-left" disabled={!!busy} onClick={() => go("join", r.code)}>
                   <span className="font-mono font-medium tracking-[0.12em]">{r.code}</span>
                   <span className="flex-1 truncate text-sm text-fg-muted">
-                    {(r.gameId && GAMES[r.gameId]?.name) || "Lobby"} · {r.players} {r.players === 1 ? "gracz" : "graczy"}
+                    {(r.gameId && GAMES[r.gameId]?.name) || "Lobby"} · {alive[r.code]} {alive[r.code] === 1 ? "gracz" : "graczy"}
                   </span>
                   <span className="shrink-0 text-sm text-fg-subtle">{ago(r.at)}</span>
                 </button>
@@ -201,69 +330,6 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
           </ul>
         </section>
       )}
-
-      <Ranking ranking={ranking} me={cleanNick(nick)} />
-
-      <div className="flex-1" />
-      <StickyBar>
-        <button type="button" className="btn btn-ghost w-full" disabled={!!busy} onClick={() => go("create")}>
-          {busy === "create" ? (
-            "Tworzenie pokoju…"
-          ) : (
-            <>
-              <Plus size={18} weight="bold" aria-hidden />
-              Utwórz pokój
-            </>
-          )}
-        </button>
-      </StickyBar>
     </main>
-  );
-}
-
-function Ranking({ ranking, me }: { ranking: Record<string, RankingRow[]>; me: string | null }) {
-  const [all, setAll] = useState(false);
-  // Turniej nie jest grą z rejestru, ale ma własny ranking. Mini-gry mają rekordy na osobnym ekranie.
-  const title = (id: string) => (id === TOURNAMENT_ID ? "Turniej" : GAMES[id]?.minPlayers > 1 ? GAMES[id].name : undefined);
-  const key = me && nickKey(me);
-  const games = Object.entries(ranking).filter(([id]) => title(id));
-  if (games.length === 0) return null;
-  // Zwinięty ranking pokazuje jedną grę: tę, w której gracz już jest, albo pierwszą z listy.
-  const first = games.find(([, rows]) => rows.some((r) => nickKey(r.nick) === key)) ?? games[0];
-  return (
-    <section aria-labelledby="ranking">
-      <div className="mt-3 flex items-center justify-between px-1">
-        <h2 id="ranking" className="label">
-          Ranking{all ? "" : ` · ${title(first[0])}`}
-        </h2>
-        {games.length > 1 && (
-          <button type="button" className="-mr-2 min-h-12 px-2 text-sm text-accent" aria-expanded={all} onClick={() => setAll(!all)}>
-            {all ? "Zwiń" : "Wszystkie rankingi"}
-          </button>
-        )}
-      </div>
-      <div className={`tile flex flex-col gap-4 ${games.length > 1 ? "" : "mt-2"}`}>
-        {(all ? games : [first]).map(([id, rows]) => (
-          <div key={id}>
-            {all && <h3 className="mb-1 font-semibold">{title(id)}</h3>}
-            <div className="flex justify-between text-xs text-fg-subtle" aria-hidden>
-              <span>Gracz</span>
-              <span>Wygrane</span>
-            </div>
-            <ol className="flex flex-col text-sm">
-              {rows.map((r, i) => (
-                <li key={r.nick} className={`flex items-center gap-3 py-0.5 ${nickKey(r.nick) === key ? "text-accent" : ""}`}>
-                  <span className="flex w-5 font-mono text-fg-subtle">{i === 0 ? <Crown size={14} weight="fill" className="text-accent" aria-label="1." /> : i + 1}</span>
-                  <span className="flex-1 truncate">{r.nick}</span>
-                  <span className="font-mono tabular-nums" aria-label={`${r.wins} wygranych z ${r.played} partii`}>
-                    {r.wins} z {r.played}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        ))}
-      </div>
-    </section>
   );
 }

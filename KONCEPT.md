@@ -9,7 +9,17 @@ Jedna strona, kod pokoju, każdy gra na swoim telefonie.
   (Kampus Tour i Chińczyk 2-4, Gomoku i Statki 2); reszta ogląda.
 - **Mobile-first**: telefon w pionie, bez instalacji (PWA z ikoną na ekranie głównym).
 - **Bez kont**: gracz wpisuje nick i kod pokoju. Token sesji w `localStorage` pozwala wrócić do gry po odświeżeniu strony.
-  Nick jest zapamiętany po pierwszym wpisaniu (ekran główny pokazuje „Grasz jako … · zmień”), tak samo trzy ostatnie pokoje z ostatniej doby do szybkiego powrotu.
+  Nick jest zapamiętany po pierwszym wpisaniu (ekran główny pokazuje „Grasz jako … · zmień”), tak samo trzy ostatnie pokoje z ostatniej doby do szybkiego powrotu
+  (sekcja „Wróć do pokoju”: tylko pokoje, w których było co najmniej 2 graczy i które jeszcze istnieją, sprawdza to `/api/rooms`).
+- **Ekran główny**: sekcja „Sam” stoi wyżej niż „Ze znajomymi” (przy wejściu z linku `/?kod=` odwrotnie). „Sam” to wyzwanie dnia, do dwóch gier
+  dobranych pod rekordy (cudzy rekord, do którego graczowi najbliżej, i własny do obrony), „Losowa gra” i lista wszystkich mini-gier.
+  „Ze znajomymi” łączy pole kodu i „Utwórz pokój”. Jedyny wypełniony przycisk ekranu to „Zagraj” przy wyzwaniu; „Dołącz” dostaje akcent po wpisaniu pełnego kodu.
+  Rankingi wygranych gier głównych i turnieju są na dole ekranu „Rekordy” (puchar w nagłówku); równe wygrane i partie to to samo miejsce.
+- **Gra solo**: mini-gra z ekranu głównego to po cichu pokój na jedną osobę (`solo` w opcjach tworzenia i w `RoomView`), który od razu startuje grę:
+  bez lobby, kodu, wyboru koloru i wpisu w ostatnich pokojach. Po partii „Jeszcze raz” albo „Wyjdź”; wyniki trafiają do tych samych rekordów.
+- **Wyzwanie dnia**: jedna mini-gra dziennie, ta sama dla wszystkich (`dailyGame` w core.ts: lista tasowana raz na cykl, więc każda gra wypada raz na tyle dni, ile jest gier;
+  dzień zmienia się o polskiej północy, `TZ` w docker-compose). Ranking dnia to najlepsze dzisiejsze wyniki w tej grze z dowolnej partii
+  (solo, pokój, turniej), bez limitu prób i bez osobnej tabeli (`/api/daily`). Układ partii jest losowy jak zawsze.
   W rankingach gracza rozpoznaje `nickKey` (bez wielkości liter, polskich znaków i nadmiarowych spacji: „Ala” i „ala” to jedna osoba), pokazywana jest ostatnia pisownia.
 - **Dostęp**: strona publiczna, ale do gry trzeba znać kod pokoju. Brak publicznej listy pokoi.
 - **Odporność na słabe Wi-Fi**: automatyczne ponowne łączenie, stan gry zawsze po stronie serwera.
@@ -194,7 +204,7 @@ interface GameDefinition<State, Move> {
 
 Rejestr gier: `GAMES` w `packages/games/src/index.ts`. Wiadomości pokoju: `ROOM_MESSAGES` w `lobby.ts`.
 Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResults`, `rankPlaces`, `ranked`, `shuffle`, `average`, `byHitsThenAverage`, `byScoreThenAverage`,
-`normalize`, `nickKey`, `standing`, `compareRecords`, `soloState`, `withSum` (losowanie o stałej sumie, żeby każda partia miała tyle samo do zdobycia).
+`normalize`, `nickKey`, `standing`, `compareRecords`, `soloState`, `dailyGame`, `withSum` (losowanie o stałej sumie, żeby każda partia miała tyle samo do zdobycia).
 
 ### Reguły platformy (obowiązują każdą grę)
 
@@ -215,7 +225,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
   gdy gospodarz wybierze grę. Mini-gry mają zasady narzucone z góry, bez trybów.
 - Turniej ma ekran ustawień (`TournamentSetup` w `Setup.tsx`): `pickTournament` (gospodarz) ustawia liczbę gier, `markGame` (każdy) zaznacza jedną grę; obie kasują gotowość gości.
   W trakcie turnieju `gameId` to bieżąca gra, a `tournament` w `RoomView` niesie listę gier i punkty; „Dalej” między grami to wiadomość `rematch`.
-- Limit 3 pokoi na IP, rate limit 10 wiadomości/s na klienta.
+- Limit 3 pokoi na IP (pokoje gry solo liczone osobno, do 20: cała sala na uczelnianym Wi-Fi ma jedno IP), rate limit 10 wiadomości/s na klienta.
 
 **Platforma (skorupa)** jest wspólna dla wszystkich gier: pokoje z 4-znakowym kodem
 (bez mylących znaków typu O/0, I/1), lobby z wyborem gry, nicki i kolory graczy,
@@ -231,7 +241,7 @@ Prościej i bezpiecznie dla gier z ukrytymi informacjami.
 |---|---|
 | Język | TypeScript (wszędzie) |
 | Monorepo | pnpm workspaces |
-| Serwer / pokoje | Colyseus (Node.js) + Express (statyczny frontend, `/api/stats`, `/api/records`, `/api/records/:gameId/top`) |
+| Serwer / pokoje | Colyseus (Node.js) + Express (statyczny frontend, `/api/stats`, `/api/records`, `/api/records/:gameId/top`, `/api/daily`, `/api/rooms`) |
 | Walidacja wiadomości | zod |
 | Frontend | Vite + React |
 | Style / animacje | Tailwind, Motion (planowane, jeszcze niezainstalowane; na razie animacje w CSS) |

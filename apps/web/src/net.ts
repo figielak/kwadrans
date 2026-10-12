@@ -29,6 +29,18 @@ export const fetchTopRecord = (gameId: string): Promise<unknown> =>
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null);
 
+/** Wyzwanie dnia: gra na dziś i dzisiejsze wyniki, od najlepszego; przy błędzie null (kafel się nie pokaże). */
+export const fetchDaily = (): Promise<{ gameId: string; rows: RecordRow[] } | null> =>
+  fetch(`${serverUrl}/api/daily`)
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null);
+
+/** Które z podanych pokoi jeszcze istnieją: kod → liczba połączonych graczy. */
+export const fetchRooms = (codes: string[]): Promise<Record<string, number>> =>
+  fetch(`${serverUrl}/api/rooms?kody=${codes.join()}`)
+    .then((r) => (r.ok ? r.json() : {}))
+    .catch(() => ({}));
+
 // Tryb testowy (/dev): każda ramka ma swój slot z adresu (`?dev=2`), więc własny token i nick.
 const slot = import.meta.env.DEV ? (new URLSearchParams(location.search).get("dev") ?? "") : "";
 const TOKEN_KEY = `mg.token${slot}`;
@@ -74,6 +86,8 @@ const writeRecent = (rooms: RecentRoom[]) => write(ROOMS_KEY, JSON.stringify(roo
 export const forgetRecent = (code: string) => writeRecent(recentRooms().filter((r) => r.code !== code));
 
 function noteRoom(v: RoomView) {
+  // Gra solo to dla gracza nie pokój: nie ma do czego wracać.
+  if (v.solo) return;
   const rooms = recentRooms();
   // W lobby gra nie jest wybrana, więc zostaje ostatnia grana w tym pokoju.
   const gameId = v.gameId ?? rooms.find((r) => r.code === v.code)?.gameId ?? null;
@@ -105,7 +119,8 @@ function remember(room: Room, nick?: string) {
   return room;
 }
 
-export const createRoom = async (nick: string) => remember(await client.create("lobby", { nick }), nick);
+/** `solo`: id mini-gry, którą pokój od razu startuje dla jednego gracza. */
+export const createRoom = async (nick: string, solo?: string) => remember(await client.create("lobby", { nick, solo }), nick);
 
 export const joinRoom = async (code: string, nick: string) =>
   remember(await client.joinById(code, { nick }), nick);
