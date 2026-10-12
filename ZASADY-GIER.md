@@ -38,6 +38,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Dziesiątki | `dziesiatki` | 1-6 | 90 s | mini-gra |
 | Tort | `tort` | 1-6 | 120 s | mini-gra |
 | Nożyczki | `nozyczki` | 1-6 | 60 s | mini-gra |
+| Trzy kubki | `kubki` | 1-6 | 180 s | mini-gra |
 
 Nazwy w UI zmieniały się (2026-10-10), `id`, nazwy plików i typów zostały stare: Sekwencja = `simon`, Kolor liter = `stroop`,
 Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, więc `id` nie wolno zmieniać.
@@ -48,7 +49,7 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
   więc nic nie jest ukryte (da się podejrzeć; świadoma decyzja, komentarze `ponytail:`).
 - Partia toczy się na kliencie. Każdy gracz wysyła jeden ruch `{ type: "result", ... }`; drugi ruch tego samego gracza jest odrzucany.
   Wyjątki: Narysuj koło (do 10 ruchów na gracza), Tabela Schultego, Policz kropki, Kąt, Który rok?, Wieża i Balon (dodatkowy ruch `progress` po każdym trafieniu, rundzie, klocku albo balonie).
-- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon, W pamięci, Tort, Nożyczki),
+- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon, W pamięci, Tort, Nożyczki, Trzy kubki),
   w reszcie ufa klientowi.
 - Partia zaczyna się ekranem instrukcji (platforma, nie zasady gry): każdy klika „Start” osobno (wiadomość pokoju `begin`) i gra od razu,
   po `INTRO_SECONDS` (15 s) gra rusza sama. Limit tury startuje, gdy wystartują wszyscy albo minie 15 s; wynik oddany wcześniej go nie uruchamia.
@@ -243,6 +244,25 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 - Ekran: kwadratowy kafel z kulkami; cele podświetlone kolorem gracza, w ruchu wszystkie jednakowe. Po zatrzymaniu dotknięcie zaznacza kulkę
   (ponowne odznacza), trzecie zatwierdza. Potem przez 1 s widać prawdziwe cele; pomyłka to wibracja 60.
   Ruch kulek jest treścią gry, więc działa także przy `prefers-reduced-motion`.
+
+### Trzy kubki (`kubki`)
+- Do 20 rund (`ROUNDS`). W każdej trzy identyczne kubki w rzędzie (miejsca 0-2 od lewej), pod jednym jest kulka: kubek z kulką
+  jest uniesiony przez 1 s (`SHOW_MS`), opada, potem kubki zamieniają się miejscami parami, a na końcu gracz dotyka kubka.
+- Pierwsza pomyłka kończy partię (jak w Śledzeniu i Sekwencji).
+- Tempo rośnie (runda `r` od 0): liczba zamian `swapCount(r)` = 4 + r (od 4 do 23), czas jednej zamiany
+  `swapMs(r)` = max(150, 500 − 25·r) ms (150 ms od piętnastej rundy). Tasowanie trwa najwyżej 3,6 s.
+- Serwer losuje dla każdej rundy miejsce kulki `ball` (0-2) i listę zamian `swaps`: pary miejsc `[a, b]`, a ≠ b.
+  Ta sama para nie pada dwa razy z rzędu, także odwrócona (druga zamiana cofałaby pierwszą).
+  Gdzie kulka jest po tasowaniu, liczy `ballAt(round)`: ta sama funkcja na serwerze i w ekranie.
+- Jeden ruch z `picks`: wskazane miejsce (int 0-2) w kolejnych rozegranych rundach.
+  Wynik liczy serwer: liczba rund od początku, w których `picks[i] === ballAt(rounds[i])`. Wszystko po pierwszym błędzie jest ignorowane.
+- Ranking: więcej rund wyżej, bez drugiego kryterium (przy trzech kubkach nie ma „prawie”); równe to remis bez zwycięzcy.
+- Walidacja: najwyżej 20 wskazań, każde to liczba całkowita 0-2. Pusta lista = limit czasu = 0 rund.
+- Bez ruchu `progress`: rywale nie widzą numeru rundy (jak w Śledzeniu).
+- Ekran: trzy kubki (trapezy) na kaflu, kulka w kolorze gracza. W zamianie jeden kubek idzie łukiem górą, drugi dołem, żeby się nie przenikały.
+  Dotknięcie kafla wybiera najbliższy kubek; potem przez 1 s widać, gdzie była kulka, pomyłka to wibracja 60.
+  Ruch kubków jest treścią gry, więc działa także przy `prefers-reduced-motion`.
+- Ekran końcowy: tabela wyników z liczbą rund („7 rund”).
 
 ### Wieża (`wieza`)
 - Do 30 pięter. Pole ma szerokość 1. Na dole leży podstawa o szerokości 0,4 na środku pola; każdy następny klocek ma szerokość
