@@ -142,7 +142,7 @@ describe("błąd rundy", () => {
 describe("strefa akceptacji", () => {
   const segment = { a: { x: 0.2, y: 0.2 }, b: { x: 0.6, y: 0.8 } };
   test("odległość od odcinka: w bok prostopadle, za końcem od końca", () => {
-    expect(ACCEPT_PX).toBe(30);
+    expect(ACCEPT_PX).toBe(60);
     expect(offset(segment, at(segment, 40))).toBeCloseTo(0);
     expect(offset(segment, at(segment, 40, 18))).toBeCloseTo(18);
     expect(offset(segment, at(segment, halfPx(segment) + 20))).toBeCloseTo(20);
