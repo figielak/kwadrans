@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { byHitsThenAverage, createRng, dailyGame, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing, withSum } from "./core.ts";
+import { byHitsThenAverage, createRng, dailyGame, initials, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing, withSum } from "./core.ts";
 
 test("ten sam seed daje ten sam ciąg", () => {
   const a = createRng(42);
@@ -204,5 +204,48 @@ describe("wyzwanie dnia", () => {
   test("kolejne cykle mają różną kolejność", () => {
     const order = (cycle: number) => ids.map((_, i) => dailyGame(cycle * ids.length + i, ids)).join();
     expect(new Set(Array.from({ length: 10 }, (_, c) => order(4000 + c))).size).toBeGreaterThan(1);
+  });
+});
+
+describe("inicjały na kropkach graczy", () => {
+  test("unikalna pierwsza litera wystarcza", () => {
+    expect(initials(["bartek", "Kamila", "Ola 2"])).toEqual(["B", "K", "O"]);
+  });
+
+  test("ta sama litera: nick z cyfrą na końcu dostaje literę i cyfrę", () => {
+    expect(initials(["Gracz 1", "Gracz 2", "Gracz 3"])).toEqual(["G1", "G2", "G3"]);
+  });
+
+  test("ta sama litera: pozostałe dostają dwa pierwsze znaki", () => {
+    expect(initials(["Kamila", "Krystian", "Ola"])).toEqual(["Ka", "Kr", "O"]);
+  });
+
+  test("te same dwa znaki: drugi z pierwszej pozycji, na której nicki się różnią", () => {
+    expect(initials(["Kasia", "Kamila"])).toEqual(["Ks", "Km"]);
+    expect(initials(["Kasia", "KAMILA", "Karol"])).toEqual(["Ks", "KM", "Kr"]);
+  });
+
+  test("emoji i flaga to jeden znak, nie połówka pary", () => {
+    expect(initials(["🇵🇱 Jan", "👨‍👩‍👧 rodzina", "🦊"])).toEqual(["🇵🇱", "👨‍👩‍👧", "🦊"]);
+    expect(initials(["🦊 lis", "🦊 wilk"])).toEqual(["🦊l", "🦊w"]);
+  });
+
+  test("polskie znaki wielką literą", () => {
+    expect(initials(["śliwka", "łoś", "żuk"])).toEqual(["Ś", "Ł", "Ż"]);
+  });
+
+  test("nick jednoznakowy obok dłuższego na tę samą literę", () => {
+    expect(initials(["k", "Kamila"])).toEqual(["K", "Ka"]);
+  });
+
+  test("te same nicki mają tę samą etykietę, a reszta dalej się różni", () => {
+    expect(initials(["Ala", "ala", "Adam"])).toEqual(["Al", "Al", "Ad"]);
+  });
+
+  test("etykieta ma najwyżej dwa znaki", () => {
+    const segmenter = new Intl.Segmenter("pl", { granularity: "grapheme" });
+    for (const label of initials(["Gracz 10", "Gracz 11", "Grzegorz Brzęczyszczykiewicz", "G", "👨‍👩‍👧👨‍👩‍👧👨‍👩‍👧", "g r a"])) {
+      expect([...segmenter.segment(label)].length).toBeLessThanOrEqual(2);
+    }
   });
 });
