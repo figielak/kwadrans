@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
 import { createRng } from "./core.ts";
-import { GAP, kropki as game, MAX, MIN, type Move, ROUNDS, type State, type View } from "./kropki.ts";
+import { GAP, kropki as game, MAX, MIN, type Move, ROUNDS, type State, TOTAL, type View } from "./kropki.ts";
 
 // Testy napisane przed implementacją. Ustalają zasady:
-// - 1-6 graczy naraz, każdy liczy te same 10 układów kropek (MIN-MAX kropek, pozycje 0-1 z odstępem),
+// - 1-6 graczy naraz, każdy liczy te same 10 układów kropek (MIN-MAX kropek, razem zawsze 240, pozycje 0-1 z odstępem),
 // - odpowiedź to 10 liczb całkowitych 0-99; wynik = suma błędów |odpowiedź − liczba|,
 // - mniejsza suma wyżej; pusta odpowiedź (limit czasu) liczy się jak same zera,
 // - ruch progress zgłasza liczbę odpowiedzianych rund (1-9) do podglądu u rywali i nie odnawia limitu.
@@ -41,6 +41,11 @@ test("10 rund, liczby w zakresie, kropki w polu i bez nakładania, rewanż ma in
   const s = game.setup([A, B], createRng(1));
   expect(game.waitingFor(s)).toEqual([A, B]);
   expect(game.setup([A, B], createRng(2)).rounds).not.toEqual(s.rounds);
+});
+
+test("razem zawsze 240 kropek: każda partia jest równie trudna", () => {
+  expect(TOTAL).toBe(240);
+  for (let seed = 1; seed <= 100; seed++) expect(counts(game.setup([A], createRng(seed))).reduce((a, b) => a + b, 0)).toBe(TOTAL);
 });
 
 describe("walidacja", () => {

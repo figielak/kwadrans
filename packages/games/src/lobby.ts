@@ -26,6 +26,8 @@ export interface RoomView {
   hostId: PlayerId;
   players: LobbyPlayer[];
   phase: Phase;
+  /** Pokój gry solo z ekranu głównego: jeden gracz, od razu mini-gra, bez lobby, kodu i wpisu w ostatnich pokojach. */
+  solo: boolean;
   gameId: string | null;
   /** Tryb wybranej gry (id z `modes`); null, gdy gra nie ma trybów. */
   mode: string | null;
@@ -33,6 +35,8 @@ export interface RoomView {
   seats: PlayerId[];
   /** Wybrany albo trwający turniej mini-gier; w trakcie `gameId` to bieżąca gra turnieju. */
   tournament: Tournament | null;
+  /** Kto ostatni zaznaczył grę turnieju („na pewno” albo „bez”): id gry → id gracza. */
+  markedBy: Record<string, PlayerId>;
   /** Wygrane partie w tym pokoju. */
   scores: Record<PlayerId, number>;
   game: {

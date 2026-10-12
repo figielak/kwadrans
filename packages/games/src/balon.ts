@@ -1,10 +1,12 @@
 import { z } from "zod";
-import { type GameDefinition, type PlayerId, ranked } from "./core.ts";
+import { type GameDefinition, type PlayerId, ranked, withSum } from "./core.ts";
 
 export const BALLOONS = 10;
 /** Balon wytrzymuje od `MIN_SAFE` do `MAX_SAFE` stuknięć; następne go rozrywa. */
 export const MIN_SAFE = 1;
 export const MAX_SAFE = 30;
+/** Suma wytrzymałości w każdej partii: tyle da się najwyżej zgarnąć. */
+export const TOTAL = 155;
 
 /** Suma zgarniętych punktów i liczba pękniętych balonów. */
 export type Result = { score: number; popped: number };
@@ -48,7 +50,7 @@ export const balon: GameDefinition<State, Move> = {
 
   setup: (players, rng) => ({
     players,
-    limits: Array.from({ length: BALLOONS }, () => MIN_SAFE + Math.floor(rng() * (MAX_SAFE - MIN_SAFE + 1))),
+    limits: withSum(rng, BALLOONS, MIN_SAFE, MAX_SAFE, TOTAL),
     results: {},
     pumps: {},
     progress: {},

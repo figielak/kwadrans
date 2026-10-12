@@ -2,7 +2,7 @@
 
 Instrukcje dla agentów AI (Claude Code, GitHub Copilot). Odpowiadaj po polsku.
 
-Prywatna platforma gier multiplayer w przeglądarce (games.figielak.dev): monorepo pnpm, TypeScript,
+Kwadrans: prywatna platforma gier multiplayer w przeglądarce (games.figielak.dev): monorepo pnpm, TypeScript,
 serwer Colyseus (Node 24), frontend Vite + React, zasady gier jako czyste funkcje w `packages/games`.
 
 ## Najpierw przeczytaj

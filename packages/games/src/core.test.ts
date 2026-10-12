@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { byHitsThenAverage, createRng, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing } from "./core.ts";
+import { byHitsThenAverage, createRng, dailyGame, initials, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing, withSum } from "./core.ts";
 
 test("ten sam seed daje ten sam ciąg", () => {
   const a = createRng(42);
@@ -23,6 +23,18 @@ test("kod pokoju ma 4 znaki z alfabetu bez mylących znaków", () => {
     expect(code).toMatch(new RegExp(`^[${ROOM_CODE_ALPHABET}]{4}$`));
   }
   expect(ROOM_CODE_ALPHABET).not.toMatch(/[O0I1L]/);
+});
+
+test("withSum: liczby całkowite z zakresu o zadanej sumie, te same dla tego samego seedu", () => {
+  for (let seed = 1; seed <= 100; seed++) {
+    const list = withSum(createRng(seed), 10, 1, 30, 155);
+    expect(list).toHaveLength(10);
+    expect(list.every((n) => Number.isInteger(n) && n >= 1 && n <= 30)).toBe(true);
+    expect(list.reduce((a, b) => a + b, 0)).toBe(155);
+    expect(withSum(createRng(seed), 10, 1, 30, 155)).toEqual(list);
+  }
+  const all = Array.from({ length: 200 }, (_, seed) => withSum(createRng(seed), 10, 1, 30, 155)).flat();
+  expect([Math.min(...all), Math.max(...all)]).toEqual([1, 30]);
 });
 
 test("shuffle: permutacja, oryginał bez zmian", () => {
@@ -169,5 +181,71 @@ describe("rekordy mini-gier", () => {
     expect(standing(lower, "ola", LOWER)?.place).toBe(1);
     expect(standing(lower, "Iga", LOWER)).toBeNull();
     expect(standing([], "Ola", LOWER)).toBeNull();
+  });
+});
+
+describe("wyzwanie dnia", () => {
+  const ids = ["a", "b", "c", "d", "e"];
+
+  test("ten sam dzień daje tę samą grę z listy", () => {
+    for (let day = 20_000; day < 20_050; day++) {
+      expect(ids).toContain(dailyGame(day, ids));
+      expect(dailyGame(day, ids)).toBe(dailyGame(day, ids));
+    }
+  });
+
+  test("w jednym cyklu każda gra wypada dokładnie raz", () => {
+    const start = 20_000 - (20_000 % ids.length);
+    for (const cycle of [start, start + ids.length, start + 7 * ids.length]) {
+      expect(ids.map((_, i) => dailyGame(cycle + i, ids)).sort()).toEqual(ids);
+    }
+  });
+
+  test("kolejne cykle mają różną kolejność", () => {
+    const order = (cycle: number) => ids.map((_, i) => dailyGame(cycle * ids.length + i, ids)).join();
+    expect(new Set(Array.from({ length: 10 }, (_, c) => order(4000 + c))).size).toBeGreaterThan(1);
+  });
+});
+
+describe("inicjały na kropkach graczy", () => {
+  test("unikalna pierwsza litera wystarcza", () => {
+    expect(initials(["bartek", "Kamila", "Ola 2"])).toEqual(["B", "K", "O"]);
+  });
+
+  test("ta sama litera: nick z cyfrą na końcu dostaje literę i cyfrę", () => {
+    expect(initials(["Gracz 1", "Gracz 2", "Gracz 3"])).toEqual(["G1", "G2", "G3"]);
+  });
+
+  test("ta sama litera: pozostałe dostają dwa pierwsze znaki", () => {
+    expect(initials(["Kamila", "Krystian", "Ola"])).toEqual(["Ka", "Kr", "O"]);
+  });
+
+  test("te same dwa znaki: drugi z pierwszej pozycji, na której nicki się różnią", () => {
+    expect(initials(["Kasia", "Kamila"])).toEqual(["Ks", "Km"]);
+    expect(initials(["Kasia", "KAMILA", "Karol"])).toEqual(["Ks", "KM", "Kr"]);
+  });
+
+  test("emoji i flaga to jeden znak, nie połówka pary", () => {
+    expect(initials(["🇵🇱 Jan", "👨‍👩‍👧 rodzina", "🦊"])).toEqual(["🇵🇱", "👨‍👩‍👧", "🦊"]);
+    expect(initials(["🦊 lis", "🦊 wilk"])).toEqual(["🦊l", "🦊w"]);
+  });
+
+  test("polskie znaki wielką literą", () => {
+    expect(initials(["śliwka", "łoś", "żuk"])).toEqual(["Ś", "Ł", "Ż"]);
+  });
+
+  test("nick jednoznakowy obok dłuższego na tę samą literę", () => {
+    expect(initials(["k", "Kamila"])).toEqual(["K", "Ka"]);
+  });
+
+  test("te same nicki mają tę samą etykietę, a reszta dalej się różni", () => {
+    expect(initials(["Ala", "ala", "Adam"])).toEqual(["Al", "Al", "Ad"]);
+  });
+
+  test("etykieta ma najwyżej dwa znaki", () => {
+    const segmenter = new Intl.Segmenter("pl", { granularity: "grapheme" });
+    for (const label of initials(["Gracz 10", "Gracz 11", "Grzegorz Brzęczyszczykiewicz", "G", "👨‍👩‍👧👨‍👩‍👧👨‍👩‍👧", "g r a"])) {
+      expect([...segmenter.segment(label)].length).toBeLessThanOrEqual(2);
+    }
   });
 });

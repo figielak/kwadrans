@@ -1,4 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { DatabaseSync } from "node:sqlite";
+import { describe, expect, it, vi } from "vitest";
 import { openStats } from "./stats.ts";
 
 describe("statystyki", () => {
@@ -53,7 +57,7 @@ describe("rekordy mini-gier", () => {
   const GAMES = [
     { id: "stoper", lower: true },
     { id: "simon", lower: false },
-    { id: "refleks", lower: false, tie: { lower: true } },
+    { id: "stoj", lower: false, tie: { lower: true } },
     { id: "wieza", lower: false, tie: { lower: false } },
   ];
   const one = (nick: string, score: number, tie: number | null = null) => [{ nick, score, tie }];
@@ -85,11 +89,11 @@ describe("rekordy mini-gier", () => {
 
   it("przy równym głównym wyniku rozstrzyga drugie kryterium, w swoim kierunku", () => {
     const stats = openStats(":memory:");
-    stats.recordScores("refleks", [...one("Ala", 13, 260), ...one("Ola", 13, 240), ...one("Ela", 14, 400)]);
+    stats.recordScores("stoj", [...one("Ala", 13, 260), ...one("Ola", 13, 240), ...one("Ela", 14, 400)]);
     // Własny rekord też: te same 13 trafień, ale szybciej.
-    stats.recordScores("refleks", one("Ala", 13, 230));
-    stats.recordScores("refleks", one("Ala", 12, 100));
-    expect(stats.records(GAMES).refleks).toEqual([
+    stats.recordScores("stoj", one("Ala", 13, 230));
+    stats.recordScores("stoj", one("Ala", 12, 100));
+    expect(stats.records(GAMES).stoj).toEqual([
       { nick: "Ela", best: 14, tie: 400, played: 1 },
       { nick: "Ala", best: 13, tie: 230, played: 3 },
       { nick: "Ola", best: 13, tie: 240, played: 1 },
@@ -113,5 +117,102 @@ describe("rekordy mini-gier", () => {
     const records = stats.records(GAMES);
     expect(records.stoper).toHaveLength(15);
     expect(records.simon).toEqual([]);
+  });
+});
+
+describe("migracja rekordów", () => {
+  const GAMES = ["balon", "refleks", "przytrzymaj", "kropki", "stroop", "inny", "stoper"].map((id) => ({ id, lower: true }));
+
+  it("kasuje stare rekordy gier ze zmienionym losowaniem, raz; reszta i ranking wygranych zostają", () => {
+    const path = join(mkdtempSync(join(tmpdir(), "stats-")), "stats.db");
+    // Baza sprzed zmiany: bez wersji schematu.
+    const old = new DatabaseSync(path);
+    old.exec("CREATE TABLE results (game_id TEXT NOT NULL, nick TEXT NOT NULL, won INTEGER NOT NULL, at INTEGER NOT NULL)");
+    old.exec("CREATE TABLE scores (game_id TEXT NOT NULL, nick TEXT NOT NULL, score REAL NOT NULL, tie REAL, at INTEGER NOT NULL)");
+    for (const { id } of GAMES) old.exec(`INSERT INTO scores VALUES ('${id}', 'Ala', 5, NULL, 0)`);
+    old.exec("INSERT INTO results VALUES ('balon', 'Ala', 1, 0)");
+    old.close();
+
+    const stats = openStats(path);
+    const kept = [{ nick: "Ala", best: 5, tie: null, played: 1 }];
+    expect(stats.records(GAMES)).toEqual({ balon: [], refleks: [], przytrzymaj: [], kropki: [], stroop: [], inny: [], stoper: kept });
+    expect(stats.ranking().balon).toEqual([{ nick: "Ala", wins: 1, played: 1 }]);
+
+    // Wyniki zapisane po migracji przeżywają kolejny start serwera.
+    stats.recordScores("balon", [{ nick: "Ola", score: 90, tie: 2 }]);
+    expect(openStats(path).records(GAMES).balon).toEqual([{ nick: "Ola", best: 90, tie: 2, played: 1 }]);
+  });
+});
+
+describe("rekordowa partia", () => {
+  const STOPER = { id: "stoper", lower: true };
+  const SIMON = { id: "simon", lower: false };
+  const play = (stats: ReturnType<typeof openStats>, game: typeof STOPER, nick: string, score: number, detail?: unknown) =>
+    stats.recordScores(game.id, [{ nick, score, tie: null, detail }], game);
+  const details = (path: string) => new DatabaseSync(path).prepare("SELECT COUNT(*) AS n FROM scores WHERE detail IS NOT NULL").get() as { n: number };
+
+  it("top zwraca partię lidera; gorszy wynik jej nie rusza, lepszy podmienia", () => {
+    const stats = openStats(":memory:");
+    expect(stats.top(STOPER)).toBeNull();
+    play(stats, STOPER, "Ala", 50, { target: 7000, results: { 1: 50 } });
+    expect(stats.top(STOPER)).toEqual({ target: 7000, results: { 1: 50 } });
+    play(stats, STOPER, "Ola", 80, { results: { 1: 80 } });
+    expect(stats.top(STOPER)).toEqual({ target: 7000, results: { 1: 50 } });
+    play(stats, STOPER, "Ola", 20, { results: { 1: 20 } });
+    expect(stats.top(STOPER)).toEqual({ results: { 1: 20 } });
+    // Kierunek gry: w Sekwencji lepszy jest większy wynik.
+    play(stats, SIMON, "Ala", 5, { results: { 1: 5 } });
+    play(stats, SIMON, "Ola", 9, { results: { 1: 9 } });
+    expect(stats.top(SIMON)).toEqual({ results: { 1: 9 } });
+    // Partie nie trafiają do listy rekordów.
+    expect(stats.records([STOPER]).stoper[0]).toEqual({ nick: "Ola", best: 20, tie: null, played: 2 });
+  });
+
+  it("w bazie zostaje jedna partia na grę", () => {
+    const path = join(mkdtempSync(join(tmpdir(), "stats-")), "stats.db");
+    const stats = openStats(path);
+    for (const [nick, score] of [["Ala", 50], ["Ola", 80], ["Ela", 20], ["Ala", 90]] as const) play(stats, STOPER, nick, score, { results: { 1: score } });
+    play(stats, SIMON, "Ala", 5, { results: { 1: 5 } });
+    expect(details(path).n).toBe(2);
+    expect(stats.top(STOPER)).toEqual({ results: { 1: 20 } });
+  });
+
+  it("rekord sprzed zapisu partii nie ma szczegółów, dopóki ktoś go nie pobije", () => {
+    const path = join(mkdtempSync(join(tmpdir(), "stats-")), "stats.db");
+    // Baza w wersji 1: bez kolumny `detail`.
+    const old = new DatabaseSync(path);
+    old.exec("CREATE TABLE scores (game_id TEXT NOT NULL, nick TEXT NOT NULL, score REAL NOT NULL, tie REAL, at INTEGER NOT NULL)");
+    old.exec("INSERT INTO scores VALUES ('stoper', 'Ala', 30, NULL, 0)");
+    old.exec("PRAGMA user_version = 1");
+    old.close();
+
+    const stats = openStats(path);
+    expect(stats.top(STOPER)).toBeNull();
+    play(stats, STOPER, "Ola", 40, { results: { 1: 40 } });
+    expect(stats.top(STOPER)).toBeNull();
+    expect(details(path).n).toBe(0);
+    play(stats, STOPER, "Ola", 10, { results: { 1: 10 } });
+    expect(openStats(path).top(STOPER)).toEqual({ results: { 1: 10 } });
+    expect(stats.records([STOPER]).stoper.map((r) => r.nick)).toEqual(["Ola", "Ala"]);
+  });
+
+  it("ranking dnia: liczą się tylko wyniki od podanej chwili", () => {
+    vi.useFakeTimers();
+    try {
+      const stats = openStats(":memory:");
+      vi.setSystemTime(1_000);
+      play(stats, STOPER, "Ala", 10);
+      play(stats, STOPER, "Ola", 50);
+      vi.setSystemTime(5_000);
+      play(stats, STOPER, "Ala", 40);
+      play(stats, STOPER, "Ela", 30);
+      expect(stats.records([STOPER], 5_000).stoper).toEqual([
+        { nick: "Ela", best: 30, tie: null, played: 1 },
+        { nick: "Ala", best: 40, tie: null, played: 1 },
+      ]);
+      expect(stats.records([STOPER]).stoper.map((r) => r.nick)).toEqual(["Ala", "Ela", "Ola"]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

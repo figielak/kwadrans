@@ -95,6 +95,11 @@ Te rzeczy działają tak samo w każdej grze. Odstępstwo wymaga wpisu w `ZASADY
 - **Stan to zwykły obiekt** dający się zapisać do JSON, a `applyMove` zwraca nowy.
 - **`validateMove` jest jedynym strażnikiem.** Ekran może blokować przyciski, ale serwer niczego nie zakłada.
 - **Mini-gra ma jeden ruch `result`** i pole odróżniające partie (wyzwanie albo `nonce`), po którym ekran montuje się od nowa przy rewanżu.
+- **Ekran końcowy mini-gry rysuje się z samego stanu.** Rekordowa partia w rankingu to stan z `soloState` pokazany komponentem gry z `me=""`,
+  więc dane gracza leżą w mapach z id gracza w kluczach (`results`, `taps`…), a wyniki nie zależą od stanu lokalnego komponentu. Nową mini-grę dopisz w `MiniGame.tsx`.
+- **Losowanie nie zmienia sufitu wyniku.** Rekordy porównują różne partie, więc każda musi dawać tyle samo do zdobycia:
+  cele, od których zależy wynik, mają stałą sumę (`withSum` z `core.ts`: Balon, Przytrzymaj, Policz kropki), a gra na reakcję ma stałą liczbę bodźców (Refleks), nie stały czas z losowymi przerwami.
+  Rodzaje plansz o różnej trudności idą potasowanymi kompletami, nie osobnym losowaniem na planszę (Kolor liter, Inny element).
 - **Kara za pomyłkę w grach na czas** to blokada 1 s albo doliczony czas, nigdy koniec partii (inaczej losowe klepanie wygrywa albo jedna pomyłka psuje zabawę).
 - **Wspólne funkcje z `core.ts`** zamiast własnych: `shuffle`, `rankResults`, `ranked`, `average`, `byHitsThenAverage`.
   Dwie gry o tej samej mechanice dzielą moduł (jak `quiz.ts` dla Kolorów i Liczenia).
@@ -108,6 +113,9 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
 
 **Czego gra nie rysuje sama**
 - Nagłówek ze statusem („Twój ruch!”, „Czekamy na: ...”, „Wygrywasz!”), pasek czasu, lista graczy z liczbą wygranych partii (puchar i podpis „wygrane” przed liczbą, „+1” nad pigułką zwycięzcy),
+  w mini-grach zamiast pigułek rząd kropek obok tytułu (`GameDots` w ui.tsx): inicjał z `initials`, pierścień postępu z ruchu `progress` (pełny po oddaniu wyniku),
+  przygaszenie u czytającego zasady, przerywany obrys u rozłączonego, kreska pod własną kropką (zawsze pierwszą), odznaka z wygranymi (w turnieju prostokątna, z punktami; zera nie widać);
+  dotknięcie kropek rozwija pigułki z nickami i dokładnym postępem. W grze solo kropek nie ma.
   „Oglądasz”, komunikat o rozłączeniu, przyciski „Rewanż” i „Do lobby”. To wszystko daje `screens/Game.tsx`.
 - Własny nagłówek ma tylko gra, której wspólny nie wystarcza (Państwa-miasta, Kampus Tour), i wtedy przejmuje cały jego zakres.
 

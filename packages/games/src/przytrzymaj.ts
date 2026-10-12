@@ -1,10 +1,12 @@
 import { z } from "zod";
-import { type GameDefinition, type PlayerId, ranked } from "./core.ts";
+import { type GameDefinition, type PlayerId, ranked, withSum } from "./core.ts";
 
 export const ROUNDS = 5;
 /** Zakres czasu świecenia pola w ms. */
 export const MIN_MS = 1000;
 export const MAX_MS = 5000;
+/** Suma celów w każdej partii: odchyłka rośnie z długością celu, więc stała suma wyrównuje partie. */
+export const TOTAL_MS = 15_000;
 
 /** Czasy trzymania palca w ms, runda po rundzie; pusta lista = limit czasu. */
 export type Move = { type: "result"; holds: number[] };
@@ -35,7 +37,7 @@ export const przytrzymaj: GameDefinition<State, Move> = {
 
   setup: (players, rng) => ({
     players,
-    targets: Array.from({ length: ROUNDS }, () => MIN_MS + Math.floor(rng() * (MAX_MS - MIN_MS + 1))),
+    targets: withSum(rng, ROUNDS, MIN_MS, MAX_MS, TOTAL_MS),
     results: {},
     holds: {},
   }),

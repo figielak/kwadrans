@@ -1,4 +1,4 @@
-# games.figielak.dev — koncept
+# Kwadrans (games.figielak.dev) — koncept
 
 Prywatna platforma z grami multiplayer w przeglądarce, do grania ze znajomymi na wykładach.
 Jedna strona, kod pokoju, każdy gra na swoim telefonie.
@@ -9,6 +9,17 @@ Jedna strona, kod pokoju, każdy gra na swoim telefonie.
   (Kampus Tour i Chińczyk 2-4, Gomoku i Statki 2); reszta ogląda.
 - **Mobile-first**: telefon w pionie, bez instalacji (PWA z ikoną na ekranie głównym).
 - **Bez kont**: gracz wpisuje nick i kod pokoju. Token sesji w `localStorage` pozwala wrócić do gry po odświeżeniu strony.
+  Nick jest zapamiętany po pierwszym wpisaniu (ekran główny pokazuje „Grasz jako … · zmień”), tak samo trzy ostatnie pokoje z ostatniej doby do szybkiego powrotu
+  (sekcja „Wróć do pokoju”: tylko pokoje, w których było co najmniej 2 graczy i które jeszcze istnieją, sprawdza to `/api/rooms`).
+- **Ekran główny**: sekcja „Sam” stoi wyżej niż „Ze znajomymi” (przy wejściu z linku `/?kod=` odwrotnie). „Sam” to wyzwanie dnia, do dwóch gier
+  dobranych pod rekordy (cudzy rekord, do którego graczowi najbliżej, i własny do obrony), „Losowa gra” i lista wszystkich mini-gier.
+  „Ze znajomymi” łączy pole kodu i „Utwórz pokój”. Jedyny wypełniony przycisk ekranu to „Zagraj” przy wyzwaniu; „Dołącz” dostaje akcent po wpisaniu pełnego kodu.
+  Rankingi wygranych gier głównych i turnieju są na dole ekranu „Rekordy” (puchar w nagłówku); równe wygrane i partie to to samo miejsce.
+- **Gra solo**: mini-gra z ekranu głównego to po cichu pokój na jedną osobę (`solo` w opcjach tworzenia i w `RoomView`), który od razu startuje grę:
+  bez lobby, kodu, wyboru koloru i wpisu w ostatnich pokojach. Po partii „Jeszcze raz” albo „Wyjdź”; wyniki trafiają do tych samych rekordów.
+- **Wyzwanie dnia**: jedna mini-gra dziennie, ta sama dla wszystkich (`dailyGame` w core.ts: lista tasowana raz na cykl, więc każda gra wypada raz na tyle dni, ile jest gier;
+  dzień zmienia się o polskiej północy, `TZ` w docker-compose). Ranking dnia to najlepsze dzisiejsze wyniki w tej grze z dowolnej partii
+  (solo, pokój, turniej), bez limitu prób i bez osobnej tabeli (`/api/daily`). Układ partii jest losowy jak zawsze.
   W rankingach gracza rozpoznaje `nickKey` (bez wielkości liter, polskich znaków i nadmiarowych spacji: „Ala” i „ala” to jedna osoba), pokazywana jest ostatnia pisownia.
 - **Dostęp**: strona publiczna, ale do gry trzeba znać kod pokoju. Brak publicznej listy pokoi.
 - **Odporność na słabe Wi-Fi**: automatyczne ponowne łączenie, stan gry zawsze po stronie serwera.
@@ -82,30 +93,32 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
 
 ### 2.4 Mini-gry (przerywniki)
 
-- **Refleks**: dotknij pola, gdy zmieni kolor; 30 s, wynik = liczba trafień (remis: niższa średnia reakcja), falstart kosztuje czas.
+- **Refleks**: dotknij pola, gdy zmieni kolor; 12 zmian po losowym opóźnieniu 1-3 s, wynik = średnia reakcja w ms (mniej lepiej), falstart albo reakcja ponad 1 s liczy się jak 1000 ms.
 - **Sekwencja** (`simon`): powtarzanie rosnącej sekwencji 4 kolorów, wynik = najdłuższa seria.
 - **Stoper**: licznik znika po 3 s, dotknij dokładnie przy wylosowanym celu (6-14 s); wynik = odchyłka w ms (mniej lepiej).
 - **Tabela Schultego**: siatka 5×5 z liczbami 1-25, dotykasz po kolei; wynik = czas + 3 s za każdą pomyłkę.
-  Znalezione liczby zostają widoczne; postęp rywali widać w pigułkach graczy (ruch `progress`).
-- **Kolor liter** (`stroop`): nazwa koloru napisana innym kolorem, wybierasz kolor liter; 30 s, wynik = trafienia (remis: niższa średnia).
+  Znalezione liczby zostają widoczne; postęp rywali widać na kropkach graczy (ruch `progress`).
+- **Kolor liter** (`stroop`): nazwa koloru napisana innym kolorem, wybierasz kolor liter (w każdej czwórce plansz jedna zgodna); 30 s, wynik = trafienia (remis: niższa średnia).
 - **Liczenie**: 30 s działań (+, −, ×, :) z czterema odpowiedziami; wynik jak w Kolorze liter.
   W obu pomyłka blokuje na 1 s (inaczej losowe klepanie byłoby szybsze niż myślenie).
 - **Narysuj koło**: do 10 prób palcem, liczy się najlepsza (można zakończyć wcześniej), wynik = % idealności liczony na serwerze z punktów rysunku (dopasowanie okręgu, zakładka obcinana, poniżej 0,9 obrotu albo za małe = 0). Niedokończone koło nie zużywa próby; na końcu najlepsze i najgorsze koło każdego gracza.
 - **Odcień** (`kolor`): 5 kolorów, każdy widać 2 s, potem odtwarzasz go suwakami barwy, nasycenia i jasności; wynik = suma odległości ΔE (Lab, każda ucięta do 100, mniej lepiej), liczona na serwerze.
-- **Policz kropki**: 10 rund, w każdej 8-40 kropek widocznych przez 1,5 s, potem wpisujesz ich liczbę; wynik = suma błędów (mniej lepiej), liczona na serwerze. Po każdej odpowiedzi kropki wracają z prawdziwą liczbą i różnicą; numer rundy rywali widać w pigułkach graczy (ruch `progress`).
+- **Policz kropki**: 10 rund, w każdej 8-40 kropek (razem zawsze 240) widocznych przez 1,5 s, potem wpisujesz ich liczbę; wynik = suma błędów (mniej lepiej), liczona na serwerze. Po każdej odpowiedzi kropki wracają z prawdziwą liczbą i różnicą; numer rundy rywali widać na kropkach graczy (ruch `progress`).
 - **Kąt** (`kat`): 10 rund, w każdej kąt 5-175° (wierzchołek na środku, równe ramiona, losowy obrót) widoczny przez 1,5 s, potem wpisujesz jego miarę w stopniach (0-180); wynik = suma odchyłek w stopniach (mniej lepiej), liczona na serwerze. Po limicie czasu każda runda liczy się jak najgorsza możliwa odpowiedź. Odsłona i pigułki jak w Policz kropki.
-- **Który rok?**: 10 rund, każda z wydarzeniem historycznym / wynalazkiem / premierą; ustawiasz rok suwakiem w zakresie 1900-2025, wynik = suma odchyłek w latach (mniej lepiej), liczona na serwerze. Runda trwa najwyżej 20 s, po czasie liczy się rok ustawiony na suwaku. Po każdej odpowiedzi przez 2,5 s widać prawdziwy rok i różnicę ze znakiem, numer rundy rywali widać w pigułkach graczy (ruch `progress`).
-- **Środek**: 10 rund, w każdej odcinek pod losowym kątem, dotykasz go w połowie długości; odcinki mają 50-90% boku pola; dotknięcie jest rzutowane na odcinek, błąd liczy się wzdłuż niego w % długości odcinka, wynik = suma błędów (mniej lepiej), liczona na serwerze. Dotknięcie dalej niż 30 umownych px od odcinka (pole ma bok 300 px niezależnie od telefonu) jest ignorowane bez kary. Liczy się miejsce podniesienia palca (punkt można przesunąć, nad kaflem lupa); potem przez 1 s widać prawdziwy środek i błąd. Na końcu jedna tabela rund z wyróżnionym najlepszym w każdej.
+- **Sudoku** (`sudoku`): plansza 4×4 (bloki 2×2, cyfry 1-4), 6 cyfr danych i 10 do wpisania, jedno rozwiązanie, ta sama dla wszystkich; dotykasz pustego pola i cyfry. Zła cyfra nie zostaje w polu i dodaje 5 s kary. Wynik = czas + kara (mniej lepiej), liczony na kliencie, serwer odrzuca nierealne wartości. Postęp rywali widać na kropkach graczy (ruch `progress`).
+- **Trzy kubki** (`kubki`): do 20 rund, w każdej kulka pod jednym z trzech kubków (widać ją 1 s), kubki zamieniają się miejscami (4 zamiany w pierwszej rundzie, o jedną więcej w każdej następnej, od 500 do 150 ms na zamianę), potem dotykasz kubka z kulką. Pierwsza pomyłka kończy partię; wynik = zaliczone rundy (więcej lepiej, bez drugiego kryterium), liczony na serwerze ze wskazań. Po wskazaniu przez 1 s widać, gdzie była kulka.
+- **Który rok?**: 10 rund, każda z wydarzeniem historycznym / wynalazkiem / premierą; ustawiasz rok suwakiem w zakresie 1900-2025, wynik = suma odchyłek w latach (mniej lepiej), liczona na serwerze. Runda trwa najwyżej 20 s, po czasie liczy się rok ustawiony na suwaku. Po każdej odpowiedzi przez 2,5 s widać prawdziwy rok i różnicę ze znakiem, numer rundy rywali widać na kropkach graczy (ruch `progress`).
+- **Środek**: 10 rund, w każdej odcinek pod losowym kątem, dotykasz go w połowie długości; odcinki mają 50-90% boku pola; dotknięcie jest rzutowane na odcinek, błąd liczy się wzdłuż niego w % długości odcinka, wynik = suma błędów (mniej lepiej), liczona na serwerze. Dotknięcie dalej niż 60 umownych px od odcinka (pole ma bok 300 px niezależnie od telefonu) jest ignorowane bez kary. Liczy się miejsce podniesienia palca (punkt można przesunąć, palec może leżeć obok odcinka); potem przez 1 s widać prawdziwy środek i błąd. Na końcu jedna tabela rund z wyróżnionym najlepszym w każdej.
 - **Stój!** (`stoj`): 30 s, jedno pole zapala się na zielono (dotknij) albo czerwono (nie wolno, co trzeci bodziec); odstęp między bodźcami maleje z 1000 do 500 ms. Wynik = trafienia − 2 za każdy błąd (nie mniej niż 0), przy remisie niższa średnia reakcji; liczony na serwerze z czasów reakcji na kolejne bodźce.
 - **Śledzenie** (`sledzenie`): do 20 rund, w każdej 8 kulek, 3 cele podświetlone przez 1,5 s, potem wszystkie lecą 5 s (z każdą rundą szybciej) i gracz wskazuje 3 kulki. Pierwsza pomyłka kończy partię; wynik = zaliczone rundy, przy remisie więcej trafionych celów w rundzie z pomyłką, liczony na serwerze.
-- **Wieża** (`wieza`): do 30 pięter, klocek jeździ w poziomie (z każdym piętrem szybciej) i gracz zatrzymuje go dotknięciem nad poprzednim; to, co wystaje, jest ucinane, odchyłka do 2% szerokości pola wyrównuje klocek bez ucinania. Pudło kończy partię, niedotknięty klocek spada sam po 5 s; wynik = wysokość wieży, przy remisie szerszy ostatni klocek, liczony na serwerze z czasów zatrzymania. Wysokość wież rywali widać w pigułkach graczy (ruch `progress`).
+- **Wieża** (`wieza`): do 30 pięter, klocek jeździ w poziomie (z każdym piętrem szybciej) i gracz zatrzymuje go dotknięciem nad poprzednim; to, co wystaje, jest ucinane, odchyłka do 2% szerokości pola wyrównuje klocek bez ucinania. Pudło kończy partię, niedotknięty klocek spada sam po 5 s; wynik = wysokość wieży, przy remisie szerszy ostatni klocek, liczony na serwerze z czasów zatrzymania. Wysokość wież rywali widać na kropkach graczy (ruch `progress`).
 - **Rytm** (`rytm`): metronom gra 8 uderzeń (klik, błysk i wibracja) w tempie 70-130 BPM i cichnie, gracz stuka dalej w tym samym tempie przez 10 s. Wynik = średnia odchyłka odstępów między stuknięciami od odstępu metronomu w ms (mniej lepiej), liczona na serwerze z czasów stuknięć; pominięte uderzenia liczą się jak najgorsze. Grający nie widzi limitu tury ani licznika sekund (podawałyby tempo).
-- **Inny element** (`inny`): 30 s, siatka identycznych wielokątów, jeden różni się obrotem, odcieniem, rozmiarem albo kształtem (rodzaj losowany co planszę; kształt tylko dopóki siatka rośnie); dotykasz go. Siatka rośnie z każdym trafieniem na przemian o kolumnę i wiersz od 2×2 do 6×6, a różnica maleje. Pomyłka blokuje na 1 s i plansza zostaje; wynik jak w Kolorze liter.
+- **Inny element** (`inny`): 30 s, siatka identycznych wielokątów, jeden różni się obrotem, odcieniem, rozmiarem albo kształtem (rodzaje idą potasowanymi kompletami, w każdej partii po równo; kształt tylko dopóki siatka rośnie); dotykasz go. Siatka rośnie z każdym trafieniem na przemian o kolumnę i wiersz od 2×2 do 6×6, a różnica maleje. Pomyłka blokuje na 1 s i plansza zostaje; wynik jak w Kolorze liter.
 - **Obrót** (`obrot`): 30 s, dwie figury z klocków (poliomino z 4-7 kwadratów, klocków przybywa co 3 pary); druga to pierwsza obrócona o 90, 180 albo 270° albo jej obrócone lustrzane odbicie, gracz wybiera „Ta sama” albo „Lustro”. Figury są zawsze chiralne, więc odpowiedź jest jedna. Pomyłka blokuje na 1 s i zabiera punkt; wynik = trafienia − pomyłki (nie mniej niż 0), przy remisie niższa średnia.
 - **Literówka** (`literowka`): 30 s, cztery słowa w siatce 2×2, jedno z błędem ortograficznym (ó/u, rz/ż albo ch/h, np. „żeka”, „chałas”); dotykasz błędnego. Słowa losuje serwer z listy par w `literowka-dane.ts`, w pierwszych 45 planszach żadne się nie powtarza. Pomyłka blokuje na 1 s i zabiera punkt; wynik jak w Obrocie.
 - **Mapa** (`mapa`): 10 rund, w każdej nazwa jednego z 62 większych miast Polski; gracz stawia znacznik na konturze kraju (sam kontur, bez rzek i województw), może go przenieść i zatwierdza. Wynik = suma odległości w km (haversine, każda runda zaokrąglona, mniej lepiej), liczona na serwerze z punktów w ułamkach pola. Po każdej odpowiedzi przez 1,5 s widać prawdziwe miejsce i odległość; na końcu tabela rund z wyróżnionym najlepszym w każdej.
-- **Przytrzymaj** (`przytrzymaj`): 5 rund, w każdej pole świeci się przez losowy czas 1-5 s, potem gracz trzyma palec na ekranie tak samo długo. Wynik = suma odchyłek w ms (każda ucięta do celu, mniej lepiej), liczona na serwerze z czasów trzymania. Po puszczeniu przez 1,5 s widać czas, cel i odchyłkę ze znakiem; grający nie widzi limitu tury ani licznika sekund. Na końcu tabela rund z wyróżnionym najlepszym w każdej.
-- **Balon** (`balon`): 10 balonów, każde stuknięcie pompuje balon i dodaje punkt; gracz w dowolnej chwili zgarnia punkty balonu, a pęknięcie je zabiera. Każdy balon wytrzymuje wylosowaną liczbę stuknięć (1-30, u wszystkich tak samo), następne go rozrywa. Wynik = suma zgarniętych punktów, przy remisie mniej pękniętych balonów, liczony na serwerze z liczby stuknięć w każdym balonie. Numer balonu rywali widać w pigułkach graczy (ruch `progress`), punktów nie; na końcu tabela z wytrzymałością balonów.
+- **Przytrzymaj** (`przytrzymaj`): 5 rund, w każdej pole świeci się przez losowy czas 1-5 s (razem zawsze 15 s), potem gracz trzyma palec na ekranie tak samo długo. Wynik = suma odchyłek w ms (każda ucięta do celu, mniej lepiej), liczona na serwerze z czasów trzymania. Po puszczeniu przez 1,5 s widać czas, cel i odchyłkę ze znakiem; grający nie widzi limitu tury ani licznika sekund. Na końcu tabela rund z wyróżnionym najlepszym w każdej.
+- **Balon** (`balon`): 10 balonów, każde stuknięcie pompuje balon i dodaje punkt; gracz w dowolnej chwili zgarnia punkty balonu, a pęknięcie je zabiera. Każdy balon wytrzymuje wylosowaną liczbę stuknięć (1-30, u wszystkich tak samo, razem zawsze 155), następne go rozrywa. Wynik = suma zgarniętych punktów, przy remisie mniej pękniętych balonów, liczony na serwerze z liczby stuknięć w każdym balonie. Numer balonu rywali widać na kropkach graczy (ruch `progress`), punktów nie; na końcu tabela z wytrzymałością balonów.
 - **W pamięci** (`w-pamieci`): do 12 rund, w każdej liczba startowa i kolejne działania („+7”, „−3”, „×2”) migają po 1,5 s, wyniku pośredniego nie widać; gracz wpisuje, ile wyszło. Ciąg wydłuża się o jedno działanie co rundę (od 2 do 13), wartości zostają w 1-99. Pierwsza pomyłka kończy partię; wynik = zaliczone rundy, przy remisie mniejsza odchyłka w rundzie z pomyłką, liczony na serwerze z odpowiedzi.
 - **Dziesiątki** (`dziesiatki`): 30 s, siatka 4×4 z liczbami 1-9; gracz dotyka dwóch pól dających razem 10 (nie muszą sąsiadować), para znika i wchodzą dwie nowe liczby z dostaw wylosowanych na serwerze (te same dla wszystkich). Na planszy zawsze jest co najmniej jedna para (`take`). Pomyłka blokuje na 1 s; wynik = liczba par, przy remisie niższa średnia, jak w Kolorze liter.
 - **Tort** (`tort`): 5 okrągłych tortów, każdy do podziału na 3-7 równych kawałków (każda liczba raz); jedno cięcie od środka leży już pod losowym kątem, resztę gracz stawia dotknięciem i może przesuwać, potem „Pokrój”. Błąd tortu = ile tortu trzeba by przełożyć, żeby kawałki były równe (połowa sumy odchyłek kawałków, w % tortu); wynik = suma błędów (mniej lepiej), liczona na serwerze z kątów cięć. Po każdym torcie przez 1,5 s widać idealne cięcia i błąd; na końcu tabela rund z wyróżnionym najlepszym w każdej.
@@ -114,7 +127,7 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
   Partia toczy się na kliencie (opóźnienie Wi-Fi zepsułoby pomiar), serwer dostaje tylko wynik i odrzuca nierealne wartości.
 - Każda mini-gra zaczyna od ekranu instrukcji (`Intro` w ui.tsx: animowany podgląd, trzy punkty z ikonami, „Start”). Każdy klika „Start” osobno i gra od razu;
   po 15 s (`INTRO_SECONDS`) gra rusza sama. Limit platformy startuje dopiero, gdy wystartuje ostatni gracz (wiadomość pokoju `begin`); na ekranie widać, kto już gra, a kto czyta zasady.
-- Każda mini-gra ma jeden typ ruchu `result` (Narysuj koło wysyła go po każdej próbie, Tabela Schultego, Policz kropki, Kąt, Który rok?, Wieża i Balon mają jeszcze `progress`); ranking liczy wspólne `rankResults` (core.ts), zwycięzca tylko przy 2+ graczach bez remisu;
+- Każda mini-gra ma jeden typ ruchu `result` (Narysuj koło wysyła go po każdej próbie, Tabela Schultego, Sudoku, Policz kropki, Kąt, Który rok?, Wieża i Balon mają jeszcze `progress`); ranking liczy wspólne `rankResults` (core.ts), zwycięzca tylko przy 2+ graczach bez remisu;
   `places` podaje miejsca z remisami (oba z jednego komparatora przez `ranked`), z których turniej liczy punkty.
   Kolor liter, Liczenie, Inny element, Obrót i Literówka dzielą `quiz.ts` i `Quiz.tsx` (Dziesiątki biorą z nich walidację i tabelę wyników), a Policz kropki i Kąt ekran `Szacowanie.tsx`. Pasek statystyk w trakcie partii to wspólne `Stats` (ui.tsx). Odświeżenie w trakcie = partia od nowa.
 
@@ -123,7 +136,11 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
   w grach na trafienia i punkty, trafione cele w Śledzeniu, szerokość klocka w Wieży, pęknięte balony w Balonie). Ranking gry to najlepszy wynik każdego nicku: główny wynik,
   potem drugie kryterium („12 traf. · 256 ms”), a przy całkiem równych wyżej wcześniejszy. Widać go w trzech miejscach: panel po partii (`RecordPanel`: miejsce wszech czasów, „Nowy rekord!” po pobiciu własnego albo „Pierwszy wynik”, awans,
   ile brakuje do osoby wyżej), lista po wybraniu gry i linia „Rekord: …” na ekranie instrukcji, oraz ekran „Rekordy” (`Records.tsx`, z ekranu głównego i z listy mini-gier):
-  wszystkie mini-gry od tej, w której gracz jest najwyżej. Miejsca liczy wspólne `standing` (core.ts), jednostki wyniku trzyma `FORMAT` w `Records.tsx`.
+  trzy sekcje: „Twoje rekordy” (gry, w których gracz prowadzi), „Do pobicia” (rekord ma ktoś inny; lider z czerwoną koroną, własny rekord w kolorze gracza)
+  i „Jeszcze nie grane”. Karty gier to akordeon (otwarta jedna naraz); gospodarz w pokoju ma w nich „Pobij” i „Zagraj ponownie”, które wybierają grę na liście mini-gier. Miejsca liczy wspólne `standing` (core.ts), jednostki wyniku trzyma `FORMAT` w `Records.tsx`.
+  Lider każdej listy ma własny kafel z koroną. Serwer trzyma też **rekordową partię** każdej gry: stan lidera przycięty do jednego gracza (`soloState` w core.ts,
+  gracz pod id `SOLO`, bez id sesji; kolumna `detail`, jedna partia na grę). Ekran „Rekordy” po rozwinięciu gry pobiera ją z `/api/records/:gameId/top`
+  i pokazuje zwykłym ekranem końcowym tej gry (`MiniGame.tsx`), np. koło narysowane przez lidera albo jego tabelę rund. Rekordy sprzed tej zmiany partii nie mają.
 
 ### 2.5 Państwa-miasta
 
@@ -187,7 +204,7 @@ interface GameDefinition<State, Move> {
 
 Rejestr gier: `GAMES` w `packages/games/src/index.ts`. Wiadomości pokoju: `ROOM_MESSAGES` w `lobby.ts`.
 Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResults`, `rankPlaces`, `ranked`, `shuffle`, `average`, `byHitsThenAverage`, `byScoreThenAverage`,
-`normalize`, `nickKey`, `standing`, `compareRecords`.
+`normalize`, `nickKey`, `initials` (inicjały na kropkach graczy), `standing`, `compareRecords`, `soloState`, `dailyGame`, `withSum` (losowanie o stałej sumie, żeby każda partia miała tyle samo do zdobycia).
 
 ### Reguły platformy (obowiązują każdą grę)
 
@@ -196,8 +213,8 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
 - Gracze bez miejsca oglądają partię. Nowy gracz dostaje miejsce sam, jeśli gra wybrana i jest wolne.
 - Rewanż po zgodzie wszystkich grających, kolejność miejsc rotuje (poza mini-grami, gdzie wszyscy grają naraz); do lobby może wrócić każdy.
 - W mini-grach (gry solo, `minPlayers: 1`) limit rusza po ekranie instrukcji: gdy wszyscy klikną „Start” albo po 15 s.
-- Limit tury: 60 s w większości gier; dłużej w Sekwencji, Śledzeniu i W pamięci (300 s), Który rok? (240 s), Tabeli Schultego, Odcieniu, Wieży i Mapie (180 s),
-  Narysuj koło, Policz kropki, Kąt, Przytrzymaj, Balon i Tort (120 s), Kolorze liter, Liczeniu, Innym elemencie, Obrocie, Literówce i Dziesiątkach (90 s); Państwa-miasta mają limit per faza, Statki 90 s na całe rozstawianie, Chińczyk w trybie Szybkim 20 s.
+- Limit tury: 60 s w większości gier; dłużej w Sekwencji, Śledzeniu i W pamięci (300 s), Który rok? (240 s), Tabeli Schultego, Odcieniu, Wieży, Mapie i Trzech kubkach (180 s),
+  Narysuj koło, Sudoku, Policz kropki, Kąt, Przytrzymaj, Balon i Tort (120 s), Kolorze liter, Liczeniu, Innym elemencie, Obrocie, Literówce i Dziesiątkach (90 s); Państwa-miasta mają limit per faza, Statki 90 s na całe rozstawianie, Chińczyk w trybie Szybkim 20 s.
 - Gdy gracz z miejscem zniknie z pokoju w trakcie partii (wyjdzie sam albo nie wróci w 10 minut), partia się kończy:
   jeśli został jeden gracz, wygrywa walkowerem; przy większej liczbie kończy się bez zwycięzcy.
 - Lobby: gospodarz wybiera grę i daje start, goście potwierdzają gotowość; każdy może zmienić swój kolor
@@ -208,7 +225,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
   gdy gospodarz wybierze grę. Mini-gry mają zasady narzucone z góry, bez trybów.
 - Turniej ma ekran ustawień (`TournamentSetup` w `Setup.tsx`): `pickTournament` (gospodarz) ustawia liczbę gier, `markGame` (każdy) zaznacza jedną grę; obie kasują gotowość gości.
   W trakcie turnieju `gameId` to bieżąca gra, a `tournament` w `RoomView` niesie listę gier i punkty; „Dalej” między grami to wiadomość `rematch`.
-- Limit 3 pokoi na IP, rate limit 10 wiadomości/s na klienta.
+- Limit 3 pokoi na IP (pokoje gry solo liczone osobno, do 20: cała sala na uczelnianym Wi-Fi ma jedno IP), rate limit 10 wiadomości/s na klienta.
 
 **Platforma (skorupa)** jest wspólna dla wszystkich gier: pokoje z 4-znakowym kodem
 (bez mylących znaków typu O/0, I/1), lobby z wyborem gry, nicki i kolory graczy,
@@ -224,7 +241,7 @@ Prościej i bezpiecznie dla gier z ukrytymi informacjami.
 |---|---|
 | Język | TypeScript (wszędzie) |
 | Monorepo | pnpm workspaces |
-| Serwer / pokoje | Colyseus (Node.js) + Express (statyczny frontend, `/api/stats`, `/api/records`) |
+| Serwer / pokoje | Colyseus (Node.js) + Express (statyczny frontend, `/api/stats`, `/api/records`, `/api/records/:gameId/top`, `/api/daily`, `/api/rooms`) |
 | Walidacja wiadomości | zod |
 | Frontend | Vite + React |
 | Style / animacje | Tailwind, Motion (planowane, jeszcze niezainstalowane; na razie animacje w CSS) |
@@ -247,7 +264,7 @@ mini-games/
 │  └─ web/src/     # main.tsx, App.tsx, net.ts (połączenie, token, reconnect), Dev.tsx (tryb testowy),
 │                  # screens/ (Home, Lobby, Setup (ekran gry głównej i turnieju przed partią), MiniGames, Records (rekordy mini-gier), Game,
 │                  # ui.tsx ze wspólnymi Screen/TopBar/StickyBar/Scores),
-│                  # games/<Gra>.tsx (UI każdej gry), index.css (klasy .tile .label .btn .field)
+│                  # games/<Gra>.tsx (UI każdej gry), games/MiniGame.tsx (mini-gra po `id`, dla pokoju i ekranu rekordów), index.css (klasy .tile .label .btn .field)
 ├─ .github/workflows/ci.yml
 ├─ Dockerfile, docker-compose.yml, cloudflared/
 ├─ README.md      # dev i deploy
@@ -291,7 +308,7 @@ podpięcie w `screens/Game.tsx` i ikona w `screens/Lobby.tsx`.
 | 5 | Kampus Tour: dodatki (Kolokwium, Juwenalia, karty, wykupienie, Bilet MPK, monopol) | Pełna wersja (gotowe) |
 | 6 | Poprawka | Gra karciana (do zrobienia) |
 | 7 | PWA, animacje, statystyki, szlify | Polerka (PWA, ranking po nicku i rekordy mini-gier gotowe) |
-| + | Chińczyk, Memory, mini-gry (26 sztuk), Państwa-miasta, Turniej z mini-gier | Poza planem (gotowe) |
+| + | Chińczyk, Memory, mini-gry (28 sztuk), Państwa-miasta, Turniej z mini-gier | Poza planem (gotowe) |
 | dalej | Zapis stanu pokoi w SQLite | Do zrobienia |
 
 ## 8a. Sposób pracy
@@ -312,4 +329,3 @@ podpięcie w `screens/Game.tsx` i ikona w `screens/Lobby.tsx`.
 - Nazwy pól Kampus Tour ustalone (grupy jako pory dnia studenta, Ksero i Stołówka jak wodociągi); druga nazwa w grupie „Rano” robocza (Automat z przekąskami).
 - Balans ekonomii: start 200 zł (+20 zł za każde dalsze miejsce), kieszonkowe 40 zł, czynsz P/10 (cała grupa x2), z budynkami 0,4P / P / 2P / 4P; bez kompletu grupy do poziomu 2 (poziom 3 i landmark z kompletem), jazda Biletem MPK bez kieszonkowego. Zmiany po 4 partiach testowych (2026-10-07): poziom 3 od pierwszej tury i czynsze 60-100 zł przy pustych kieszeniach dawały szybkie bankructwa, a MPK zamieniał się w darmowy komplet. Do sprawdzenia w kolejnych partiach; jeśli monopol dalej będzie łatwy przez grupy dwupolowe, liczyć tylko grupy trzypolowe.
 - Zestaw kart specjalnych w Poprawce (talia 18 Kart Dziekanatu ustalona, w kodzie: CARDS w kampus-tour.ts).
-- Własna nazwa całej platformy.

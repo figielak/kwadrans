@@ -1,12 +1,13 @@
-import { ArrowLeft, CaretDown, Play } from "@phosphor-icons/react";
-import { compareRecords, GAMES, KOLOR_COUNT, MINI_GAME_IDS, nickKey, type RecordRow, standing } from "@mini-games/games";
+import { ArrowLeft, CaretDown, Crown, Play } from "@phosphor-icons/react";
+import { compareRecords, GAMES, KOLOR_COUNT, MINI_GAME_IDS, nickKey, type RecordRow, SOLO, standing, TOURNAMENT_ID } from "@mini-games/games";
 import { type CSSProperties, useEffect, useState } from "react";
-import { fetchRecords } from "../net.ts";
+import { MiniGame } from "../games/MiniGame.tsx";
+import { fetchRanking, fetchRecords, fetchTopRecord, type RankingRow } from "../net.ts";
 import { ICONS } from "./Lobby.tsx";
-import { Screen, Stats } from "./ui.tsx";
+import { Screen } from "./ui.tsx";
 
 const num = (n: number) => n.toFixed(1).replace(".", ",");
-const plural = (n: number, one: string, few: string, many: string) => `${n} ${n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n < 12 || n > 14) ? few : many}`;
+export const plural = (n: number, one: string, few: string, many: string) => `${n} ${n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n < 12 || n > 14) ? few : many}`;
 const hits = (n: number) => `${n} traf.`;
 const points = (n: number) => `${n} pkt`;
 const ms = (n: number) => `${n} ms`;
@@ -17,7 +18,7 @@ const tenthsPercent = (n: number) => `${num(n / 10)}%`;
  * `tie` to drugie kryterium gry (średnia reakcji, trafione cele, szerokość klocka), pokazywane obok wyniku.
  */
 const FORMAT: Record<string, { value: (n: number) => string; gap?: (n: number) => string; tie?: (n: number) => string }> = {
-  refleks: { value: hits, tie: ms },
+  refleks: { value: ms },
   stroop: { value: hits, tie: ms },
   liczenie: { value: hits, tie: ms },
   inny: { value: hits, tie: ms },
@@ -26,6 +27,7 @@ const FORMAT: Record<string, { value: (n: number) => string; gap?: (n: number) =
   literowka: { value: points, tie: ms },
   stoj: { value: points, tie: ms },
   simon: { value: points },
+  kubki: { value: (n) => plural(n, "runda", "rundy", "rund") },
   sledzenie: { value: (n) => plural(n, "runda", "rundy", "rund"), tie: (n) => plural(n, "cel", "cele", "celów") },
   "w-pamieci": { value: (n) => plural(n, "runda", "rundy", "rund"), tie: (n) => `o ${n}` },
   wieza: { value: (n) => plural(n, "piętro", "piętra", "pięter"), tie: (n) => `${Math.round(n * 100)}%` },
@@ -35,6 +37,7 @@ const FORMAT: Record<string, { value: (n: number) => string; gap?: (n: number) =
   przytrzymaj: { value: ms },
   balon: { value: points, tie: (n) => plural(n, "pęknięty", "pęknięte", "pękniętych") },
   schulte: { value: (n) => `${num(n / 1000)} s` },
+  sudoku: { value: (n) => `${num(n / 1000)} s` },
   kolor: { value: (n) => `${num(100 - n / (10 * KOLOR_COUNT))}%`, gap: (n) => `${num(n / (10 * KOLOR_COUNT))}%` },
   kropki: { value: (n) => plural(n, "kropka", "kropki", "kropek") },
   kat: { value: (n) => `${n}°` },
@@ -47,7 +50,7 @@ const FORMAT: Record<string, { value: (n: number) => string; gap?: (n: number) =
 
 type Score = { best: number; tie: number | null };
 
-const formatBest = (gameId: string, n: number) => (FORMAT[gameId]?.value ?? String)(n);
+export const formatBest = (gameId: string, n: number) => (FORMAT[gameId]?.value ?? String)(n);
 const formatTie = (gameId: string, n: number | null) => (n === null ? null : (FORMAT[gameId]?.tie?.(n) ?? null));
 /** „12 traf. · 256 ms”: wynik z drugim kryterium, jeśli gra je ma. */
 export const formatRecord = (gameId: string, { best, tie }: Score) => [formatBest(gameId, best), formatTie(gameId, tie)].filter(Boolean).join(" · ");
@@ -58,18 +61,6 @@ const formatGap = (gameId: string, { gap, onTie }: { gap: number; onTie: boolean
 const orderOf = (gameId: string) => GAMES[gameId].record!;
 /** Miejsce wiersza w posortowanej liście; remis = to samo miejsce. */
 const placeAt = (gameId: string, rows: RecordRow[], i: number) => rows.findIndex((r) => compareRecords(orderOf(gameId))(r, rows[i]) === 0) + 1;
-/** Jaka część rankingu jest za graczem: 1 u lidera, 0 na końcu. */
-const ahead = (place: number, of: number) => (of > 1 ? (of - place) / (of - 1) : 1);
-
-/** Pasek pozycji w rankingu: im pełniejszy, tym wyżej. */
-function PlaceBar({ place, of, color }: { place: number; of: number; color?: string }) {
-  return (
-    <div className="h-1.5 overflow-hidden rounded-full bg-line" aria-hidden>
-      <div className={`h-full rounded-full ${color ? "" : "bg-accent"}`} style={{ width: `${Math.max(4, ahead(place, of) * 100)}%`, backgroundColor: color }} />
-    </div>
-  );
-}
-
 /** Ranking rekordów jednej gry: czołówka, a gdy mój wiersz jest niżej, dochodzi na końcu z prawdziwym miejscem. */
 export function RecordList({ gameId, rows, me, color, limit = 5 }: { gameId: string; rows: RecordRow[]; me: string | null; color?: string; limit?: number }) {
   if (rows.length === 0) return <p className="text-sm text-fg-muted">Nikt jeszcze nie grał. Pierwszy wynik będzie rekordem.</p>;
@@ -77,24 +68,32 @@ export function RecordList({ gameId, rows, me, color, limit = 5 }: { gameId: str
   const shown = rows.slice(0, limit).map((_, i) => i);
   if (mine >= limit) shown.push(mine);
   return (
-    <ol className="flex flex-col text-sm">
-      {shown.map((i) => (
-        <li
-          key={rows[i].nick}
-          className={`flex gap-3 py-0.5 ${i === mine && !color ? "text-accent" : ""} ${i === mine && i >= limit ? "mt-1 border-t border-line pt-1.5" : ""}`}
-          style={i === mine ? { color } : undefined}
-        >
-          <span className={`w-6 font-mono tabular-nums ${i === mine ? "" : "text-fg-subtle"}`}>{placeAt(gameId, rows, i)}.</span>
-          <span className="min-w-0 flex-1 truncate">
-            {rows[i].nick}
-            {i === mine && " (ty)"}
-          </span>
-          <span className="font-mono tabular-nums">
-            {formatBest(gameId, rows[i].best)}
-            {formatTie(gameId, rows[i].tie) && <span className="opacity-60"> · {formatTie(gameId, rows[i].tie)}</span>}
-          </span>
-        </li>
-      ))}
+    <ol className="flex flex-col divide-y divide-line text-sm">
+      {shown.map((i) => {
+        // Lider (przy remisie kilku) ma koronę i większe pismo.
+        const first = placeAt(gameId, rows, i) === 1;
+        return (
+          <li
+            key={rows[i].nick}
+            className={`flex items-center gap-3 py-2 ${first ? "text-base font-semibold" : ""}`}
+            style={i === mine ? { color } : undefined}
+          >
+            {first ? (
+              <Crown size={20} weight="fill" className={`shrink-0 ${i === mine ? "" : "text-accent"}`} aria-label="1. miejsce" />
+            ) : (
+              <span className={`w-6 font-mono font-semibold tabular-nums ${i === mine ? "" : "text-fg-muted"}`}>{placeAt(gameId, rows, i)}.</span>
+            )}
+            <span className="min-w-0 flex-1 truncate">
+              {rows[i].nick}
+              {i === mine && " (ty)"}
+            </span>
+            <span className="font-mono tabular-nums">
+              {formatBest(gameId, rows[i].best)}
+              {formatTie(gameId, rows[i].tie) && <span className="opacity-60"> · {formatTie(gameId, rows[i].tie)}</span>}
+            </span>
+          </li>
+        );
+      })}
     </ol>
   );
 }
@@ -188,18 +187,148 @@ export function RecordPanel({ gameId, before, after, nick, color, score }: Panel
   );
 }
 
-/** Ekran „Rekordy”: wszystkie mini-gry naraz, od tych, w których gracz jest najwyżej. */
-export function Records({ nick, color, onBack }: { nick: string | null; color?: string; onBack: () => void }) {
+/** Kolor lidera spoza pokoju: wartość `--color-fg` (gry wstawiają kolor gracza do atrybutów SVG, gdzie `var()` nie działa). */
+const LEADER_COLOR = "#ededef";
+
+/** Rekordowa partia gry: ekran końcowy mini-gry z zapisanego stanu lidera, jak po partii solo. */
+function TopGame({ gameId, nick, color }: { gameId: string; nick: string; color?: string }) {
+  const [top, setTop] = useState<unknown>(undefined);
+  useEffect(() => {
+    fetchTopRecord(gameId).then(setTop);
+  }, [gameId]);
+  if (top === undefined) return null;
+  return (
+    <section className="mt-3 flex flex-col gap-2 border-t border-line pt-3">
+      <h3 className="text-sm text-fg-muted">Rekordowa partia · {nick}</h3>
+      {top === null ? (
+        <p className="text-sm text-fg-muted">Rekord sprzed zapisu partii. Szczegóły pojawią się po następnym rekordzie.</p>
+      ) : (
+        <MiniGame
+          id={gameId}
+          view={top}
+          me=""
+          players={[{ id: SOLO, nick, color: color ?? LEADER_COLOR, connected: true, ready: false }]}
+          ranking={[SOLO]}
+          onMove={() => {}}
+        />
+      )}
+    </section>
+  );
+}
+
+type Entry = { id: string; rows: RecordRow[]; mine: ReturnType<typeof standing> };
+
+interface CardProps {
+  game: Entry;
+  nick: string | null;
+  color?: string;
+  /** Karta była już rozwinięta: dopiero wtedy pobieramy rekordową partię. */
+  loaded: boolean;
+  onOpen: () => void;
+  onPlay?: (gameId: string) => void;
+}
+
+/** Karta gry z wynikami: u lidera jego wynik, w pozostałych cudzy rekord do pobicia. Rozwinięta pokazuje ranking i rekordową partię. */
+function GameCard({ game: { id, rows, mine }, nick, color, loaded, onOpen, onPlay }: CardProps) {
+  const GameIcon = ICONS[id] ?? Play;
+  const lead = mine?.place === 1;
+  return (
+    // Wspólne `name` robi z kart akordeon: przeglądarka sama zamyka poprzednią.
+    <details name="rekordy" className={`group rounded-inset border bg-surface ${lead ? "border-line" : "border-accent/40"}`} onToggle={(e) => e.currentTarget.open && onOpen()}>
+      <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-3 py-2 [&::-webkit-details-marker]:hidden">
+        <GameIcon size={20} className="shrink-0" aria-hidden />
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate">{GAMES[id].name}</span>
+          {lead ? (
+            <span className="truncate font-mono text-sm text-fg-muted tabular-nums">{formatRecord(id, mine)}</span>
+          ) : (
+            <span className="flex min-w-0 items-center gap-1.5 text-sm text-fg-muted">
+              <Crown size={14} weight="fill" className="shrink-0 text-accent" aria-label="Lider" />
+              <span className="truncate">
+                {rows[0].nick}: {formatRecord(id, rows[0])}
+                {nick && ` · ty: ${mine ? formatRecord(id, mine) : "brak wyniku"}`}
+              </span>
+            </span>
+          )}
+        </span>
+        {mine && (
+          <span
+            className={`flex shrink-0 items-center gap-1 rounded-full bg-surface-inset px-2 py-0.5 font-mono text-sm tabular-nums ${lead ? "" : "text-fg-muted"}`}
+            style={lead ? { color } : undefined}
+            aria-label={`${mine.place}. miejsce z ${mine.of}`}
+          >
+            {lead && <Crown size={14} weight="fill" aria-hidden />}
+            {mine.place}/{mine.of}
+          </span>
+        )}
+        {!lead && onPlay && (
+          <button type="button" className="btn btn-ghost shrink-0 px-4" onClick={() => onPlay(id)}>
+            Pobij
+          </button>
+        )}
+        <CaretDown size={14} className="shrink-0 text-fg-muted transition-transform group-open:rotate-180" aria-hidden />
+      </summary>
+      <div className="border-t border-line px-3 pb-3">
+        <RecordList gameId={id} rows={rows} me={nick} color={color} limit={10} />
+        {loaded && <TopGame gameId={id} nick={rows[0].nick} color={lead ? color : undefined} />}
+        {lead && onPlay && (
+          <button type="button" className="btn btn-ghost mt-3 w-full" onClick={() => onPlay(id)}>
+            <Play size={18} aria-hidden />
+            Zagraj ponownie
+          </button>
+        )}
+      </div>
+    </details>
+  );
+}
+
+/** Ile kafli gier bez wyników widać przed „Pokaż wszystkie”. */
+const FRESH_SHOWN = 8;
+
+/**
+ * Ekran „Rekordy”: gry, w których prowadzę, cudze rekordy do pobicia i gry bez żadnego wyniku.
+ * `onPlay` ma tylko gospodarz w pokoju: wybiera grę i wraca na listę mini-gier.
+ */
+export function Records({ nick, color, onBack, onPlay }: { nick: string | null; color?: string; onBack: () => void; onPlay?: (gameId: string) => void }) {
   const [records, setRecords] = useState<Record<string, RecordRow[]> | null>(null);
+  /** Gry rozwinięte choć raz: dopiero wtedy pobieramy ich rekordową partię. */
+  const [opened, setOpened] = useState<string[]>([]);
+  const [allFresh, setAllFresh] = useState(false);
+  const [ranking, setRanking] = useState<Record<string, RankingRow[]>>({});
   useEffect(() => {
     fetchRecords().then(setRecords);
+    fetchRanking().then(setRanking);
   }, []);
 
-  const games = MINI_GAME_IDS.map((id) => {
+  const games: Entry[] = MINI_GAME_IDS.map((id) => {
     const rows = records?.[id] ?? [];
     return { id, rows, mine: nick ? standing(rows, nick, orderOf(id)) : null };
   }).sort((a, b) => (a.mine?.place ?? Infinity) - (b.mine?.place ?? Infinity) || (b.mine?.of ?? 0) - (a.mine?.of ?? 0));
-  const played = games.filter((g) => g.mine);
+  const played = games.filter((g) => g.mine).length;
+  const led = games.filter((g) => g.mine?.place === 1);
+  const toBeat = games.filter((g) => g.rows.length > 0 && g.mine?.place !== 1);
+  const fresh = games.filter((g) => g.rows.length === 0);
+
+  const section = (title: string, list: Entry[]) =>
+    list.length > 0 && (
+      <section className="flex flex-col gap-2">
+        <h2 className="text-sm text-fg-muted">{title}</h2>
+        <ul className="flex flex-col gap-2">
+          {list.map((g) => (
+            <li key={g.id}>
+              <GameCard
+                game={g}
+                nick={nick}
+                color={color}
+                loaded={opened.includes(g.id)}
+                onOpen={() => setOpened((o) => (o.includes(g.id) ? o : [...o, g.id]))}
+                onPlay={onPlay}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
 
   return (
     <Screen dropped={false}>
@@ -215,57 +344,106 @@ export function Records({ nick, color, onBack }: { nick: string | null; color?: 
         </p>
       ) : (
         <>
-          {played.length > 0 ? (
-            <Stats
-              items={[
-                { label: "Twoje gry", value: `${played.length}/${games.length}` },
-                { label: "1. miejsca", value: played.filter((g) => g.mine!.place === 1).length },
-                { label: "Podium", value: played.filter((g) => g.mine!.place <= 3).length },
-              ]}
-            />
+          {played > 0 ? (
+            <dl className="grid grid-cols-3 gap-2">
+              {[
+                { label: "Zagrane", value: played, of: games.length },
+                { label: "Pierwsze miejsca", value: led.length },
+                { label: "Do pobicia", value: toBeat.length, warn: toBeat.length > 0 },
+              ].map((item) => (
+                <div key={item.label} className="flex flex-col justify-between gap-1 rounded-inset bg-surface-inset p-3">
+                  <dt className="text-sm leading-tight text-fg-muted">{item.label}</dt>
+                  <dd className={`text-2xl leading-tight font-semibold tabular-nums ${item.warn ? "text-warning" : ""}`}>
+                    {item.value}
+                    {item.of && <span className="text-sm font-normal text-fg-muted"> z {item.of}</span>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           ) : (
             <p className="text-sm text-fg-muted">{nick ? "Nie masz jeszcze żadnego wyniku. Zagraj w mini-grę, a trafisz do rankingu." : "Wpisz nick, żeby zobaczyć swoje miejsca."}</p>
           )}
 
-          <ul className="flex flex-col gap-2">
-            {games.map(({ id, rows, mine }) => {
-              const GameIcon = ICONS[id] ?? Play;
-              return (
-                <li key={id}>
-                  <details className="group rounded-inset border border-line bg-surface">
-                    <summary className="flex min-h-14 cursor-pointer list-none flex-col justify-center gap-1.5 px-3 py-2 [&::-webkit-details-marker]:hidden">
-                      <span className="flex items-center gap-3">
-                        <GameIcon size={20} className="shrink-0" aria-hidden />
-                        <span className="min-w-0 flex-1 truncate">{GAMES[id].name}</span>
-                        {mine ? (
-                          <span className="font-mono text-sm tabular-nums">
-                            <span className="font-semibold">{mine.place}.</span>
-                            <span className="text-fg-muted"> z {mine.of}</span>
-                          </span>
-                        ) : (
-                          <span className="truncate text-sm text-fg-muted">{rows[0] ? `${rows[0].nick}: ${formatRecord(id, rows[0])}` : "brak wyników"}</span>
-                        )}
-                        <CaretDown size={14} className="shrink-0 text-fg-muted transition-transform group-open:rotate-180" aria-hidden />
-                      </span>
-                      {mine && (
-                        <span className="flex items-center gap-3">
-                          <span className="flex-1">
-                            <PlaceBar place={mine.place} of={mine.of} color={color} />
-                          </span>
-                          <span className="font-mono text-xs text-fg-muted tabular-nums">{formatRecord(id, mine)}</span>
-                        </span>
-                      )}
-                    </summary>
-                    <div className="border-t border-line px-3 py-2">
-                      <RecordList gameId={id} rows={rows} me={nick} color={color} limit={10} />
-                    </div>
-                  </details>
-                </li>
-              );
-            })}
-          </ul>
+          {section("Twoje rekordy", led)}
+          {section("Do pobicia", toBeat)}
+
+          {fresh.length > 0 && (
+            <section className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-sm text-fg-muted">Jeszcze nie grane ({fresh.length})</h2>
+                {fresh.length > FRESH_SHOWN && (
+                  <button type="button" className="-mr-2 min-h-12 px-2 text-sm" style={{ color }} onClick={() => setAllFresh(!allFresh)}>
+                    {allFresh ? "Zwiń" : "Pokaż wszystkie"}
+                  </button>
+                )}
+              </div>
+              <ul className="grid grid-cols-4 gap-2">
+                {(allFresh ? fresh : fresh.slice(0, FRESH_SHOWN)).map(({ id }) => {
+                  const GameIcon = ICONS[id] ?? Play;
+                  const Tile = onPlay ? "button" : "div";
+                  return (
+                    <li key={id}>
+                      <Tile
+                        {...(onPlay && { type: "button", onClick: () => onPlay(id) })}
+                        className="flex h-full min-h-16 w-full flex-col items-center justify-center gap-1 rounded-inset bg-surface-inset px-1 py-2 text-center text-xs leading-tight text-fg-muted"
+                      >
+                        <GameIcon size={20} aria-hidden />
+                        {GAMES[id].name}
+                      </Tile>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
+
+          <Wins ranking={ranking} me={nick} color={color} />
         </>
       )}
     </Screen>
+  );
+}
+
+/** Wygrane partie w grach głównych i turniejach (mini-gry mają rekordy wyżej). Równe wygrane i partie to to samo miejsce. */
+function Wins({ ranking, me, color }: { ranking: Record<string, RankingRow[]>; me: string | null; color?: string }) {
+  // Turniej nie jest grą z rejestru, ale ma własny ranking.
+  const title = (id: string) => (id === TOURNAMENT_ID ? "Turniej" : GAMES[id]?.minPlayers > 1 ? GAMES[id].name : undefined);
+  const key = me && nickKey(me);
+  const games = Object.entries(ranking).filter(([id]) => title(id));
+  if (games.length === 0) return null;
+  return (
+    <section className="flex flex-col gap-2">
+      <h2 className="text-sm text-fg-muted">Wygrane partie</h2>
+      {games.map(([id, rows]) => (
+        <div key={id} className="rounded-inset border border-line bg-surface px-3 py-2">
+          <div className="flex justify-between gap-3">
+            <h3>{title(id)}</h3>
+            <span className="text-xs text-fg-subtle" aria-hidden>
+              wygrane z partii
+            </span>
+          </div>
+          <ol className="flex flex-col text-sm">
+            {rows.map((r) => {
+              const place = rows.findIndex((x) => x.wins === r.wins && x.played === r.played) + 1;
+              const mine = nickKey(r.nick) === key;
+              return (
+                <li key={r.nick} className="flex items-center gap-3 py-0.5" style={mine ? { color } : undefined}>
+                  <span className={`flex w-6 font-mono tabular-nums ${mine ? "" : "text-fg-muted"}`}>
+                    {place === 1 ? <Crown size={14} weight="fill" className={mine ? "" : "text-accent"} aria-label="1. miejsce" /> : `${place}.`}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate">
+                    {r.nick}
+                    {mine && " (ty)"}
+                  </span>
+                  <span className="font-mono tabular-nums" aria-label={`${r.wins} wygranych z ${r.played} partii`}>
+                    {r.wins} z {r.played}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      ))}
+    </section>
   );
 }

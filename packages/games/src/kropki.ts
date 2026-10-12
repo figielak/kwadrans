@@ -1,9 +1,11 @@
 import { z } from "zod";
-import { type GameDefinition, type PlayerId, ranked } from "./core.ts";
+import { type GameDefinition, type PlayerId, ranked, withSum } from "./core.ts";
 
 export const ROUNDS = 10;
 export const MIN = 8;
 export const MAX = 40;
+/** Suma kropek w każdej partii: błąd rośnie z liczbą kropek, więc stała suma wyrównuje partie. */
+export const TOTAL = 240;
 /** Tyle ms widać kropki. */
 export const SHOW_MS = 1500;
 /** Minimalna odległość środków kropek (pole 0-1), żeby się nie nakładały. */
@@ -28,8 +30,6 @@ export interface State {
 export type View = State;
 
 const TURN_SECONDS = 120;
-
-const int = (rng: () => number, min: number, max: number) => min + Math.floor(rng() * (max - min + 1));
 
 // Przy 40 kropkach zajęte jest ~25% pola, losowanie z odrzucaniem kończy się szybko.
 function scatter(rng: () => number, count: number): Dot[] {
@@ -57,7 +57,7 @@ export const kropki: GameDefinition<State, Move> = {
 
   setup: (players, rng) => ({
     players,
-    rounds: Array.from({ length: ROUNDS }, () => scatter(rng, int(rng, MIN, MAX))),
+    rounds: withSum(rng, ROUNDS, MIN, MAX, TOTAL).map((count) => scatter(rng, count)),
     results: {},
     answers: {},
     progress: {},

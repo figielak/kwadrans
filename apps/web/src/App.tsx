@@ -50,7 +50,7 @@ export function App() {
   if (resuming) return <main className="min-h-[100dvh]" aria-busy />;
   if (!room) return <Home onRoom={setRoom} notice={notice} />;
   const send = (type: string, payload?: unknown) => room.send(type, payload);
-  if (view && view.phase !== "lobby") return <Game view={view} me={room.sessionId} dropped={dropped} send={send} />;
+  if (view && view.phase !== "lobby") return <Game view={view} me={room.sessionId} dropped={dropped} send={send} onLeave={() => room.leave()} />;
   const me = room.sessionId;
   const screen = { me, dropped, send, onLeave: () => room.leave() };
   const def = view?.gameId ? GAMES[view.gameId] : undefined;
@@ -64,7 +64,12 @@ export function App() {
     };
     if (records) {
       const self = view.players.find((p) => p.id === me);
-      return <Records nick={self?.nick ?? null} color={self?.color} onBack={() => setRecords(false)} />;
+      // Gospodarz wybiera grę prosto z rekordów i ląduje na liście mini-gier z gotowym wyborem.
+      const play = (gameId: string) => {
+        send("pickGame", { gameId });
+        setRecords(false);
+      };
+      return <Records nick={self?.nick ?? null} color={self?.color} onBack={() => setRecords(false)} onPlay={view.hostId === me ? play : undefined} />;
     }
     return <MiniGames view={view} {...screen} onBack={back} onRecords={() => setRecords(true)} />;
   }

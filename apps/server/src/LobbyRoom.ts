@@ -23,6 +23,7 @@ import {
   type Rng,
   ROOM_MESSAGES,
   roomCode,
+  soloState,
   type RoomView,
   TOURNAMENT_ID,
   type Tournament,
@@ -33,6 +34,8 @@ import { openStats } from "./stats.ts";
 const RECONNECT_SECONDS = 10 * 60; // telefon na wykładzie śpi między turami
 const IDLE_MS = 60 * 60 * 1000;
 const ROOMS_PER_IP = 3;
+// Pokoje solo liczą się osobno: cała sala na jednym uczelnianym Wi-Fi ma jedno IP.
+const SOLO_ROOMS_PER_IP = 20;
 const MESSAGES_PER_SECOND = 10;
 
 // ponytail: licznik w pamięci jednego procesu, wystarczy przy jednym kontenerze na Pi
@@ -54,18 +57,21 @@ interface Match {
 }
 
 export class LobbyRoom extends Room {
-  maxClients = MAX_PLAYERS;
+  maxClients: number = MAX_PLAYERS;
   private players = new Map<string, LobbyPlayer>();
   private hostId = "";
   private creatorIp: string | undefined;
   private idle?: Timer;
 
+  /** Gra solo z ekranu głównego: pokój na jedną osobę, który od razu startuje wybraną mini-grę. */
+  private solo = false;
   private phase: Phase = "lobby";
   private gameId: string | null = null;
   private mode: string | null = null;
   private seats: string[] = [];
   /** Wybrany albo trwający turniej. W trakcie `gameId` wskazuje bieżącą grę, w lobby jest puste. */
   private tournament: Tournament | null = null;
+  private markedBy: Record<string, string> = {};
   private scores: Record<string, number> = {};
   private match: Match | null = null;
   private turnTimer?: Timer;
@@ -75,7 +81,12 @@ export class LobbyRoom extends Room {
   private began = new Set<string>();
   private messageCounts = new Map<string, { second: number; count: number }>();
 
-  async onCreate() {
+  async onCreate(options?: { solo?: unknown }) {
+    if (typeof options?.solo === "string" && MINI_GAME_IDS.includes(options.solo)) {
+      this.solo = true;
+      this.gameId = options.solo;
+      this.maxClients = 1;
+    }
     let code = roomCode(Math.random);
     while ((await matchMaker.query({ roomId: code })).length > 0) code = roomCode(Math.random);
     this.roomId = code;
@@ -87,6 +98,7 @@ export class LobbyRoom extends Room {
       if (!this.isHost(client) || this.phase !== "lobby" || (gameId !== null && !def)) return;
       this.gameId = gameId;
       this.tournament = null;
+      this.markedBy = {};
       this.mode = (def?.modes?.find((m) => m.default) ?? def?.modes?.[0])?.id ?? null;
       this.seats = def ? [...this.players.keys()].slice(0, def.maxPlayers) : [];
       this.resetReady();
@@ -111,6 +123,8 @@ export class LobbyRoom extends Room {
       const config = mark(this.tournament.config, id, state, MINI_GAME_IDS);
       if (!config) return;
       this.tournament = create(config);
+      if (state === "any") delete this.markedBy[id];
+      else this.markedBy[id] = client.sessionId;
       this.resetReady();
     });
 
@@ -174,7 +188,7 @@ export class LobbyRoom extends Room {
 
     // Każdy może zakończyć serię i zabrać wszystkich do lobby; trwający turniej przerywa tylko gospodarz.
     this.on("toLobby", (client) => {
-      if (!this.players.has(client.sessionId) || this.phase !== "over") return;
+      if (!this.players.has(client.sessionId) || this.phase !== "over" || this.solo) return;
       if (this.tournament && !isDone(this.tournament) && !this.isHost(client)) return;
       this.toLobby();
     });
@@ -186,9 +200,9 @@ export class LobbyRoom extends Room {
 
     // Pierwszy wchodzący to twórca pokoju: tylko on liczy się do limitu pokoi na IP.
     if (this.players.size === 0 && this.creatorIp === undefined) {
-      const ip = context.headers.get("cf-connecting-ip") ?? context.ip ?? "?";
+      const ip = (this.solo ? "solo:" : "") + (context.headers.get("cf-connecting-ip") ?? context.ip ?? "?");
       const count = roomsByIp.get(ip) ?? 0;
-      if (count >= ROOMS_PER_IP) throw new ServerError(429, "Masz już otwarte za dużo pokoi.");
+      if (count >= (this.solo ? SOLO_ROOMS_PER_IP : ROOMS_PER_IP)) throw new ServerError(429, "Masz już otwarte za dużo pokoi.");
       roomsByIp.set(ip, count + 1);
       this.creatorIp = ip;
     }
@@ -202,6 +216,7 @@ export class LobbyRoom extends Room {
     if (!this.hostId) this.hostId = client.sessionId;
     // Gra już wybrana i jest wolne miejsce: nowy gracz od razu gra, gospodarz nie musi go zaznaczać.
     if (this.phase === "lobby" && this.seats.length < this.maxSeats()) this.seats = [...this.seats, client.sessionId];
+    if (this.solo) this.startMatch(GAMES[this.gameId!]);
     this.update();
   }
 
@@ -378,8 +393,8 @@ export class LobbyRoom extends Room {
     if (record && result.ranking) {
       const { state } = this.match;
       const finite = (n: number | undefined) => (n !== undefined && Number.isFinite(n) ? n : null);
-      const scores = this.seats.map((id) => ({ nick: nick(id), score: record.score(state, id), tie: finite(record.tie?.score(state, id)) }));
-      stats.recordScores(this.gameId!, scores.filter((s) => Number.isFinite(s.score)));
+      const scores = this.seats.map((id) => ({ nick: nick(id), score: record.score(state, id), tie: finite(record.tie?.score(state, id)), detail: soloState(state as { players: string[] }, id) }));
+      stats.recordScores(this.gameId!, scores.filter((s) => Number.isFinite(s.score)), record);
     }
     if (!this.tournament) {
       if (result.winner) this.scores[result.winner] = (this.scores[result.winner] ?? 0) + 1;
@@ -447,10 +462,12 @@ export class LobbyRoom extends Room {
       hostId: this.hostId,
       players: [...this.players.values()],
       phase: this.phase,
+      solo: this.solo,
       gameId: this.gameId,
       mode: this.mode,
       seats: this.seats,
       tournament: this.tournament,
+      markedBy: this.markedBy,
       scores: this.scores,
       game: match && {
         // Obserwator dostaje widok gracza "", czyli bez czyichkolwiek ukrytych informacji.

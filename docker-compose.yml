@@ -3,6 +3,8 @@ services:
     image: ghcr.io/figielak/mini-games:latest
     restart: unless-stopped
     mem_limit: 256m
+    environment:
+      TZ: Europe/Warsaw # wyzwanie dnia zmienia się o polskiej północy
     volumes:
       - games-data:/app/data
 

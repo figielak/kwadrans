@@ -1,50 +1,26 @@
-import { ArrowCounterClockwise, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, type DziesiatkiView, GAMES, type InnyView, isDone, type KampusTourView, type KatView, type KolorView, type KoloView, type KropkiView, type LiterowkaView, type LiczenieView, type MapaView, type MemoryView, type ObrotView, type PrzytrzymajView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RefleksView, type RokView, type RoomView, type RytmView, type SledzenieView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, type SrodekView, type TortView, type NozyczkiView, standing, standings, type StatkiView, type StojView, type StoperView, type StroopView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner, type WPamieciView } from "@mini-games/games";
+import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, type KampusTourView, type KatView, type KropkiView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, standing, standings, type StatkiView, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@mini-games/games";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { Balon } from "../games/Balon.tsx";
 import { Chinczyk } from "../games/Chinczyk.tsx";
-import { Dziesiatki } from "../games/Dziesiatki.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
-import { Kolo } from "../games/Kolo.tsx";
-import { Kolor } from "../games/Kolor.tsx";
-import { Kat } from "../games/Kat.tsx";
-import { Kropki } from "../games/Kropki.tsx";
-import { Liczenie } from "../games/Liczenie.tsx";
-import { Mapa } from "../games/Mapa.tsx";
 import { Memory } from "../games/Memory.tsx";
-import { Nozyczki } from "../games/Nozyczki.tsx";
-import { Literowka } from "../games/Literowka.tsx";
-import { Obrot } from "../games/Obrot.tsx";
+import { MiniGame } from "../games/MiniGame.tsx";
 import { PanstwaMiasta } from "../games/PanstwaMiasta.tsx";
 import { PiecWRzedzie } from "../games/PiecWRzedzie.tsx";
-import { Refleks } from "../games/Refleks.tsx";
-import { Rok } from "../games/Rok.tsx";
-import { Schulte } from "../games/Schulte.tsx";
-import { Simon } from "../games/Simon.tsx";
-import { Sledzenie } from "../games/Sledzenie.tsx";
-import { Srodek } from "../games/Srodek.tsx";
 import { FleetLeft, Statki } from "../games/Statki.tsx";
-import { Inny } from "../games/Inny.tsx";
-import { Stoj } from "../games/Stoj.tsx";
-import { Przytrzymaj } from "../games/Przytrzymaj.tsx";
-import { Rytm } from "../games/Rytm.tsx";
-import { Stoper } from "../games/Stoper.tsx";
-import { Tort } from "../games/Tort.tsx";
-import { Stroop } from "../games/Stroop.tsx";
-import { Wieza } from "../games/Wieza.tsx";
-import { WPamieci } from "../games/WPamieci.tsx";
 import { fetchRecords } from "../net.ts";
 import { formatRecord, RecordPanel } from "./Records.tsx";
-import { IntroContext, Screen, type Send } from "./ui.tsx";
+import { type GameDot, GameDots, IntroContext, Screen, type Send } from "./ui.tsx";
 
 interface Props {
   view: RoomView;
   me: string;
   dropped: boolean;
   send: Send;
+  onLeave: () => void;
 }
 
-export function Game({ view, me, dropped, send }: Props) {
+export function Game({ view, me, dropped, send, onLeave }: Props) {
   const game = view.game!;
   const def = GAMES[view.gameId!];
   const nick = (id: string | undefined) => view.players.find((p) => p.id === id)?.nick ?? "Gracz";
@@ -60,6 +36,9 @@ export function Game({ view, me, dropped, send }: Props) {
   // Quizy (Kolor liter, Liczenie, Inny element, Dziesiątki): w rundzie pasek w nagłówku pokazuje jej 30 s zamiast limitu platformy.
   const [round, setRound] = useState<{ msLeft: number } | null>(null);
   const onRound = (msLeft: number | null) => setRound(msLeft === null ? null : { msLeft });
+  // Mini-gry pokazują graczy kropkami; dotknięcie rozwija pigułki z nickami i dokładnym postępem, do końca tej partii.
+  const [open, setOpen] = useState(false);
+  useEffect(() => setOpen(false), [view.phase]);
   // Poświata tła w kolorze gracza, na którego czekamy; poza turą jednej osoby zostaje akcent.
   const turnColor = view.phase === "playing" && game.waitingFor.length === 1 ? view.players.find((p) => p.id === game.waitingFor[0])?.color : undefined;
   useEffect(() => {
@@ -120,7 +99,24 @@ export function Game({ view, me, dropped, send }: Props) {
   // Balon: numer balonu każdego gracza (bez punktów, zdradzałyby wytrzymałość).
   const balon = def.id === "balon" && view.phase === "playing" ? (game.view as BalonView) : null;
   // Który rok? też.
+  // Sudoku: ile pól gracz już wypełnił.
+  const sudoku = def.id === "sudoku" && view.phase === "playing" ? (game.view as SudokuView) : null;
   const rok = def.id === "rok" && view.phase === "playing" ? (game.view as RokView) : null;
+  /** Postęp gracza w mini-grze z ruchem `progress`; po oddaniu wyniku komplet (w Wieży wysokość z wyniku). */
+  const progressOf = (id: string): { done: number; total: number } | null =>
+    schulte
+      ? { done: id in schulte.results ? SCHULTE_LAST : (schulte.progress[id] ?? 0), total: SCHULTE_LAST }
+      : kropki
+        ? { done: id in kropki.results ? kropki.rounds.length : (kropki.progress[id] ?? 0), total: kropki.rounds.length }
+        : wieza
+          ? { done: wieza.results[id]?.height ?? wieza.progress[id] ?? 0, total: WIEZA_LEVELS }
+          : balon
+            ? { done: id in balon.results ? BALON_BALLOONS : (balon.progress[id] ?? 0), total: BALON_BALLOONS }
+            : rok
+              ? { done: id in rok.results ? ROK_ROUNDS : (rok.progress[id] ?? 0), total: ROK_ROUNDS }
+              : sudoku
+                ? { done: id in sudoku.results ? SUDOKU_BLANKS : (sudoku.progress[id] ?? 0), total: SUDOKU_BLANKS }
+                : null;
   const myColor = view.players.find((p) => p.id === me)?.color;
   const winner = view.phase === "over" ? game.result?.winner : undefined;
   // Turniej: w nagłówku numer gry i punkty; po ostatniej grze tytuł ogłasza zwycięzcę turnieju, nie gry.
@@ -132,6 +128,35 @@ export function Game({ view, me, dropped, send }: Props) {
   const winnerColor = view.players.find((p) => p.id === headline)?.color;
   // W trakcie gry `index` to gry już rozegrane, po grze obejmuje też tę na ekranie.
   const gameNo = t ? t.index + (view.phase === "playing" ? 1 : 0) : 0;
+
+  // Mini-gry: zamiast pigułek z nickami kropki obok tytułu, ja pierwszy, reszta w kolejności miejsc (nie wyniku, żeby nie skakały).
+  // Gra solo nie ma kogo pokazywać.
+  const labels = initials(view.seats.map(nick));
+  const dots: GameDot[] | null =
+    def.minPlayers === 1 && view.seats.length > 1
+      ? view.seats
+          .map((id, i) => {
+            const p = view.players.find((pl) => pl.id === id);
+            const playing = view.phase === "playing";
+            const reading = playing && game.intro && !game.began.includes(id);
+            const done = !playing || !game.waitingFor.includes(id);
+            const progress = progressOf(id);
+            return {
+              id,
+              label: labels[i],
+              nick: nick(id),
+              color: p?.color,
+              me: id === me,
+              badge: table ? (table.find((r) => r.id === id)?.total ?? 0) : (view.scores[id] ?? 0),
+              plus: !table && id === winner,
+              fraction: done ? 1 : progress ? progress.done / progress.total : 0,
+              reading,
+              connected: p?.connected ?? false,
+              status: !p?.connected ? "rozłączony" : reading ? "czyta zasady" : playing ? (done ? "wynik oddany" : "gra") : undefined,
+            };
+          })
+          .sort((a, b) => Number(b.me) - Number(a.me))
+      : null;
 
   // Państwa-miasta w trakcie partii mają własny nagłówek: runda, pasek czasu fazy, litera.
   const ownHeader = def.id === "panstwa-miasta" && view.phase === "playing";
@@ -171,6 +196,13 @@ export function Game({ view, me, dropped, send }: Props) {
   return (
     <IntroContext.Provider value={intro}>
       <Screen dropped={dropped}>
+        {/* Gra solo nie ma lobby, więc z trwającej partii wychodzi się prosto na ekran główny. */}
+        {view.solo && view.phase === "playing" && (
+          <button type="button" className="-my-2 -ml-2 flex min-h-12 items-center gap-1.5 self-start px-2 text-sm text-fg-muted" onClick={onLeave}>
+            <ArrowLeft size={16} aria-hidden />
+            Wyjdź
+          </button>
+        )}
         {!ownHeader && (
           <header className="tile flex flex-col gap-3 p-4">
             {t && (
@@ -179,7 +211,7 @@ export function Game({ view, me, dropped, send }: Props) {
                 {view.phase === "over" && !tournamentOver && ` · ${def.name}`}
               </p>
             )}
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
               {/* Koniec partii: tytuł w kolorze zwycięzcy; podbicie tylko u niego, przegrany dostaje spokojną wersję. */}
               <h1
                 className={`origin-left text-xl font-semibold ${headline === me ? "animate-[title-pop_0.5s_cubic-bezier(0.2,0.8,0.4,1)]" : ""}`}
@@ -187,6 +219,7 @@ export function Game({ view, me, dropped, send }: Props) {
               >
                 {status}
               </h1>
+              {dots && <GameDots dots={dots} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
             </div>
             {/* Na ekranie instrukcji limit jeszcze nie ruszył. Stoper, Rytm i Przytrzymaj: tykający limit zdradzałby upływ sekund, więc grający go nie widzi. */}
             {view.phase === "playing" && !game.intro && !((def.id === "stoper" || def.id === "rytm" || def.id === "przytrzymaj") && myTurn) && (
@@ -197,10 +230,11 @@ export function Game({ view, me, dropped, send }: Props) {
                 label={round ? "Czas" : MINI_GAMES.has(def.id) ? "Limit" : undefined}
               />
             )}
-            <ul className="flex flex-wrap gap-2">
+            <ul className={`flex flex-wrap gap-2 ${dots && !open ? "hidden" : ""}`}>
               {view.seats.map((id) => {
                 const p = view.players.find((pl) => pl.id === id);
                 const active = id === winner || (view.phase === "playing" && game.waitingFor.includes(id));
+                const progress = progressOf(id);
                 return (
                   <li
                     key={id}
@@ -230,16 +264,8 @@ export function Game({ view, me, dropped, send }: Props) {
                       </span>
                     ) : fleet ? (
                       <FleetLeft board={fleet.boards[id]} lengths={fleet.lengths} color={p?.color ?? "#8b8b92"} />
-                    ) : schulte ? (
-                      <Progress done={id in schulte.results ? SCHULTE_LAST : (schulte.progress[id] ?? 0)} total={SCHULTE_LAST} color={p?.color} />
-                    ) : kropki ? (
-                      <Progress done={id in kropki.results ? kropki.rounds.length : (kropki.progress[id] ?? 0)} total={kropki.rounds.length} color={p?.color} />
-                    ) : wieza ? (
-                      <Progress done={wieza.results[id]?.height ?? wieza.progress[id] ?? 0} total={WIEZA_LEVELS} color={p?.color} />
-                    ) : balon ? (
-                      <Progress done={id in balon.results ? BALON_BALLOONS : (balon.progress[id] ?? 0)} total={BALON_BALLOONS} color={p?.color} />
-                    ) : rok ? (
-                      <Progress done={id in rok.results ? ROK_ROUNDS : (rok.progress[id] ?? 0)} total={ROK_ROUNDS} color={p?.color} />
+                    ) : progress ? (
+                      <Progress {...progress} color={p?.color} />
                     ) : table ? (
                       <span className="font-mono text-sm font-semibold text-fg tabular-nums" aria-label={`Punkty w turnieju: ${table.find((r) => r.id === id)?.total ?? 0}`}>
                         {table.find((r) => r.id === id)?.total ?? 0} pkt
@@ -310,306 +336,7 @@ export function Game({ view, me, dropped, send }: Props) {
 
         {def.id === "memory" && <Memory view={game.view as MemoryView} players={view.players} canMove={myTurn} onMove={(move) => send("move", move)} />}
 
-        {/* Klucz z wylosowanego wyzwania: rewanż montuje grę od nowa, bez stanu poprzedniej partii. */}
-        {def.id === "refleks" && (
-          <Refleks
-            key={(game.view as RefleksView).delays.join()}
-            view={game.view as RefleksView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            winner={winner}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "stoper" && (
-          <Stoper
-            key={(game.view as StoperView).nonce}
-            view={game.view as StoperView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "kolo" && (
-          <Kolo
-            key={(game.view as KoloView).nonce}
-            view={game.view as KoloView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "kolor" && (
-          <Kolor
-            key={JSON.stringify((game.view as KolorView).targets)}
-            view={game.view as KolorView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "kat" && (
-          <Kat
-            key={JSON.stringify((game.view as KatView).rounds)}
-            view={game.view as KatView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "kropki" && (
-          <Kropki
-            key={JSON.stringify((game.view as KropkiView).rounds)}
-            view={game.view as KropkiView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "rok" && (
-          <Rok
-            key={JSON.stringify((game.view as RokView).events)}
-            view={game.view as RokView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "srodek" && (
-          <Srodek
-            key={JSON.stringify((game.view as SrodekView).segments)}
-            view={game.view as SrodekView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "mapa" && (
-          <Mapa
-            key={(game.view as MapaView).cities.map((c) => c.name).join()}
-            view={game.view as MapaView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "stoj" && (
-          <Stoj
-            key={(game.view as StojView).reds.join()}
-            view={game.view as StojView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            winner={winner}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "sledzenie" && (
-          <Sledzenie
-            key={JSON.stringify((game.view as SledzenieView).rounds)}
-            view={game.view as SledzenieView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "w-pamieci" && (
-          <WPamieci
-            key={JSON.stringify((game.view as WPamieciView).rounds)}
-            view={game.view as WPamieciView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "balon" && (
-          <Balon
-            key={JSON.stringify((game.view as BalonView).limits)}
-            view={game.view as BalonView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "tort" && (
-          <Tort
-            key={JSON.stringify((game.view as TortView).cakes)}
-            view={game.view as TortView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "nozyczki" && (
-          <Nozyczki
-            key={JSON.stringify((game.view as NozyczkiView).shapes)}
-            view={game.view as NozyczkiView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "przytrzymaj" && (
-          <Przytrzymaj
-            key={JSON.stringify((game.view as PrzytrzymajView).targets)}
-            view={game.view as PrzytrzymajView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "rytm" && (
-          <Rytm
-            key={(game.view as RytmView).nonce}
-            view={game.view as RytmView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "wieza" && (
-          <Wieza
-            key={JSON.stringify((game.view as WiezaView).sides)}
-            view={game.view as WiezaView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "schulte" && (
-          <Schulte
-            key={(game.view as SchulteView).grid.join()}
-            view={game.view as SchulteView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
-
-        {def.id === "dziesiatki" && (
-          <Dziesiatki
-            key={[...(game.view as DziesiatkiView).board, ...(game.view as DziesiatkiView).refills.slice(0, 8)].join("")}
-            view={game.view as DziesiatkiView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            winner={winner}
-            onMove={(move) => send("move", move)}
-            onRound={onRound}
-          />
-        )}
-
-        {def.id === "literowka" && (
-          <Literowka
-            key={(game.view as LiterowkaView).trials.map((t) => t.wrong).join("")}
-            view={game.view as LiterowkaView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            winner={winner}
-            onMove={(move) => send("move", move)}
-            onRound={onRound}
-          />
-        )}
-
-        {def.id === "obrot" && (
-          <Obrot
-            key={(game.view as ObrotView).trials.map((t) => +t.mirror).join("")}
-            view={game.view as ObrotView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            winner={winner}
-            onMove={(move) => send("move", move)}
-            onRound={onRound}
-          />
-        )}
-
-        {def.id === "inny" && (
-          <Inny
-            key={(game.view as InnyView).trials.map((t) => t.odd).join()}
-            view={game.view as InnyView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            winner={winner}
-            onMove={(move) => send("move", move)}
-            onRound={onRound}
-          />
-        )}
-
-        {def.id === "stroop" && (
-          <Stroop
-            key={(game.view as StroopView).trials.map((t) => t.word * 4 + t.ink).join("")}
-            view={game.view as StroopView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            winner={winner}
-            onMove={(move) => send("move", move)}
-            onRound={onRound}
-          />
-        )}
-
-        {def.id === "liczenie" && (
-          <Liczenie
-            key={(game.view as LiczenieView).problems.map((p) => p.text).join()}
-            view={game.view as LiczenieView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            winner={winner}
-            onMove={(move) => send("move", move)}
-            onRound={onRound}
-          />
-        )}
-
-        {def.id === "simon" && (
-          <Simon
-            key={(game.view as SimonView).sequence.join("")}
-            view={game.view as SimonView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            onMove={(move) => send("move", move)}
-          />
-        )}
+        <MiniGame id={def.id} view={game.view} me={me} players={view.players} ranking={game.result?.ranking} winner={winner} onMove={(move) => send("move", move)} onRound={onRound} />
 
         {def.id === "panstwa-miasta" && (
           <PanstwaMiasta
@@ -680,7 +407,7 @@ export function Game({ view, me, dropped, send }: Props) {
 
         {view.phase === "over" && (
           <div className="mt-auto flex flex-col gap-2 pt-4">
-            {t && !tournamentOver ? <NextActions view={view} me={me} send={send} countdown={<Countdown game={game} />} /> : <OverActions view={view} me={me} send={send} />}
+            {t && !tournamentOver ? <NextActions view={view} me={me} send={send} countdown={<Countdown game={game} />} /> : <OverActions view={view} me={me} send={send} onLeave={onLeave} />}
           </div>
         )}
       </Screen>
@@ -700,7 +427,7 @@ function recordHint(gameId: string, rows: RecordRow[] | null, nick: string) {
   return `${top} (${rows[0].nick})${mine ? ` · twój: ${formatRecord(gameId, mine)}` : ""}`;
 }
 
-const MINI_GAMES = new Set(["tort", "nozyczki", "refleks", "simon", "stoper", "schulte", "stroop", "liczenie", "kolo", "kolor", "kropki", "rok", "srodek", "stoj", "sledzenie", "wieza", "rytm", "inny", "obrot", "literowka", "mapa", "kat", "przytrzymaj", "balon", "w-pamieci", "dziesiatki", "panstwa-miasta"]);
+const MINI_GAMES = new Set(["tort", "nozyczki", "refleks", "simon", "stoper", "schulte", "sudoku", "stroop", "liczenie", "kolo", "kolor", "kropki", "rok", "srodek", "stoj", "sledzenie", "kubki", "wieza", "rytm", "inny", "obrot", "literowka", "mapa", "kat", "przytrzymaj", "balon", "w-pamieci", "dziesiatki", "panstwa-miasta"]);
 
 const SCHULTE_LAST = SCHULTE_SIZE * SCHULTE_SIZE;
 
@@ -719,7 +446,21 @@ function Progress({ done, total, color }: { done: number; total: number; color?:
 }
 
 /** Rewanż rusza, gdy kliknie go każdy grający; „Do lobby” od jednej osoby kończy serię. */
-function OverActions({ view, me, send }: { view: RoomView; me: string; send: Send }) {
+function OverActions({ view, me, send, onLeave }: { view: RoomView; me: string; send: Send; onLeave?: () => void }) {
+  // Gra solo z ekranu głównego nie ma lobby ani rywali: gramy jeszcze raz albo wracamy na start.
+  if (view.solo) {
+    return (
+      <>
+        <button type="button" className="btn btn-primary flex-1" onClick={() => send("rematch")}>
+          <ArrowCounterClockwise size={18} weight="bold" aria-hidden />
+          Jeszcze raz
+        </button>
+        <button type="button" className="btn btn-ghost flex-1" onClick={onLeave}>
+          Wyjdź
+        </button>
+      </>
+    );
+  }
   const seated = view.players.filter((p) => view.seats.includes(p.id));
   const wants = seated.filter((p) => p.ready);
   const waiting = seated.filter((p) => !p.ready);

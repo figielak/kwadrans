@@ -6,8 +6,11 @@ export const ROUNDS = 10;
 export const FIELD = 300;
 /** Kara za rundę po limicie czasu, w % długości odcinka; więcej niż najgorsza uczciwa runda (koniec odcinka = 50% plus strefa). */
 export const MAX_ERROR = 100;
-/** Strefa akceptacji w umownych px (dotyczy palca, nie oka): dotknięcie dalej od odcinka nie jest odpowiedzią (przypadkowe stuknięcie, próba nadużycia rzutowania). */
-export const ACCEPT_PX = 30;
+/**
+ * Strefa akceptacji w umownych px (dotyczy palca, nie oka): dotknięcie dalej od odcinka nie jest odpowiedzią (przypadkowe stuknięcie, próba nadużycia rzutowania).
+ * Szeroka, żeby dało się celować obok odcinka i nie zasłaniać go palcem.
+ */
+export const ACCEPT_PX = 60;
 /**
  * Długość odcinka i odstęp końców od krawędzi, w ułamkach boku pola. Długie, bo niedokładność palca jest stała,
  * a pomyłka oka rośnie z długością: na krótkim odcinku gra mierzyłaby palec.

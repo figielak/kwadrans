@@ -15,9 +15,6 @@ const REVEAL_MS = 1000;
 /** Progi celności w % długości odcinka: do PERFECT „Idealnie!” na zielono, powyżej CLOSE kolor ostrzeżenia. */
 const PERFECT = 2;
 const CLOSE = 8;
-/** Lupa nad kaflem: średnica w % boku kafla i wycinek pola w jednostkach viewBox (100 = bok), czyli powiększenie ok. 1,7×. */
-const LOUPE_SIZE = 40;
-const LOUPE_SPAN = 24;
 /** Połowa długości poprzecznej kreski na końcu odcinka, w jednostkach viewBox. */
 const TICK = 2;
 
@@ -59,8 +56,6 @@ export function Srodek({ view, me, players, ranking, onMove }: Props) {
   const [taps, setTaps] = useState<SrodekPoint[]>([]);
   /** Punkt pod przytrzymanym palcem; liczy się dopiero miejsce puszczenia. */
   const [aim, setAim] = useState<SrodekPoint | null>(null);
-  /** Lupa tylko przy dotyku: kursor myszy niczego nie zasłania. */
-  const [loupe, setLoupe] = useState(false);
   /** Ile razy z rzędu dotknięcie wypadło poza strefą; klucz potrząśnięcia i podpowiedzi. */
   const [miss, setMiss] = useState(0);
   const index = phase === "reveal" ? taps.length - 1 : taps.length;
@@ -85,7 +80,6 @@ export function Srodek({ view, me, players, ranking, onMove }: Props) {
   function down(e: PointerEvent<HTMLDivElement>) {
     if (phase !== "play") return;
     e.currentTarget.setPointerCapture(e.pointerId);
-    setLoupe(e.pointerType !== "mouse");
     setAim(point(e));
   }
 
@@ -165,7 +159,7 @@ export function Srodek({ view, me, players, ranking, onMove }: Props) {
       <Intro
         preview={<Preview />}
         time={`${SRODEK_ROUNDS} rund, w każdej jeden odcinek`}
-        task="Dotknij odcinka w połowie długości. Możesz przytrzymać i przesunąć, liczy się miejsce puszczenia"
+        task="Wskaż połowę odcinka. Możesz dotknąć obok i przesunąć palec, liczy się miejsce puszczenia"
         score="Liczy się suma błędów w % długości odcinka, mniej znaczy lepiej"
         onStart={() => setPhase("play")}
       />
@@ -208,21 +202,6 @@ export function Srodek({ view, me, players, ranking, onMove }: Props) {
             </>
           )}
         </svg>
-        {spot && loupe && (
-          // Lupa nad kaflem, nie tuż nad palcem: tam zasłaniałaby drugą połowę odcinka. Idzie za palcem w poziomie, wycinek jest wyśrodkowany na rzucie.
-          <svg
-            viewBox={`${spot.x * 100 - LOUPE_SPAN / 2} ${spot.y * 100 - LOUPE_SPAN / 2} ${LOUPE_SPAN} ${LOUPE_SPAN}`}
-            className="pointer-events-none absolute bottom-[calc(100%+0.5rem)] aspect-square -translate-x-1/2 rounded-full border border-line bg-surface shadow-lg"
-            style={{
-              width: `${LOUPE_SIZE}%`,
-              left: `${Math.min(100 - LOUPE_SIZE / 2, Math.max(LOUPE_SIZE / 2, spot.x * 100))}%`,
-            }}
-            aria-hidden
-          >
-            <Segment {...segment} />
-            <circle cx={spot.x * 100} cy={spot.y * 100} r={1.4} fill="none" stroke={color} strokeWidth={0.4} />
-          </svg>
-        )}
       </div>
       <p className="flex h-10 items-center justify-center gap-3" role="status">
         {mine ? (
@@ -231,7 +210,7 @@ export function Srodek({ view, me, players, ranking, onMove }: Props) {
             <span className={`font-mono text-3xl font-semibold tabular-nums ${grade(error).text}`}>{percent(error)}</span>
           </>
         ) : miss ? (
-          <span className="text-sm text-warning">Dotknij na odcinku</span>
+          <span className="text-sm text-warning">Dotknij bliżej odcinka</span>
         ) : (
           <span className="text-sm text-fg-muted">Dotknij odcinka w połowie długości</span>
         )}

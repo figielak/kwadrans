@@ -111,6 +111,47 @@ export const normalize = (text: string) => text.trim().toLowerCase().replace(/ł
 /** „Ala”, „ala” i „ALA” to w rankingach jeden gracz. */
 export const nickKey = normalize;
 
+/**
+ * Etykiety graczy na kropkach w nagłówku mini-gry, najwyżej dwa znaki. Unikalna pierwsza litera wystarcza („B”, „K”);
+ * gdy się powtarza, dochodzi cyfra z końca nicku („G1”, „G2”) albo znak z pierwszej pozycji, na której te nicki się różnią („Ka”, „Kr”).
+ */
+export function initials(nicks: string[]): string[] {
+  const segmenter = new Intl.Segmenter("pl", { granularity: "grapheme" });
+  // Grafemy, nie jednostki UTF-16: emoji i flaga to jeden znak.
+  const chars = nicks.map((nick) => [...segmenter.segment(nick.replace(/\s+/g, ""))].map((s) => s.segment));
+  const upper = chars.map((c) => c.map((ch) => ch.toLocaleUpperCase("pl")));
+  const second = (i: number, k: number) => (/\d/.test(chars[i].at(-1) ?? "") ? chars[i].length - 1 : k);
+  return chars.map((own, i) => {
+    const first = upper[i][0] ?? "";
+    const group = upper.flatMap((c, j) => (c[0] === first ? [j] : []));
+    if (group.length === 1) return first;
+    // Te same nicki („Ala” i „ala”) i tak dostaną to samo, więc różnić muszą się tylko różne.
+    const distinct = [...new Map(group.map((j) => [upper[j].join(""), j])).values()];
+    const longest = Math.max(...distinct.map((j) => chars[j].length));
+    let k = 1;
+    // ponytail: dwa nicki z tą samą cyfrą na końcu („Gracz 1”, „Gosia1”) zostają z tą samą etykietą, rozróżnia je kolor.
+    while (k < longest && new Set(distinct.map((j) => upper[j][second(j, k)] ?? "")).size < distinct.length) k++;
+    if (k === longest) k = 1;
+    const at = second(i, k);
+    return first + (at > 0 ? (own[at] ?? "") : "");
+  });
+}
+
+/** Id jedynego gracza w stanie z `soloState`. */
+export const SOLO = "1";
+
+/**
+ * Stan mini-gry przycięty do jednego gracza: rekordowa partia w rankingu, którą ekran gry pokazuje jak zwykły koniec partii solo.
+ * Mapy per gracz (obiekty z id graczy w kluczach) zostają z jednym wpisem pod `SOLO`, więc id sesji nie wychodzi poza pokój; wyzwanie zostaje bez zmian.
+ */
+export function soloState<S extends { players: PlayerId[] }>(state: S, player: PlayerId): S {
+  const perPlayer = (value: unknown): value is Record<PlayerId, unknown> =>
+    typeof value === "object" && value !== null && !Array.isArray(value) && state.players.some((id) => id in value);
+  return Object.fromEntries(
+    Object.entries(state).map(([key, value]) => [key, key === "players" ? [SOLO] : perPlayer(value) ? (player in value ? { [SOLO]: value[player] } : {}) : value]),
+  ) as S;
+}
+
 /** Wiersz rankingu rekordów mini-gry: najlepszy wynik gracza, jego drugie kryterium (null: gra go nie ma) i liczba partii. */
 export interface RecordRow {
   nick: string;
@@ -165,6 +206,17 @@ export function standing(rows: RecordRow[], nick: string, order: RecordOrder): R
   };
 }
 
+/**
+ * `n` liczb całkowitych z [min, max] o sumie dokładnie `total`: losowanie do skutku, żeby każda partia miała tyle samo do zdobycia
+ * (rekordy porównują różne partie). Suma w środku zakresu trafia się raz na kilkadziesiąt do kilku tysięcy prób.
+ */
+export function withSum(rng: Rng, n: number, min: number, max: number, total: number): number[] {
+  for (;;) {
+    const list = Array.from({ length: n }, () => min + Math.floor(rng() * (max - min + 1)));
+    if (list.reduce((a, b) => a + b, 0) === total) return list;
+  }
+}
+
 /** Tasuje kopię tablicy (Fisher-Yates). */
 export function shuffle<T>(items: readonly T[], rng: Rng): T[] {
   const a = [...items];
@@ -174,6 +226,12 @@ export function shuffle<T>(items: readonly T[], rng: Rng): T[] {
   }
   return a;
 }
+
+/**
+ * Gra wyzwania dnia: lista tasowana raz na cykl (tyle dni, ile gier), więc w cyklu każda gra wypada raz. `day` to numer dnia (liczy go serwer).
+ */
+// ponytail: ostatnia gra cyklu może się powtórzyć jako pierwsza następnego (1 na liczbę gier); osobna poprawka, gdyby to raziło
+export const dailyGame = (day: number, ids: readonly string[]) => shuffle(ids, createRng(Math.floor(day / ids.length)))[day % ids.length];
 
 export const average = (times: number[]) => (times.length ? times.reduce((a, b) => a + b, 0) / times.length : Infinity);
 
