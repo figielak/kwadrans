@@ -38,6 +38,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Dziesiątki | `dziesiatki` | 1-6 | 90 s | mini-gra |
 | Tort | `tort` | 1-6 | 120 s | mini-gra |
 | Nożyczki | `nozyczki` | 1-6 | 60 s | mini-gra |
+| Sudoku | `sudoku` | 1-6 | 120 s | mini-gra |
 | Trzy kubki | `kubki` | 1-6 | 180 s | mini-gra |
 
 Nazwy w UI zmieniały się (2026-10-10), `id`, nazwy plików i typów zostały stare: Sekwencja = `simon`, Kolor liter = `stroop`,
@@ -48,7 +49,7 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
 - Wyzwanie losuje serwer w `setup` (to samo dla wszystkich) i od razu wysyła w widoku. `playerView` zwraca cały stan,
   więc nic nie jest ukryte (da się podejrzeć; świadoma decyzja, komentarze `ponytail:`).
 - Partia toczy się na kliencie. Każdy gracz wysyła jeden ruch `{ type: "result", ... }`; drugi ruch tego samego gracza jest odrzucany.
-  Wyjątki: Narysuj koło (do 10 ruchów na gracza), Tabela Schultego, Policz kropki, Kąt, Który rok?, Wieża i Balon (dodatkowy ruch `progress` po każdym trafieniu, rundzie, klocku albo balonie).
+  Wyjątki: Narysuj koło (do 10 ruchów na gracza), Tabela Schultego, Policz kropki, Kąt, Który rok?, Wieża, Balon i Sudoku (dodatkowy ruch `progress` po każdym trafieniu, rundzie, klocku, balonie albo wpisanej cyfrze).
 - Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon, W pamięci, Tort, Nożyczki, Trzy kubki),
   w reszcie ufa klientowi.
 - Partia zaczyna się ekranem instrukcji (platforma, nie zasady gry): każdy klika „Start” osobno (wiadomość pokoju `begin`) i gra od razu,
@@ -494,6 +495,27 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
   do 1 zielony z „Idealnie!”, do 5 zwykły, dalej ostrzegawczy. Potem sam wskakuje następny kształt; po piątym wynik idzie na serwer.
 - Ekran końcowy: jedna tabela, kształty 1-5 w kolumnach, gracze w wierszach. Najlepszy w rundzie (bez remisu) ma tło w kolorze gracza.
 
+### Sudoku (`sudoku`)
+- Plansza 4×4 (`SIZE`), bloki 2×2, cyfry 1-4: w każdym wierszu, kolumnie i bloku każda cyfra dokładnie raz.
+  6 pól jest danych (`GIVENS`), 10 do wpisania (`BLANKS`). Plansza jest ta sama dla wszystkich i ma dokładnie jedno rozwiązanie.
+- Losowanie na serwerze w `setup`: pełna poprawna siatka (wzorzec bazowy z potasowanymi cyframi, wierszami w pasach, kolumnami w pasach
+  i samymi pasami), potem usuwanie pól w wylosowanej kolejności, dopóki rozwiązanie zostaje jedno. Gdy usuwanie utknie powyżej 6 danych,
+  losujemy od nowa.
+- Stan (= widok, nic nie jest ukryte): `puzzle` (16 pól wiersz po wierszu, 0 = puste) i `solution` (16 cyfr).
+- Przebieg: gracz dotyka pustego pola, potem jednej z cyfr 1-4. Dobra cyfra zostaje w polu, zła nie zostaje i liczy się jako pomyłka.
+  Partia kończy się po wypełnieniu ostatniego pola. Pól danych i już wypełnionych nie da się zmienić.
+- Wynik: `ms` + 5000 ms za każdą pomyłkę (`PENALTY_MS`, `total`), mniej lepiej, bez drugiego kryterium; równe = remis bez zwycięzcy.
+- Walidacja: `ms` od 3000 (10 × 300 ms) do 120000, `mistakes` int ≥ 0. Limit czasu: 120000 ms, 0 pomyłek.
+  Serwer ufa klientowi co do czasu i pomyłek (jak w Tabeli Schultego), przebiegu nie sprawdza.
+- Postęp rywali: po każdej dobrej cyfrze (poza ostatnią) klient wysyła `{ type: "progress", filled }` (int 1-9, tylko gracz bez wyniku).
+  Serwer zapisuje go w `progress` i pokazuje w pigułkach graczy jako pasek i `4/10`. Wartość nie musi rosnąć
+  (po odświeżeniu gracz zaczyna od nowa) i nie wpływa na wynik.
+- Limit przez `turn()` ze stałym kluczem: ruch `progress` nie odnawia 120 s, nawet gdy gra już tylko jedna osoba.
+- Bez trybów (jedna wielkość planszy), bez notatek w polach.
+- Ekran: siatka 4×4 z grubszą linią między blokami, wybrane pole ma obwódkę w kolorze gracza, pod siatką 4 przyciski cyfr.
+  Dobra cyfra błyska na zielono, zła na czerwono z potrząśnięciem i wibracją 60; lokalny zegar ma etykietę „Twój czas”.
+- Ekran końcowy: tabela wyników z czasem i karą („23,4 s (+5 s kary)”) i wiersz z przewagą zwycięzcy (tylko gdy jest zwycięzca), bez wykresu.
+
 ## 2. Gomoku (`piec-w-rzedzie`)
 
 - Plansza 15×15, dwóch graczy stawia na zmianę; zaczyna `players[0]`.
@@ -700,7 +722,7 @@ Seria mini-gier puszczana po kolei w jednym pokoju. To nie jest gra z rejestru `
 - Konfiguracja `{ length, must, skip }` (sprawdza ją `cleanConfig`). Liczbę gier ustawia gospodarz (wiadomość pokoju `pickTournament`),
   a gry zaznacza **każdy w pokoju**, także oglądający (wiadomość `markGame`: jedna gra na raz, `must`, `skip` albo `any`, funkcja `mark`).
   Lista jest wspólna i wygrywa ostatnie zaznaczenie; spory gracze rozstrzygają między sobą, aplikacja ich nie rozsądza.
-  Każda zmiana kasuje gotowość gości.
+  Każda zmiana kasuje gotowość gości. Pokój pamięta, kto ostatni zaznaczył grę (`markedBy` w `RoomView`), i ekran pokazuje przy niej kropkę w kolorze tego gracza.
   - `length`: liczba gier, od `MIN_LENGTH` (3) do liczby niewykluczonych mini-gier, domyślnie `DEFAULT_LENGTH` (8); wartość spoza zakresu jest przycinana,
   - `must`: gry, które będą na pewno; gdy jest ich więcej niż `length`, długość rośnie do ich liczby,
   - `skip`: gry wykluczone; po wykluczeniu muszą zostać co najmniej 3 gry,

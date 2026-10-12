@@ -17,8 +17,9 @@ import {
   GameController,
   Eyedropper,
   GlobeHemisphereEast,
-  GridNine,
+  GridFour,
   PintGlass,
+  GridNine,
   HandPalm,
   Balloon,
   HandTap,
@@ -69,23 +70,28 @@ export function Lobby({ view, me, dropped, send, onLeave, onMini }: Props) {
 
   return (
     <Screen dropped={dropped}>
-      <Code code={view.code} onLeave={onLeave} />
+      <Code code={view.code} alone={view.players.length === 1} onLeave={onLeave} />
       <Players view={view} me={me} send={send} />
 
-      {/* Gospodarz: gry główne otwierają ekran gry (Setup.tsx), dwa ostatnie kafle prowadzą do turnieju i listy mini-gier. */}
+      {/* Gospodarz: szerokie kafle prowadzą do turnieju i listy mini-gier (zbiory, nie pojedyncze gry), gry główne otwierają ekran gry (Setup.tsx). */}
       {isHost && (
-        <section>
-          <h2 className="label mb-2 px-1">Gry</h2>
-          <div className="grid grid-cols-2 gap-2">
-            {Object.values(GAMES)
-              .filter((g) => g.minPlayers > 1)
-              .map((g) => (
-                <GameTile key={g.id} game={g} players={view.players.length} onClick={() => send("pickGame", { gameId: g.id })} />
-              ))}
-            <Tile icon={Trophy} name="Turniej" hint={`1-${MAX_PLAYERS} os.`} onClick={() => send("pickTournament", { length: DEFAULT_LENGTH })} />
-            <Tile icon={GameController} name="Mini-gry" hint={`${MINI_GAMES.length} gier`} onClick={onMini} />
-          </div>
-        </section>
+        <>
+          <section className="flex flex-col gap-2">
+            <h2 className="label px-1">Zestawy</h2>
+            <Tile wide icon={GameController} name="Mini-gry" hint={`${MINI_GAMES.length} gier, także solo`} onClick={onMini} />
+            <Tile wide icon={Trophy} name="Turniej" hint={`seria mini-gier, 1-${MAX_PLAYERS} os.`} onClick={() => send("pickTournament", { length: DEFAULT_LENGTH })} />
+          </section>
+          <section>
+            <h2 className="label mb-2 px-1">Gry</h2>
+            <div className="grid grid-cols-2 gap-2">
+              {Object.values(GAMES)
+                .filter((g) => g.minPlayers > 1)
+                .map((g) => (
+                  <GameTile key={g.id} game={g} players={view.players.length} onClick={() => send("pickGame", { gameId: g.id })} />
+                ))}
+            </div>
+          </section>
+        </>
       )}
 
       <StartBar view={view} me={me} send={send} />
@@ -108,7 +114,8 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
       {(
         (def
           ? [
-              [`Grają ${view.seats.length}/${def.maxPlayers} (limit gry)`, view.seats.map((id) => view.players.find((p) => p.id === id)!)],
+              // Limit miejsc widać dopiero, gdy pokój jest większy niż gra.
+              [view.players.length > def.maxPlayers ? `Grają ${view.seats.length}/${def.maxPlayers} (limit gry)` : "Grają", view.seats.map((id) => view.players.find((p) => p.id === id)!)],
               ["Oglądają", view.players.filter((p) => !view.seats.includes(p.id))],
             ]
           : [["", view.players]]
@@ -170,9 +177,6 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
           </div>
         ))}
       <ColorPicker view={view} me={me} send={send} />
-      {view.players.length === 1 && (
-        <p className="mt-3 text-sm text-fg-muted">Podaj znajomym kod pokoju, żeby dołączyli.</p>
-      )}
       {isHost && def && view.players.length > 1 && (
         <p className="mt-3 text-sm text-fg-muted">Dotknij gracza, żeby przenieść go między grającymi a oglądającymi.</p>
       )}
@@ -190,7 +194,7 @@ export function StartBar({ view, me, send }: { view: RoomView; me: string; send:
   const meSeated = view.seats.includes(me);
   const meReady = !!view.players.find((p) => p.id === me)?.ready;
   const startBlocker = !def
-    ? "Wybierz grę"
+    ? "Dotknij gry, żeby ją wybrać"
     : view.seats.length < def.minPlayers
       ? `Zaznacz ${def.minPlayers} graczy do gry`
       : unready.length === 1
@@ -201,11 +205,14 @@ export function StartBar({ view, me, send }: { view: RoomView; me: string; send:
 
   return (
     <StickyBar>
-      {isHost ? (
-        <button type="button" className={`btn w-full ${startBlocker ? "btn-ghost" : "btn-primary"}`} disabled={!!startBlocker} onClick={() => send("start")}>
-          {!startBlocker && <Play size={18} weight="fill" aria-hidden />}
-          <span className="truncate">{startBlocker ?? `Zagraj: ${def!.name}`}</span>
+      {isHost && !startBlocker ? (
+        <button type="button" className="btn btn-primary w-full" onClick={() => send("start")}>
+          <Play size={18} weight="fill" aria-hidden />
+          <span className="truncate">Zagraj: {def!.name}</span>
         </button>
+      ) : isHost ? (
+        // Zwykły podpis zamiast wyszarzonego przycisku: nie udaje czegoś, co da się nacisnąć.
+        <p className="flex min-h-12 w-full items-center justify-center text-center text-sm text-fg-muted">{startBlocker}</p>
       ) : def && meSeated ? (
         <button
           type="button"
@@ -234,34 +241,36 @@ export function picked(view: RoomView): { name: string; minPlayers: number; maxP
 /** Mini-gry to gry, w które da się grać solo (minPlayers 1); reszta to gry główne. */
 export const MINI_GAMES = Object.values(GAMES).filter((g) => g.minPlayers === 1);
 
-/** Kafel w siatce gier: ikona, nazwa i jedna linijka pod spodem. */
-export function Tile({ icon: TileIcon, name, hint, picked, disabled, onClick }: { icon: Icon; name: string; hint: string; picked?: boolean; disabled?: boolean; onClick: () => void }) {
+/** Kafel w siatce gier: ikona, nazwa i jedna linijka pod spodem; `wide` to wiersz na całą szerokość, `dim` przygasza bez blokowania. */
+export function Tile({ icon: TileIcon, name, hint, picked, disabled, dim, wide, onClick }: { icon: Icon; name: string; hint: string; picked?: boolean; disabled?: boolean; dim?: boolean; wide?: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
       aria-pressed={picked}
       disabled={disabled}
-      className={`flex min-h-20 flex-col items-start gap-1 rounded-inset border p-3 text-left transition-colors ${
+      className={`flex rounded-inset border p-3 text-left transition-[color,border-color,opacity] ${wide ? "min-h-14 items-center gap-3" : "min-h-20 flex-col items-start gap-1"} ${
         picked ? "border-accent bg-accent-soft" : "border-line enabled:hover:border-line-hover"
-      } ${disabled ? "opacity-40" : ""}`}
+      } ${disabled ? "opacity-40" : dim ? "opacity-60" : ""}`}
       onClick={onClick}
     >
       <TileIcon size={22} weight={picked ? "fill" : "regular"} aria-hidden />
       <span className="leading-tight">{name}</span>
-      <span className="font-mono text-xs text-fg-muted">{hint}</span>
+      <span className={`font-mono text-xs text-fg-muted ${wide ? "ml-auto" : ""}`}>{hint}</span>
     </button>
   );
 }
 
-/** Kafel gry; nieaktywny, gdy w pokoju jest więcej osób, niż gra ma miejsc. */
+/** Kafel gry; nieaktywny, gdy w pokoju jest więcej osób, niż gra ma miejsc, przygaszony (ale do wybrania), gdy graczy brakuje. */
 export function GameTile({ game: g, players, picked, onClick }: { game: { id: string; name: string; minPlayers: number; maxPlayers: number }; players: number; picked?: boolean; onClick: () => void }) {
   const tooMany = players > g.maxPlayers;
+  const missing = g.minPlayers - players;
   return (
     <Tile
       icon={ICONS[g.id] ?? Play}
       name={g.name}
-      hint={tooMany ? (g.minPlayers === g.maxPlayers ? "tylko " : "max ") + `${g.maxPlayers} os.` : seats(g)}
+      hint={tooMany ? (g.minPlayers === g.maxPlayers ? "tylko " : "max ") + `${g.maxPlayers} os.` : missing > 0 ? `brakuje ${missing} ${missing === 1 ? "gracza" : "graczy"}` : seats(g)}
       picked={picked}
+      dim={missing > 0}
       disabled={tooMany}
       onClick={onClick}
     />
@@ -279,6 +288,7 @@ export const ICONS: Record<string, Icon> = {
   simon: SquaresFour,
   stoper: Timer,
   schulte: NumberSquareOne,
+  sudoku: GridFour,
   stroop: Palette,
   liczenie: Calculator,
   kolo: CircleDashed,
@@ -319,6 +329,7 @@ export const BLURBS: Record<string, string> = {
   refleks: "Dotknij pola, gdy zmieni kolor. 12 zmian, liczy się średni czas reakcji, falstart to 1000 ms.",
   simon: "Powtarzasz coraz dłuższą sekwencję 4 kolorów. Liczy się najdłuższa seria.",
   stoper: "Licznik znika po 3 s. Dotknij dokładnie w wylosowanej sekundzie, wygrywa najmniejsza odchyłka.",
+  sudoku: "Plansza 4×4 do uzupełnienia cyframi 1-4, w każdym wierszu, kolumnie i bloku raz. Liczy się czas, zła cyfra dodaje 5 s.",
   schulte: "Siatka 5×5 z liczbami 1-25, dotykasz po kolei. Liczy się czas, pomyłka dodaje 3 s.",
   stroop: "Nazwa koloru napisana innym kolorem. Wybierasz kolor liter, nie słowo. 30 s.",
   liczenie: "30 s szybkich działań z czterema odpowiedziami. Pomyłka blokuje na sekundę.",
@@ -384,7 +395,7 @@ function ColorPicker({ view, me, send }: { view: RoomView; me: string; send: Sen
   );
 }
 
-function Code({ code, onLeave }: { code: string; onLeave: () => void }) {
+function Code({ code, alone, onLeave }: { code: string; alone: boolean; onLeave: () => void }) {
   const [copied, setCopied] = useState(false);
   const url = `${location.origin}/?kod=${code}`;
 
@@ -397,7 +408,7 @@ function Code({ code, onLeave }: { code: string; onLeave: () => void }) {
   async function share() {
     if (navigator.share) {
       // Anulowanie arkusza udostępniania to nie błąd.
-      await navigator.share({ title: "Gry", text: `Dołącz do pokoju ${code}`, url }).catch(() => {});
+      await navigator.share({ title: "Kwadrans", text: `Dołącz do pokoju ${code}`, url }).catch(() => {});
       return;
     }
     await navigator.clipboard.writeText(url);
@@ -422,6 +433,7 @@ function Code({ code, onLeave }: { code: string; onLeave: () => void }) {
           {copied ? <Check size={20} weight="bold" aria-hidden /> : <ShareNetwork size={20} weight="bold" aria-hidden />}
         </button>
       </div>
+      {alone && <p className="mt-2 text-sm text-fg-muted">Podaj kod znajomym, żeby dołączyli. Dotknij go, żeby skopiować.</p>}
     </section>
   );
 }

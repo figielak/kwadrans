@@ -19,15 +19,15 @@ export function Screen({ dropped, children }: { dropped: boolean; children: Reac
   );
 }
 
-/** Górny wiersz ekranów przed partią: gospodarz wraca do listy gier, gość wychodzi z pokoju; po prawej kod pokoju z udostępnianiem. */
-export function TopBar({ code, onBack, onLeave }: { code: string; onBack?: () => void; onLeave: () => void }) {
+/** Górny wiersz ekranów przed partią: gospodarz wraca do listy gier, gość wychodzi z pokoju; po prawej kod pokoju z udostępnianiem, w środku opcjonalny dodatek ekranu. */
+export function TopBar({ code, onBack, onLeave, children }: { code: string; onBack?: () => void; onLeave: () => void; children?: ReactNode }) {
   const [copied, setCopied] = useState(false);
 
   async function share() {
     const url = `${location.origin}/?kod=${code}`;
     if (navigator.share) {
       // Anulowanie arkusza udostępniania to nie błąd.
-      await navigator.share({ title: "Gry", text: `Dołącz do pokoju ${code}`, url }).catch(() => {});
+      await navigator.share({ title: "Kwadrans", text: `Dołącz do pokoju ${code}`, url }).catch(() => {});
       return;
     }
     await navigator.clipboard.writeText(url);
@@ -41,12 +41,35 @@ export function TopBar({ code, onBack, onLeave }: { code: string; onBack?: () =>
         {onBack ? <ArrowLeft size={16} aria-hidden /> : <SignOut size={16} aria-hidden />}
         {onBack ? "Gry" : "Wyjdź"}
       </button>
+      {children}
       <button type="button" className="-mr-2 flex min-h-12 items-center gap-2 px-2" onClick={share} aria-label={`Kod pokoju ${code}, udostępnij link`}>
         <span className="text-sm text-fg-muted">{copied ? "Skopiowano!" : "Kod"}</span>
         <span className="font-mono text-lg font-medium tracking-[0.12em]">{code}</span>
         {copied ? <Check size={16} weight="bold" aria-hidden /> : <ShareNetwork size={16} weight="bold" aria-hidden />}
       </button>
     </div>
+  );
+}
+
+/** Gracze jako kropki w `TopBar`: kolor wybiera się w lobby, tu liczy się tylko, kto jest i kto gotów. */
+export function PlayerDots({ view }: { view: RoomView }) {
+  const chosen = !!view.gameId || !!view.tournament;
+  return (
+    <ul className="flex gap-1" aria-label="Gracze">
+      {view.players.map((p) => {
+        const ready = chosen && view.seats.includes(p.id) && (p.ready || p.id === view.hostId);
+        return (
+          <li
+            key={p.id}
+            className={`grid size-4 place-items-center rounded-full transition-opacity ${p.connected ? "" : "opacity-40"}`}
+            style={{ backgroundColor: p.color }}
+            aria-label={`${p.nick}${ready ? ", gotowe" : ""}${p.connected ? "" : ", rozłączony"}`}
+          >
+            {ready && <Check size={10} weight="bold" className="text-bg" aria-hidden />}
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 

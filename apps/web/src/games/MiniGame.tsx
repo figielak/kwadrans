@@ -1,4 +1,4 @@
-import { type BalonView, type DziesiatkiView, type InnyView, type KatView, type KoloView, type KolorView, type KropkiView, type KubkiView, type LiczenieView, type LiterowkaView, type MapaView, type NozyczkiView, type ObrotView, type PrzytrzymajView, type RefleksView, type RokView, type RytmView, type SchulteView, type SimonView, type SledzenieView, type SrodekView, type StojView, type StoperView, type StroopView, type TortView, type WPamieciView, type WiezaView, type LobbyPlayer } from "@mini-games/games";
+import { type BalonView, type DziesiatkiView, type InnyView, type KatView, type KoloView, type KolorView, type KropkiView, type KubkiView, type LiczenieView, type LiterowkaView, type MapaView, type NozyczkiView, type ObrotView, type PrzytrzymajView, type RefleksView, type RokView, type RytmView, type SchulteView, type SimonView, type SledzenieView, type SrodekView, type StojView, type StoperView, type StroopView, type SudokuView, type TortView, type WPamieciView, type WiezaView, type LobbyPlayer } from "@mini-games/games";
 import { Balon } from "./Balon.tsx";
 import { Dziesiatki } from "./Dziesiatki.tsx";
 import { Inny } from "./Inny.tsx";
@@ -16,6 +16,7 @@ import { Refleks } from "./Refleks.tsx";
 import { Rok } from "./Rok.tsx";
 import { Rytm } from "./Rytm.tsx";
 import { Schulte } from "./Schulte.tsx";
+import { Sudoku } from "./Sudoku.tsx";
 import { Simon } from "./Simon.tsx";
 import { Kubki } from "./Kubki.tsx";
 import { Sledzenie } from "./Sledzenie.tsx";
@@ -260,6 +261,17 @@ export function MiniGame({ id, view, me, players, ranking, winner, onMove, onRou
         <Schulte
           key={(view as SchulteView).grid.join()}
           view={view as SchulteView}
+          me={me}
+          players={players}
+          ranking={ranking}
+          onMove={onMove}
+        />
+      )}
+
+      {id === "sudoku" && (
+        <Sudoku
+          key={(view as SudokuView).puzzle.join()}
+          view={view as SudokuView}
           me={me}
           players={players}
           ranking={ranking}

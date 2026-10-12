@@ -33,6 +33,8 @@ export interface RoomView {
   seats: PlayerId[];
   /** Wybrany albo trwający turniej mini-gier; w trakcie `gameId` to bieżąca gra turnieju. */
   tournament: Tournament | null;
+  /** Kto ostatni zaznaczył grę turnieju („na pewno” albo „bez”): id gry → id gracza. */
+  markedBy: Record<string, PlayerId>;
   /** Wygrane partie w tym pokoju. */
   scores: Record<PlayerId, number>;
   game: {

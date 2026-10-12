@@ -67,6 +67,7 @@ export class LobbyRoom extends Room {
   private seats: string[] = [];
   /** Wybrany albo trwający turniej. W trakcie `gameId` wskazuje bieżącą grę, w lobby jest puste. */
   private tournament: Tournament | null = null;
+  private markedBy: Record<string, string> = {};
   private scores: Record<string, number> = {};
   private match: Match | null = null;
   private turnTimer?: Timer;
@@ -88,6 +89,7 @@ export class LobbyRoom extends Room {
       if (!this.isHost(client) || this.phase !== "lobby" || (gameId !== null && !def)) return;
       this.gameId = gameId;
       this.tournament = null;
+      this.markedBy = {};
       this.mode = (def?.modes?.find((m) => m.default) ?? def?.modes?.[0])?.id ?? null;
       this.seats = def ? [...this.players.keys()].slice(0, def.maxPlayers) : [];
       this.resetReady();
@@ -112,6 +114,8 @@ export class LobbyRoom extends Room {
       const config = mark(this.tournament.config, id, state, MINI_GAME_IDS);
       if (!config) return;
       this.tournament = create(config);
+      if (state === "any") delete this.markedBy[id];
+      else this.markedBy[id] = client.sessionId;
       this.resetReady();
     });
 
@@ -452,6 +456,7 @@ export class LobbyRoom extends Room {
       mode: this.mode,
       seats: this.seats,
       tournament: this.tournament,
+      markedBy: this.markedBy,
       scores: this.scores,
       game: match && {
         // Obserwator dostaje widok gracza "", czyli bez czyichkolwiek ukrytych informacji.

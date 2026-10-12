@@ -50,6 +50,35 @@ function write(key: string, value: string | null) {
 }
 
 export const savedNick = () => read(NICK_KEY) ?? "";
+export const saveNick = (nick: string) => write(NICK_KEY, nick);
+
+/** Pokoje, w których gracz ostatnio był: szybki powrót z ekranu głównego. Pokój żyje najwyżej godzinę bez ruchu, więc starsze niż doba znikają. */
+export interface RecentRoom {
+  code: string;
+  gameId: string | null;
+  players: number;
+  at: number;
+}
+const ROOMS_KEY = `mg.rooms${slot}`;
+const RECENT_MAX = 3;
+const RECENT_MS = 24 * 60 * 60 * 1000;
+
+export function recentRooms(): RecentRoom[] {
+  try {
+    return (JSON.parse(read(ROOMS_KEY) ?? "[]") as RecentRoom[]).filter((r) => Date.now() - r.at < RECENT_MS);
+  } catch {
+    return [];
+  }
+}
+const writeRecent = (rooms: RecentRoom[]) => write(ROOMS_KEY, JSON.stringify(rooms.slice(0, RECENT_MAX)));
+export const forgetRecent = (code: string) => writeRecent(recentRooms().filter((r) => r.code !== code));
+
+function noteRoom(v: RoomView) {
+  const rooms = recentRooms();
+  // W lobby gra nie jest wybrana, więc zostaje ostatnia grana w tym pokoju.
+  const gameId = v.gameId ?? rooms.find((r) => r.code === v.code)?.gameId ?? null;
+  writeRecent([{ code: v.code, gameId, players: v.players.length, at: Date.now() }, ...rooms.filter((r) => r.code !== v.code)]);
+}
 
 // Serwer wysyła stan pokoju od razu po dołączeniu, zanim React podepnie nasłuch,
 // więc nasłuch wisi tu od początku, a ostatni stan czeka na komponent.
@@ -67,6 +96,7 @@ function remember(room: Room, nick?: string) {
   rooms.set(room, entry);
   room.onMessage("room", (v: RoomView) => {
     entry.view = v;
+    noteRoom(v);
     entry.listener?.(v);
   });
   write(TOKEN_KEY, room.reconnectionToken);
@@ -114,9 +144,11 @@ async function tryResume(): Promise<Room | null> {
 
 export const forgetRoom = () => write(TOKEN_KEY, null);
 
+export const NO_ROOM = "Nie ma pokoju o tym kodzie.";
+
 export function errorText(e: unknown): string {
   const message = e instanceof Error ? e.message : String(e);
-  if (/not found|invalid/i.test(message)) return "Nie ma pokoju o tym kodzie.";
+  if (/not found|invalid/i.test(message)) return NO_ROOM;
   if (/locked|full/i.test(message)) return "Ten pokój jest już pełny.";
   if (/failed to fetch|network/i.test(message)) return "Brak połączenia z serwerem.";
   return message;

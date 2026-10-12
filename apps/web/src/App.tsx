@@ -64,7 +64,12 @@ export function App() {
     };
     if (records) {
       const self = view.players.find((p) => p.id === me);
-      return <Records nick={self?.nick ?? null} color={self?.color} onBack={() => setRecords(false)} />;
+      // Gospodarz wybiera grę prosto z rekordów i ląduje na liście mini-gier z gotowym wyborem.
+      const play = (gameId: string) => {
+        send("pickGame", { gameId });
+        setRecords(false);
+      };
+      return <Records nick={self?.nick ?? null} color={self?.color} onBack={() => setRecords(false)} onPlay={view.hostId === me ? play : undefined} />;
     }
     return <MiniGames view={view} {...screen} onBack={back} onRecords={() => setRecords(true)} />;
   }

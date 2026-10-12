@@ -1,4 +1,4 @@
-# games.figielak.dev — koncept
+# Kwadrans (games.figielak.dev) — koncept
 
 Prywatna platforma z grami multiplayer w przeglądarce, do grania ze znajomymi na wykładach.
 Jedna strona, kod pokoju, każdy gra na swoim telefonie.
@@ -9,6 +9,7 @@ Jedna strona, kod pokoju, każdy gra na swoim telefonie.
   (Kampus Tour i Chińczyk 2-4, Gomoku i Statki 2); reszta ogląda.
 - **Mobile-first**: telefon w pionie, bez instalacji (PWA z ikoną na ekranie głównym).
 - **Bez kont**: gracz wpisuje nick i kod pokoju. Token sesji w `localStorage` pozwala wrócić do gry po odświeżeniu strony.
+  Nick jest zapamiętany po pierwszym wpisaniu (ekran główny pokazuje „Grasz jako … · zmień”), tak samo trzy ostatnie pokoje z ostatniej doby do szybkiego powrotu.
   W rankingach gracza rozpoznaje `nickKey` (bez wielkości liter, polskich znaków i nadmiarowych spacji: „Ala” i „ala” to jedna osoba), pokazywana jest ostatnia pisownia.
 - **Dostęp**: strona publiczna, ale do gry trzeba znać kod pokoju. Brak publicznej listy pokoi.
 - **Odporność na słabe Wi-Fi**: automatyczne ponowne łączenie, stan gry zawsze po stronie serwera.
@@ -94,6 +95,7 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
 - **Odcień** (`kolor`): 5 kolorów, każdy widać 2 s, potem odtwarzasz go suwakami barwy, nasycenia i jasności; wynik = suma odległości ΔE (Lab, każda ucięta do 100, mniej lepiej), liczona na serwerze.
 - **Policz kropki**: 10 rund, w każdej 8-40 kropek (razem zawsze 240) widocznych przez 1,5 s, potem wpisujesz ich liczbę; wynik = suma błędów (mniej lepiej), liczona na serwerze. Po każdej odpowiedzi kropki wracają z prawdziwą liczbą i różnicą; numer rundy rywali widać w pigułkach graczy (ruch `progress`).
 - **Kąt** (`kat`): 10 rund, w każdej kąt 5-175° (wierzchołek na środku, równe ramiona, losowy obrót) widoczny przez 1,5 s, potem wpisujesz jego miarę w stopniach (0-180); wynik = suma odchyłek w stopniach (mniej lepiej), liczona na serwerze. Po limicie czasu każda runda liczy się jak najgorsza możliwa odpowiedź. Odsłona i pigułki jak w Policz kropki.
+- **Sudoku** (`sudoku`): plansza 4×4 (bloki 2×2, cyfry 1-4), 6 cyfr danych i 10 do wpisania, jedno rozwiązanie, ta sama dla wszystkich; dotykasz pustego pola i cyfry. Zła cyfra nie zostaje w polu i dodaje 5 s kary. Wynik = czas + kara (mniej lepiej), liczony na kliencie, serwer odrzuca nierealne wartości. Postęp rywali widać w pigułkach graczy (ruch `progress`).
 - **Trzy kubki** (`kubki`): do 20 rund, w każdej kulka pod jednym z trzech kubków (widać ją 1 s), kubki zamieniają się miejscami (4 zamiany w pierwszej rundzie, o jedną więcej w każdej następnej, od 500 do 150 ms na zamianę), potem dotykasz kubka z kulką. Pierwsza pomyłka kończy partię; wynik = zaliczone rundy (więcej lepiej, bez drugiego kryterium), liczony na serwerze ze wskazań. Po wskazaniu przez 1 s widać, gdzie była kulka.
 - **Który rok?**: 10 rund, każda z wydarzeniem historycznym / wynalazkiem / premierą; ustawiasz rok suwakiem w zakresie 1900-2025, wynik = suma odchyłek w latach (mniej lepiej), liczona na serwerze. Runda trwa najwyżej 20 s, po czasie liczy się rok ustawiony na suwaku. Po każdej odpowiedzi przez 2,5 s widać prawdziwy rok i różnicę ze znakiem, numer rundy rywali widać w pigułkach graczy (ruch `progress`).
 - **Środek**: 10 rund, w każdej odcinek pod losowym kątem, dotykasz go w połowie długości; odcinki mają 50-90% boku pola; dotknięcie jest rzutowane na odcinek, błąd liczy się wzdłuż niego w % długości odcinka, wynik = suma błędów (mniej lepiej), liczona na serwerze. Dotknięcie dalej niż 60 umownych px od odcinka (pole ma bok 300 px niezależnie od telefonu) jest ignorowane bez kary. Liczy się miejsce podniesienia palca (punkt można przesunąć, palec może leżeć obok odcinka); potem przez 1 s widać prawdziwy środek i błąd. Na końcu jedna tabela rund z wyróżnionym najlepszym w każdej.
@@ -115,7 +117,7 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
   Partia toczy się na kliencie (opóźnienie Wi-Fi zepsułoby pomiar), serwer dostaje tylko wynik i odrzuca nierealne wartości.
 - Każda mini-gra zaczyna od ekranu instrukcji (`Intro` w ui.tsx: animowany podgląd, trzy punkty z ikonami, „Start”). Każdy klika „Start” osobno i gra od razu;
   po 15 s (`INTRO_SECONDS`) gra rusza sama. Limit platformy startuje dopiero, gdy wystartuje ostatni gracz (wiadomość pokoju `begin`); na ekranie widać, kto już gra, a kto czyta zasady.
-- Każda mini-gra ma jeden typ ruchu `result` (Narysuj koło wysyła go po każdej próbie, Tabela Schultego, Policz kropki, Kąt, Który rok?, Wieża i Balon mają jeszcze `progress`); ranking liczy wspólne `rankResults` (core.ts), zwycięzca tylko przy 2+ graczach bez remisu;
+- Każda mini-gra ma jeden typ ruchu `result` (Narysuj koło wysyła go po każdej próbie, Tabela Schultego, Sudoku, Policz kropki, Kąt, Który rok?, Wieża i Balon mają jeszcze `progress`); ranking liczy wspólne `rankResults` (core.ts), zwycięzca tylko przy 2+ graczach bez remisu;
   `places` podaje miejsca z remisami (oba z jednego komparatora przez `ranked`), z których turniej liczy punkty.
   Kolor liter, Liczenie, Inny element, Obrót i Literówka dzielą `quiz.ts` i `Quiz.tsx` (Dziesiątki biorą z nich walidację i tabelę wyników), a Policz kropki i Kąt ekran `Szacowanie.tsx`. Pasek statystyk w trakcie partii to wspólne `Stats` (ui.tsx). Odświeżenie w trakcie = partia od nowa.
 
@@ -124,7 +126,8 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
   w grach na trafienia i punkty, trafione cele w Śledzeniu, szerokość klocka w Wieży, pęknięte balony w Balonie). Ranking gry to najlepszy wynik każdego nicku: główny wynik,
   potem drugie kryterium („12 traf. · 256 ms”), a przy całkiem równych wyżej wcześniejszy. Widać go w trzech miejscach: panel po partii (`RecordPanel`: miejsce wszech czasów, „Nowy rekord!” po pobiciu własnego albo „Pierwszy wynik”, awans,
   ile brakuje do osoby wyżej), lista po wybraniu gry i linia „Rekord: …” na ekranie instrukcji, oraz ekran „Rekordy” (`Records.tsx`, z ekranu głównego i z listy mini-gier):
-  wszystkie mini-gry od tej, w której gracz jest najwyżej. Miejsca liczy wspólne `standing` (core.ts), jednostki wyniku trzyma `FORMAT` w `Records.tsx`.
+  trzy sekcje: „Twoje rekordy” (gry, w których gracz prowadzi), „Do pobicia” (rekord ma ktoś inny; lider z czerwoną koroną, własny rekord w kolorze gracza)
+  i „Jeszcze nie grane”. Karty gier to akordeon (otwarta jedna naraz); gospodarz w pokoju ma w nich „Pobij” i „Zagraj ponownie”, które wybierają grę na liście mini-gier. Miejsca liczy wspólne `standing` (core.ts), jednostki wyniku trzyma `FORMAT` w `Records.tsx`.
   Lider każdej listy ma własny kafel z koroną. Serwer trzyma też **rekordową partię** każdej gry: stan lidera przycięty do jednego gracza (`soloState` w core.ts,
   gracz pod id `SOLO`, bez id sesji; kolumna `detail`, jedna partia na grę). Ekran „Rekordy” po rozwinięciu gry pobiera ją z `/api/records/:gameId/top`
   i pokazuje zwykłym ekranem końcowym tej gry (`MiniGame.tsx`), np. koło narysowane przez lidera albo jego tabelę rund. Rekordy sprzed tej zmiany partii nie mają.
@@ -201,7 +204,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
 - Rewanż po zgodzie wszystkich grających, kolejność miejsc rotuje (poza mini-grami, gdzie wszyscy grają naraz); do lobby może wrócić każdy.
 - W mini-grach (gry solo, `minPlayers: 1`) limit rusza po ekranie instrukcji: gdy wszyscy klikną „Start” albo po 15 s.
 - Limit tury: 60 s w większości gier; dłużej w Sekwencji, Śledzeniu i W pamięci (300 s), Który rok? (240 s), Tabeli Schultego, Odcieniu, Wieży, Mapie i Trzech kubkach (180 s),
-  Narysuj koło, Policz kropki, Kąt, Przytrzymaj, Balon i Tort (120 s), Kolorze liter, Liczeniu, Innym elemencie, Obrocie, Literówce i Dziesiątkach (90 s); Państwa-miasta mają limit per faza, Statki 90 s na całe rozstawianie, Chińczyk w trybie Szybkim 20 s.
+  Narysuj koło, Sudoku, Policz kropki, Kąt, Przytrzymaj, Balon i Tort (120 s), Kolorze liter, Liczeniu, Innym elemencie, Obrocie, Literówce i Dziesiątkach (90 s); Państwa-miasta mają limit per faza, Statki 90 s na całe rozstawianie, Chińczyk w trybie Szybkim 20 s.
 - Gdy gracz z miejscem zniknie z pokoju w trakcie partii (wyjdzie sam albo nie wróci w 10 minut), partia się kończy:
   jeśli został jeden gracz, wygrywa walkowerem; przy większej liczbie kończy się bez zwycięzcy.
 - Lobby: gospodarz wybiera grę i daje start, goście potwierdzają gotowość; każdy może zmienić swój kolor
@@ -295,7 +298,7 @@ podpięcie w `screens/Game.tsx` i ikona w `screens/Lobby.tsx`.
 | 5 | Kampus Tour: dodatki (Kolokwium, Juwenalia, karty, wykupienie, Bilet MPK, monopol) | Pełna wersja (gotowe) |
 | 6 | Poprawka | Gra karciana (do zrobienia) |
 | 7 | PWA, animacje, statystyki, szlify | Polerka (PWA, ranking po nicku i rekordy mini-gier gotowe) |
-| + | Chińczyk, Memory, mini-gry (27 sztuk), Państwa-miasta, Turniej z mini-gier | Poza planem (gotowe) |
+| + | Chińczyk, Memory, mini-gry (28 sztuk), Państwa-miasta, Turniej z mini-gier | Poza planem (gotowe) |
 | dalej | Zapis stanu pokoi w SQLite | Do zrobienia |
 
 ## 8a. Sposób pracy
@@ -316,4 +319,3 @@ podpięcie w `screens/Game.tsx` i ikona w `screens/Lobby.tsx`.
 - Nazwy pól Kampus Tour ustalone (grupy jako pory dnia studenta, Ksero i Stołówka jak wodociągi); druga nazwa w grupie „Rano” robocza (Automat z przekąskami).
 - Balans ekonomii: start 200 zł (+20 zł za każde dalsze miejsce), kieszonkowe 40 zł, czynsz P/10 (cała grupa x2), z budynkami 0,4P / P / 2P / 4P; bez kompletu grupy do poziomu 2 (poziom 3 i landmark z kompletem), jazda Biletem MPK bez kieszonkowego. Zmiany po 4 partiach testowych (2026-10-07): poziom 3 od pierwszej tury i czynsze 60-100 zł przy pustych kieszeniach dawały szybkie bankructwa, a MPK zamieniał się w darmowy komplet. Do sprawdzenia w kolejnych partiach; jeśli monopol dalej będzie łatwy przez grupy dwupolowe, liczyć tylko grupy trzypolowe.
 - Zestaw kart specjalnych w Poprawce (talia 18 Kart Dziekanatu ustalona, w kodzie: CARDS w kampus-tour.ts).
-- Własna nazwa całej platformy.
