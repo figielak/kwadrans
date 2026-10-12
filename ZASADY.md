@@ -113,6 +113,9 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
 
 **Czego gra nie rysuje sama**
 - Nagłówek ze statusem („Twój ruch!”, „Czekamy na: ...”, „Wygrywasz!”), pasek czasu, lista graczy z liczbą wygranych partii (puchar i podpis „wygrane” przed liczbą, „+1” nad pigułką zwycięzcy),
+  w mini-grach zamiast pigułek rząd kropek obok tytułu (`GameDots` w ui.tsx): inicjał z `initials`, pierścień postępu z ruchu `progress` (pełny po oddaniu wyniku),
+  przygaszenie u czytającego zasady, przerywany obrys u rozłączonego, kreska pod własną kropką (zawsze pierwszą), odznaka z wygranymi (w turnieju prostokątna, z punktami; zera nie widać);
+  dotknięcie kropek rozwija pigułki z nickami i dokładnym postępem. W grze solo kropek nie ma.
   „Oglądasz”, komunikat o rozłączeniu, przyciski „Rewanż” i „Do lobby”. To wszystko daje `screens/Game.tsx`.
 - Własny nagłówek ma tylko gra, której wspólny nie wystarcza (Państwa-miasta, Kampus Tour), i wtedy przejmuje cały jego zakres.
 

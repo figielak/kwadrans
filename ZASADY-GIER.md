@@ -89,7 +89,7 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
   (linia na gracza w jego kolorze, kropka na najdłużej szukanej liczbie, w legendzie „najdłużej 17 (4,1 s)”).
 - Bez trybów: znalezione liczby zostają widoczne, jak w oryginale. Dotknięcie już znalezionej liczby nic nie robi.
 - Postęp rywali: po każdym trafieniu (poza ostatnim) klient wysyła `{ type: "progress", found }` (int 1-24, tylko gracz bez wyniku).
-  Serwer zapisuje go w `progress` i pokazuje w pigułkach graczy jako pasek i `12/25`. Wartość nie musi rosnąć
+  Serwer zapisuje go w `progress` i pokazuje jako pierścień na kropkach graczy (po ich dotknięciu pasek i `12/25`). Wartość nie musi rosnąć
   (po odświeżeniu gracz zaczyna od 1) i nie wpływa na wynik.
 - Limit przez `turn()` ze stałym kluczem: ruch `progress` nie odnawia 180 s, nawet gdy gra już tylko jedna osoba.
 - Ekran: trafiony kafelek błyska na zielono, pomyłka na czerwono z potrząśnięciem; lokalny zegar ma etykietę „Twój czas”.
@@ -283,7 +283,7 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 - Ranking: wyższa wieża wyżej, przy równych szerszy ostatni klocek; równe oba to remis.
 - Walidacja: najwyżej 30 czasów, każdy całkowity 0-5000. Pusta lista = limit czasu = 0 pięter.
 - Ruch `progress` (`height` = wysokość wieży, int 1-29) po każdym położonym klocku poza trzydziestym: tylko do podglądu u rywali
-  (pasek i `10/30` w pigułkach graczy), nie wpływa na wynik. Po oddaniu wyniku pigułka pokazuje wysokość z wyniku.
+  (pierścień na kropkach graczy, po ich dotknięciu pasek i `10/30`), nie wpływa na wynik. Po oddaniu wyniku pierścień jest pełny, a pigułka pokazuje wysokość z wyniku.
   Limit przez `turn()` ze stałym kluczem: ruch `progress` nie odnawia 180 s, nawet gdy gra już tylko jedna osoba.
 - Ekran: kwadratowy kafel, widać 8 górnych pięter, klocki w kolorze gracza. Dotknięcie kafla zatrzymuje klocek. Trafienie idealne
   błyska na zielono, ucięty kawałek robi się czerwony i spada. Nad wieżą na chwilę pojawia się ocena: „Idealnie!”, procent klocka,
@@ -508,7 +508,7 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 - Walidacja: `ms` od 3000 (10 × 300 ms) do 120000, `mistakes` int ≥ 0. Limit czasu: 120000 ms, 0 pomyłek.
   Serwer ufa klientowi co do czasu i pomyłek (jak w Tabeli Schultego), przebiegu nie sprawdza.
 - Postęp rywali: po każdej dobrej cyfrze (poza ostatnią) klient wysyła `{ type: "progress", filled }` (int 1-9, tylko gracz bez wyniku).
-  Serwer zapisuje go w `progress` i pokazuje w pigułkach graczy jako pasek i `4/10`. Wartość nie musi rosnąć
+  Serwer zapisuje go w `progress` i pokazuje jako pierścień na kropkach graczy (po ich dotknięciu pasek i `4/10`). Wartość nie musi rosnąć
   (po odświeżeniu gracz zaczyna od nowa) i nie wpływa na wynik.
 - Limit przez `turn()` ze stałym kluczem: ruch `progress` nie odnawia 120 s, nawet gdy gra już tylko jedna osoba.
 - Bez trybów (jedna wielkość planszy), bez notatek w polach.

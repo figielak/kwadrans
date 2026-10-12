@@ -111,6 +111,32 @@ export const normalize = (text: string) => text.trim().toLowerCase().replace(/ł
 /** „Ala”, „ala” i „ALA” to w rankingach jeden gracz. */
 export const nickKey = normalize;
 
+/**
+ * Etykiety graczy na kropkach w nagłówku mini-gry, najwyżej dwa znaki. Unikalna pierwsza litera wystarcza („B”, „K”);
+ * gdy się powtarza, dochodzi cyfra z końca nicku („G1”, „G2”) albo znak z pierwszej pozycji, na której te nicki się różnią („Ka”, „Kr”).
+ */
+export function initials(nicks: string[]): string[] {
+  const segmenter = new Intl.Segmenter("pl", { granularity: "grapheme" });
+  // Grafemy, nie jednostki UTF-16: emoji i flaga to jeden znak.
+  const chars = nicks.map((nick) => [...segmenter.segment(nick.replace(/\s+/g, ""))].map((s) => s.segment));
+  const upper = chars.map((c) => c.map((ch) => ch.toLocaleUpperCase("pl")));
+  const second = (i: number, k: number) => (/\d/.test(chars[i].at(-1) ?? "") ? chars[i].length - 1 : k);
+  return chars.map((own, i) => {
+    const first = upper[i][0] ?? "";
+    const group = upper.flatMap((c, j) => (c[0] === first ? [j] : []));
+    if (group.length === 1) return first;
+    // Te same nicki („Ala” i „ala”) i tak dostaną to samo, więc różnić muszą się tylko różne.
+    const distinct = [...new Map(group.map((j) => [upper[j].join(""), j])).values()];
+    const longest = Math.max(...distinct.map((j) => chars[j].length));
+    let k = 1;
+    // ponytail: dwa nicki z tą samą cyfrą na końcu („Gracz 1”, „Gosia1”) zostają z tą samą etykietą, rozróżnia je kolor.
+    while (k < longest && new Set(distinct.map((j) => upper[j][second(j, k)] ?? "")).size < distinct.length) k++;
+    if (k === longest) k = 1;
+    const at = second(i, k);
+    return first + (at > 0 ? (own[at] ?? "") : "");
+  });
+}
+
 /** Id jedynego gracza w stanie z `soloState`. */
 export const SOLO = "1";
 

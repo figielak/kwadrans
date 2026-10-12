@@ -73,6 +73,72 @@ export function PlayerDots({ view }: { view: RoomView }) {
   );
 }
 
+export interface GameDot {
+  id: string;
+  /** Inicjał z `initials` (core.ts), najwyżej dwa znaki. */
+  label: string;
+  nick: string;
+  color?: string;
+  me: boolean;
+  /** Wygrane partie w pokoju albo punkty turnieju; zera nie pokazujemy. */
+  badge: number;
+  /** „+1” nad kropką zwycięzcy. */
+  plus: boolean;
+  /** Pierścień wokół kropki: postęp partii od 0 do 1, pełny po oddaniu wyniku. */
+  fraction: number;
+  /** Jeszcze czyta zasady. */
+  reading: boolean;
+  connected: boolean;
+  /** Stan słownie, do `aria-label`. */
+  status?: string;
+}
+
+/**
+ * Gracze mini-gry jako kropki z inicjałem obok tytułu: nicki zajęłyby przy sześciu osobach trzy rzędy nad polem gry.
+ * Dotknięcie rzędu rozwija pełną listę z nickami (rysuje ją `Game.tsx`). `square`: odznaka z punktami turnieju, a nie z wygranymi.
+ */
+export function GameDots({ dots, square, open, onToggle }: { dots: GameDot[]; square: boolean; open: boolean; onToggle: () => void }) {
+  return (
+    <button type="button" className="-my-2.5 flex min-h-12 items-center gap-1.5" aria-expanded={open} title="Pokaż graczy" onClick={onToggle}>
+      {dots.map((d) => (
+        <span
+          key={d.id}
+          role="img"
+          aria-label={`${d.nick}${d.me ? " (ty)" : ""}${d.status ? `, ${d.status}` : ""}${d.badge ? `, ${square ? "punkty w turnieju" : "wygrane partie"}: ${d.badge}` : ""}`}
+          // Rozłączony ma przerywany obrys zamiast pierścienia: samo przygaszenie znaczy „czyta zasady”.
+          className={`relative grid size-9 place-items-center rounded-full ${d.connected ? "" : "border border-dashed border-fg-muted"}`}
+          style={d.connected ? { background: `conic-gradient(${d.color} ${d.fraction * 100}%, var(--color-line) 0)` } : undefined}
+        >
+          <span className="grid size-8 place-items-center rounded-full bg-bg" aria-hidden>
+            <span
+              className={`grid size-7 place-items-center rounded-full leading-none font-semibold text-bg transition-opacity ${d.label.length > 1 ? "text-[11px]" : "text-sm"} ${d.reading || !d.connected ? "opacity-40" : ""}`}
+              style={{ backgroundColor: d.color }}
+            >
+              {d.label}
+            </span>
+          </span>
+          {d.me && <span className="absolute top-full left-1/2 mt-0.5 h-0.5 w-3 -translate-x-1/2 rounded-full" style={{ backgroundColor: d.color }} aria-hidden />}
+          {d.badge > 0 && (
+            // Klucz z wyniku: po wygranej liczba montuje się od nowa i wskakuje.
+            <span
+              key={d.badge}
+              className={`absolute -top-1 -right-1 grid h-4 min-w-4 place-items-center border border-line bg-surface px-0.5 font-mono text-[10px] leading-none text-fg tabular-nums ${square ? "rounded-sm" : "rounded-full"} ${d.plus ? "animate-[stone-pop_0.5s_ease-out]" : ""}`}
+              aria-hidden
+            >
+              {d.badge}
+            </span>
+          )}
+          {d.plus && (
+            <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono text-sm" style={{ color: d.color }} aria-hidden>
+              +1
+            </span>
+          )}
+        </span>
+      ))}
+    </button>
+  );
+}
+
 /** Wyniki mini-gry: wiersz na gracza, w kolejności rankingu po końcu partii. */
 export function Scores({ rows }: { rows: { id: string; nick: string; color?: string; me: boolean; score: string | null }[] }) {
   return (
