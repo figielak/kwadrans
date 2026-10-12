@@ -23,6 +23,7 @@ import {
   type Rng,
   ROOM_MESSAGES,
   roomCode,
+  soloState,
   type RoomView,
   TOURNAMENT_ID,
   type Tournament,
@@ -378,8 +379,8 @@ export class LobbyRoom extends Room {
     if (record && result.ranking) {
       const { state } = this.match;
       const finite = (n: number | undefined) => (n !== undefined && Number.isFinite(n) ? n : null);
-      const scores = this.seats.map((id) => ({ nick: nick(id), score: record.score(state, id), tie: finite(record.tie?.score(state, id)) }));
-      stats.recordScores(this.gameId!, scores.filter((s) => Number.isFinite(s.score)));
+      const scores = this.seats.map((id) => ({ nick: nick(id), score: record.score(state, id), tie: finite(record.tie?.score(state, id)), detail: soloState(state as { players: string[] }, id) }));
+      stats.recordScores(this.gameId!, scores.filter((s) => Number.isFinite(s.score)), record);
     }
     if (!this.tournament) {
       if (result.winner) this.scores[result.winner] = (this.scores[result.winner] ?? 0) + 1;

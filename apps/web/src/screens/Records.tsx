@@ -1,7 +1,8 @@
-import { ArrowLeft, CaretDown, Play } from "@phosphor-icons/react";
-import { compareRecords, GAMES, KOLOR_COUNT, MINI_GAME_IDS, nickKey, type RecordRow, standing } from "@mini-games/games";
+import { ArrowLeft, CaretDown, Crown, Play } from "@phosphor-icons/react";
+import { compareRecords, GAMES, KOLOR_COUNT, MINI_GAME_IDS, nickKey, type RecordRow, SOLO, standing } from "@mini-games/games";
 import { type CSSProperties, useEffect, useState } from "react";
-import { fetchRecords } from "../net.ts";
+import { MiniGame } from "../games/MiniGame.tsx";
+import { fetchRecords, fetchTopRecord } from "../net.ts";
 import { ICONS } from "./Lobby.tsx";
 import { Screen, Stats } from "./ui.tsx";
 
@@ -78,23 +79,31 @@ export function RecordList({ gameId, rows, me, color, limit = 5 }: { gameId: str
   if (mine >= limit) shown.push(mine);
   return (
     <ol className="flex flex-col text-sm">
-      {shown.map((i) => (
-        <li
-          key={rows[i].nick}
-          className={`flex gap-3 py-0.5 ${i === mine && !color ? "text-accent" : ""} ${i === mine && i >= limit ? "mt-1 border-t border-line pt-1.5" : ""}`}
-          style={i === mine ? { color } : undefined}
-        >
-          <span className={`w-6 font-mono tabular-nums ${i === mine ? "" : "text-fg-subtle"}`}>{placeAt(gameId, rows, i)}.</span>
-          <span className="min-w-0 flex-1 truncate">
-            {rows[i].nick}
-            {i === mine && " (ty)"}
-          </span>
-          <span className="font-mono tabular-nums">
-            {formatBest(gameId, rows[i].best)}
-            {formatTie(gameId, rows[i].tie) && <span className="opacity-60"> · {formatTie(gameId, rows[i].tie)}</span>}
-          </span>
-        </li>
-      ))}
+      {shown.map((i) => {
+        // Lider (przy remisie kilku) ma własny kafel z koroną i większym pismem.
+        const first = placeAt(gameId, rows, i) === 1;
+        return (
+          <li
+            key={rows[i].nick}
+            className={`flex items-center gap-3 ${first ? "mb-1 rounded-inset border border-line-hover bg-surface-inset px-3 py-2 text-base font-semibold" : "py-0.5"} ${i === mine && !color ? "text-accent" : ""} ${i === mine && i >= limit ? "mt-1 border-t border-line pt-1.5" : ""}`}
+            style={i === mine ? { color } : undefined}
+          >
+            {first ? (
+              <Crown size={20} weight="fill" className={`shrink-0 ${i === mine ? "" : "text-accent"}`} aria-label="1. miejsce" />
+            ) : (
+              <span className={`w-6 font-mono tabular-nums ${i === mine ? "" : "text-fg-subtle"}`}>{placeAt(gameId, rows, i)}.</span>
+            )}
+            <span className="min-w-0 flex-1 truncate">
+              {rows[i].nick}
+              {i === mine && " (ty)"}
+            </span>
+            <span className="font-mono tabular-nums">
+              {formatBest(gameId, rows[i].best)}
+              {formatTie(gameId, rows[i].tie) && <span className="opacity-60"> · {formatTie(gameId, rows[i].tie)}</span>}
+            </span>
+          </li>
+        );
+      })}
     </ol>
   );
 }
@@ -188,9 +197,40 @@ export function RecordPanel({ gameId, before, after, nick, color, score }: Panel
   );
 }
 
+/** Kolor lidera spoza pokoju: wartość `--color-fg` (gry wstawiają kolor gracza do atrybutów SVG, gdzie `var()` nie działa). */
+const LEADER_COLOR = "#ededef";
+
+/** Rekordowa partia gry: ekran końcowy mini-gry z zapisanego stanu lidera, jak po partii solo. */
+function TopGame({ gameId, nick, color }: { gameId: string; nick: string; color?: string }) {
+  const [top, setTop] = useState<unknown>(undefined);
+  useEffect(() => {
+    fetchTopRecord(gameId).then(setTop);
+  }, [gameId]);
+  if (top === undefined) return null;
+  return (
+    <section className="mt-3 flex flex-col gap-2 border-t border-line pt-3">
+      <h3 className="label">Rekordowa partia · {nick}</h3>
+      {top === null ? (
+        <p className="text-sm text-fg-muted">Rekord sprzed zapisu partii. Szczegóły pojawią się po następnym rekordzie.</p>
+      ) : (
+        <MiniGame
+          id={gameId}
+          view={top}
+          me=""
+          players={[{ id: SOLO, nick, color: color ?? LEADER_COLOR, connected: true, ready: false }]}
+          ranking={[SOLO]}
+          onMove={() => {}}
+        />
+      )}
+    </section>
+  );
+}
+
 /** Ekran „Rekordy”: wszystkie mini-gry naraz, od tych, w których gracz jest najwyżej. */
 export function Records({ nick, color, onBack }: { nick: string | null; color?: string; onBack: () => void }) {
   const [records, setRecords] = useState<Record<string, RecordRow[]> | null>(null);
+  /** Gry rozwinięte choć raz: dopiero wtedy pobieramy ich rekordową partię. */
+  const [opened, setOpened] = useState<string[]>([]);
   useEffect(() => {
     fetchRecords().then(setRecords);
   }, []);
@@ -232,7 +272,7 @@ export function Records({ nick, color, onBack }: { nick: string | null; color?: 
               const GameIcon = ICONS[id] ?? Play;
               return (
                 <li key={id}>
-                  <details className="group rounded-inset border border-line bg-surface">
+                  <details className="group rounded-inset border border-line bg-surface" onToggle={(e) => e.currentTarget.open && !opened.includes(id) && setOpened([...opened, id])}>
                     <summary className="flex min-h-14 cursor-pointer list-none flex-col justify-center gap-1.5 px-3 py-2 [&::-webkit-details-marker]:hidden">
                       <span className="flex items-center gap-3">
                         <GameIcon size={20} className="shrink-0" aria-hidden />
@@ -243,7 +283,10 @@ export function Records({ nick, color, onBack }: { nick: string | null; color?: 
                             <span className="text-fg-muted"> z {mine.of}</span>
                           </span>
                         ) : (
-                          <span className="truncate text-sm text-fg-muted">{rows[0] ? `${rows[0].nick}: ${formatRecord(id, rows[0])}` : "brak wyników"}</span>
+                          <span className="flex min-w-0 items-center gap-1.5 text-sm text-fg-muted">
+                            {rows[0] && <Crown size={14} weight="fill" className="shrink-0 text-accent" aria-hidden />}
+                            <span className="truncate">{rows[0] ? `${rows[0].nick}: ${formatRecord(id, rows[0])}` : "brak wyników"}</span>
+                          </span>
                         )}
                         <CaretDown size={14} className="shrink-0 text-fg-muted transition-transform group-open:rotate-180" aria-hidden />
                       </span>
@@ -258,6 +301,9 @@ export function Records({ nick, color, onBack }: { nick: string | null; color?: 
                     </summary>
                     <div className="border-t border-line px-3 py-2">
                       <RecordList gameId={id} rows={rows} me={nick} color={color} limit={10} />
+                      {rows[0] && opened.includes(id) && (
+                        <TopGame gameId={id} nick={rows[0].nick} color={nick && nickKey(rows[0].nick) === nickKey(nick) ? color : undefined} />
+                      )}
                     </div>
                   </details>
                 </li>

@@ -124,6 +124,9 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
   potem drugie kryterium („12 traf. · 256 ms”), a przy całkiem równych wyżej wcześniejszy. Widać go w trzech miejscach: panel po partii (`RecordPanel`: miejsce wszech czasów, „Nowy rekord!” po pobiciu własnego albo „Pierwszy wynik”, awans,
   ile brakuje do osoby wyżej), lista po wybraniu gry i linia „Rekord: …” na ekranie instrukcji, oraz ekran „Rekordy” (`Records.tsx`, z ekranu głównego i z listy mini-gier):
   wszystkie mini-gry od tej, w której gracz jest najwyżej. Miejsca liczy wspólne `standing` (core.ts), jednostki wyniku trzyma `FORMAT` w `Records.tsx`.
+  Lider każdej listy ma własny kafel z koroną. Serwer trzyma też **rekordową partię** każdej gry: stan lidera przycięty do jednego gracza (`soloState` w core.ts,
+  gracz pod id `SOLO`, bez id sesji; kolumna `detail`, jedna partia na grę). Ekran „Rekordy” po rozwinięciu gry pobiera ją z `/api/records/:gameId/top`
+  i pokazuje zwykłym ekranem końcowym tej gry (`MiniGame.tsx`), np. koło narysowane przez lidera albo jego tabelę rund. Rekordy sprzed tej zmiany partii nie mają.
 
 ### 2.5 Państwa-miasta
 
@@ -187,7 +190,7 @@ interface GameDefinition<State, Move> {
 
 Rejestr gier: `GAMES` w `packages/games/src/index.ts`. Wiadomości pokoju: `ROOM_MESSAGES` w `lobby.ts`.
 Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResults`, `rankPlaces`, `ranked`, `shuffle`, `average`, `byHitsThenAverage`, `byScoreThenAverage`,
-`normalize`, `nickKey`, `standing`, `compareRecords`, `withSum` (losowanie o stałej sumie, żeby każda partia miała tyle samo do zdobycia).
+`normalize`, `nickKey`, `standing`, `compareRecords`, `soloState`, `withSum` (losowanie o stałej sumie, żeby każda partia miała tyle samo do zdobycia).
 
 ### Reguły platformy (obowiązują każdą grę)
 
@@ -224,7 +227,7 @@ Prościej i bezpiecznie dla gier z ukrytymi informacjami.
 |---|---|
 | Język | TypeScript (wszędzie) |
 | Monorepo | pnpm workspaces |
-| Serwer / pokoje | Colyseus (Node.js) + Express (statyczny frontend, `/api/stats`, `/api/records`) |
+| Serwer / pokoje | Colyseus (Node.js) + Express (statyczny frontend, `/api/stats`, `/api/records`, `/api/records/:gameId/top`) |
 | Walidacja wiadomości | zod |
 | Frontend | Vite + React |
 | Style / animacje | Tailwind, Motion (planowane, jeszcze niezainstalowane; na razie animacje w CSS) |
@@ -247,7 +250,7 @@ mini-games/
 │  └─ web/src/     # main.tsx, App.tsx, net.ts (połączenie, token, reconnect), Dev.tsx (tryb testowy),
 │                  # screens/ (Home, Lobby, Setup (ekran gry głównej i turnieju przed partią), MiniGames, Records (rekordy mini-gier), Game,
 │                  # ui.tsx ze wspólnymi Screen/TopBar/StickyBar/Scores),
-│                  # games/<Gra>.tsx (UI każdej gry), index.css (klasy .tile .label .btn .field)
+│                  # games/<Gra>.tsx (UI każdej gry), games/MiniGame.tsx (mini-gra po `id`, dla pokoju i ekranu rekordów), index.css (klasy .tile .label .btn .field)
 ├─ .github/workflows/ci.yml
 ├─ Dockerfile, docker-compose.yml, cloudflared/
 ├─ README.md      # dev i deploy

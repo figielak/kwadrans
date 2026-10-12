@@ -23,6 +23,12 @@ export const fetchRecords = (): Promise<Record<string, RecordRow[]>> =>
     .then((r) => (r.ok ? r.json() : {}))
     .catch(() => ({}));
 
+/** Partia, w której padł rekord gry (stan z `soloState`), albo null. */
+export const fetchTopRecord = (gameId: string): Promise<unknown> =>
+  fetch(`${serverUrl}/api/records/${gameId}/top`)
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null);
+
 // Tryb testowy (/dev): każda ramka ma swój slot z adresu (`?dev=2`), więc własny token i nick.
 const slot = import.meta.env.DEV ? (new URLSearchParams(location.search).get("dev") ?? "") : "";
 const TOKEN_KEY = `mg.token${slot}`;

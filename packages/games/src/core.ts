@@ -111,6 +111,21 @@ export const normalize = (text: string) => text.trim().toLowerCase().replace(/ł
 /** „Ala”, „ala” i „ALA” to w rankingach jeden gracz. */
 export const nickKey = normalize;
 
+/** Id jedynego gracza w stanie z `soloState`. */
+export const SOLO = "1";
+
+/**
+ * Stan mini-gry przycięty do jednego gracza: rekordowa partia w rankingu, którą ekran gry pokazuje jak zwykły koniec partii solo.
+ * Mapy per gracz (obiekty z id graczy w kluczach) zostają z jednym wpisem pod `SOLO`, więc id sesji nie wychodzi poza pokój; wyzwanie zostaje bez zmian.
+ */
+export function soloState<S extends { players: PlayerId[] }>(state: S, player: PlayerId): S {
+  const perPlayer = (value: unknown): value is Record<PlayerId, unknown> =>
+    typeof value === "object" && value !== null && !Array.isArray(value) && state.players.some((id) => id in value);
+  return Object.fromEntries(
+    Object.entries(state).map(([key, value]) => [key, key === "players" ? [SOLO] : perPlayer(value) ? (player in value ? { [SOLO]: value[player] } : {}) : value]),
+  ) as S;
+}
+
 /** Wiersz rankingu rekordów mini-gry: najlepszy wynik gracza, jego drugie kryterium (null: gra go nie ma) i liczba partii. */
 export interface RecordRow {
   nick: string;

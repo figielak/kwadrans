@@ -21,6 +21,12 @@ const server = new Server({
     app.get("/api/records", (_req, res) => {
       res.set("Access-Control-Allow-Origin", "*").json(stats.records(MINI_GAME_IDS.map((id) => ({ id, ...GAMES[id].record! }))));
     });
+    // Rekordowa partia gry: osobno, bo listę rekordów ciągną też lobby i ekran gry, a tam rysunki są zbędne.
+    app.get("/api/records/:gameId/top", (req, res) => {
+      const id = req.params.gameId;
+      if (!MINI_GAME_IDS.includes(id)) return void res.sendStatus(404);
+      res.set("Access-Control-Allow-Origin", "*").json(stats.top({ id, ...GAMES[id].record! }));
+    });
     app.use(express.static(webDist));
   },
 });
