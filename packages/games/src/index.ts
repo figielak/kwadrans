@@ -22,6 +22,7 @@ import { rok } from "./rok.ts";
 import { rytm } from "./rytm.ts";
 import { schulte } from "./schulte.ts";
 import { simon } from "./simon.ts";
+import { kubki } from "./kubki.ts";
 import { sledzenie } from "./sledzenie.ts";
 import { srodek } from "./srodek.ts";
 import { statki } from "./statki.ts";
@@ -90,6 +91,7 @@ export { OUTLINE as MAPA_OUTLINE } from "./mapa-dane.ts";
 export { DURATION_MS as STOJ_DURATION_MS, SCHEDULE as STOJ_SCHEDULE, score as stojScore, VISIBLE as STOJ_VISIBLE, type View as StojView } from "./stoj.ts";
 export { BEATS as RYTM_BEATS, MAX_TAPS as RYTM_MAX_TAPS, TAP_MS as RYTM_TAP_MS, type View as RytmView } from "./rytm.ts";
 export { deviation as przytrzymajDeviation, ROUNDS as PRZYTRZYMAJ_ROUNDS, type View as PrzytrzymajView } from "./przytrzymaj.ts";
+export { ballAt as kubkiBallAt, ROUNDS as KUBKI_ROUNDS, SHOW_MS as KUBKI_SHOW_MS, swapMs as kubkiSwapMs, type Round as KubkiRound, type View as KubkiView } from "./kubki.ts";
 export { type Cake as TortCake, CAKES as TORT_CAKES, error as tortError, type View as TortView } from "./tort.ts";
 export { accepts as nozyczkiAccepts, type Cut as NozyczkiCut, error as nozyczkiError, type Point as NozyczkiPoint, share as nozyczkiShare, SHAPES as NOZYCZKI_SHAPES, split as nozyczkiSplit, type View as NozyczkiView } from "./nozyczki.ts";
 export { DURATION_MS as QUIZ_DURATION_MS, type QuizMove } from "./quiz.ts";
@@ -116,6 +118,7 @@ export const GAMES: Record<string, GameDefinition<any, any>> = Object.assign(Obj
   [srodek.id]: srodek,
   [stoj.id]: stoj,
   [sledzenie.id]: sledzenie,
+  [kubki.id]: kubki,
   [wieza.id]: wieza,
   [rytm.id]: rytm,
   [inny.id]: inny,
