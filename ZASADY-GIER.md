@@ -189,15 +189,16 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 - Dotknięcie jest rzutowane prostopadle na prostą odcinka i błąd rundy to odległość rzutu od środka, mierzona wzdłuż odcinka,
   w procentach jego długości (koniec odcinka = 50%). Każda runda waży więc tyle samo, niezależnie od długości.
   Odchylenie w bok nic nie kosztuje: liczy się tylko to, czy gracz dobrze ocenił połowę.
-- Strefa akceptacji: dotknięcie dalej niż 30 umownych px od odcinka (pole ma bok 300 px; strefa jest w px, bo dotyczy palca) (od najbliższego punktu, także za końcami) nie jest odpowiedzią.
+- Strefa akceptacji: dotknięcie dalej niż 60 umownych px od odcinka (pole ma bok 300 px; strefa jest w px, bo dotyczy palca) (od najbliższego punktu, także za końcami) nie jest odpowiedzią.
+  Strefa jest szeroka, żeby dało się celować obok odcinka i nie zasłaniać go palcem (lupa nad kaflem tego nie załatwiała).
   Ekran je ignoruje bez kary, serwer odrzuca cały ruch z takim punktem. Dzięki temu przypadkowe stuknięcie w puste pole nie psuje rundy,
   a rzutowania nie da się nadużyć, stukając daleko obok.
 - Wynik = suma błędów z 10 rund, zapisana w dziesiątych częściach procenta (int), mniej lepiej. Największy możliwy błąd rundy
-  to koniec odcinka plus strefa (50% + 20% na najkrótszym), więc jedna wpadka nie kosztuje więcej.
+  to koniec odcinka plus strefa (50% + 40% na najkrótszym), więc jedna wpadka nie kosztuje więcej.
 - Pusta lista = limit czasu = 10 × 100% (więcej niż najgorsza uczciwa partia).
 - Ekran: kwadratowy kafel z odcinkiem (poprzeczne kreski na końcach). Liczy się miejsce podniesienia palca: punkt można przytrzymać
-  i przesunąć, a przy dotyku nad kaflem jest lupa ok. 1,7× (mysz jej nie ma). W trakcie celowania pierścień pokazuje rzut na odcinek
-  (tylko w strefie akceptacji). Puszczenie poza strefą: potrząśnięcie odcinka, wibracja 60 i „Dotknij na odcinku”, runda trwa dalej.
+  i przesunąć. W trakcie celowania pierścień pokazuje rzut na odcinek
+  (tylko w strefie akceptacji). Puszczenie poza strefą: potrząśnięcie odcinka, wibracja 60 i „Dotknij bliżej odcinka”, runda trwa dalej.
   Po puszczeniu przez 1 s widać własny punkt na odcinku (kolor gracza), prawdziwy środek (pierścień), odcinek błędu między nimi
   i błąd w %; kolor według celności: do 2% zielony z „Idealnie!”, do 8% zwykły, dalej ostrzegawczy.
   Potem sama wskakuje następna runda; po dziesiątej wynik idzie na serwer.
