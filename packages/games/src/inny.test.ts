@@ -112,6 +112,17 @@ describe("plansze", () => {
     expect([SIZE_MAX, SIZE_MIN]).toEqual([20, 10]);
   });
 
+  test("rodzaje idą kompletami: plansze 0-3 i 4-7 mają każdy z czterech raz, dalej każda trójka ma obrót, odcień i rozmiar", () => {
+    const orders = new Set<string>();
+    for (let seed = 1; seed <= 20; seed++) {
+      const kinds = trialsOf(seed).map((t) => diff(t)[0]);
+      for (const from of [0, 4]) expect(kinds.slice(from, from + 4).sort(), `seed ${seed}, plansze od ${from}`).toEqual(["angle", "light", "sides", "size"]);
+      for (let i = SHAPE_BOARDS; i + 3 <= kinds.length; i += 3) expect(kinds.slice(i, i + 3).sort(), `seed ${seed}, plansze od ${i}`).toEqual(["angle", "light", "size"]);
+      orders.add(kinds.slice(0, 4).join());
+    }
+    expect(orders.size).toBeGreaterThan(1);
+  });
+
   test("różnica maleje z numerem planszy", () => {
     const at = (i: number) => Math.abs(ofKind("angle").find((x) => x.i === i)!.t.other.angle - ofKind("angle").find((x) => x.i === i)!.t.base.angle);
     const picks = [...new Set(ofKind("angle").map((x) => x.i))].filter((i) => i <= HARD).sort((a, b) => a - b);

@@ -1,10 +1,10 @@
 import { describe, expect, test } from "vitest";
 import { createRng } from "./core.ts";
-import { deviation, MAX_MS, MIN_MS, type Move, przytrzymaj as game, ROUNDS, type State } from "./przytrzymaj.ts";
+import { deviation, MAX_MS, MIN_MS, type Move, przytrzymaj as game, ROUNDS, type State, TOTAL_MS } from "./przytrzymaj.ts";
 
 // Testy napisane przed implementacją. Ustalają zasady:
 // - 1-6 graczy grają naraz u siebie; 5 rund, w każdej pole świeci się przez czas celu, a gracz trzyma palec tak samo długo,
-// - cele losuje serwer: 5 czasów w pełnych ms, każdy 1000-5000, te same dla wszystkich,
+// - cele losuje serwer: 5 czasów w pełnych ms, każdy 1000-5000, razem zawsze 15 000, te same dla wszystkich,
 // - klient oddaje jeden wynik: 5 czasów trzymania w ms (int, 0-10 000),
 // - serwer liczy odchyłkę każdej rundy (|trzymanie − cel|, ucięta do celu) i sumuje,
 // - mniejsza suma wyżej; zwycięzca tylko przy 2+ graczach i bez remisu; po limicie czasu najgorszy wynik (suma celów).
@@ -51,6 +51,11 @@ describe("setup", () => {
     const flat = all.flat();
     expect(Math.min(...flat)).toBeLessThan(MIN_MS + 100);
     expect(Math.max(...flat)).toBeGreaterThan(MAX_MS - 100);
+  });
+
+  test("suma celów to zawsze 15 s: każda partia jest równie trudna", () => {
+    expect(TOTAL_MS).toBe(15_000);
+    for (let seed = 0; seed < 200; seed++) expect(sum(fresh([A, B], seed).targets)).toBe(TOTAL_MS);
   });
 
   test("wszyscy grają naraz, ten sam seed daje te same cele, rewanż ma inne", () => {

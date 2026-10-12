@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { byHitsThenAverage, createRng, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing } from "./core.ts";
+import { byHitsThenAverage, createRng, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing, withSum } from "./core.ts";
 
 test("ten sam seed daje ten sam ciąg", () => {
   const a = createRng(42);
@@ -23,6 +23,18 @@ test("kod pokoju ma 4 znaki z alfabetu bez mylących znaków", () => {
     expect(code).toMatch(new RegExp(`^[${ROOM_CODE_ALPHABET}]{4}$`));
   }
   expect(ROOM_CODE_ALPHABET).not.toMatch(/[O0I1L]/);
+});
+
+test("withSum: liczby całkowite z zakresu o zadanej sumie, te same dla tego samego seedu", () => {
+  for (let seed = 1; seed <= 100; seed++) {
+    const list = withSum(createRng(seed), 10, 1, 30, 155);
+    expect(list).toHaveLength(10);
+    expect(list.every((n) => Number.isInteger(n) && n >= 1 && n <= 30)).toBe(true);
+    expect(list.reduce((a, b) => a + b, 0)).toBe(155);
+    expect(withSum(createRng(seed), 10, 1, 30, 155)).toEqual(list);
+  }
+  const all = Array.from({ length: 200 }, (_, seed) => withSum(createRng(seed), 10, 1, 30, 155)).flat();
+  expect([Math.min(...all), Math.max(...all)]).toEqual([1, 30]);
 });
 
 test("shuffle: permutacja, oryginał bez zmian", () => {

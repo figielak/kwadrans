@@ -27,6 +27,19 @@ test("plansze: 4 kolory, wystarczy na 30 s, większość niezgodna", () => {
   expect(trials.filter((t) => t.word !== t.ink).length / trials.length).toBeGreaterThan(0.6);
 });
 
+test("w każdej czwórce plansz dokładnie jedna zgodna, na różnych pozycjach: każda partia ma ich tyle samo", () => {
+  const positions = new Set<number>();
+  for (let seed = 1; seed <= 20; seed++) {
+    const { trials } = game.setup([A], createRng(seed));
+    for (let i = 0; i < trials.length; i += 4) {
+      const same = trials.slice(i, i + 4).flatMap((t, at) => (t.word === t.ink ? [at] : []));
+      expect(same, `seed ${seed}, plansze ${i}-${i + 3}`).toHaveLength(1);
+      positions.add(same[0]);
+    }
+  }
+  expect([...positions].sort()).toEqual([0, 1, 2, 3]);
+});
+
 describe("walidacja", () => {
   const s = game.setup([A, B], createRng(1));
   test.each([

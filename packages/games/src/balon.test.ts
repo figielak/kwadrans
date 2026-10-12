@@ -1,10 +1,11 @@
 import { describe, expect, test } from "vitest";
 import { createRng } from "./core.ts";
-import { BALLOONS, balon as game, MAX_SAFE, MIN_SAFE, type Move, score, type State, type View } from "./balon.ts";
+import { BALLOONS, balon as game, MAX_SAFE, MIN_SAFE, type Move, score, type State, TOTAL, type View } from "./balon.ts";
 
 // Testy napisane przed implementacją. Ustalają zasady:
 // - 1-6 graczy grają naraz u siebie; 10 balonów, każde stuknięcie to punkt w balonie,
 // - serwer losuje wytrzymałość każdego balonu (1-30 stuknięć), tę samą dla wszystkich; następne stuknięcie go rozrywa,
+// - suma wytrzymałości to zawsze 155, żeby każda partia dawała tyle samo do zgarnięcia,
 // - klient oddaje jeden wynik: liczbę stuknięć w każdym z 10 balonów (int 0-31),
 // - serwer liczy: balon z większą liczbą stuknięć niż wytrzymałość pękł i daje 0, inaczej daje tyle punktów, ile stuknięć,
 // - więcej punktów wyżej, przy równych mniej pękniętych balonów; zwycięzca tylko przy 2+ graczach i bez remisu,
@@ -59,6 +60,11 @@ describe("setup", () => {
     const all = Array.from({ length: 200 }, (_, seed) => fresh([A], seed + 1).limits).flat();
     expect(Math.min(...all)).toBe(MIN_SAFE);
     expect(Math.max(...all)).toBe(MAX_SAFE);
+  });
+
+  test("suma wytrzymałości to zawsze 155: każda partia ma tyle samo do zgarnięcia", () => {
+    expect(TOTAL).toBe(155);
+    for (let seed = 1; seed <= 200; seed++) expect(sum(fresh([A], seed).limits)).toBe(TOTAL);
   });
 
   test("na starcie czekamy na wszystkich, nikt nie ma wyniku", () => {

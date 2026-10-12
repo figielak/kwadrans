@@ -1,3 +1,7 @@
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 import { openStats } from "./stats.ts";
 
@@ -53,7 +57,7 @@ describe("rekordy mini-gier", () => {
   const GAMES = [
     { id: "stoper", lower: true },
     { id: "simon", lower: false },
-    { id: "refleks", lower: false, tie: { lower: true } },
+    { id: "stoj", lower: false, tie: { lower: true } },
     { id: "wieza", lower: false, tie: { lower: false } },
   ];
   const one = (nick: string, score: number, tie: number | null = null) => [{ nick, score, tie }];
@@ -85,11 +89,11 @@ describe("rekordy mini-gier", () => {
 
   it("przy równym głównym wyniku rozstrzyga drugie kryterium, w swoim kierunku", () => {
     const stats = openStats(":memory:");
-    stats.recordScores("refleks", [...one("Ala", 13, 260), ...one("Ola", 13, 240), ...one("Ela", 14, 400)]);
+    stats.recordScores("stoj", [...one("Ala", 13, 260), ...one("Ola", 13, 240), ...one("Ela", 14, 400)]);
     // Własny rekord też: te same 13 trafień, ale szybciej.
-    stats.recordScores("refleks", one("Ala", 13, 230));
-    stats.recordScores("refleks", one("Ala", 12, 100));
-    expect(stats.records(GAMES).refleks).toEqual([
+    stats.recordScores("stoj", one("Ala", 13, 230));
+    stats.recordScores("stoj", one("Ala", 12, 100));
+    expect(stats.records(GAMES).stoj).toEqual([
       { nick: "Ela", best: 14, tie: 400, played: 1 },
       { nick: "Ala", best: 13, tie: 230, played: 3 },
       { nick: "Ola", best: 13, tie: 240, played: 1 },
@@ -113,5 +117,29 @@ describe("rekordy mini-gier", () => {
     const records = stats.records(GAMES);
     expect(records.stoper).toHaveLength(15);
     expect(records.simon).toEqual([]);
+  });
+});
+
+describe("migracja rekordów", () => {
+  const GAMES = ["balon", "refleks", "przytrzymaj", "kropki", "stroop", "inny", "stoper"].map((id) => ({ id, lower: true }));
+
+  it("kasuje stare rekordy gier ze zmienionym losowaniem, raz; reszta i ranking wygranych zostają", () => {
+    const path = join(mkdtempSync(join(tmpdir(), "stats-")), "stats.db");
+    // Baza sprzed zmiany: bez wersji schematu.
+    const old = new DatabaseSync(path);
+    old.exec("CREATE TABLE results (game_id TEXT NOT NULL, nick TEXT NOT NULL, won INTEGER NOT NULL, at INTEGER NOT NULL)");
+    old.exec("CREATE TABLE scores (game_id TEXT NOT NULL, nick TEXT NOT NULL, score REAL NOT NULL, tie REAL, at INTEGER NOT NULL)");
+    for (const { id } of GAMES) old.exec(`INSERT INTO scores VALUES ('${id}', 'Ala', 5, NULL, 0)`);
+    old.exec("INSERT INTO results VALUES ('balon', 'Ala', 1, 0)");
+    old.close();
+
+    const stats = openStats(path);
+    const kept = [{ nick: "Ala", best: 5, tie: null, played: 1 }];
+    expect(stats.records(GAMES)).toEqual({ balon: [], refleks: [], przytrzymaj: [], kropki: [], stroop: [], inny: [], stoper: kept });
+    expect(stats.ranking().balon).toEqual([{ nick: "Ala", wins: 1, played: 1 }]);
+
+    // Wyniki zapisane po migracji przeżywają kolejny start serwera.
+    stats.recordScores("balon", [{ nick: "Ola", score: 90, tie: 2 }]);
+    expect(openStats(path).records(GAMES).balon).toEqual([{ nick: "Ola", best: 90, tie: 2, played: 1 }]);
   });
 });

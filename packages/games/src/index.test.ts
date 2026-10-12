@@ -130,7 +130,6 @@ const quiz = (hits: number, errors = 0) => ({ times: Array.from({ length: hits }
 const timed = (hits: number, ms: number, errors = 0) => ({ times: Array.from({ length: hits }, () => ms), errors });
 /** `tied`: ten sam główny wynik, o miejscu decyduje drugie kryterium (ta sama para: lepszy, gorszy). */
 const RECORDS: Record<string, { lower: boolean; good: unknown; bad: unknown; field?: string; tied?: [unknown, unknown] }> = {
-  refleks: { lower: false, good: { times: [300, 300], falseStarts: 0 }, bad: { times: [300], falseStarts: 0 }, tied: [{ times: [250, 251], falseStarts: 0 }, { times: [300, 300], falseStarts: 0 }] },
   simon: { lower: false, good: 7, bad: 3 },
   stroop: { lower: false, good: quiz(2), bad: quiz(1), tied: [timed(2, 400), timed(2, 600)] },
   liczenie: { lower: false, good: quiz(2), bad: quiz(1), tied: [timed(2, 400), timed(2, 600)] },
@@ -144,6 +143,7 @@ const RECORDS: Record<string, { lower: boolean; good: unknown; bad: unknown; fie
   "w-pamieci": { lower: false, good: { rounds: 5, diff: 9 }, bad: { rounds: 3, diff: 1 }, tied: [{ rounds: 4, diff: 1 }, { rounds: 4, diff: 6 }] },
   balon: { lower: false, good: { score: 90, popped: 3 }, bad: { score: 40, popped: 0 }, tied: [{ score: 60, popped: 1 }, { score: 60, popped: 4 }] },
   kolo: { lower: false, good: { score: 900, points: [] }, bad: { score: 500, points: [] }, field: "best" },
+  refleks: { lower: true, good: 10, bad: 200 },
   stoper: { lower: true, good: 10, bad: 200 },
   rytm: { lower: true, good: 10, bad: 200 },
   przytrzymaj: { lower: true, good: 10, bad: 200 },
