@@ -94,6 +94,7 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
 - **Odcień** (`kolor`): 5 kolorów, każdy widać 2 s, potem odtwarzasz go suwakami barwy, nasycenia i jasności; wynik = suma odległości ΔE (Lab, każda ucięta do 100, mniej lepiej), liczona na serwerze.
 - **Policz kropki**: 10 rund, w każdej 8-40 kropek (razem zawsze 240) widocznych przez 1,5 s, potem wpisujesz ich liczbę; wynik = suma błędów (mniej lepiej), liczona na serwerze. Po każdej odpowiedzi kropki wracają z prawdziwą liczbą i różnicą; numer rundy rywali widać w pigułkach graczy (ruch `progress`).
 - **Kąt** (`kat`): 10 rund, w każdej kąt 5-175° (wierzchołek na środku, równe ramiona, losowy obrót) widoczny przez 1,5 s, potem wpisujesz jego miarę w stopniach (0-180); wynik = suma odchyłek w stopniach (mniej lepiej), liczona na serwerze. Po limicie czasu każda runda liczy się jak najgorsza możliwa odpowiedź. Odsłona i pigułki jak w Policz kropki.
+- **Trzy kubki** (`kubki`): do 20 rund, w każdej kulka pod jednym z trzech kubków (widać ją 1 s), kubki zamieniają się miejscami (4 zamiany w pierwszej rundzie, o jedną więcej w każdej następnej, od 500 do 150 ms na zamianę), potem dotykasz kubka z kulką. Pierwsza pomyłka kończy partię; wynik = zaliczone rundy (więcej lepiej, bez drugiego kryterium), liczony na serwerze ze wskazań. Po wskazaniu przez 1 s widać, gdzie była kulka.
 - **Który rok?**: 10 rund, każda z wydarzeniem historycznym / wynalazkiem / premierą; ustawiasz rok suwakiem w zakresie 1900-2025, wynik = suma odchyłek w latach (mniej lepiej), liczona na serwerze. Runda trwa najwyżej 20 s, po czasie liczy się rok ustawiony na suwaku. Po każdej odpowiedzi przez 2,5 s widać prawdziwy rok i różnicę ze znakiem, numer rundy rywali widać w pigułkach graczy (ruch `progress`).
 - **Środek**: 10 rund, w każdej odcinek pod losowym kątem, dotykasz go w połowie długości; odcinki mają 50-90% boku pola; dotknięcie jest rzutowane na odcinek, błąd liczy się wzdłuż niego w % długości odcinka, wynik = suma błędów (mniej lepiej), liczona na serwerze. Dotknięcie dalej niż 60 umownych px od odcinka (pole ma bok 300 px niezależnie od telefonu) jest ignorowane bez kary. Liczy się miejsce podniesienia palca (punkt można przesunąć, palec może leżeć obok odcinka); potem przez 1 s widać prawdziwy środek i błąd. Na końcu jedna tabela rund z wyróżnionym najlepszym w każdej.
 - **Stój!** (`stoj`): 30 s, jedno pole zapala się na zielono (dotknij) albo czerwono (nie wolno, co trzeci bodziec); odstęp między bodźcami maleje z 1000 do 500 ms. Wynik = trafienia − 2 za każdy błąd (nie mniej niż 0), przy remisie niższa średnia reakcji; liczony na serwerze z czasów reakcji na kolejne bodźce.
@@ -199,7 +200,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
 - Gracze bez miejsca oglądają partię. Nowy gracz dostaje miejsce sam, jeśli gra wybrana i jest wolne.
 - Rewanż po zgodzie wszystkich grających, kolejność miejsc rotuje (poza mini-grami, gdzie wszyscy grają naraz); do lobby może wrócić każdy.
 - W mini-grach (gry solo, `minPlayers: 1`) limit rusza po ekranie instrukcji: gdy wszyscy klikną „Start” albo po 15 s.
-- Limit tury: 60 s w większości gier; dłużej w Sekwencji, Śledzeniu i W pamięci (300 s), Który rok? (240 s), Tabeli Schultego, Odcieniu, Wieży i Mapie (180 s),
+- Limit tury: 60 s w większości gier; dłużej w Sekwencji, Śledzeniu i W pamięci (300 s), Który rok? (240 s), Tabeli Schultego, Odcieniu, Wieży, Mapie i Trzech kubkach (180 s),
   Narysuj koło, Policz kropki, Kąt, Przytrzymaj, Balon i Tort (120 s), Kolorze liter, Liczeniu, Innym elemencie, Obrocie, Literówce i Dziesiątkach (90 s); Państwa-miasta mają limit per faza, Statki 90 s na całe rozstawianie, Chińczyk w trybie Szybkim 20 s.
 - Gdy gracz z miejscem zniknie z pokoju w trakcie partii (wyjdzie sam albo nie wróci w 10 minut), partia się kończy:
   jeśli został jeden gracz, wygrywa walkowerem; przy większej liczbie kończy się bez zwycięzcy.
@@ -294,7 +295,7 @@ podpięcie w `screens/Game.tsx` i ikona w `screens/Lobby.tsx`.
 | 5 | Kampus Tour: dodatki (Kolokwium, Juwenalia, karty, wykupienie, Bilet MPK, monopol) | Pełna wersja (gotowe) |
 | 6 | Poprawka | Gra karciana (do zrobienia) |
 | 7 | PWA, animacje, statystyki, szlify | Polerka (PWA, ranking po nicku i rekordy mini-gier gotowe) |
-| + | Chińczyk, Memory, mini-gry (26 sztuk), Państwa-miasta, Turniej z mini-gier | Poza planem (gotowe) |
+| + | Chińczyk, Memory, mini-gry (27 sztuk), Państwa-miasta, Turniej z mini-gier | Poza planem (gotowe) |
 | dalej | Zapis stanu pokoi w SQLite | Do zrobienia |
 
 ## 8a. Sposób pracy
