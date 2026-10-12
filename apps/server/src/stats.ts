@@ -18,6 +18,12 @@ export function openStats(path: string) {
   db.function("nick_key", { deterministic: true }, (nick) => nickKey(String(nick)));
   db.exec("CREATE TABLE IF NOT EXISTS results (game_id TEXT NOT NULL, nick TEXT NOT NULL, won INTEGER NOT NULL, at INTEGER NOT NULL)");
   db.exec("CREATE TABLE IF NOT EXISTS scores (game_id TEXT NOT NULL, nick TEXT NOT NULL, score REAL NOT NULL, tie REAL, at INTEGER NOT NULL)");
+  // Wersja 1: Balon, Refleks, Przytrzymaj, Policz kropki, Kolor liter i Inny element dostały wyrównane losowanie (Refleks także nową jednostkę),
+  // stare rekordy nie są porównywalne.
+  if ((db.prepare("PRAGMA user_version").get() as { user_version: number }).user_version < 1) {
+    db.exec("DELETE FROM scores WHERE game_id IN ('balon', 'refleks', 'przytrzymaj', 'kropki', 'stroop', 'inny')");
+    db.exec("PRAGMA user_version = 1");
+  }
   const insert = db.prepare("INSERT INTO results VALUES (?, ?, ?, ?)");
   // Jedyny agregat min/max w zapytaniu, więc `nick` pochodzi z wiersza o największym rowid, czyli z ostatniej partii.
   const select = db.prepare(

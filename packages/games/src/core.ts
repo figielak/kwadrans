@@ -165,6 +165,17 @@ export function standing(rows: RecordRow[], nick: string, order: RecordOrder): R
   };
 }
 
+/**
+ * `n` liczb całkowitych z [min, max] o sumie dokładnie `total`: losowanie do skutku, żeby każda partia miała tyle samo do zdobycia
+ * (rekordy porównują różne partie). Suma w środku zakresu trafia się raz na kilkadziesiąt do kilku tysięcy prób.
+ */
+export function withSum(rng: Rng, n: number, min: number, max: number, total: number): number[] {
+  for (;;) {
+    const list = Array.from({ length: n }, () => min + Math.floor(rng() * (max - min + 1)));
+    if (list.reduce((a, b) => a + b, 0) === total) return list;
+  }
+}
+
 /** Tasuje kopię tablicy (Fisher-Yates). */
 export function shuffle<T>(items: readonly T[], rng: Rng): T[] {
   const a = [...items];

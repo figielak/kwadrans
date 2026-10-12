@@ -1,4 +1,4 @@
-import { average, byHitsThenAverage, type GameDefinition, type PlayerId, ranked } from "./core.ts";
+import { average, byHitsThenAverage, type GameDefinition, type PlayerId, ranked, shuffle } from "./core.ts";
 import { QUESTIONS, type QuizMove, quizMoveSchema, type QuizResult, validQuiz } from "./quiz.ts";
 
 /** Największy bok siatki: przy 360 px szerokości kafel ma wtedy jeszcze 48 px. */
@@ -44,30 +44,35 @@ export const inny: GameDefinition<State, Move> = {
   turnSeconds: 90,
   moveSchema: quizMoveSchema,
 
-  setup: (players, rng) => ({
-    players,
-    trials: Array.from({ length: QUESTIONS }, (_, i) => {
-      const int = (n: number) => Math.floor(rng() * n);
-      const cols = Math.min(2 + Math.ceil(i / 2), MAX_SIDE);
-      const rows = Math.min(2 + Math.floor(i / 2), MAX_SIDE);
-      // 0 obrót, 1 odcień, 2 rozmiar, 3 kształt.
-      const kind = int(i < SHAPE_BOARDS ? 4 : 3);
-      const sign = rng() < 0.5 ? -1 : 1;
-      // Obrót zawsze na trójkącie: im więcej boków, tym mniej widać, że figura jest obrócona.
-      const sides = kind === 0 ? 3 : kind === 3 ? 3 + Math.floor(i / 3) : 3 + int(SIDES_MAX - 2);
-      const base = { sides, angle: int(120), hue: int(360), light: 50 + int(11), size: SIZE };
-      const other =
-        kind === 0
-          ? { ...base, angle: base.angle + sign * fade(i, ANGLE_MAX, ANGLE_MIN) }
-          : kind === 1
-            ? { ...base, light: base.light + sign * fade(i, LIGHT_MAX, LIGHT_MIN) }
-            : kind === 2
-              ? { ...base, size: SIZE + sign * fade(i, SIZE_MAX, SIZE_MIN) }
-              : { ...base, sides: sides === 3 ? 4 : sides + sign };
-      return { cols, rows, odd: int(cols * rows), base, other };
-    }),
-    results: {},
-  }),
+  setup: (players, rng) => {
+    // 0 obrót, 1 odcień, 2 rozmiar, 3 kształt. Rodzaje różnią się trudnością, więc idą potasowanymi kompletami:
+    // każda partia ma ich po równo, niezależnie od losowania.
+    const kinds: number[] = [];
+    while (kinds.length < QUESTIONS) kinds.push(...shuffle(kinds.length < SHAPE_BOARDS ? [0, 1, 2, 3] : [0, 1, 2], rng));
+    const int = (n: number) => Math.floor(rng() * n);
+    return {
+      players,
+      trials: Array.from({ length: QUESTIONS }, (_, i) => {
+        const cols = Math.min(2 + Math.ceil(i / 2), MAX_SIDE);
+        const rows = Math.min(2 + Math.floor(i / 2), MAX_SIDE);
+        const kind = kinds[i];
+        const sign = rng() < 0.5 ? -1 : 1;
+        // Obrót zawsze na trójkącie: im więcej boków, tym mniej widać, że figura jest obrócona.
+        const sides = kind === 0 ? 3 : kind === 3 ? 3 + Math.floor(i / 3) : 3 + int(SIDES_MAX - 2);
+        const base = { sides, angle: int(120), hue: int(360), light: 50 + int(11), size: SIZE };
+        const other =
+          kind === 0
+            ? { ...base, angle: base.angle + sign * fade(i, ANGLE_MAX, ANGLE_MIN) }
+            : kind === 1
+              ? { ...base, light: base.light + sign * fade(i, LIGHT_MAX, LIGHT_MIN) }
+              : kind === 2
+                ? { ...base, size: SIZE + sign * fade(i, SIZE_MAX, SIZE_MIN) }
+                : { ...base, sides: sides === 3 ? 4 : sides + sign };
+        return { cols, rows, odd: int(cols * rows), base, other };
+      }),
+      results: {},
+    };
+  },
 
   validateMove: (state, player, move) => validQuiz(state, player, move),
 

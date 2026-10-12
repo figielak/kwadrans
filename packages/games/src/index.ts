@@ -65,7 +65,7 @@ export {
 } from "./panstwa-miasta.ts";
 export type { View as PiecWRzedzieView } from "./piec-w-rzedzie.ts";
 export { SYMBOLS as MEMORY_SYMBOLS, type View as MemoryView } from "./memory.ts";
-export { DURATION_MS as REFLEKS_DURATION_MS, type View as RefleksView } from "./refleks.ts";
+export { PENALTY_MS as REFLEKS_PENALTY_MS, ROUNDS as REFLEKS_ROUNDS, type View as RefleksView } from "./refleks.ts";
 export type { View as SimonView } from "./simon.ts";
 export { PENALTY_MS as SCHULTE_PENALTY_MS, SIZE as SCHULTE_SIZE, total as schulteTotal, type View as SchulteView } from "./schulte.ts";
 export { VISIBLE_MS as STOPER_VISIBLE_MS, type View as StoperView } from "./stoper.ts";

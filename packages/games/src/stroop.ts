@@ -5,8 +5,8 @@ export { DURATION_MS } from "./quiz.ts";
 
 /** Nazwy kolorów; klient trzyma odcienie w tej samej kolejności. */
 export const COLORS = ["CZERWONY", "NIEBIESKI", "ŻÓŁTY", "ZIELONY"] as const;
-/** Odsetek plansz, na których słowo zgadza się z kolorem (żeby nie dało się grać „zawsze inny”). */
-const SAME = 0.25;
+/** W każdym bloku tylu plansz jedna ma słowo zgodne z kolorem (25%, żeby nie dało się grać „zawsze inny”). */
+const BLOCK = 4;
 
 export type Move = QuizMove;
 
@@ -30,11 +30,14 @@ export const stroop: GameDefinition<State, Move> = {
 
   setup: (players, rng) => ({
     players,
-    trials: Array.from({ length: QUESTIONS }, () => {
-      const ink = Math.floor(rng() * 4);
-      const word = rng() < SAME ? ink : (ink + 1 + Math.floor(rng() * 3)) % 4;
-      return { word, ink };
-    }),
+    trials: Array.from({ length: QUESTIONS / BLOCK }, () => {
+      // Zgodne plansze są szybsze, więc każda czwórka ma dokładnie jedną: liczba zgodnych nie zależy od losowania.
+      const same = Math.floor(rng() * BLOCK);
+      return Array.from({ length: BLOCK }, (_, i) => {
+        const ink = Math.floor(rng() * 4);
+        return { word: i === same ? ink : (ink + 1 + Math.floor(rng() * 3)) % 4, ink };
+      });
+    }).flat(),
     results: {},
   }),
 
