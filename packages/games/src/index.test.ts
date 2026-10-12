@@ -131,6 +131,7 @@ const timed = (hits: number, ms: number, errors = 0) => ({ times: Array.from({ l
 /** `tied`: ten sam główny wynik, o miejscu decyduje drugie kryterium (ta sama para: lepszy, gorszy). */
 const RECORDS: Record<string, { lower: boolean; good: unknown; bad: unknown; field?: string; tied?: [unknown, unknown] }> = {
   simon: { lower: false, good: 7, bad: 3 },
+  kubki: { lower: false, good: 7, bad: 3 },
   stroop: { lower: false, good: quiz(2), bad: quiz(1), tied: [timed(2, 400), timed(2, 600)] },
   liczenie: { lower: false, good: quiz(2), bad: quiz(1), tied: [timed(2, 400), timed(2, 600)] },
   inny: { lower: false, good: quiz(2), bad: quiz(1), tied: [timed(2, 400), timed(2, 600)] },
