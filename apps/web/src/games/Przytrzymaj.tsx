@@ -1,5 +1,5 @@
 import { HandTap } from "@phosphor-icons/react";
-import { type LobbyPlayer, PRZYTRZYMAJ_ROUNDS, przytrzymajDeviation, type PrzytrzymajView } from "@mini-games/games";
+import { type LobbyPlayer, PRZYTRZYMAJ_ROUNDS, przytrzymajDeviation, type PrzytrzymajView } from "@kwadrans/games";
 import { Fragment, type PointerEvent, useEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
 
@@ -150,13 +150,13 @@ export function Przytrzymaj({ view, me, players, ranking, onMove }: Props) {
                   {r.nick}
                   {r.me && <span className="text-fg-muted"> (ty)</span>}
                 </span>
-                <span className={`font-mono ${r.score === null ? "text-fg-muted" : "font-semibold"}`}>{r.score ?? "gra…"}</span>
+                <span className={`font-mono tabular-nums ${r.score === null ? "text-fg-muted" : "font-semibold"}`}>{r.score ?? "gra…"}</span>
               </span>
               {r.holds.length > 0 && <span className="label text-left">Błąd</span>}
               {r.holds.map((h, i) => (
                 <span
                   key={i}
-                  className={`rounded-md border py-1 ${grade(off(r, i))} ${off(r, i) <= PERFECT ? "font-semibold" : ""} ${best(i) === r.id ? "" : "border-line"}`}
+                  className={`rounded-inset border py-1 ${grade(off(r, i))} ${off(r, i) <= PERFECT ? "font-semibold" : ""} ${best(i) === r.id ? "" : "border-line"}`}
                   style={best(i) === r.id ? { borderColor: r.color, backgroundColor: `color-mix(in srgb, ${r.color} 28%, transparent)` } : undefined}
                 >
                   {/* Znak mówi, czy za krótko, czy za długo; liczba to odchyłka po ucięciu do celu. */}

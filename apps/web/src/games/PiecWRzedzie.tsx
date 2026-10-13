@@ -1,4 +1,4 @@
-import type { LobbyPlayer, PiecWRzedzieView } from "@mini-games/games";
+import type { LobbyPlayer, PiecWRzedzieView } from "@kwadrans/games";
 import { useState } from "react";
 import { StickyBar } from "../screens/ui.tsx";
 
@@ -19,7 +19,7 @@ const STARS = new Set([3 * 15 + 3, 3 * 15 + 11, 7 * 15 + 7, 11 * 15 + 3, 11 * 15
  */
 export function PiecWRzedzie({ view, players, canMove, onMove }: Props) {
   const [picked, setPicked] = useState<number | null>(null);
-  const colorOf = (seat: 0 | 1) => players.find((p) => p.id === view.players[seat])?.color ?? "#8b8b92";
+  const colorOf = (seat: 0 | 1) => players.find((p) => p.id === view.players[seat])?.color ?? "var(--color-fg-muted)";
   const myColor = colorOf(view.turn);
   const turnNick = players.find((p) => p.id === view.players[view.turn])?.nick ?? "Przeciwnik";
   const over = view.winLine !== null || view.board.every((c) => c !== null);

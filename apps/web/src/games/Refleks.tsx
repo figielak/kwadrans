@@ -1,4 +1,4 @@
-import { type LobbyPlayer, REFLEKS_PENALTY_MS, REFLEKS_ROUNDS, type RefleksView } from "@mini-games/games";
+import { type LobbyPlayer, REFLEKS_PENALTY_MS, REFLEKS_ROUNDS, type RefleksView } from "@kwadrans/games";
 import { Trophy } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
@@ -58,10 +58,10 @@ function Results({ view, me, players, ranking, winner }: Omit<Props, "onMove">) 
           {rows.map((r) => (
             <tr
               key={r.id}
-              className={`text-right ${r.id === winner ? "font-semibold" : ""}`}
+              className={`text-right font-mono text-sm ${r.id === winner ? "font-semibold" : ""}`}
               style={r.id === winner ? { backgroundColor: `color-mix(in srgb, ${r.color} 16%, transparent)` } : undefined}
             >
-              <td className="max-w-0 rounded-l-inset px-2 py-1.5 text-left">
+              <td className="max-w-0 rounded-l-inset px-2 py-1.5 text-left font-sans text-base">
                 <span className="flex items-center gap-2">
                   {r.id === winner ? (
                     <Trophy size={16} weight="fill" color={r.color} className="shrink-0" aria-label="Zwycięzca" />
@@ -72,11 +72,11 @@ function Results({ view, me, players, ranking, winner }: Omit<Props, "onMove">) 
                 </span>
               </td>
               {!r.times ? (
-                <td colSpan={3} className="rounded-r-inset px-2 text-fg-muted">
+                <td colSpan={3} className="rounded-r-inset px-2 font-sans text-fg-muted">
                   gra…
                 </td>
               ) : r.avg === null ? (
-                <td colSpan={3} className="rounded-r-inset px-2 text-fg-muted">
+                <td colSpan={3} className="rounded-r-inset px-2 font-sans text-fg-muted">
                   limit czasu
                 </td>
               ) : (
@@ -125,7 +125,7 @@ function Preview() {
   return (
     <>
       <span className="font-semibold text-fg-muted">Czekaj…</span>
-      <span className="absolute inset-0 flex animate-[preview-quarter_2.4s_linear_infinite] items-center justify-center bg-accent font-semibold text-accent-fg opacity-0 [animation-delay:-1.2s]">
+      <span className="absolute inset-0 flex animate-[preview-quarter_2.4s_linear_infinite] items-center justify-center bg-success font-semibold text-bg opacity-0 [animation-delay:-1.2s]">
         Teraz!
       </span>
     </>
@@ -209,7 +209,7 @@ export function Refleks({ view, me, players, ranking, winner, onMove }: Props) {
         type="button"
         onPointerDown={tap}
         className={`flex min-h-80 flex-1 touch-none select-none items-center justify-center rounded-tile border border-line text-2xl font-semibold ${
-          phase === "go" ? "bg-accent text-accent-fg" : "bg-surface text-fg-muted"
+          phase === "go" ? "bg-success text-bg" : "bg-surface text-fg-muted"
         }`}
       >
         {phase === "go" ? "Teraz!" : phase === "early" ? "Falstart!" : last === null ? "Czekaj…" : last === REFLEKS_PENALTY_MS ? "Za wolno!" : `${last} ms`}

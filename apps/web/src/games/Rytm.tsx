@@ -1,4 +1,4 @@
-import { type LobbyPlayer, RYTM_BEATS, RYTM_MAX_TAPS, RYTM_TAP_MS, type RytmView } from "@mini-games/games";
+import { type LobbyPlayer, RYTM_BEATS, RYTM_MAX_TAPS, RYTM_TAP_MS, type RytmView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { Intro, Scores } from "../screens/ui.tsx";
 

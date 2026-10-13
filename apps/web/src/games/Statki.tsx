@@ -10,7 +10,7 @@ import {
   STATKI_MODES,
   type StatkiRules as Rules,
   type StatkiView,
-} from "@mini-games/games";
+} from "@kwadrans/games";
 import { type CSSProperties, type PointerEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { StickyBar } from "../screens/ui.tsx";
@@ -53,7 +53,7 @@ export function Statki({ view, me, players, canMove, onMove }: Props) {
   const seated = view.players.includes(me);
   const enemyId = seated ? view.players.find((p) => p !== me)! : view.players[1];
   const ownId = seated ? me : view.players[0];
-  const color = (id: string) => players.find((p) => p.id === id)?.color ?? "#8b8b92";
+  const color = (id: string) => players.find((p) => p.id === id)?.color ?? "var(--color-fg-muted)";
   const nick = (id: string) => players.find((p) => p.id === id)?.nick ?? "Gracz";
   const rules = STATKI_MODES.find((m) => m.id === view.mode) ?? STATKI_MODES[0];
 
@@ -465,7 +465,7 @@ function Grid({
 }) {
   const at = cellAt(SIZE);
   const text = `font-mono ${compact ? "text-[9px]" : "text-[11px]"}`;
-  const axis = (on: boolean) => `${text} ${on ? "font-bold text-fg" : "text-fg-muted"}`;
+  const axis = (on: boolean) => `${text} ${on ? "font-semibold text-fg" : "text-fg-muted"}`;
   const px = cross === null ? null : at(cross).x;
   const py = cross === null ? null : at(cross).y;
   return (
@@ -497,7 +497,7 @@ function Grid({
           return (
             <span
               key={`s${k}`}
-              className={`pointer-events-none rounded-md transition-colors duration-100 ${outline ? "outline-2 -outline-offset-2 outline-fg" : ""}`}
+              className={`pointer-events-none rounded-inset transition-colors duration-100 ${outline ? "outline-2 -outline-offset-2 outline-fg" : ""}`}
               style={{
                 gridColumn: `${ship.x + 2} / span ${ship.vertical ? 1 : span}`,
                 gridRow: `${ship.y + 2} / span ${ship.vertical ? span : 1}`,

@@ -1,4 +1,4 @@
-import { KUBKI_ROUNDS, KUBKI_SHOW_MS, kubkiBallAt, kubkiSwapMs, type KubkiView, type LobbyPlayer } from "@mini-games/games";
+import { KUBKI_ROUNDS, KUBKI_SHOW_MS, kubkiBallAt, kubkiSwapMs, type KubkiView, type LobbyPlayer } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
 

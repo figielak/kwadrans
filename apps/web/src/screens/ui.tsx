@@ -1,5 +1,5 @@
 import { ArrowLeft, Check, HandTap, ShareNetwork, SignOut, Timer, Trophy, WifiSlash } from "@phosphor-icons/react";
-import type { RoomView } from "@mini-games/games";
+import type { RoomView } from "@kwadrans/games";
 import { createContext, Fragment, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 export type Send = (type: string, payload?: unknown) => void;
@@ -150,7 +150,7 @@ export function Scores({ rows }: { rows: { id: string; nick: string; color?: str
             {r.nick}
             {r.me && <span className="text-fg-muted"> (ty)</span>}
           </span>
-          <span className={`font-mono ${r.score === null ? "text-fg-muted" : ""}`}>{r.score ?? "gra…"}</span>
+          <span className={`text-right font-mono tabular-nums ${r.score === null ? "text-fg-muted" : ""}`}>{r.score ?? "gra…"}</span>
         </li>
       ))}
     </ol>
@@ -188,6 +188,9 @@ export function RoundTable({
   perfect,
   close,
   unit,
+  format = tenth,
+  legend,
+  children,
 }: {
   heads: ReactNode[];
   /** Pusta lista `errors` = gracz nie odpowiedział (limit czasu). */
@@ -196,6 +199,12 @@ export function RoundTable({
   close: number;
   /** Czego dotyczy liczba, np. „% tortu”. */
   unit: string;
+  /** Zapis błędu w komórce; domyślnie jedno miejsce po przecinku. */
+  format?: (d: number) => string;
+  /** Tekst progów pod tabelą; domyślnie progi w procentach. */
+  legend?: ReactNode;
+  /** Dopisek między tabelą a legendą, np. lista miast w Mapie. */
+  children?: ReactNode;
 }) {
   const played = rows.filter((r) => r.errors.length);
   const best = (round: number) => {
@@ -221,17 +230,18 @@ export function RoundTable({
             {r.errors.map((d, i) => (
               <span
                 key={i}
-                className={`rounded-md border py-1 ${grade(d, perfect, close).text} ${d <= perfect ? "font-semibold" : ""} ${best(i) === r.id ? "" : "border-line"}`}
+                className={`rounded-inset border py-1 ${grade(d, perfect, close).text} ${d <= perfect ? "font-semibold" : ""} ${best(i) === r.id ? "" : "border-line"}`}
                 style={best(i) === r.id ? { borderColor: r.color, backgroundColor: `color-mix(in srgb, ${r.color} 28%, transparent)` } : undefined}
               >
-                {tenth(d)}
+                {format(d)}
               </span>
             ))}
           </Fragment>
         ))}
       </div>
+      {children}
       <p className="text-xs text-fg-muted">
-        Błąd w każdej rundzie ({unit}){played.length > 1 && "; tło w kolorze gracza ma najlepszy w rundzie"}. Zielony: do {perfect}%, czerwony: ponad {close}%.
+        Błąd w każdej rundzie ({unit}){played.length > 1 && "; tło w kolorze gracza ma najlepszy w rundzie"}. {legend ?? `Zielony: do ${perfect}%, czerwony: ponad ${close}%.`}
       </p>
     </section>
   );
@@ -287,7 +297,7 @@ export function Intro({ time, task, score, preview, onStart }: { time: ReactNode
       <div className="relative flex h-32 items-center justify-center overflow-hidden rounded-inset border border-line bg-bg" aria-hidden>
         {preview}
       </div>
-      <ul className="flex flex-col gap-2">
+      <ul className="flex flex-col gap-1.5">
         {(
           [
             [Timer, time],
@@ -301,7 +311,7 @@ export function Intro({ time, task, score, preview, onStart }: { time: ReactNode
           </li>
         ))}
       </ul>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1">
         <button type="button" className="btn btn-primary w-full" onClick={start}>
           Start
         </button>

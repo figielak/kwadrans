@@ -1,4 +1,4 @@
-import { type LobbyPlayer, SUDOKU_BLANKS, SUDOKU_PENALTY_MS, type SudokuView, sudokuTotal } from "@mini-games/games";
+import { type LobbyPlayer, SUDOKU_BLANKS, SUDOKU_PENALTY_MS, type SudokuView, sudokuTotal } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
 

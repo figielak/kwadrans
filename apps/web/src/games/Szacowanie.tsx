@@ -1,6 +1,6 @@
-import type { LobbyPlayer } from "@mini-games/games";
+import type { LobbyPlayer } from "@kwadrans/games";
 import { type FormEvent, type ReactNode, useEffect, useState } from "react";
-import { Intro, Scores } from "../screens/ui.tsx";
+import { Intro, Scores, Stats } from "../screens/ui.tsx";
 
 /** Wspólny ekran gier „zobacz przez chwilę, wpisz liczbę”: Policz kropki i Kąt. */
 interface Props {
@@ -121,12 +121,12 @@ export function Szacowanie({ view, me, players, ranking, onMove, truths, draw, s
   }
 
   const counter = (
-    <div className="flex justify-between">
-      <span className="label">
-        Runda {index + 1}/{rounds}
-      </span>
-      <span className="label">Suma błędów {answers.reduce((s, a, i) => s + Math.abs(a - truths[i]), 0)}</span>
-    </div>
+    <Stats
+      items={[
+        { label: "Runda", value: `${index + 1}/${rounds}` },
+        { label: "Suma błędów", value: answers.reduce((s, a, i) => s + Math.abs(a - truths[i]), 0) },
+      ]}
+    />
   );
 
   const truth = truths[index];

@@ -1,5 +1,5 @@
-import { ArrowLeft, ArrowRight, CaretRight, Play, Plus, Shuffle, SquaresFour, Trophy, User, UsersThree } from "@phosphor-icons/react";
-import { cleanNick, GAMES, MINI_GAME_IDS, NICK_MAX, type RecordRow, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, standing } from "@mini-games/games";
+import { ArrowLeft, ArrowRight, CaretRight, Play, Plus, Shuffle, SquaresFour, Trophy, User, UsersThree, Warning } from "@phosphor-icons/react";
+import { cleanNick, GAMES, MINI_GAME_IDS, NICK_MAX, type RecordRow, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, standing } from "@kwadrans/games";
 import { useEffect, useState } from "react";
 import type { Room } from "@colyseus/sdk";
 import { ICONS } from "./Lobby.tsx";
@@ -19,12 +19,26 @@ function ago(at: number) {
   return minutes < 60 ? relative.format(-minutes, "minute") : relative.format(-Math.round(minutes / 60), "hour");
 }
 
-/** Znak aplikacji: tarcza zegara z zamalowanym pierwszym kwadransem (to samo co `public/icon.svg`, bez tła). */
+/** Znak aplikacji: trzy koła i zamalowany kwadrans (to samo co `public/icon.svg`, bez tła). */
 const Logo = () => (
-  <svg viewBox="92 92 328 328" className="size-8 shrink-0" aria-hidden>
-    <circle cx="256" cy="256" r="150" fill="none" stroke="currentColor" strokeWidth="28" />
-    <path d="M256 256V92A164 164 0 0 1 420 256Z" className="fill-accent" />
+  <svg viewBox="32 32 192 192" className="size-8 shrink-0" fill="currentColor" aria-hidden>
+    <circle cx="76" cy="76" r="44" />
+    <circle cx="76" cy="180" r="44" />
+    <circle cx="180" cy="180" r="44" />
+    <path d="M136 120V32a88 88 0 0 1 88 88z" className="fill-accent" />
   </svg>
+);
+
+/** Błąd pod polem: kolor ostrzeżenia zawsze z ikoną i tekstem, bo sam odcień czerwieni nie odróżnia go od akcentu. */
+const Problem = ({ id, children }: { id?: string; children: string }) => (
+  <p id={id} role="alert" className="flex items-center gap-1.5 text-sm text-warning empty:hidden">
+    {children && (
+      <>
+        <Warning size={16} weight="fill" className="shrink-0" aria-hidden />
+        {children}
+      </>
+    )}
+  </p>
 );
 
 type Busy = "create" | "join" | "solo" | null;
@@ -183,9 +197,7 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
             Wszystkie ({MINI_GAME_IDS.length})
           </button>
         </div>
-        <p role="alert" className="text-sm text-accent empty:hidden">
-          {soloError}
-        </p>
+        <Problem>{soloError}</Problem>
       </div>
     </section>
   );
@@ -231,9 +243,7 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
               {busy !== "join" && <ArrowRight size={18} weight="bold" aria-hidden />}
             </button>
           </div>
-          <p id="room-error" role="alert" className="text-sm text-accent empty:hidden">
-            {roomError}
-          </p>
+          <Problem id="room-error">{roomError}</Problem>
         </form>
         <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
           <span className="text-sm text-fg-muted">Albo zaproś innych</span>
@@ -293,15 +303,13 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
               Zapisz
             </button>
           </div>
-          <p id="nick-error" role="alert" className="text-sm text-accent empty:hidden">
-            {nickError}
-          </p>
+          <Problem id="nick-error">{nickError}</Problem>
         </form>
       ) : (
         <p className="flex items-center gap-1.5 text-fg-muted">
           Grasz jako <span className="truncate font-semibold text-fg">{nick}</span>
           <span aria-hidden>·</span>
-          <button type="button" className="-mx-2 min-h-12 shrink-0 px-2 text-accent" onClick={() => setEditing(true)}>
+          <button type="button" className="-mx-2 min-h-12 shrink-0 px-2 text-fg-muted underline underline-offset-4" onClick={() => setEditing(true)}>
             zmień
           </button>
         </p>
@@ -323,7 +331,7 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
                   <span className="flex-1 truncate text-sm text-fg-muted">
                     {(r.gameId && GAMES[r.gameId]?.name) || "Lobby"} · {alive[r.code]} {alive[r.code] === 1 ? "gracz" : "graczy"}
                   </span>
-                  <span className="shrink-0 text-sm text-fg-subtle">{ago(r.at)}</span>
+                  <span className="shrink-0 text-sm text-fg-muted">{ago(r.at)}</span>
                 </button>
               </li>
             ))}

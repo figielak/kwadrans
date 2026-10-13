@@ -1,4 +1,4 @@
-import { type LobbyPlayer, STOPER_VISIBLE_MS, type StoperView } from "@mini-games/games";
+import { type LobbyPlayer, STOPER_VISIBLE_MS, type StoperView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Scores } from "../screens/ui.tsx";
 

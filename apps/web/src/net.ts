@@ -1,5 +1,5 @@
 import { Client, type Room } from "@colyseus/sdk";
-import type { RecordRow, RoomView } from "@mini-games/games";
+import type { RecordRow, RoomView } from "@kwadrans/games";
 
 // W dev serwer gry stoi obok Vite na porcie 2567 tego samego hosta (działa też z telefonu w LAN).
 const serverUrl = import.meta.env.DEV ? `http://${location.hostname}:2567` : location.origin;

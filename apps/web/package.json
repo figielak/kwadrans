@@ -10,7 +10,7 @@
   "dependencies": {
     "@colyseus/sdk": "^0.18.5",
     "@fontsource-variable/geist-mono": "^5.3.0",
-    "@mini-games/games": "workspace:*",
+    "@kwadrans/games": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"

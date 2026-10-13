@@ -184,7 +184,7 @@ importers:
       '@colyseus/ws-transport':
         specifier: ^0.18.4
         version: 0.18.4(@colyseus/core@0.18.18)(express@5.2.1)
-      '@mini-games/games':
+      '@kwadrans/games':
         specifier: workspace:*
         version: link:../../packages/games
       express:
@@ -203,7 +203,7 @@ importers:
       '@fontsource-variable/geist-mono':
         specifier: ^5.3.0
         version: 5.3.0
-      '@mini-games/games':
+      '@kwadrans/games':
         specifier: workspace:*
         version: link:../../packages/games
       '@phosphor-icons/react':

@@ -135,8 +135,10 @@ body::before {
   .field::placeholder {
     color: var(--color-fg-muted);
   }
+  /* Błąd zastępuje akcent także przy fokusie: pole nie świeci dwiema czerwieniami naraz. */
   .field[aria-invalid="true"] {
-    border-color: var(--color-accent);
+    border-color: var(--color-warning);
+    outline-color: var(--color-warning);
   }
 
   /* Suwak koloru (Kolor z pamięci): tor to gradient z inline `background`, gruby pod palec. */

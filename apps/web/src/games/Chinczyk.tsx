@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, DiceFive, DiceFour, DiceOne, DiceSix, DiceThree, DiceTwo } from "@phosphor-icons/react";
-import { CHINCZYK_TRACK as TRACK, type ChinczykView, type LobbyPlayer } from "@mini-games/games";
+import { CHINCZYK_TRACK as TRACK, type ChinczykView, type LobbyPlayer } from "@kwadrans/games";
 import { StickyBar } from "../screens/ui.tsx";
 
 type Move = { type: "roll" } | { type: "move"; pawn: number };
@@ -113,7 +113,7 @@ function Die({ value, rolling, color }: { value: number; rolling: boolean; color
 }
 
 export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
-  const color = (id: string) => players.find((p) => p.id === id)?.color ?? "#8b8b92";
+  const color = (id: string) => players.find((p) => p.id === id)?.color ?? "var(--color-fg-muted)";
   const nick = (id: string) => players.find((p) => p.id === id)?.nick ?? "?";
   const last = view.last;
   const quick = view.mode === "szybki";
@@ -261,7 +261,7 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
           {rollNow ? (
             <>
               {/* Kolejną próbę na szóstkę pokazuje już przycisk. */}
-              {status && !(last?.note === "none" && last.dice !== 6) && <p className="text-center text-sm font-bold">{status}</p>}
+              {status && !(last?.note === "none" && last.dice !== 6) && <p className="text-center text-sm font-semibold">{status}</p>}
               <button
                 type="button"
                 className="btn h-14 w-full text-lg font-semibold text-bg"
@@ -283,13 +283,13 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
               <div className="flex flex-1 flex-col gap-0.5">
                 {last && (
                   <p className="text-sm">
-                    <span className="font-bold" style={{ color: color(last.player) }}>
+                    <span className="font-semibold" style={{ color: color(last.player) }}>
                       {last.player === me ? "Ty" : nick(last.player)}
                     </span>{" "}
                     {last.player === me ? (rolling ? "rzucasz…" : `wyrzucasz ${last.dice}`) : rolling ? "rzuca…" : `wyrzuca ${last.dice}`}
                   </p>
                 )}
-                {status && <p className="text-sm font-bold">{status}</p>}
+                {status && <p className="text-sm font-semibold">{status}</p>}
                 {prompt && <p className="text-sm text-fg-muted">{prompt}</p>}
               </div>
             </div>

@@ -1,6 +1,6 @@
-import { type LobbyPlayer, ROK_MAX_YEAR as MAX_YEAR, ROK_MIN_YEAR as MIN_YEAR, ROK_REVEAL_MS, ROK_ROUND_MS, ROK_ROUNDS, type RokView } from "@mini-games/games";
+import { type LobbyPlayer, ROK_MAX_YEAR as MAX_YEAR, ROK_MIN_YEAR as MIN_YEAR, ROK_REVEAL_MS, ROK_ROUND_MS, ROK_ROUNDS, type RokView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
-import { Intro, Scores } from "../screens/ui.tsx";
+import { Intro, Scores, Stats } from "../screens/ui.tsx";
 
 interface Props {
   view: RokView;
@@ -157,12 +157,12 @@ export function Rok({ view, me, players, ranking, onMove }: Props) {
   // Kafel ma ten sam układ w obu fazach, żeby nic nie skakało: tekst, duży rok, tor, wiersz pod torem.
   return (
     <section className="flex flex-col gap-2">
-      <div className="flex justify-between">
-        <span className="label">
-          Runda {index + 1}/{ROK_ROUNDS}
-        </span>
-        <span className="label">Suma błędów {answers.reduce((s, a, i) => s + Math.abs(a - view.events[i].year), 0)}</span>
-      </div>
+      <Stats
+        items={[
+          { label: "Runda", value: `${index + 1}/${ROK_ROUNDS}` },
+          { label: "Suma błędów", value: answers.reduce((s, a, i) => s + Math.abs(a - view.events[i].year), 0) },
+        ]}
+      />
       <div className={`h-1.5 overflow-hidden rounded-full bg-line ${reveal ? "invisible" : ""}`} role="progressbar" aria-label="Czas rundy" aria-valuenow={Math.ceil(left / 1000)}>
         <div
           className={`h-full rounded-full transition-[width] duration-250 ease-linear ${left <= HURRY_MS ? "bg-warning" : "bg-fg-muted"}`}

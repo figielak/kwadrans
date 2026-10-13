@@ -1,4 +1,4 @@
-import { type LobbyPlayer, type QuizMove, STROOP_COLORS, type StroopView } from "@mini-games/games";
+import { type LobbyPlayer, type QuizMove, STROOP_COLORS, type StroopView } from "@kwadrans/games";
 import { Quiz, QuizPreview } from "./Quiz.tsx";
 
 /** Odcienie w kolejności STROOP_COLORS (jak pola Simona). */

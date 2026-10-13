@@ -1,4 +1,4 @@
-import { BALON_BALLOONS, BALON_MAX_SAFE, balonScore, type BalonView, type LobbyPlayer } from "@mini-games/games";
+import { BALON_BALLOONS, BALON_MAX_SAFE, balonScore, type BalonView, type LobbyPlayer } from "@kwadrans/games";
 import { Fragment, useEffect, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
 
@@ -86,7 +86,7 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
             <div className="grid grid-cols-10 gap-1 text-center font-mono text-[11px] tabular-nums">
               <span className="col-span-10 text-left font-sans text-sm text-fg-muted">Balon wytrzymywał</span>
               {view.limits.map((limit, i) => (
-                <span key={i} className="rounded-md border border-line py-1 text-fg-muted">
+                <span key={i} className="rounded-inset border border-line py-1 text-fg-muted">
                   {limit}
                 </span>
               ))}
@@ -101,7 +101,7 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
                   {r.taps.map((n, i) => (
                     <span
                       key={i}
-                      className={`rounded-md border border-line py-1 ${
+                      className={`rounded-inset border border-line py-1 ${
                         n > view.limits[i] ? "text-warning line-through" : n === view.limits[i] ? "font-semibold text-success" : n === 0 ? "text-fg-muted" : ""
                       }`}
                       aria-label={n > view.limits[i] ? `pękł przy ${n}. stuknięciu` : n === 0 ? "bez pompowania" : undefined}
@@ -162,7 +162,7 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
           </span>
         )}
       </div>
-      <button type="button" className="btn btn-primary" disabled={phase !== "play"} onClick={() => finish(current)}>
+      <button type="button" className="btn text-bg" style={{ backgroundColor: color }} disabled={phase !== "play"} onClick={() => finish(current)}>
         Zgarnij {current} pkt
       </button>
       <p className="text-center text-sm text-fg-muted">Stukaj w pole, żeby pompować. Nikt nie wie, ile balon wytrzyma.</p>

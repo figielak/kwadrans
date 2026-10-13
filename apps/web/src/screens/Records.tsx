@@ -1,5 +1,5 @@
 import { ArrowLeft, CaretDown, Crown, Play } from "@phosphor-icons/react";
-import { compareRecords, GAMES, KOLOR_COUNT, MINI_GAME_IDS, nickKey, type RecordRow, SOLO, standing, TOURNAMENT_ID } from "@mini-games/games";
+import { compareRecords, GAMES, KOLOR_COUNT, MINI_GAME_IDS, nickKey, type RecordRow, SOLO, standing, TOURNAMENT_ID } from "@kwadrans/games";
 import { type CSSProperties, useEffect, useState } from "react";
 import { MiniGame } from "../games/MiniGame.tsx";
 import { fetchRanking, fetchRecords, fetchTopRecord, type RankingRow } from "../net.ts";
@@ -35,6 +35,7 @@ const FORMAT: Record<string, { value: (n: number) => string; gap?: (n: number) =
   stoper: { value: ms },
   rytm: { value: ms },
   przytrzymaj: { value: ms },
+  zaslona: { value: ms },
   balon: { value: points, tie: (n) => plural(n, "pęknięty", "pęknięte", "pękniętych") },
   schulte: { value: (n) => `${num(n / 1000)} s` },
   sudoku: { value: (n) => `${num(n / 1000)} s` },
@@ -44,6 +45,7 @@ const FORMAT: Record<string, { value: (n: number) => string; gap?: (n: number) =
   rok: { value: (n) => plural(n, "rok", "lata", "lat") },
   srodek: { value: tenthsPercent },
   tort: { value: tenthsPercent },
+  zakupy: { value: points, tie: (n) => `${num(n / 1000)} s` },
   nozyczki: { value: tenthsPercent },
   mapa: { value: (n) => `${n} km` },
 };
@@ -79,7 +81,7 @@ export function RecordList({ gameId, rows, me, color, limit = 5 }: { gameId: str
             style={i === mine ? { color } : undefined}
           >
             {first ? (
-              <Crown size={20} weight="fill" className={`shrink-0 ${i === mine ? "" : "text-accent"}`} aria-label="1. miejsce" />
+              <Crown size={20} weight="fill" className={`shrink-0 ${i === mine ? "" : "text-fg"}`} aria-label="1. miejsce" />
             ) : (
               <span className={`w-6 font-mono font-semibold tabular-nums ${i === mine ? "" : "text-fg-muted"}`}>{placeAt(gameId, rows, i)}.</span>
             )}
@@ -154,17 +156,19 @@ export function RecordPanel({ gameId, before, after, nick, color, score }: Panel
           <span className="text-4xl font-semibold tabular-nums" style={{ color }}>
             {now.place}. miejsce
           </span>
-          <span className="font-mono text-sm text-fg-muted">z {now.of}</span>
+          <span className="font-mono text-sm text-fg-muted tabular-nums">z {now.of}</span>
         </p>
         <p className="mt-1 text-sm text-fg-muted">
           Ranking wszech czasów. {was && was.place > now.place ? `Awans z ${was.place}. miejsca. ` : ""}
-          {fresh
+          {/* Jednostka bywa skrótem z kropką („traf.”): zdanie nie kończy się wtedy dwiema. */}
+          {(fresh
             ? was
               ? `Poprzedni rekord: ${formatRecord(gameId, was)}.`
               : `Twój wynik: ${formatRecord(gameId, now)}.`
             : missed
               ? `Twój rekord: ${formatRecord(gameId, now)}, teraz zabrakło ${formatGap(gameId, missed)}.`
-              : `Wyrównany rekord: ${formatRecord(gameId, now)}.`}
+              : `Wyrównany rekord: ${formatRecord(gameId, now)}.`
+          ).replace("..", ".")}
         </p>
       </div>
 
@@ -188,7 +192,7 @@ export function RecordPanel({ gameId, before, after, nick, color, score }: Panel
 }
 
 /** Kolor lidera spoza pokoju: wartość `--color-fg` (gry wstawiają kolor gracza do atrybutów SVG, gdzie `var()` nie działa). */
-const LEADER_COLOR = "#ededef";
+const LEADER_COLOR = "var(--color-fg)";
 
 /** Rekordowa partia gry: ekran końcowy mini-gry z zapisanego stanu lidera, jak po partii solo. */
 function TopGame({ gameId, nick, color }: { gameId: string; nick: string; color?: string }) {
@@ -234,7 +238,7 @@ function GameCard({ game: { id, rows, mine }, nick, color, loaded, onOpen, onPla
   const lead = mine?.place === 1;
   return (
     // Wspólne `name` robi z kart akordeon: przeglądarka sama zamyka poprzednią.
-    <details name="rekordy" className={`group rounded-inset border bg-surface ${lead ? "border-line" : "border-accent/40"}`} onToggle={(e) => e.currentTarget.open && onOpen()}>
+    <details name="rekordy" className="group rounded-inset border border-line bg-surface" onToggle={(e) => e.currentTarget.open && onOpen()}>
       <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-3 py-2 [&::-webkit-details-marker]:hidden">
         <GameIcon size={20} className="shrink-0" aria-hidden />
         <span className="flex min-w-0 flex-1 flex-col">
@@ -243,7 +247,7 @@ function GameCard({ game: { id, rows, mine }, nick, color, loaded, onOpen, onPla
             <span className="truncate font-mono text-sm text-fg-muted tabular-nums">{formatRecord(id, mine)}</span>
           ) : (
             <span className="flex min-w-0 items-center gap-1.5 text-sm text-fg-muted">
-              <Crown size={14} weight="fill" className="shrink-0 text-accent" aria-label="Lider" />
+              <Crown size={14} weight="fill" className="shrink-0 text-fg" aria-label="Lider" />
               <span className="truncate">
                 {rows[0].nick}: {formatRecord(id, rows[0])}
                 {nick && ` · ty: ${mine ? formatRecord(id, mine) : "brak wyniku"}`}
@@ -261,20 +265,15 @@ function GameCard({ game: { id, rows, mine }, nick, color, loaded, onOpen, onPla
             {mine.place}/{mine.of}
           </span>
         )}
-        {!lead && onPlay && (
-          <button type="button" className="btn btn-ghost shrink-0 px-4" onClick={() => onPlay(id)}>
-            Pobij
-          </button>
-        )}
         <CaretDown size={14} className="shrink-0 text-fg-muted transition-transform group-open:rotate-180" aria-hidden />
       </summary>
       <div className="border-t border-line px-3 pb-3">
         <RecordList gameId={id} rows={rows} me={nick} color={color} limit={10} />
         {loaded && <TopGame gameId={id} nick={rows[0].nick} color={lead ? color : undefined} />}
-        {lead && onPlay && (
+        {onPlay && (
           <button type="button" className="btn btn-ghost mt-3 w-full" onClick={() => onPlay(id)}>
             <Play size={18} aria-hidden />
-            Zagraj ponownie
+            {lead ? "Zagraj ponownie" : "Pobij"}
           </button>
         )}
       </div>
@@ -418,7 +417,7 @@ function Wins({ ranking, me, color }: { ranking: Record<string, RankingRow[]>; m
         <div key={id} className="rounded-inset border border-line bg-surface px-3 py-2">
           <div className="flex justify-between gap-3">
             <h3>{title(id)}</h3>
-            <span className="text-xs text-fg-subtle" aria-hidden>
+            <span className="text-xs text-fg-muted" aria-hidden>
               wygrane z partii
             </span>
           </div>
@@ -429,7 +428,7 @@ function Wins({ ranking, me, color }: { ranking: Record<string, RankingRow[]>; m
               return (
                 <li key={r.nick} className="flex items-center gap-3 py-0.5" style={mine ? { color } : undefined}>
                   <span className={`flex w-6 font-mono tabular-nums ${mine ? "" : "text-fg-muted"}`}>
-                    {place === 1 ? <Crown size={14} weight="fill" className={mine ? "" : "text-accent"} aria-label="1. miejsce" /> : `${place}.`}
+                    {place === 1 ? <Crown size={14} weight="fill" className={mine ? "" : "text-fg"} aria-label="1. miejsce" /> : `${place}.`}
                   </span>
                   <span className="min-w-0 flex-1 truncate">
                     {r.nick}

@@ -122,6 +122,8 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
 - **W pamięci** (`w-pamieci`): do 12 rund, w każdej liczba startowa i kolejne działania („+7”, „−3”, „×2”) migają po 1,5 s, wyniku pośredniego nie widać; gracz wpisuje, ile wyszło. Ciąg wydłuża się o jedno działanie co rundę (od 2 do 13), wartości zostają w 1-99. Pierwsza pomyłka kończy partię; wynik = zaliczone rundy, przy remisie mniejsza odchyłka w rundzie z pomyłką, liczony na serwerze z odpowiedzi.
 - **Dziesiątki** (`dziesiatki`): 30 s, siatka 4×4 z liczbami 1-9; gracz dotyka dwóch pól dających razem 10 (nie muszą sąsiadować), para znika i wchodzą dwie nowe liczby z dostaw wylosowanych na serwerze (te same dla wszystkich). Na planszy zawsze jest co najmniej jedna para (`take`). Pomyłka blokuje na 1 s; wynik = liczba par, przy remisie niższa średnia, jak w Kolorze liter.
 - **Tort** (`tort`): 5 okrągłych tortów, każdy do podziału na 3-7 równych kawałków (każda liczba raz); jedno cięcie od środka leży już pod losowym kątem, resztę gracz stawia dotknięciem i może przesuwać, potem „Pokrój”. Błąd tortu = ile tortu trzeba by przełożyć, żeby kawałki były równe (połowa sumy odchyłek kawałków, w % tortu); wynik = suma błędów (mniej lepiej), liczona na serwerze z kątów cięć. Po każdym torcie przez 1,5 s widać idealne cięcia i błąd; na końcu tabela rund z wyróżnionym najlepszym w każdej.
+- **Za zasłoną** (`zaslona`): 8 rund, w każdej kulka toczy się ze stałą prędkością w prawo (widać ją 0,8-2 s), znika za zasłoną i jedzie jeszcze 1-4 s do mety (kreska na zasłonie); dotykasz w chwili, gdy dotrze. Czasy są losowane niezależnie, więc zmieniają się i prędkość, i szerokość zasłony; suma czasów za zasłoną to zawsze 20 s, żeby każda partia była równie trudna. Dotknięcie przed zniknięciem kulki jest ignorowane. Wynik = suma odchyłek w ms (każda ucięta do czasu za zasłoną, mniej lepiej), liczona na serwerze z czasów dotknięć. Po każdej rundzie przez 1,5 s widać, gdzie kulka była, i odchyłkę ze znakiem; na końcu tabela rund. Grający nie widzi limitu tury.
+- **Zakupy** (`zakupy`): jedna runda, przez 10 s widać listę 10 przedmiotów (emoji), potem z półki 20 zaznaczasz te z listy i zatwierdzasz „Gotowe”. Zaznaczać można dowolnie (0-20); wynik = trafienia − zaznaczenia spoza listy (nie mniej niż 0), przy remisie krótszy czas zaznaczania, liczony na serwerze z indeksów i czasu. Na końcu jedna półka z odpowiedzią i kropkami graczy przy zaznaczonych przedmiotach.
 - **Nożyczki** (`nozyczki`): 5 nieregularnych gładkich kształtów (losowych, w losowym miejscu pola), każdy przecinasz jednym ruchem palca: cięcie to prosta przez punkt dotknięcia i puszczenia, przedłużona przez cały kształt. Błąd = o ile udział części odbiega od połowy, w punktach procentowych (53% i 47% to 3,0); wynik = suma błędów (mniej lepiej), liczona na serwerze z pól po obu stronach prostej. Ruch za krótki albo obok kształtu jest ignorowany bez kary. Po cięciu przez 1,5 s widać obie części i ich udziały; na końcu tabela rund z wyróżnionym najlepszym w każdej.
 - 1-6 graczy naraz, każdy gra u siebie to samo wyzwanie (wylosowane na serwerze), na końcu ranking.
   Partia toczy się na kliencie (opóźnienie Wi-Fi zepsułoby pomiar), serwer dostaje tylko wynik i odrzuca nierealne wartości.
@@ -133,10 +135,10 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
 
 - **Rekordy**: po każdej skończonej mini-grze (także solo i w turnieju) serwer zapisuje wynik każdego gracza jako jedną liczbę
   (`record` w `GameDefinition`: `score` i kierunek `lower`) oraz, jeśli gra rozstrzyga remisy drugim kryterium, także je (`tie`: średnia reakcji
-  w grach na trafienia i punkty, trafione cele w Śledzeniu, szerokość klocka w Wieży, pęknięte balony w Balonie). Ranking gry to najlepszy wynik każdego nicku: główny wynik,
+  w grach na trafienia i punkty, trafione cele w Śledzeniu, szerokość klocka w Wieży, pęknięte balony w Balonie, czas zaznaczania w Zakupach). Ranking gry to najlepszy wynik każdego nicku: główny wynik,
   potem drugie kryterium („12 traf. · 256 ms”), a przy całkiem równych wyżej wcześniejszy. Widać go w trzech miejscach: panel po partii (`RecordPanel`: miejsce wszech czasów, „Nowy rekord!” po pobiciu własnego albo „Pierwszy wynik”, awans,
   ile brakuje do osoby wyżej), lista po wybraniu gry i linia „Rekord: …” na ekranie instrukcji, oraz ekran „Rekordy” (`Records.tsx`, z ekranu głównego i z listy mini-gier):
-  trzy sekcje: „Twoje rekordy” (gry, w których gracz prowadzi), „Do pobicia” (rekord ma ktoś inny; lider z czerwoną koroną, własny rekord w kolorze gracza)
+  trzy sekcje: „Twoje rekordy” (gry, w których gracz prowadzi), „Do pobicia” (rekord ma ktoś inny; lider z jasną koroną, własny rekord w kolorze gracza)
   i „Jeszcze nie grane”. Karty gier to akordeon (otwarta jedna naraz); gospodarz w pokoju ma w nich „Pobij” i „Zagraj ponownie”, które wybierają grę na liście mini-gier. Miejsca liczy wspólne `standing` (core.ts), jednostki wyniku trzyma `FORMAT` w `Records.tsx`.
   Lider każdej listy ma własny kafel z koroną. Serwer trzyma też **rekordową partię** każdej gry: stan lidera przycięty do jednego gracza (`soloState` w core.ts,
   gracz pod id `SOLO`, bez id sesji; kolumna `detail`, jedna partia na grę). Ekran „Rekordy” po rozwinięciu gry pobiera ją z `/api/records/:gameId/top`
@@ -214,7 +216,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
 - Rewanż po zgodzie wszystkich grających, kolejność miejsc rotuje (poza mini-grami, gdzie wszyscy grają naraz); do lobby może wrócić każdy.
 - W mini-grach (gry solo, `minPlayers: 1`) limit rusza po ekranie instrukcji: gdy wszyscy klikną „Start” albo po 15 s.
 - Limit tury: 60 s w większości gier; dłużej w Sekwencji, Śledzeniu i W pamięci (300 s), Który rok? (240 s), Tabeli Schultego, Odcieniu, Wieży, Mapie i Trzech kubkach (180 s),
-  Narysuj koło, Sudoku, Policz kropki, Kąt, Przytrzymaj, Balon i Tort (120 s), Kolorze liter, Liczeniu, Innym elemencie, Obrocie, Literówce i Dziesiątkach (90 s); Państwa-miasta mają limit per faza, Statki 90 s na całe rozstawianie, Chińczyk w trybie Szybkim 20 s.
+  Narysuj koło, Sudoku, Policz kropki, Kąt, Przytrzymaj, Za zasłoną, Balon i Tort (120 s), Kolorze liter, Liczeniu, Innym elemencie, Obrocie, Literówce i Dziesiątkach (90 s); Państwa-miasta mają limit per faza, Statki 90 s na całe rozstawianie, Chińczyk w trybie Szybkim 20 s.
 - Gdy gracz z miejscem zniknie z pokoju w trakcie partii (wyjdzie sam albo nie wróci w 10 minut), partia się kończy:
   jeśli został jeden gracz, wygrywa walkowerem; przy większej liczbie kończy się bez zwycięzcy.
 - Lobby: gospodarz wybiera grę i daje start, goście potwierdzają gotowość; każdy może zmienić swój kolor
@@ -255,7 +257,7 @@ Prościej i bezpiecznie dla gier z ukrytymi informacjami.
 ## 5. Struktura repozytorium
 
 ```
-mini-games/
+kwadrans/
 ├─ packages/
 │  └─ games/src/   # core.ts (kontrakt, RNG, utilsy), lobby.ts, turniej.ts, index.ts (GAMES),
 │                  # <gra>.ts + <gra>.test.ts dla każdej gry (płasko)
@@ -308,7 +310,7 @@ podpięcie w `screens/Game.tsx` i ikona w `screens/Lobby.tsx`.
 | 5 | Kampus Tour: dodatki (Kolokwium, Juwenalia, karty, wykupienie, Bilet MPK, monopol) | Pełna wersja (gotowe) |
 | 6 | Poprawka | Gra karciana (do zrobienia) |
 | 7 | PWA, animacje, statystyki, szlify | Polerka (PWA, ranking po nicku i rekordy mini-gier gotowe) |
-| + | Chińczyk, Memory, mini-gry (28 sztuk), Państwa-miasta, Turniej z mini-gier | Poza planem (gotowe) |
+| + | Chińczyk, Memory, mini-gry (30 sztuk), Państwa-miasta, Turniej z mini-gier | Poza planem (gotowe) |
 | dalej | Zapis stanu pokoi w SQLite | Do zrobienia |
 
 ## 8a. Sposób pracy

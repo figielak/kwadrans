@@ -1,4 +1,4 @@
-import { KROPKI_ROUNDS, KROPKI_SHOW_MS, type KropkiView, type LobbyPlayer } from "@mini-games/games";
+import { KROPKI_ROUNDS, KROPKI_SHOW_MS, type KropkiView, type LobbyPlayer } from "@kwadrans/games";
 import { Szacowanie } from "./Szacowanie.tsx";
 
 interface Props {

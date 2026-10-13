@@ -1,4 +1,4 @@
-import { type LobbyPlayer, SCHULTE_PENALTY_MS, SCHULTE_SIZE, type SchulteView, schulteTotal } from "@mini-games/games";
+import { type LobbyPlayer, SCHULTE_PENALTY_MS, SCHULTE_SIZE, type SchulteView, schulteTotal } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
 
@@ -200,7 +200,7 @@ function SplitChart({ series }: { series: { id: string; nick: string; color?: st
           <span key={s.id} className="flex items-center gap-2">
             <span className="h-0.5 w-3 rounded-full" style={{ backgroundColor: s.color }} aria-hidden />
             <span className="flex-1 text-fg">{s.nick}</span>
-            <span className="font-mono">
+            <span className="font-mono tabular-nums">
               najdłużej {slowest(s.splits) + 1} ({seconds(Math.max(...s.splits))} s)
             </span>
           </span>

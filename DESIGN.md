@@ -1,0 +1,171 @@
+# DESIGN.md
+
+Styl wizualny Kwadransa: jak strona wygląda i dlaczego. Opis powstał z przeglądu ekranów na 360×640
+(ekran główny, lobby, lista mini-gier, rekordy, ekran instrukcji, partia).
+
+Źródłem wartości jest kod: tokeny i klasy w `apps/web/src/index.css`, wspólne komponenty w `apps/web/src/screens/ui.tsx`.
+Reguły odbioru nowej gry (pola dotykowe, czasy animacji, wibracje) są w `ZASADY.md`, sekcje 4 i 5; tutaj ich nie powtarzamy.
+
+## 1. Charakter
+
+Ciemny, cichy, techniczny. Telefon leży na ławce w czasie wykładu, więc ekran nie świeci, nie miga i nie gra.
+Wygląd jest przedłużeniem figielak.dev: te same tokeny, ten sam krój, te same przyciski w kształcie pigułki.
+
+Trzy rzeczy budują cały styl:
+
+1. **Prawie czarne tło z jedną poświatą.** W prawym górnym rogu leży nieruchomy gradient radialny (16% koloru, 60vmax).
+   Domyślnie ma kolor akcentu, a w partii kolor gracza, na którego wszyscy czekają (`--ambient`), więc o turze mówi całe tło.
+2. **Jedna czerwień na ekran.** Akcent `#ff2445` dostaje jeden wypełniony przycisk, czyli najważniejsza akcja ekranu. Reszta to obrysy.
+3. **Dwa kroje o dwóch rolach.** Satoshi mówi (nazwy, zdania, przyciski), Geist Mono liczy (kody, wyniki, czasy, podpisy sekcji).
+
+## 2. Tokeny
+
+### Kolory
+
+| Token | Wartość | Rola |
+|---|---|---|
+| `bg` | `#0e0e10` | tło strony, wnętrze podglądu na ekranie instrukcji |
+| `surface` | `#161618` | pełne powierzchnie: pasek statystyk, karty rekordów |
+| `surface-inset` | `#111113` | pola formularza |
+| `surface-glass` | `rgb(22 22 24 / 0.55)` + blur 16 px | kafel `.tile`, przez który przebija poświata |
+| `line` | biel 8% | każdy obrys i separator |
+| `line-hover` | biel 16% | obrys pola formularza i przycisku pod kursorem |
+| `fg` | `#ededef` | tekst |
+| `fg-muted` | `#8b8b92` | opisy, podpisy, ikony pomocnicze |
+| `fg-subtle` | `#5c5c63` | tylko nieistotne detale (kontrast poniżej 4,5:1) |
+| `accent` | `#ff2445` | główna akcja, focus, zaznaczony kafel |
+| `accent-soft` | akcent 12% | tło ikony wyzwania dnia, pasek „Łączenie ponownie…” |
+| `accent-fg` | `#0e0e10` | tekst na akcencie (grafit ma 5,1:1, biały tylko 3,8:1) |
+| `warning` | `#ff6369` | ostatnie 10 s limitu, pomyłka, kara, błąd formularza, bodziec „nie wolno” w Stój! (zawsze z ikoną i tekstem) |
+| `success` | `#3dd68c` | trafienie, bodziec „dotknij” (Refleks, Stój!) |
+
+Kolory graczy to dane, nie dekoracja (`PLAYER_COLORS` w `lobby.ts`): `#3b9eff`, `#ffc53d`, `#46a758`, `#8e7cff`, `#0ac5b3`, `#f76fbe`.
+Żaden nie przypomina czerwieni akcentu. Wszystko, co jest „moje” albo „czyjeś” (tytuł gry w partii, pasek limitu, pionki,
+„1. miejsce” na kaflu mini-gry), ma kolor gracza.
+
+Głębię robią obrys 1 px i przezroczystość, nie cienie. Cień mają tylko rzeczy, które naprawdę leżą nad planszą
+(okna i pionki w Kampus Tour) oraz animacja `set-glow`.
+
+### Typografia
+
+| Rola | Krój i rozmiar |
+|---|---|
+| tytuł ekranu („Kwadrans”, „Rekordy”) | Satoshi 30 px, 600, `tracking-tight` |
+| kod pokoju w lobby | Geist Mono 60 px, 500, odstęp liter 0,12em |
+| nazwa, zdanie, przycisk | Satoshi 16 px, przycisk 500, wyróżnienie 600 |
+| opis pod nazwą | Satoshi 14 px, `fg-muted` |
+| liczba w pasku statystyk | Geist Mono 18 px, 600, `tabular-nums` |
+| podpis sekcji `.label` | Geist Mono 11 px, wersaliki, odstęp liter 0,08em, `fg-muted` |
+| podpis na kaflu gry | Geist Mono 12 px, `fg-muted` |
+
+Hierarchię robi kontrast kroju i jasności, nie rozmiar: większość ekranu to 14-16 px, a duże są tylko tytuł i kod pokoju.
+
+### Kształt i odstępy
+
+- Zaokrąglenia: 20 px (kafel), 10 px (wszystko w kaflu i małe kafle gier), 999 px (przyciski, kropki graczy).
+- Jedna kolumna `max-w-md`, margines boczny 16 px, odstęp między blokami 12 px, wnętrze kafla 20 px (gęste listy 12-16 px).
+- Każde pole dotykowe ma co najmniej 48 px wysokości; akcje leżą przy dolnej krawędzi, w zasięgu kciuka.
+- Ikony Phosphor: `regular` domyślnie, `fill` dla wyróżnionej (wyzwanie dnia, korona), `bold` w małych akcjach (16-18 px).
+
+## 3. Wzorcowe sekcje
+
+Te fragmenty najlepiej oddają styl. Nowy ekran powinien wyglądać jak ich rodzeństwo.
+
+### 3.1 Karta „Sam” na ekranie głównym (`Home.tsx`)
+
+Najlepszy przykład hierarchii. Od góry: ikona gry w kwadracie `accent-soft`, nazwa pogrubiona i jedna linia stanu,
+potem jedyny wypełniony przycisk ekranu („Zagraj”) na pełną szerokość, pod nim dwa równe przyciski z obrysem.
+Wzrok ląduje na czerwieni bez żadnego nagłówka, a „Dołącz” w sąsiedniej karcie dostaje akcent dopiero po wpisaniu pełnego kodu.
+
+Do skopiowania: jedna akcja wypełniona, pozostałe `btn-ghost`; podpis sekcji z małą ikoną leży nad kaflem, nie w nim.
+
+### 3.2 Kod pokoju w lobby (`Code` w `Lobby.tsx`)
+
+Jedyny naprawdę duży element aplikacji: cztery znaki mono 60 px z szerokim odstępem, nad nimi `.label`, obok okrągły przycisk udostępniania.
+Kod jest tu treścią ekranu, więc dostaje rozmiar plakatu, a instrukcja pod nim zostaje w 14 px `fg-muted`.
+
+Do skopiowania: gdy ekran ma jedną informację do przekazania, powiększ ją i wycisz resztę, zamiast dodawać ramki i kolory.
+
+### 3.3 Ekran instrukcji mini-gry (`Intro` w `ui.tsx`)
+
+Kafel wyśrodkowany w pionie: animowany podgląd 128 px na tle `bg`, trzy punkty z ikonami (czas, zadanie, punktacja),
+przycisk „Start” i wyciszona linia odliczania. Gracz rozumie grę w 3 sekundy, bo podgląd pokazuje ją w ruchu, a tekst ma trzy linie.
+
+Do skopiowania: stały szkielet zamiast dowolnego opisu; ikony `fg-muted` w roli wypunktowania.
+
+### 3.4 Nagłówek partii i pasek statystyk (`Game.tsx`, `Stats` w `ui.tsx`)
+
+Tytuł gry w kolorze gracza, pod nim cienki pasek limitu (6 px, pigułka) w tym samym kolorze i sekundy mono;
+tło strony przyjmuje ten sam odcień przez `--ambient`. Niżej `Stats`: trzy liczby mono 18 px, każda pod własnym `.label`,
+skrajne wyrównane do krawędzi. Pole gry zajmuje całą resztę ekranu i jest jedyną dużą plamą koloru.
+
+Do skopiowania: kolor gracza niesie stan (czyja tura, ile czasu), interfejs wokół zostaje szary; liczby zawsze z etykietą i `tabular-nums`.
+
+### 3.5 Siatka mini-gier (`MiniGameGrid` w `MiniGames.tsx`)
+
+Trzy kolumny małych kafli (10 px, min. 80 px wysokości): ikona, nazwa 14 px, na dole linia mono ze stanem („2. miejsce”, „nie grane”).
+Grupy rozdziela zwykły wyciszony nagłówek (Satoshi 14 px, `fg-muted`), bez ramek. Pierwsze miejsce gracza świeci jego kolorem i jest jedynym kolorem w całej siatce.
+
+Do skopiowania: przy dużej liczbie elementów kolor zostaje dla wyjątków, a porządek robi siatka i stała pozycja podpisu.
+
+## 4. Stany
+
+Stan pokazują obrys, przezroczystość i waga ikony, nie nowy kolor. Opis odpowiada temu, co jest w kodzie.
+
+| Stan | Wygląd | Przykład |
+|---|---|---|
+| focus (klawiatura) | obrys 2 px `accent`, odsunięty o 2 px | `.btn`, `.field`, suwak koloru |
+| pole w edycji | ramka `accent` zamiast `line-hover` | kod pokoju, nick |
+| przycisk nieaktywny | krycie 40%, bez reakcji na dotyk | „Dołącz” bez pełnego kodu (dodatkowo `btn-ghost` zamiast `btn-primary`) |
+| kafel zaznaczony | ramka `accent`, tło `accent-soft`, ikona `fill`, `aria-pressed` | wybrana gra w lobby |
+| kafel przygaszony, ale do wybrania | krycie 60%, podpis mówi dlaczego („brakuje 1 gracza”) | gra, do której jest za mało osób |
+| kafel nieaktywny | krycie 40%, `disabled`, podpis mówi dlaczego („max 2 os.”) | gra, do której jest za dużo osób |
+| turniej: losowo | zwykły kafel | stan domyślny każdej gry |
+| turniej: na pewno | jak kafel zaznaczony, plus znaczek i podpis „na pewno” | pierwsze dotknięcie |
+| turniej: bez | ramka `line`, krycie 50% | drugie dotknięcie |
+| wybrany kolor gracza | obrys 2 px `fg`, odsunięty o 2 px | próbki koloru w lobby |
+| ładowanie | tekst przycisku zmienia się na czasownik z wielokropkiem, wszystkie akcje ekranu nieaktywne; bez spinnera | „Łączenie…”, „Tworzenie…” |
+| stan pusty | jedno zdanie `fg-muted` w miejscu treści, bez ilustracji | „Dziś nikt jeszcze nie grał”, „nie grane” |
+| błąd formularza | ikona i tekst 14 px w `warning` pod polem (`role="alert"`); ramka i obrys focusu pola też w `warning`, zamiast akcentu | zły kod pokoju (`Problem` w `Home.tsx`) |
+| lider rankingu | korona `fill`: w `fg` przy cudzym rekordzie, w kolorze gracza przy własnym | ekran „Rekordy” |
+| bodziec w grze na refleks | przed sygnałem pole `surface` z szarym napisem, sygnał to `success` z ciemnym napisem, bez przejścia | „Czekaj…” i „Teraz!” w Refleksie |
+| utrata połączenia (ja) | pasek `accent-soft` z ikoną na górze ekranu | „Łączenie ponownie…” |
+| gracz rozłączony | kropka z kryciem 40%; w partii przerywany obrys zamiast pierścienia | `PlayerDots`, `GameDots` |
+| gracz czyta zasady | kropka z kryciem 40%, pierścień zostaje | `GameDots` na ekranie instrukcji |
+| gracz gotowy | znaczek w kropce | `PlayerDots` w górnym pasku |
+| postęp gracza | pierścień wokół kropki w jego kolorze, pełny po oddaniu wyniku | `GameDots` w partii |
+| to ja | kreska pod kropką, „(ty)” przy nicku | `GameDots`, tabele wyników |
+| koniec czasu | sekundy w `warning` przez ostatnie 10 s | pasek limitu |
+
+Każdy stan, który coś blokuje, tłumaczy się podpisem; samo przygaszenie nie wystarcza.
+
+## 5. Zasady, które z tego wynikają
+
+- **Akcent jest rzadki.** Jeśli na ekranie są dwa czerwone elementy, jeden z nich jest zbędny. Link w tekście („zmień”) to `fg-muted` z podkreśleniem.
+- **Akcent należy do platformy, kolor gracza do partii.** Wypełniony akcentem jest przycisk, który prowadzi przez aplikację
+  („Zagraj”, „Start”, gotowość, „Rewanż”, „Dalej”, „Jeszcze raz”). Akcja w trakcie partii („Zatwierdź”, „Gotowe”, „Rzuć”, „Zgarnij”)
+  jest wypełniona kolorem gracza z tekstem `bg`: `btn text-bg` i `backgroundColor` z koloru gracza.
+- **Kolor nigdy nie jest jedynym sygnałem.** Błąd ma ikonę i tekst, bodziec ma napis i skok jasności, stan nieaktywny ma podpis.
+- **Kolor znaczy.** `accent`: zrób to, tu jesteś (focus) albo to wybrane. `warning`: problem (czas, pomyłka, kara). Kolor gracza: to czyjeś. Zieleń: dobrze. Szarości: wszystko inne.
+- **Obrys przed wypełnieniem.** Karty, przyciski drugorzędne i pola mają obrys 1 px w `line`; pełne tło dostaje tylko to, co ma przyciągać.
+- **Liczby są mono.** Kod, wynik, czas, miejsce i licznik idą Geist Mono z `tabular-nums`, żeby nie skakały przy zmianie.
+  Liczby nad polem gry to zawsze pasek `Stats`, tabela rund po partii to `RoundTable` (oba w `ui.tsx`).
+- **Podpis to `.label`.** Nagłówek nad blokiem (kaflem, sekcją ekranu) i etykieta liczby to małe wersaliki mono, nigdy pogrubiony Satoshi.
+  Wyjątek: grupy wewnątrz jednej listy (kategorie w siatce mini-gier, sekcje ekranu „Rekordy”) mają zwykły Satoshi 14 px `fg-muted`,
+  bo `.label` nad każdą grupą konkurowałby z podpisami mono na kaflach.
+- **Ruch tłumaczy, nie zdobi.** Poświata jest nieruchoma, animacja pokazuje tylko to, co się właśnie stało (szczegóły: `ZASADY.md`, sekcja 5).
+- **Tylko ciemny motyw, teksty po polsku, bez em-dashy, z przecinkiem dziesiętnym.**
+
+## 6. Wyjątki i rozbieżności
+
+Świadome wyjątki od zasad z sekcji 5:
+
+- **Kolory będące treścią gry** nie są interfejsem i nie muszą pochodzić z tokenów: pola Sekwencji, napisy Koloru liter,
+  figury Innego elementu, próbki Odcienia, grupy pól w Kampus Tour.
+- **Statki**: trafienie i zatopiony statek są w `accent`. To utrwalony znak tej gry, czerwień nie oznacza tam akcji.
+- **Kampus Tour** ma własny układ poziomy, cienie pod oknami i pionkami oraz przyciski budowy o wysokości 44 px (plansza nie zostawia miejsca na 48).
+
+Rozbieżności do decyzji (nie są wzorem dla nowych ekranów):
+
+- **Gry główne na 360×640.** Rozstawianie w Statkach (około 770 px), Gomoku (około 670 px) i Państwa-miasta wymagają przewinięcia;
+  mini-gry i pozostałe ekrany mieszczą się w 640 px.

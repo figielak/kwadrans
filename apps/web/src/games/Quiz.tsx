@@ -1,4 +1,4 @@
-import { type LobbyPlayer, QUIZ_DURATION_MS, type QuizMove } from "@mini-games/games";
+import { type LobbyPlayer, QUIZ_DURATION_MS, type QuizMove } from "@kwadrans/games";
 import { Trophy } from "@phosphor-icons/react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
@@ -88,10 +88,10 @@ export function Results({
           {rows.map((r, i) => (
             <tr
               key={r.id}
-              className={`text-right ${r.id === winner ? "font-semibold" : ""}`}
+              className={`text-right font-mono text-sm ${r.id === winner ? "font-semibold" : ""}`}
               style={r.id === winner ? { backgroundColor: `color-mix(in srgb, ${r.color} 16%, transparent)` } : undefined}
             >
-              <td className="max-w-0 rounded-l-inset px-2 py-1.5 text-left">
+              <td className="max-w-0 rounded-l-inset px-2 py-1.5 text-left font-sans text-base">
                 <span className="flex items-center gap-2">
                   {r.id === winner ? (
                     <Trophy size={16} weight="fill" color={r.color} className="w-5 shrink-0" aria-label="Zwycięzca" />
@@ -110,13 +110,13 @@ export function Results({
                 </span>
               </td>
               {!r.res ? (
-                <td colSpan={3} className="rounded-r-inset px-2 text-fg-muted">
+                <td colSpan={3} className="rounded-r-inset px-2 font-sans text-fg-muted">
                   gra…
                 </td>
               ) : (
                 <>
                   {r.avg === null ? (
-                    <td colSpan={2} className="px-1.5 text-fg-muted">
+                    <td colSpan={2} className="px-1.5 font-sans text-fg-muted">
                       brak trafień
                     </td>
                   ) : (

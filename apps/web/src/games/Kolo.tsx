@@ -1,4 +1,4 @@
-import { KOLO_ATTEMPTS, KOLO_MAX_POINTS, koloJudge, type KoloPoint, type KoloView, type LobbyPlayer } from "@mini-games/games";
+import { KOLO_ATTEMPTS, KOLO_MAX_POINTS, koloJudge, type KoloPoint, type KoloView, type LobbyPlayer } from "@kwadrans/games";
 import { type PointerEvent, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
 
@@ -206,7 +206,7 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
           </svg>
           {last ? (
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1">
-              <span className="font-mono text-5xl">{percent(last.score)}</span>
+              <span className="font-mono text-5xl tabular-nums">{percent(last.score)}</span>
               <span className={last.record ? "text-success" : "text-fg-muted"}>{last.note}</span>
             </div>
           ) : (
@@ -264,7 +264,7 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
                     <figcaption className="flex justify-between gap-2 text-sm text-fg-muted">
                       {label}
                       {/* Najlepszy wynik jest już w nagłówku karty. */}
-                      {label === "Najgorsza" && <span className="font-mono text-fg">{percent(attempt.score)}</span>}
+                      {label === "Najgorsza" && <span className="font-mono text-fg tabular-nums">{percent(attempt.score)}</span>}
                     </figcaption>
                   </figure>
                 );

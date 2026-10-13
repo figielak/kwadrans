@@ -1,4 +1,4 @@
-import type { InnySymbol, InnyView, LobbyPlayer, QuizMove } from "@mini-games/games";
+import type { InnySymbol, InnyView, LobbyPlayer, QuizMove } from "@kwadrans/games";
 import { Quiz, QuizPreview } from "./Quiz.tsx";
 
 interface Props {

@@ -1,6 +1,6 @@
-import { type LobbyPlayer, MAPA_ASPECT, MAPA_OUTLINE, MAPA_ROUNDS, mapaError, type MapaPoint, mapaPlace, type MapaView } from "@mini-games/games";
-import { Fragment, type PointerEvent, useEffect, useState } from "react";
-import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { type LobbyPlayer, MAPA_ASPECT, MAPA_OUTLINE, MAPA_ROUNDS, mapaError, type MapaPoint, mapaPlace, type MapaView } from "@kwadrans/games";
+import { type PointerEvent, useEffect, useState } from "react";
+import { grade as gradeBy, Intro, RoundTable, Scores, Stats } from "../screens/ui.tsx";
 
 interface Props {
   view: MapaView;
@@ -26,8 +26,7 @@ const CONTOUR = `M${MAPA_OUTLINE.map(([lon, lat]) => {
 }).join("L")}Z`;
 
 const km = (n: number) => `${n} km`;
-const grade = (d: number) =>
-  d <= PERFECT ? { text: "text-success", stroke: "stroke-success" } : d <= CLOSE ? { text: "", stroke: "stroke-fg" } : { text: "text-warning", stroke: "stroke-warning" };
+const grade = (d: number) => gradeBy(d, PERFECT, CLOSE);
 
 function Contour() {
   return <path d={CONTOUR} className="fill-bg stroke-fg-muted" strokeWidth={0.6} strokeLinejoin="round" />;
@@ -96,44 +95,20 @@ export function Mapa({ view, me, players, ranking, onMove }: Props) {
   if (!playing || phase === "sent") {
     // Na koniec rundy wszystkich w jednej tabeli; w trakcie tylko własne.
     const shown = rows.filter((r) => (over || r.me) && view.taps[r.id]).map((r) => ({ ...r, errors: distances(view.taps[r.id]) }));
-    const played = shown.filter((r) => r.errors.length);
-    /** Kto wygrał rundę: jedyny najmniejszy błąd, przy remisie albo jednym graczu nikt. */
-    const best = (round: number) => {
-      const sorted = [...played].sort((a, b) => a.errors[round] - b.errors[round]);
-      return sorted.length > 1 && sorted[0].errors[round] < sorted[1].errors[round] ? sorted[0].id : null;
-    };
     return (
       <>
         <Scores rows={rows} />
         <p className="text-sm text-fg-muted">Suma odległości z {MAPA_ROUNDS} rund, mniej znaczy lepiej.</p>
         {shown.length > 0 && (
-          <section className="tile flex flex-col gap-2 p-3">
-            <div className="grid grid-cols-10 gap-1 text-center font-mono text-[11px] tabular-nums">
-              {view.cities.map((_, i) => (
-                <span key={i} className="text-fg-muted">
-                  {i + 1}
-                </span>
-              ))}
-              {shown.map((r) => (
-                <Fragment key={r.id}>
-                  <span className="col-span-10 mt-1 flex items-center gap-2 text-left font-sans text-sm">
-                    <span className="size-2 rounded-full" style={{ backgroundColor: r.color }} aria-hidden />
-                    {r.nick}
-                    {r.me && <span className="text-fg-muted">(ty)</span>}
-                    {!r.errors.length && <span className="text-fg-muted">bez odpowiedzi</span>}
-                  </span>
-                  {r.errors.map((d, i) => (
-                    <span
-                      key={i}
-                      className={`rounded-md border py-1 ${grade(d).text} ${d <= PERFECT ? "font-semibold" : ""} ${best(i) === r.id ? "" : "border-line"}`}
-                      style={best(i) === r.id ? { borderColor: r.color, backgroundColor: `color-mix(in srgb, ${r.color} 28%, transparent)` } : undefined}
-                    >
-                      {d}
-                    </span>
-                  ))}
-                </Fragment>
-              ))}
-            </div>
+          <RoundTable
+            heads={view.cities.map((_, i) => i + 1)}
+            rows={shown}
+            perfect={PERFECT}
+            close={CLOSE}
+            unit="km"
+            format={(d) => `${d}`}
+            legend={`Zielony: do ${PERFECT} km, czerwony: ponad ${CLOSE} km.`}
+          >
             <ol className="grid grid-cols-2 gap-x-3 text-xs text-fg-muted">
               {view.cities.map((c, i) => (
                 <li key={c.name} className="truncate">
@@ -141,10 +116,7 @@ export function Mapa({ view, me, players, ranking, onMove }: Props) {
                 </li>
               ))}
             </ol>
-            <p className="text-xs text-fg-muted">
-              Odległość w każdej rundzie (km){played.length > 1 && "; tło w kolorze gracza ma najlepszy w rundzie"}. Zielony: do {PERFECT} km, czerwony: ponad {CLOSE} km.
-            </p>
-          </section>
+          </RoundTable>
         )}
       </>
     );
@@ -216,7 +188,7 @@ export function Mapa({ view, me, players, ranking, onMove }: Props) {
             <span className={`font-mono text-3xl font-semibold tabular-nums ${grade(error).text}`}>{km(error)}</span>
           </>
         ) : (
-          <button type="button" className="btn btn-primary w-full" disabled={!pin} onClick={confirm}>
+          <button type="button" className="btn w-full text-bg" style={{ backgroundColor: color }} disabled={!pin} onClick={confirm}>
             {pin ? "Zatwierdź" : "Dotknij mapy"}
           </button>
         )}
