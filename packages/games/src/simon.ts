@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { type GameDefinition, type PlayerId, ranked } from "./core.ts";
 
-/** Dłuższej serii nikt nie powtórzy na wykładzie. */
+/** Dłuższej serii nikt nie powtórzy. */
 const LENGTH = 100;
 
 export type Move = { type: "result"; score: number };

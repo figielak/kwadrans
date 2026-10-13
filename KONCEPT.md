@@ -1,6 +1,6 @@
 # Kwadrans (games.figielak.dev) — koncept
 
-Prywatna platforma z grami multiplayer w przeglądarce, do grania ze znajomymi na wykładach.
+Prywatna platforma z grami multiplayer w przeglądarce, do grania ze znajomymi.
 Jedna strona, kod pokoju, każdy gra na swoim telefonie.
 
 ## 1. Założenia
@@ -23,7 +23,7 @@ Jedna strona, kod pokoju, każdy gra na swoim telefonie.
   W rankingach gracza rozpoznaje `nickKey` (bez wielkości liter, polskich znaków i nadmiarowych spacji: „Ala” i „ala” to jedna osoba), pokazywana jest ostatnia pisownia.
 - **Dostęp**: strona publiczna, ale do gry trzeba znać kod pokoju. Brak publicznej listy pokoi.
 - **Odporność na słabe Wi-Fi**: automatyczne ponowne łączenie, stan gry zawsze po stronie serwera.
-- **Tryb wykładowy**: domyślnie bez dźwięku (jedyny wyjątek to klik metronomu w Rytmie), ciemny motyw, wibracje zamiast powiadomień, limit czasu na turę.
+- **Tryb cichy**: domyślnie bez dźwięku (jedyny wyjątek to klik metronomu w Rytmie), ciemny motyw, wibracje zamiast powiadomień, limit czasu na turę.
 
 ## 2. Gry
 
@@ -227,7 +227,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
   gdy gospodarz wybierze grę. Mini-gry mają zasady narzucone z góry, bez trybów.
 - Turniej ma ekran ustawień (`TournamentSetup` w `Setup.tsx`): `pickTournament` (gospodarz) ustawia liczbę gier, `markGame` (każdy) zaznacza jedną grę; obie kasują gotowość gości.
   W trakcie turnieju `gameId` to bieżąca gra, a `tournament` w `RoomView` niesie listę gier i punkty; „Dalej” między grami to wiadomość `rematch`.
-- Limit 3 pokoi na IP (pokoje gry solo liczone osobno, do 20: cała sala na uczelnianym Wi-Fi ma jedno IP), rate limit 10 wiadomości/s na klienta.
+- Limit 3 pokoi na IP (pokoje gry solo liczone osobno, do 20: wszyscy na jednym Wi-Fi mają jedno IP), rate limit 10 wiadomości/s na klienta.
 
 **Platforma (skorupa)** jest wspólna dla wszystkich gier: pokoje z 4-znakowym kodem
 (bez mylących znaków typu O/0, I/1), lobby z wyborem gry, nicki i kolory graczy,

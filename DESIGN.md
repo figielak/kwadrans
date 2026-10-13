@@ -8,7 +8,7 @@ Reguły odbioru nowej gry (pola dotykowe, czasy animacji, wibracje) są w `ZASAD
 
 ## 1. Charakter
 
-Ciemny, cichy, techniczny. Telefon leży na ławce w czasie wykładu, więc ekran nie świeci, nie miga i nie gra.
+Ciemny, cichy, techniczny. Telefon często leży obok, a wokół są inni ludzie, więc ekran nie świeci, nie miga i nie gra.
 Wygląd jest przedłużeniem figielak.dev: te same tokeny, ten sam krój, te same przyciski w kształcie pigułki.
 
 Trzy rzeczy budują cały styl:

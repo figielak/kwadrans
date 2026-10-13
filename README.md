@@ -5,7 +5,7 @@
 <h1 align="center">Kwadrans</h1>
 
 <p align="center">
-  Gry multiplayer w przeglądarce, do grania ze znajomymi na wykładach.<br />
+  Gry multiplayer w przeglądarce, do grania ze znajomymi.<br />
   Jedna strona, kod pokoju, każdy gra na swoim telefonie.
 </p>
 
@@ -19,7 +19,7 @@
 
 - **Bez kont i instalacji.** Wpisujesz nick i czteroznakowy kod pokoju. Stronę można dodać do ekranu głównego jako PWA.
 - **Do 6 graczy w pokoju**, kilka pokoi równolegle; kto nie ma miejsca przy stole, ogląda.
-- **Tryb wykładowy.** Ciemny motyw, bez dźwięku, wibracje zamiast powiadomień, limit czasu na turę.
+- **Tryb cichy.** Ciemny motyw, bez dźwięku, wibracje zamiast powiadomień, limit czasu na turę.
 - **Odporność na słabe Wi-Fi.** Stan gry żyje na serwerze, klient łączy się ponownie sam, a po odświeżeniu strony wracasz do partii.
 - **Także w pojedynkę.** Wyzwanie dnia (jedna mini-gra dziennie, ta sama dla wszystkich) i rekordy wszech czasów w każdej mini-grze.
 

@@ -31,10 +31,10 @@ import {
 } from "@kwadrans/games";
 import { openStats } from "./stats.ts";
 
-const RECONNECT_SECONDS = 10 * 60; // telefon na wykładzie śpi między turami
+const RECONNECT_SECONDS = 10 * 60; // telefon śpi między turami
 const IDLE_MS = 60 * 60 * 1000;
 const ROOMS_PER_IP = 3;
-// Pokoje solo liczą się osobno: cała sala na jednym uczelnianym Wi-Fi ma jedno IP.
+// Pokoje solo liczą się osobno: wszyscy na jednym Wi-Fi mają jedno IP.
 const SOLO_ROOMS_PER_IP = 20;
 const MESSAGES_PER_SECOND = 10;
 

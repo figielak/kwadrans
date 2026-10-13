@@ -48,7 +48,7 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Poświata jak na dashboardzie figielak.dev, ale słabsza i nieruchoma: telefon na wykładzie nie ma świecić.
+/* Poświata jak na dashboardzie figielak.dev, ale słabsza i nieruchoma: telefon nie ma świecić.
    W partii --ambient (ustawiane w Game.tsx) to kolor gracza, który ma ruch. */
 body::before {
   content: "";
