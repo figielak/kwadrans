@@ -10,7 +10,7 @@ import {
   STATKI_MODES,
   type StatkiRules as Rules,
   type StatkiView,
-} from "@mini-games/games";
+} from "@kwadrans/games";
 import { type CSSProperties, type PointerEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { StickyBar } from "../screens/ui.tsx";

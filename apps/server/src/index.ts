@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { matchMaker, Server } from "@colyseus/core";
 import { WebSocketTransport } from "@colyseus/ws-transport";
-import { dailyGame, GAMES, MINI_GAME_IDS } from "@mini-games/games";
+import { dailyGame, GAMES, MINI_GAME_IDS } from "@kwadrans/games";
 import express from "express";
 import { LobbyRoom, stats } from "./LobbyRoom.ts";
 

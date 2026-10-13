@@ -1,4 +1,4 @@
-import { type LobbyPlayer, QUIZ_DURATION_MS, type QuizMove } from "@mini-games/games";
+import { type LobbyPlayer, QUIZ_DURATION_MS, type QuizMove } from "@kwadrans/games";
 import { Trophy } from "@phosphor-icons/react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";

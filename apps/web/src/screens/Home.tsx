@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight, CaretRight, Play, Plus, Shuffle, SquaresFour, Trophy, User, UsersThree, Warning } from "@phosphor-icons/react";
-import { cleanNick, GAMES, MINI_GAME_IDS, NICK_MAX, type RecordRow, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, standing } from "@mini-games/games";
+import { cleanNick, GAMES, MINI_GAME_IDS, NICK_MAX, type RecordRow, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, standing } from "@kwadrans/games";
 import { useEffect, useState } from "react";
 import type { Room } from "@colyseus/sdk";
 import { ICONS } from "./Lobby.tsx";

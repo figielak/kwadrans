@@ -1,6 +1,6 @@
 services:
   games:
-    image: ghcr.io/figielak/mini-games:latest
+    image: ghcr.io/figielak/kwadrans:latest
     restart: unless-stopped
     mem_limit: 256m
     environment:

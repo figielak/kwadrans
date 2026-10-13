@@ -1,4 +1,4 @@
-import { type LobbyPlayer, ZASLONA_ROUNDS, zaslonaDeviation, type ZaslonaView } from "@mini-games/games";
+import { type LobbyPlayer, ZASLONA_ROUNDS, zaslonaDeviation, type ZaslonaView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { grade, Intro, RoundTable, Scores, Stats } from "../screens/ui.tsx";
 

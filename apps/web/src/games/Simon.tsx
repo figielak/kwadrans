@@ -1,5 +1,5 @@
 import { Circle, type Icon, Square, Star, Triangle } from "@phosphor-icons/react";
-import type { LobbyPlayer, SimonView } from "@mini-games/games";
+import type { LobbyPlayer, SimonView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
 

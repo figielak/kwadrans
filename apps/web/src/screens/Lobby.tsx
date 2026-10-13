@@ -45,7 +45,7 @@ import {
   Timer,
   Trophy,
 } from "@phosphor-icons/react";
-import { DEFAULT_LENGTH, GAMES, type LobbyPlayer, MAX_PLAYERS, PLAYER_COLORS, type RoomView } from "@mini-games/games";
+import { DEFAULT_LENGTH, GAMES, type LobbyPlayer, MAX_PLAYERS, PLAYER_COLORS, type RoomView } from "@kwadrans/games";
 import { useState } from "react";
 import { Screen, type Send, StickyBar } from "./ui.tsx";
 

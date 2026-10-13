@@ -1,5 +1,5 @@
 import { Check, Minus, Play, Plus } from "@phosphor-icons/react";
-import { GAMES, MAX_PLAYERS, MIN_LENGTH, type RoomView } from "@mini-games/games";
+import { GAMES, MAX_PLAYERS, MIN_LENGTH, type RoomView } from "@kwadrans/games";
 import { BLURBS, ICONS, MINI_GAMES, Players, seats, StartBar } from "./Lobby.tsx";
 import { SECTIONS } from "./MiniGames.tsx";
 import { plural } from "./Records.tsx";

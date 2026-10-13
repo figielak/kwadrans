@@ -1,4 +1,4 @@
-import { type LobbyPlayer, nozyczkiAccepts, type NozyczkiCut, nozyczkiError, type NozyczkiPoint, NOZYCZKI_SHAPES, nozyczkiShare, nozyczkiSplit, type NozyczkiView } from "@mini-games/games";
+import { type LobbyPlayer, nozyczkiAccepts, type NozyczkiCut, nozyczkiError, type NozyczkiPoint, NOZYCZKI_SHAPES, nozyczkiShare, nozyczkiSplit, type NozyczkiView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useState } from "react";
 import { grade, Intro, RoundTable, Scores, Stats, tenth } from "../screens/ui.tsx";
 

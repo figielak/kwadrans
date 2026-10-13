@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, DiceFive, DiceFour, DiceOne, DiceSix, DiceThree, DiceTwo } from "@phosphor-icons/react";
-import { CHINCZYK_TRACK as TRACK, type ChinczykView, type LobbyPlayer } from "@mini-games/games";
+import { CHINCZYK_TRACK as TRACK, type ChinczykView, type LobbyPlayer } from "@kwadrans/games";
 import { StickyBar } from "../screens/ui.tsx";
 
 type Move = { type: "roll" } | { type: "move"; pawn: number };

@@ -1,4 +1,4 @@
-import { type LobbyPlayer, MAPA_ASPECT, MAPA_OUTLINE, MAPA_ROUNDS, mapaError, type MapaPoint, mapaPlace, type MapaView } from "@mini-games/games";
+import { type LobbyPlayer, MAPA_ASPECT, MAPA_OUTLINE, MAPA_ROUNDS, mapaError, type MapaPoint, mapaPlace, type MapaView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useState } from "react";
 import { grade as gradeBy, Intro, RoundTable, Scores, Stats } from "../screens/ui.tsx";
 

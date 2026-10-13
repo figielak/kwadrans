@@ -1,4 +1,4 @@
-import { type LobbyPlayer, type ObrotCells, obrotScore, type ObrotView, type QuizMove } from "@mini-games/games";
+import { type LobbyPlayer, type ObrotCells, obrotScore, type ObrotView, type QuizMove } from "@kwadrans/games";
 import { ArrowsClockwise, FlipHorizontal } from "@phosphor-icons/react";
 import { Quiz, QuizPreview } from "./Quiz.tsx";
 

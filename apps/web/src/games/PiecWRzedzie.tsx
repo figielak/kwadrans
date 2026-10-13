@@ -1,4 +1,4 @@
-import type { LobbyPlayer, PiecWRzedzieView } from "@mini-games/games";
+import type { LobbyPlayer, PiecWRzedzieView } from "@kwadrans/games";
 import { useState } from "react";
 import { StickyBar } from "../screens/ui.tsx";
 

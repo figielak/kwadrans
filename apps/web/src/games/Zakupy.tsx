@@ -1,4 +1,4 @@
-import { type LobbyPlayer, ZAKUPY_LIST, ZAKUPY_MAX_MS, ZAKUPY_SHOW_MS, type ZakupyView } from "@mini-games/games";
+import { type LobbyPlayer, ZAKUPY_LIST, ZAKUPY_MAX_MS, ZAKUPY_SHOW_MS, type ZakupyView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats, tenth } from "../screens/ui.tsx";
 

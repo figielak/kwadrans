@@ -1,4 +1,4 @@
-import { BALON_BALLOONS, BALON_MAX_SAFE, balonScore, type BalonView, type LobbyPlayer } from "@mini-games/games";
+import { BALON_BALLOONS, BALON_MAX_SAFE, balonScore, type BalonView, type LobbyPlayer } from "@kwadrans/games";
 import { Fragment, useEffect, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
 

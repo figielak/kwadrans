@@ -1,4 +1,4 @@
-import { KAT_MAX_ANSWER, KAT_SHOW_MS, type KatRound, type KatView, type LobbyPlayer } from "@mini-games/games";
+import { KAT_MAX_ANSWER, KAT_SHOW_MS, type KatRound, type KatView, type LobbyPlayer } from "@kwadrans/games";
 import { Szacowanie } from "./Szacowanie.tsx";
 
 interface Props {

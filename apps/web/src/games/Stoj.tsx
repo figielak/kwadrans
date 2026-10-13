@@ -1,4 +1,4 @@
-import { type LobbyPlayer, STOJ_DURATION_MS, STOJ_SCHEDULE, STOJ_VISIBLE, stojScore, type StojView } from "@mini-games/games";
+import { type LobbyPlayer, STOJ_DURATION_MS, STOJ_SCHEDULE, STOJ_VISIBLE, stojScore, type StojView } from "@kwadrans/games";
 import { HandPalm } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";

@@ -1,4 +1,4 @@
-import { KOLO_ATTEMPTS, KOLO_MAX_POINTS, koloJudge, type KoloPoint, type KoloView, type LobbyPlayer } from "@mini-games/games";
+import { KOLO_ATTEMPTS, KOLO_MAX_POINTS, koloJudge, type KoloPoint, type KoloView, type LobbyPlayer } from "@kwadrans/games";
 import { type PointerEvent, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
 

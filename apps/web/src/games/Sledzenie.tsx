@@ -1,4 +1,4 @@
-import { BALLS, type LobbyPlayer, MOVE_MS, RADIUS, ROUNDS, SHOW_MS, sledzeniePosition, type SledzenieView, TARGETS } from "@mini-games/games";
+import { BALLS, type LobbyPlayer, MOVE_MS, RADIUS, ROUNDS, SHOW_MS, sledzeniePosition, type SledzenieView, TARGETS } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
 

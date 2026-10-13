@@ -1,4 +1,4 @@
-import { type LobbyPlayer, SRODEK_ACCEPT_PX, srodekError, srodekOffset, srodekProject, SRODEK_ROUNDS, type SrodekPoint, type SrodekView } from "@mini-games/games";
+import { type LobbyPlayer, SRODEK_ACCEPT_PX, srodekError, srodekOffset, srodekProject, SRODEK_ROUNDS, type SrodekPoint, type SrodekView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useState } from "react";
 import { grade as gradeBy, Intro, RoundTable, Scores, Stats } from "../screens/ui.tsx";
 

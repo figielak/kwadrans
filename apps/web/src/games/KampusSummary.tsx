@@ -1,4 +1,4 @@
-import { KAMPUS_BOARD as BOARD, type KampusStats } from "@mini-games/games";
+import { KAMPUS_BOARD as BOARD, type KampusStats } from "@kwadrans/games";
 import { type ReactNode, useState } from "react";
 
 interface Props {

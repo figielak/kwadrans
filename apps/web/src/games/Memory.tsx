@@ -1,5 +1,5 @@
 import { DiamondsFour } from "@phosphor-icons/react";
-import type { LobbyPlayer, MemoryView } from "@mini-games/games";
+import type { LobbyPlayer, MemoryView } from "@kwadrans/games";
 import { useEffect, useState } from "react";
 
 interface Props {

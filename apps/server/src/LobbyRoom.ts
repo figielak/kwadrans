@@ -28,7 +28,7 @@ import {
   TOURNAMENT_ID,
   type Tournament,
   winner,
-} from "@mini-games/games";
+} from "@kwadrans/games";
 import { openStats } from "./stats.ts";
 
 const RECONNECT_SECONDS = 10 * 60; // telefon na wykładzie śpi między turami

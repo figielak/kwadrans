@@ -1,5 +1,5 @@
 import { ArrowLeft, Check, HandTap, ShareNetwork, SignOut, Timer, Trophy, WifiSlash } from "@phosphor-icons/react";
-import type { RoomView } from "@mini-games/games";
+import type { RoomView } from "@kwadrans/games";
 import { createContext, Fragment, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 export type Send = (type: string, payload?: unknown) => void;

@@ -1,4 +1,4 @@
-import { DZIESIATKI_SIDE, DZIESIATKI_TARGET, type DziesiatkiView, dziesiatkiTake, type LobbyPlayer, QUIZ_DURATION_MS, type QuizMove } from "@mini-games/games";
+import { DZIESIATKI_SIDE, DZIESIATKI_TARGET, type DziesiatkiView, dziesiatkiTake, type LobbyPlayer, QUIZ_DURATION_MS, type QuizMove } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
 import { BLOCK_MS, MAX_ANSWER, MIN_ANSWER, Results } from "./Quiz.tsx";

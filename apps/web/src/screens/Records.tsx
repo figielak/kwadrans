@@ -1,5 +1,5 @@
 import { ArrowLeft, CaretDown, Crown, Play } from "@phosphor-icons/react";
-import { compareRecords, GAMES, KOLOR_COUNT, MINI_GAME_IDS, nickKey, type RecordRow, SOLO, standing, TOURNAMENT_ID } from "@mini-games/games";
+import { compareRecords, GAMES, KOLOR_COUNT, MINI_GAME_IDS, nickKey, type RecordRow, SOLO, standing, TOURNAMENT_ID } from "@kwadrans/games";
 import { type CSSProperties, useEffect, useState } from "react";
 import { MiniGame } from "../games/MiniGame.tsx";
 import { fetchRanking, fetchRecords, fetchTopRecord, type RankingRow } from "../net.ts";

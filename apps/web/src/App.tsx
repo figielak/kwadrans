@@ -1,5 +1,5 @@
 import type { Room } from "@colyseus/sdk";
-import { GAMES, type RoomView } from "@mini-games/games";
+import { GAMES, type RoomView } from "@kwadrans/games";
 import { CloseCode } from "@colyseus/sdk";
 import { useEffect, useState } from "react";
 import { forgetRoom, resumeRoom, watchRoom } from "./net.ts";

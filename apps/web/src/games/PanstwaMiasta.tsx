@@ -1,5 +1,5 @@
 import { Check, HandPalm, ThumbsDown, X } from "@phosphor-icons/react";
-import { type LobbyPlayer, type PanstwaMiastaMove, type PanstwaMiastaView, PM_ANSWER_MAX, PM_CATEGORIES, pmFits } from "@mini-games/games";
+import { type LobbyPlayer, type PanstwaMiastaMove, type PanstwaMiastaView, PM_ANSWER_MAX, PM_CATEGORIES, pmFits } from "@kwadrans/games";
 import { Fragment, type ReactNode, useEffect, useRef, useState } from "react";
 import { Scores, StickyBar } from "../screens/ui.tsx";
 

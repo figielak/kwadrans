@@ -1,4 +1,4 @@
-import { type LobbyPlayer, ROK_MAX_YEAR as MAX_YEAR, ROK_MIN_YEAR as MIN_YEAR, ROK_REVEAL_MS, ROK_ROUND_MS, ROK_ROUNDS, type RokView } from "@mini-games/games";
+import { type LobbyPlayer, ROK_MAX_YEAR as MAX_YEAR, ROK_MIN_YEAR as MIN_YEAR, ROK_REVEAL_MS, ROK_ROUND_MS, ROK_ROUNDS, type RokView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
 

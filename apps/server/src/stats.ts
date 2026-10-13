@@ -1,5 +1,5 @@
 import { DatabaseSync } from "node:sqlite";
-import { nickKey, type RecordOrder, type RecordRow } from "@mini-games/games";
+import { nickKey, type RecordOrder, type RecordRow } from "@kwadrans/games";
 
 const TOP = 10;
 

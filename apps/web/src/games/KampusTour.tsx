@@ -53,7 +53,7 @@ import {
   kampusSetOf as setOf,
   type GameResult,
   type LobbyPlayer,
-} from "@mini-games/games";
+} from "@kwadrans/games";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { KampusSummary } from "./KampusSummary.tsx";
 

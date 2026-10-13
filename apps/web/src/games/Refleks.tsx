@@ -1,4 +1,4 @@
-import { type LobbyPlayer, REFLEKS_PENALTY_MS, REFLEKS_ROUNDS, type RefleksView } from "@mini-games/games";
+import { type LobbyPlayer, REFLEKS_PENALTY_MS, REFLEKS_ROUNDS, type RefleksView } from "@kwadrans/games";
 import { Trophy } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";

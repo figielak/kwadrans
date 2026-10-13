@@ -1,4 +1,4 @@
-import { literowkaScore, type LiterowkaView, type LobbyPlayer, type QuizMove } from "@mini-games/games";
+import { literowkaScore, type LiterowkaView, type LobbyPlayer, type QuizMove } from "@kwadrans/games";
 import { Quiz, QuizPreview } from "./Quiz.tsx";
 
 interface Props {

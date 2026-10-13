@@ -23,7 +23,7 @@ pnpm install
 pnpm --filter server dev   # http://localhost:2567, node --watch (restart po zmianie w apps/server i packages/games)
 pnpm --filter web dev      # http://localhost:5173, tryb testowy: /dev?n=4
 pnpm typecheck && pnpm test
-pnpm --filter @mini-games/games exec vitest run src/<gra>.test.ts   # jeden plik testów
+pnpm --filter @kwadrans/games exec vitest run src/<gra>.test.ts   # jeden plik testów
 pnpm --filter web build
 ```
 

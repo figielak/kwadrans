@@ -1,5 +1,5 @@
 import { HandTap } from "@phosphor-icons/react";
-import { type LobbyPlayer, PRZYTRZYMAJ_ROUNDS, przytrzymajDeviation, type PrzytrzymajView } from "@mini-games/games";
+import { type LobbyPlayer, PRZYTRZYMAJ_ROUNDS, przytrzymajDeviation, type PrzytrzymajView } from "@kwadrans/games";
 import { Fragment, type PointerEvent, useEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
 

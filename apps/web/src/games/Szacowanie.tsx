@@ -1,4 +1,4 @@
-import type { LobbyPlayer } from "@mini-games/games";
+import type { LobbyPlayer } from "@kwadrans/games";
 import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
 

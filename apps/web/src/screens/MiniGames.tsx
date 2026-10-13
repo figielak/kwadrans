@@ -1,5 +1,5 @@
 import { Play, Shuffle, Trophy } from "@phosphor-icons/react";
-import { GAMES, MAX_PLAYERS, nickKey, type RecordRow, type RoomView, standing } from "@mini-games/games";
+import { GAMES, MAX_PLAYERS, nickKey, type RecordRow, type RoomView, standing } from "@kwadrans/games";
 import { useEffect, useState } from "react";
 import { fetchRecords } from "../net.ts";
 import { BLURBS, ICONS, MINI_GAMES, StartBar } from "./Lobby.tsx";

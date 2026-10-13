@@ -1,5 +1,5 @@
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, type KampusTourView, type KatView, type KropkiView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, standing, standings, type StatkiView, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@mini-games/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, type KampusTourView, type KatView, type KropkiView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, standing, standings, type StatkiView, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";

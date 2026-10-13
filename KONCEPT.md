@@ -257,7 +257,7 @@ Prościej i bezpiecznie dla gier z ukrytymi informacjami.
 ## 5. Struktura repozytorium
 
 ```
-mini-games/
+kwadrans/
 ├─ packages/
 │  └─ games/src/   # core.ts (kontrakt, RNG, utilsy), lobby.ts, turniej.ts, index.ts (GAMES),
 │                  # <gra>.ts + <gra>.test.ts dla każdej gry (płasko)

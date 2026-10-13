@@ -1,4 +1,4 @@
-import { type LobbyPlayer, TORT_CAKES, type TortCake, tortError, type TortView } from "@mini-games/games";
+import { type LobbyPlayer, TORT_CAKES, type TortCake, tortError, type TortView } from "@kwadrans/games";
 import { type PointerEvent, type SVGProps, useEffect, useState } from "react";
 import { grade, Intro, RoundTable, Scores, Stats, tenth } from "../screens/ui.tsx";
 

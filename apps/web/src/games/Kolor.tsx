@@ -1,4 +1,4 @@
-import { type Hsb, KOLOR_COUNT, KOLOR_SHOW_MS, kolorDistance, kolorHints, kolorHsbToRgb, type KolorView, type LobbyPlayer } from "@mini-games/games";
+import { type Hsb, KOLOR_COUNT, KOLOR_SHOW_MS, kolorDistance, kolorHints, kolorHsbToRgb, type KolorView, type LobbyPlayer } from "@kwadrans/games";
 import { useEffect, useState } from "react";
 import { Intro, Scores } from "../screens/ui.tsx";
 

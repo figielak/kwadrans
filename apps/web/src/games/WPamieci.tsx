@@ -1,4 +1,4 @@
-import { type LobbyPlayer, W_PAMIECI_MAX_ANSWER, W_PAMIECI_ROUNDS, W_PAMIECI_SHOW_MS, type WPamieciRound, type WPamieciView, wPamieciValue } from "@mini-games/games";
+import { type LobbyPlayer, W_PAMIECI_MAX_ANSWER, W_PAMIECI_ROUNDS, W_PAMIECI_SHOW_MS, type WPamieciRound, type WPamieciView, wPamieciValue } from "@kwadrans/games";
 import { type FormEvent, useEffect, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
 
