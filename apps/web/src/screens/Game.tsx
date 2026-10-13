@@ -28,7 +28,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
   const myTurn = view.phase === "playing" && game.waitingFor.includes(me);
   const waitingNicks = game.waitingFor.filter((id) => id !== me).map(nick).join(" i ");
 
-  // Tryb wykładowy: krótka wibracja zamiast dźwięku, gdy przychodzi moja tura.
+  // Tryb cichy: krótka wibracja zamiast dźwięku, gdy przychodzi moja tura.
   useEffect(() => {
     if (myTurn) navigator.vibrate?.(40);
   }, [myTurn]);
