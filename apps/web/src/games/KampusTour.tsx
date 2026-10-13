@@ -377,7 +377,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
     return !!owner && setOf(i).every((t) => owners[t] === owner);
   };
   const player = (id: string) => players.find((p) => p.id === id);
-  const color = (id: string) => player(id)?.color ?? "#8b8b92";
+  const color = (id: string) => player(id)?.color ?? "var(--color-fg-muted)";
   // Akcje gracza w jego kolorze, nie w czerwieni akcentu.
   const mine = { backgroundColor: color(me), color: "var(--color-bg)" };
   const nick = (id: string) => player(id)?.nick ?? "Gracz";
@@ -560,7 +560,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
     const label = tile.kind === "karty" ? "Dziekanat" : (SHORT[i] ?? tile.name);
     const side = cell(i)[0] === 0 || cell(i)[0] === 11;
     const priceTag = (
-      <span className="text-[12px] leading-none font-semibold text-fg">
+      <span className="text-xs leading-none font-semibold text-fg">
         {/* Wolne pole: cena kupna; czyjeś: czynsz za stanięcie. */}
         {tile.kind === "karty" ? "\u00a0" : sellable ? zl(`+${saleValue(i)}`) : owners[i] ? rentNow(i) : zl(price(i))}
       </span>
@@ -753,8 +753,8 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                 .map((f) => (
                   <span
                     key={f.key}
-                    className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono text-base font-bold whitespace-nowrap drop-shadow-[0_1px_2px_rgb(0_0_0/0.9)]"
-                    style={{ color: f.amount > 0 ? "#3dd68c" : "#ff6369" }}
+                    className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono text-base font-semibold whitespace-nowrap drop-shadow-[0_1px_2px_rgb(0_0_0/0.9)]"
+                    style={{ color: f.amount > 0 ? "var(--color-success)" : "var(--color-warning)" }}
                     aria-hidden
                   >
                     {zl(`${f.amount > 0 ? "+" : "−"}${Math.abs(f.amount)}`)}
@@ -767,7 +767,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
         {/* Plansza 13:7 (rogi 1,5 raza większe) możliwie duża w dostępnym miejscu (jednostki kontenera), lekko pochylona. */}
         <div className="relative grid h-full w-full place-items-center" style={{ containerType: "size", perspective: PERSPECTIVE }}>
           <div
-            className="grid gap-[3px] rounded-md p-[3px]"
+            className="grid gap-[3px] rounded-inset p-[3px]"
             style={{
               width: BOARD_WIDTH,
               aspectRatio: "13 / 7",
@@ -859,7 +859,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                   {status}
                 </h1>
                 {dropped && (
-                  <p role="status" className="flex items-center gap-2 text-sm text-accent">
+                  <p role="status" className="flex items-center gap-2 rounded-inset bg-accent-soft px-3 py-1.5 text-sm">
                     <WifiSlash size={16} aria-hidden />
                     Łączenie ponownie…
                   </p>
@@ -967,7 +967,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                 )}
                 {actions && <div className="flex w-full max-w-xs flex-wrap gap-2">{actions}</div>}
                 {over && summaryHidden && view.stats && (
-                  <button type="button" className="btn btn-ghost min-h-9 px-4 text-sm" onClick={() => setSummaryHidden(false)}>
+                  <button type="button" className="btn btn-ghost min-h-11 px-4 text-sm" onClick={() => setSummaryHidden(false)}>
                     Podsumowanie
                   </button>
                 )}
@@ -1093,7 +1093,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                       </li>
                     ))}
                 </ul>
-                <button type="button" className="btn btn-primary mt-2" autoFocus onClick={warning.dismiss}>
+                <button type="button" style={mine} className="btn mt-2" autoFocus onClick={warning.dismiss}>
                   OK
                 </button>
               </div>

@@ -53,7 +53,7 @@ export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, o
                 <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: player(id)?.color }} aria-hidden />
                 {player(id)?.nick ?? "Gracz"}
                 {id === me && <span className="text-fg-muted">(ty)</span>}
-                <span className="font-mono text-fg-muted">{view.totals[id]}</span>
+                <span className="font-mono text-fg-muted tabular-nums">{view.totals[id]}</span>
                 {finished && <Check size={14} weight="bold" className="text-success" aria-label="gotowe" />}
               </li>
             );
@@ -64,7 +64,7 @@ export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, o
 
       {view.phase === "write" &&
         (playing && !view.done.includes(me) ? (
-          <Writing key={view.round} view={view} me={me} stopBy={view.stop && player(view.stop)?.nick} onMove={onMove} />
+          <Writing key={view.round} view={view} me={me} color={player(me)?.color} stopBy={view.stop && player(view.stop)?.nick} onMove={onMove} />
         ) : (
           <p className="tile p-4 text-fg-muted">
             {view.stop && <StopBanner nick={player(view.stop)?.nick} />}
@@ -101,7 +101,7 @@ export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, o
           />
           {view.phase === "summary" && playing && (
             <StickyBar>
-              <button type="button" className="btn btn-primary w-full" disabled={view.ready.includes(me)} onClick={() => onMove({ type: "next" })}>
+              <button type="button" className="btn w-full text-bg" style={{ backgroundColor: player(me)?.color }} disabled={view.ready.includes(me)} onClick={() => onMove({ type: "next" })}>
                 {view.ready.includes(me) ? "Czekamy na resztę" : "Dalej"}
               </button>
             </StickyBar>
@@ -122,7 +122,7 @@ function StopBanner({ nick }: { nick?: string }) {
 }
 
 /** Pola odpowiedzi. Szkic idzie na serwer w tle, więc przepada najwyżej pół sekundy pisania. */
-function Writing({ view, me, stopBy, onMove }: { view: PanstwaMiastaView; me: string; stopBy?: string | null; onMove: Props["onMove"] }) {
+function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView; me: string; color?: string; stopBy?: string | null; onMove: Props["onMove"] }) {
   const letter = view.letters[view.round];
   const [answers, setAnswers] = useState(() => view.answers[me] ?? PM_CATEGORIES.map(() => ""));
   const timer = useRef<number>(undefined);
@@ -169,7 +169,7 @@ function Writing({ view, me, stopBy, onMove }: { view: PanstwaMiastaView; me: st
           const ok = typed && pmFits(letter, answers[i]);
           return (
             <div key={category} className="flex flex-col gap-2">
-              <label htmlFor={`pm-${i}`} className="text-[13px] leading-none font-medium text-fg">
+              <label htmlFor={`pm-${i}`} className="text-sm leading-none font-medium text-fg">
                 {category}
               </label>
               <div className="relative">
@@ -195,11 +195,11 @@ function Writing({ view, me, stopBy, onMove }: { view: PanstwaMiastaView; me: st
         })}
       </div>
       <StickyBar>
-        <span className="w-10 shrink-0 font-mono text-sm text-fg-muted" aria-label={`Wypełnione ${filled} z ${PM_CATEGORIES.length}`}>
+        <span className="w-10 shrink-0 font-mono text-sm text-fg-muted tabular-nums" aria-label={`Wypełnione ${filled} z ${PM_CATEGORIES.length}`}>
           {filled}/{PM_CATEGORIES.length}
         </span>
         {complete ? (
-          <button type="submit" className="btn btn-primary flex-1">
+          <button type="submit" className="btn flex-1 text-bg" style={{ backgroundColor: color }}>
             {view.stop ? "Gotowe" : "STOP!"}
           </button>
         ) : (
@@ -208,7 +208,7 @@ function Writing({ view, me, stopBy, onMove }: { view: PanstwaMiastaView; me: st
               Oddaj
             </button>
             {/* onPointerDown bez utraty fokusu: inaczej klawiatura chowa się i skacze przy każdym polu */}
-            <button type="button" className="btn btn-primary flex-1" onPointerDown={(e) => e.preventDefault()} onClick={nextEmpty}>
+            <button type="button" className="btn flex-1 text-bg" style={{ backgroundColor: color }} onPointerDown={(e) => e.preventDefault()} onClick={nextEmpty}>
               Dalej
             </button>
           </>
@@ -242,7 +242,7 @@ function Voting({ view, me, player, onMove }: { view: PanstwaMiastaView; me: str
       <p className="text-sm text-fg-muted">Dotknij cudzej odpowiedzi, żeby ją odrzucić.</p>
       <Answers view={view} player={player} me={me} rejected={rejected} onToggle={toggle} />
       <StickyBar>
-        <button type="button" className="btn btn-primary w-full" onClick={submit}>
+        <button type="button" className="btn w-full text-bg" style={{ backgroundColor: player(me)?.color }} onClick={submit}>
           {rejected.size ? `Zatwierdź (odrzucam ${rejected.size})` : "Wszystko się zgadza"}
         </button>
       </StickyBar>
@@ -323,9 +323,7 @@ function Answers({
                       {answer ? (
                         <span className={`min-w-0 flex-1 break-words ${!fits || out ? "text-fg-muted line-through" : ""}`}>{answer}</span>
                       ) : (
-                        <span className="flex-1 text-fg-subtle" aria-label="brak odpowiedzi">
-                          —
-                        </span>
+                        <span className="flex-1 text-fg-muted">brak</span>
                       )}
                       {voted ? (
                         <X size={16} weight="bold" className="shrink-0 text-warning" aria-hidden />
@@ -333,7 +331,7 @@ function Answers({
                         canToggle && <Check size={16} weight="bold" className="shrink-0 text-success" aria-hidden />
                       )}
                       {scored && (
-                        <span className="flex shrink-0 flex-col items-end font-mono">
+                        <span className="flex shrink-0 flex-col items-end font-mono tabular-nums">
                           {view.roundScores[id]?.[c] ?? 0}
                           {against > 0 && (
                             <span className="flex items-center gap-0.5 text-xs text-fg-muted" aria-label={`Przeciw: ${against}`}>

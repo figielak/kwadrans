@@ -36,7 +36,7 @@ const EMOJI: [string, string][] = [
 ];
 
 export function Memory({ view, players, canMove, onMove }: Props) {
-  const colorOf = (id: string | null) => players.find((p) => p.id === id)?.color ?? "#8b8b92";
+  const colorOf = (id: string | null) => players.find((p) => p.id === id)?.color ?? "var(--color-fg-muted)";
   const turnId = view.players[view.turn];
   const turnColor = colorOf(turnId);
   const turnNick = players.find((p) => p.id === turnId)?.nick ?? "Przeciwnik";
@@ -78,7 +78,7 @@ export function Memory({ view, players, canMove, onMove }: Props) {
               <span className={`relative block size-full transition-transform duration-180 transform-3d ${up ? "rotate-y-180" : ""}`}>
                 {/* Rewers: jaśniejszy od tła, żeby karta wyglądała na kartę; poza moją turą przygaszony („teraz nic nie klikasz”). */}
                 <span
-                  className={`absolute inset-0 grid place-items-center rounded-inset border border-line-hover bg-linear-to-br from-[#2a2a2f] to-surface text-fg-subtle transition-opacity duration-180 backface-hidden ${
+                  className={`absolute inset-0 grid place-items-center rounded-inset border border-line-hover bg-linear-to-br from-[color-mix(in_srgb,var(--color-fg)_12%,var(--color-bg))] to-surface text-fg-subtle transition-opacity duration-180 backface-hidden ${
                     canMove ? "" : "opacity-45"
                   }`}
                   aria-hidden

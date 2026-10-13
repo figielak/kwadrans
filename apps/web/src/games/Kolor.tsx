@@ -15,7 +15,7 @@ const rand = (min: number, max: number) => min + Math.floor(Math.random() * (max
 const randomStart = (): Hsb => ({ h: rand(0, 359), s: rand(20, 80), b: rand(30, 80) });
 
 /** Wzór i podgląd mają ten sam rozmiar: duże pole wydaje się jaśniejsze i bardziej nasycone niż małe. */
-const SWATCH = "h-40 rounded-tile border border-line";
+const SWATCH = "h-28 rounded-tile border border-line";
 
 const css = (c: Hsb) => `rgb(${kolorHsbToRgb(c).join(" ")})`;
 /** Wszędzie jedno miejsce po przecinku: „87,3%”. */
@@ -47,7 +47,7 @@ function Pairs({ targets, guesses }: { targets: Hsb[]; guesses: Hsb[] }) {
             <span className="flex-1" style={{ backgroundColor: css(t) }} />
             <span className="flex-1" style={{ backgroundColor: css(guesses[i]) }} />
           </div>
-          <span className="font-mono text-xs text-fg-muted">{match(t, guesses[i])}</span>
+          <span className="font-mono text-xs text-fg-muted tabular-nums">{match(t, guesses[i])}</span>
         </div>
       ))}
     </div>
@@ -160,7 +160,7 @@ export function Kolor({ view, me, players, ranking, onMove }: Props) {
     const target = view.targets[index];
     const wrong = kolorHints(target, guesses[index]);
     return (
-      <section className="flex flex-1 flex-col gap-4">
+      <section className="flex flex-1 flex-col gap-3">
         {counter}
         <div>
           <div className={`${SWATCH} flex overflow-hidden`}>
@@ -182,7 +182,7 @@ export function Kolor({ view, me, players, ranking, onMove }: Props) {
   }
 
   return (
-    <section className="flex flex-1 flex-col gap-4">
+    <section className="flex flex-1 flex-col gap-3">
       {counter}
       <div className={SWATCH} style={{ backgroundColor: css(current) }} />
       {SLIDERS.map(({ key, label, max, track }) => (

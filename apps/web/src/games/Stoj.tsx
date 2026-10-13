@@ -25,7 +25,7 @@ function Preview() {
   return (
     <>
       <span className="absolute inset-0 flex items-center justify-center bg-success font-semibold text-bg">Dotknij</span>
-      <span className="absolute inset-0 flex animate-[preview-half_2.4s_linear_infinite] items-center justify-center gap-2 bg-accent font-semibold text-accent-fg opacity-0 [animation-delay:-1.2s]">
+      <span className="absolute inset-0 flex animate-[preview-half_2.4s_linear_infinite] items-center justify-center gap-2 bg-warning font-semibold text-accent-fg opacity-0 [animation-delay:-1.2s]">
         <HandPalm size={20} weight="fill" />
         Stój!
       </span>
@@ -146,7 +146,7 @@ export function Stoj({ view, me, players, ranking, winner, onMove }: Props) {
             : !lit
               ? "bg-surface text-fg-muted"
               : red
-                ? "bg-accent text-accent-fg"
+                ? "bg-warning text-accent-fg"
                 : "bg-success text-bg"
         }`}
       >

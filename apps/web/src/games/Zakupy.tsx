@@ -172,7 +172,7 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
           );
         })}
       </div>
-      <button type="button" className="btn btn-primary" onClick={done}>
+      <button type="button" className="btn text-bg" style={{ backgroundColor: color }} onClick={done}>
         Gotowe
       </button>
       <p className="text-center text-sm text-fg-muted">Zaznacz przedmioty z listy. Każdy zły zabiera punkt.</p>

@@ -264,7 +264,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                         {memory.owner.filter((o) => o === id).length / 2}
                       </span>
                     ) : fleet ? (
-                      <FleetLeft board={fleet.boards[id]} lengths={fleet.lengths} color={p?.color ?? "#8b8b92"} />
+                      <FleetLeft board={fleet.boards[id]} lengths={fleet.lengths} color={p?.color ?? "var(--color-fg-muted)"} />
                     ) : progress ? (
                       <Progress {...progress} color={p?.color} />
                     ) : table ? (
@@ -357,7 +357,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           <ol className="tile flex flex-col gap-1 p-4">
             {game.result.ranking.map((id, i) => (
               <li key={id} className="flex items-center gap-3">
-                <span className="w-5 font-mono text-fg-muted">{i + 1}.</span>
+                <span className="w-5 font-mono text-fg-muted tabular-nums">{i + 1}.</span>
                 <span className="size-2.5 rounded-full" style={{ backgroundColor: view.players.find((p) => p.id === id)?.color }} aria-hidden />
                 {nick(id)}
                 {id === me && <span className="text-fg-muted"> (ty)</span>}
@@ -383,19 +383,19 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
             <ol className="flex flex-col gap-1">
               {table.map((r, i) => (
                 <li key={r.id} className="flex items-center gap-3">
-                  <span className="w-5 font-mono text-fg-muted">{i + 1}.</span>
+                  <span className="w-5 font-mono text-fg-muted tabular-nums">{i + 1}.</span>
                   <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: view.players.find((p) => p.id === r.id)?.color }} aria-hidden />
                   <span className="min-w-0 flex-1 truncate">
                     {nick(r.id)}
                     {r.id === me && <span className="text-fg-muted"> (ty)</span>}
                   </span>
                   {tournamentOver ? (
-                    <span className="flex items-center gap-1 font-mono text-sm text-fg-muted" aria-label={`Wygrane gry: ${r.wins}`}>
+                    <span className="flex items-center gap-1 font-mono text-sm text-fg-muted tabular-nums" aria-label={`Wygrane gry: ${r.wins}`}>
                       <Trophy size={14} weight="fill" aria-hidden />
                       {r.wins}
                     </span>
                   ) : (
-                    <span className="font-mono text-sm text-fg-muted" aria-label={`Za tę grę: ${r.last}`}>
+                    <span className="font-mono text-sm text-fg-muted tabular-nums" aria-label={`Za tę grę: ${r.last}`}>
                       +{r.last}
                     </span>
                   )}
@@ -476,7 +476,7 @@ function OverActions({ view, me, send, onLeave }: { view: RoomView; me: string; 
       {view.seats.includes(me) && (
         <button
           type="button"
-          className={`btn btn-primary flex-1 ${wants.length > 0 && !iWant ? "animate-[ring-pulse_1.2s_ease-in-out_infinite] outline-2 outline-accent" : ""}`}
+          className={`btn btn-primary flex-1 ${wants.length > 0 && !iWant ? "animate-[ring-pulse_1.2s_ease-in-out_infinite] outline-2 outline-fg" : ""}`}
           disabled={iWant}
           onClick={() => send("rematch")}
         >
@@ -524,7 +524,7 @@ function NextActions({ view, me, send, countdown }: { view: RoomView; me: string
  * Termin zależy od obiektu wiadomości, nie od liczby: każda nowa tura przychodzi z tym samym msLeft (60000).
  */
 /**
- * `tense`: pasek w kolorze akcentu (gra na czas, np. Państwa-miasta), a nie spokojny szary.
+ * `tense`: jasny pasek (gra na czas, np. Państwa-miasta), a nie spokojny szary.
  * `color`: pasek w kolorze gracza (moja tura). Czerwień i tak przychodzi na ostatnie 10 s.
  * `label`: podpis przed paskiem (mini-gry mają własny zegar partii, więc limit platformy musi być nazwany).
  */
@@ -547,17 +547,17 @@ function Countdown({ game, total, tense, color, label }: { game: { msLeft: numbe
         {label && <span className="label">{label}</span>}
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line" role="progressbar" aria-label="Czas tury" aria-valuenow={seconds}>
           <div
-            className={`h-full rounded-full transition-[width] duration-300 ease-linear ${seconds <= 10 ? "animate-pulse bg-warning" : tense ? "bg-accent" : "bg-fg-muted"}`}
+            className={`h-full rounded-full transition-[width] duration-300 ease-linear ${seconds <= 10 ? "animate-pulse bg-warning" : tense ? "bg-fg" : "bg-fg-muted"}`}
             style={{ width: `${Math.min(1, left) * 100}%`, backgroundColor: seconds > 10 ? color : undefined }}
           />
         </div>
         {/* Twarda spacja i min-w: trzycyfrowy limit („173 s”) nie ściska się ani nie łamie w wąskim polu. */}
-        <span className={`min-w-10 text-right text-sm font-medium whitespace-nowrap tabular-nums ${seconds <= 10 ? "text-warning" : "text-fg"}`}>{seconds}{"\u00a0"}s</span>
+        <span className={`min-w-10 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums ${seconds <= 10 ? "text-warning" : "text-fg"}`}>{seconds}{"\u00a0"}s</span>
       </div>
     );
   }
   return (
-    <span className={`flex items-center gap-1 font-mono text-sm ${seconds <= 10 ? "text-warning" : "text-fg-muted"}`}>
+    <span className={`flex items-center gap-1 font-mono text-sm tabular-nums ${seconds <= 10 ? "text-warning" : "text-fg-muted"}`}>
       <Timer size={16} aria-hidden />
       {seconds} s
     </span>

@@ -62,7 +62,7 @@ export function MiniGameGrid({ records, nick, color, picked, disabled, onPick }:
               <TileIcon size={20} weight={picked === id ? "fill" : "regular"} aria-hidden />
               <span className="text-sm leading-tight">{GAMES[id].name}</span>
               {/* Własne miejsce w rekordach zamiast liczby graczy (ta jest wszędzie taka sama); kolor gracza, gdy to on prowadzi. */}
-              <span className="mt-auto font-mono text-xs text-fg-muted" style={place === 1 ? { color } : undefined}>
+              <span className="mt-auto font-mono text-xs text-fg-muted tabular-nums" style={place === 1 ? { color } : undefined}>
                 {place ? `${place}. miejsce` : "nie grane"}
               </span>
             </button>
@@ -134,7 +134,7 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
         {isHost && def && (
           <div className="flex flex-col gap-1 pt-3">
             <p className="text-sm">{BLURBS[def.id]}</p>
-            <p className="font-mono text-xs text-fg-muted">
+            <p className="font-mono text-xs text-fg-muted tabular-nums">
               {top ? `Rekord: ${formatRecord(def.id, top)} (${top === mine(def.id) ? "ty" : top.nick})` : "Nikt jeszcze nie grał"}
               {mine(def.id) && top !== mine(def.id) && ` · twój: ${formatBest(def.id, mine(def.id)!.best)}`}
             </p>

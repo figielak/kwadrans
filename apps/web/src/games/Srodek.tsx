@@ -1,6 +1,6 @@
 import { type LobbyPlayer, SRODEK_ACCEPT_PX, srodekError, srodekOffset, srodekProject, SRODEK_ROUNDS, type SrodekPoint, type SrodekView } from "@mini-games/games";
-import { Fragment, type PointerEvent, useEffect, useState } from "react";
-import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { type PointerEvent, useEffect, useState } from "react";
+import { grade as gradeBy, Intro, RoundTable, Scores, Stats } from "../screens/ui.tsx";
 
 interface Props {
   view: SrodekView;
@@ -20,8 +20,7 @@ const TICK = 2;
 
 const num = (n: number) => n.toFixed(1).replace(".", ",");
 const percent = (n: number) => `${num(n)}%`;
-const grade = (d: number) =>
-  d <= PERFECT ? { text: "text-success", stroke: "stroke-success" } : d <= CLOSE ? { text: "", stroke: "stroke-fg" } : { text: "text-warning", stroke: "stroke-warning" };
+const grade = (d: number) => gradeBy(d, PERFECT, CLOSE);
 
 /** Odcinek z poprzecznymi kreskami na końcach, żeby było jednoznaczne, gdzie się zaczyna i kończy. */
 function Segment({ a, b }: { a: SrodekPoint; b: SrodekPoint }) {
@@ -106,49 +105,20 @@ export function Srodek({ view, me, players, ranking, onMove }: Props) {
   if (!playing || phase === "sent") {
     // Na koniec rundy wszystkich w jednej tabeli; w trakcie tylko własne.
     const shown = rows.filter((r) => (over || r.me) && view.taps[r.id]).map((r) => ({ ...r, errors: distances(view.taps[r.id]) }));
-    const played = shown.filter((r) => r.errors.length);
-    /** Kto wygrał rundę: jedyny najmniejszy błąd, przy remisie albo jednym graczu nikt. */
-    const best = (round: number) => {
-      const sorted = [...played].sort((a, b) => a.errors[round] - b.errors[round]);
-      return sorted.length > 1 && sorted[0].errors[round] < sorted[1].errors[round] ? sorted[0].id : null;
-    };
     return (
       <>
         <Scores rows={rows} />
         <p className="text-sm text-fg-muted">Suma błędów z {SRODEK_ROUNDS} rund, mniej znaczy lepiej.</p>
         {shown.length > 0 && (
-          <section className="tile flex flex-col gap-2 p-3">
-            <div className="grid grid-cols-10 gap-1 text-center font-mono text-[11px] tabular-nums">
-              {view.segments.map((_, i) => (
-                <span key={i} className="text-fg-muted">
-                  {i + 1}
-                </span>
-              ))}
-              {shown.map((r) => (
-                <Fragment key={r.id}>
-                  <span className="col-span-10 mt-1 flex items-center gap-2 text-left font-sans text-sm">
-                    <span className="size-2 rounded-full" style={{ backgroundColor: r.color }} aria-hidden />
-                    {r.nick}
-                    {r.me && <span className="text-fg-muted">(ty)</span>}
-                    {!r.errors.length && <span className="text-fg-muted">bez odpowiedzi</span>}
-                  </span>
-                  {r.errors.map((d, i) => (
-                    <span
-                      key={i}
-                      className={`rounded-md border py-1 ${grade(d).text} ${d <= PERFECT ? "font-semibold" : ""} ${best(i) === r.id ? "" : "border-line"}`}
-                      style={best(i) === r.id ? { borderColor: r.color, backgroundColor: `color-mix(in srgb, ${r.color} 28%, transparent)` } : undefined}
-                    >
-                      {/* Na ekranie 360 px komórka mieści trzy znaki. */}
-                      {d < 10 ? num(d) : Math.round(d)}
-                    </span>
-                  ))}
-                </Fragment>
-              ))}
-            </div>
-            <p className="text-xs text-fg-muted">
-              Błąd w każdej rundzie (% długości odcinka){played.length > 1 && "; tło w kolorze gracza ma najlepszy w rundzie"}. Zielony: do {PERFECT}%, czerwony: ponad {CLOSE}%.
-            </p>
-          </section>
+          <RoundTable
+            heads={view.segments.map((_, i) => i + 1)}
+            rows={shown}
+            perfect={PERFECT}
+            close={CLOSE}
+            unit="% długości odcinka"
+            // Na ekranie 360 px komórka mieści trzy znaki.
+            format={(d) => (d < 10 ? num(d) : `${Math.round(d)}`)}
+          />
         )}
       </>
     );

@@ -27,7 +27,7 @@ export function Setup({ view, me, dropped, send, onLeave }: Props) {
           <GameIcon size={28} weight="fill" className="shrink-0" aria-hidden />
           <div className="min-w-0">
             <h1 className="leading-tight">{def.name}</h1>
-            <p className="font-mono text-xs text-fg-muted">{seats(def)}</p>
+            <p className="font-mono text-xs text-fg-muted tabular-nums">{seats(def)}</p>
           </div>
         </div>
         <p className="mt-3 text-sm text-fg-muted">{BLURBS[def.id]}</p>
@@ -51,7 +51,7 @@ export function Setup({ view, me, dropped, send, onLeave }: Props) {
                 onClick={() => send("pickMode", { mode: m.id })}
               >
                 <span className="leading-tight">{m.name}</span>
-                <span className="font-mono text-xs text-fg-muted">{m.hint}</span>
+                <span className="font-mono text-xs text-fg-muted tabular-nums">{m.hint}</span>
               </button>
             );
           })}
@@ -122,7 +122,7 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
             <h2 className="label" id="tournament-length">
               Liczba gier
             </h2>
-            <p className="font-mono text-xs text-fg-muted">ok. {minutes(length)} min</p>
+            <p className="font-mono text-xs text-fg-muted tabular-nums">ok. {minutes(length)} min</p>
           </div>
           <div className="flex items-center gap-3" role="group" aria-labelledby="tournament-length">
             {isHost && (
@@ -159,7 +159,7 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
                 onClick={() => pick({ length: games })}
               >
                 {name}
-                <span className="font-mono text-xs text-fg-muted">{games} gier</span>
+                <span className="font-mono text-xs text-fg-muted tabular-nums">{games} gier</span>
               </button>
             ))}
           </div>
@@ -193,7 +193,7 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
                   <span className={`text-sm leading-tight ${state === "bez" ? "line-through" : ""}`}>{GAMES[id].name}</span>
                   {/* Podpis mają tylko gry zmienione; domyślne „losowo” na każdym kaflu zagłuszałoby wybory. */}
                   {state === "na pewno" && (
-                    <span className="mt-auto flex items-center gap-1 font-mono text-xs">
+                    <span className="mt-auto flex items-center gap-1 font-mono text-xs tabular-nums">
                       <Check size={12} weight="bold" className="text-accent" aria-hidden />
                       na pewno
                     </span>

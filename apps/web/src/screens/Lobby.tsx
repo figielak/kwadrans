@@ -109,7 +109,7 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
     <section className="tile">
       <div className="mb-3 flex items-baseline justify-between">
         <h2 className="label">Gracze</h2>
-        <span className="font-mono text-sm text-fg-muted">
+        <span className="font-mono text-sm text-fg-muted tabular-nums">
           W pokoju {view.players.length}/{MAX_PLAYERS}
         </span>
       </div>
@@ -257,7 +257,7 @@ export function Tile({ icon: TileIcon, name, hint, picked, disabled, dim, wide, 
     >
       <TileIcon size={22} weight={picked ? "fill" : "regular"} aria-hidden />
       <span className="leading-tight">{name}</span>
-      <span className={`font-mono text-xs text-fg-muted ${wide ? "ml-auto" : ""}`}>{hint}</span>
+      <span className={`font-mono text-xs text-fg-muted tabular-nums ${wide ? "ml-auto" : ""}`}>{hint}</span>
     </button>
   );
 }
