@@ -33,6 +33,8 @@ import { stroop } from "./stroop.ts";
 import { tort } from "./tort.ts";
 import { wieza } from "./wieza.ts";
 import { wPamieci } from "./w-pamieci.ts";
+import { zakupy } from "./zakupy.ts";
+import { zaslona } from "./zaslona.ts";
 
 export * from "./core.ts";
 export * from "./lobby.ts";
@@ -92,6 +94,8 @@ export { OUTLINE as MAPA_OUTLINE } from "./mapa-dane.ts";
 export { DURATION_MS as STOJ_DURATION_MS, SCHEDULE as STOJ_SCHEDULE, score as stojScore, VISIBLE as STOJ_VISIBLE, type View as StojView } from "./stoj.ts";
 export { BEATS as RYTM_BEATS, MAX_TAPS as RYTM_MAX_TAPS, TAP_MS as RYTM_TAP_MS, type View as RytmView } from "./rytm.ts";
 export { deviation as przytrzymajDeviation, ROUNDS as PRZYTRZYMAJ_ROUNDS, type View as PrzytrzymajView } from "./przytrzymaj.ts";
+export { LIST as ZAKUPY_LIST, MAX_MS as ZAKUPY_MAX_MS, score as zakupyScore, SHELF as ZAKUPY_SHELF, SHOW_MS as ZAKUPY_SHOW_MS, type View as ZakupyView } from "./zakupy.ts";
+export { deviation as zaslonaDeviation, ROUNDS as ZASLONA_ROUNDS, type View as ZaslonaView } from "./zaslona.ts";
 export { type Cake as TortCake, CAKES as TORT_CAKES, error as tortError, type View as TortView } from "./tort.ts";
 export { ballAt as kubkiBallAt, ROUNDS as KUBKI_ROUNDS, SHOW_MS as KUBKI_SHOW_MS, swapMs as kubkiSwapMs, type Round as KubkiRound, type View as KubkiView } from "./kubki.ts";
 export { BLANKS as SUDOKU_BLANKS, PENALTY_MS as SUDOKU_PENALTY_MS, total as sudokuTotal, type View as SudokuView } from "./sudoku.ts";
@@ -133,6 +137,8 @@ export const GAMES: Record<string, GameDefinition<any, any>> = Object.assign(Obj
   [wPamieci.id]: wPamieci,
   [dziesiatki.id]: dziesiatki,
   [tort.id]: tort,
+  [zakupy.id]: zakupy,
+  [zaslona.id]: zaslona,
   [nozyczki.id]: nozyczki,
   [sudoku.id]: sudoku,
   [panstwaMiasta.id]: panstwaMiasta,

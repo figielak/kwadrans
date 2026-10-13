@@ -16,6 +16,7 @@ import {
   DotsNine,
   GameController,
   Eyedropper,
+  EyeSlash,
   GlobeHemisphereEast,
   GridFour,
   PintGlass,
@@ -37,6 +38,7 @@ import {
   ShareNetwork,
   SignOut,
   Scissors,
+  ShoppingCart,
   SquaresFour,
   Stack,
   TextAa,
@@ -311,6 +313,8 @@ export const ICONS: Record<string, Icon> = {
   "w-pamieci": Brain,
   dziesiatki: NumberCircleZero,
   tort: Cake,
+  zakupy: ShoppingCart,
+  zaslona: EyeSlash,
   nozyczki: Scissors,
 };
 
@@ -350,6 +354,8 @@ export const BLURBS: Record<string, string> = {
   przytrzymaj: "Pole świeci się od 1 do 5 s, a ty trzymasz palec tak samo długo. 5 rund, wygrywa najmniejsza suma odchyłek.",
   nozyczki: "Jednym ruchem palca przecinasz nieregularny kształt na dwie równe części. 5 kształtów, wygrywa najmniejsza suma błędów.",
   tort: "Okrągły tort dzielisz cięciami na 3 do 7 równych kawałków. 5 tortów, wygrywa najmniejsza suma błędów.",
+  zaslona: "Kulka toczy się ze stałą prędkością i znika za zasłoną. Dotykasz w chwili, gdy powinna dotrzeć do mety. 8 rund, wygrywa najmniejsza suma odchyłek.",
+  zakupy: "Przez 10 s widzisz listę 10 przedmiotów, potem wskazujesz je na półce z 20. Zły przedmiot zabiera punkt, przy remisie wygrywa szybszy.",
   dziesiatki: "Siatka liczb od 1 do 9. Dotykasz dwóch, które razem dają 10, a w ich miejsce wchodzą nowe. 30 s, liczą się pary.",
   "w-pamieci": "Liczba i kolejne działania migają po kolei, wyniku nie widać. Wpisujesz, ile wyszło. Ciąg jest coraz dłuższy, pierwsza pomyłka kończy grę.",
   balon: "Pompujesz balon stuknięciami, każde to punkt. Zgarniasz punkty, kiedy chcesz, ale pęknięty balon daje 0. 10 balonów, liczy się suma.",

@@ -18,8 +18,8 @@ interface Props {
 
 /** Nagłówki sekcji na liście; gra spoza tej listy trafia do „Inne”, więc nowa nigdy nie znika. */
 const CATEGORIES: [string, string[]][] = [
-  ["Refleks i czas", ["refleks", "stoj", "stoper", "przytrzymaj", "rytm", "wieza"]],
-  ["Pamięć", ["simon", "w-pamieci", "sledzenie", "kubki"]],
+  ["Refleks i czas", ["refleks", "stoj", "stoper", "przytrzymaj", "zaslona", "rytm", "wieza"]],
+  ["Pamięć", ["simon", "w-pamieci", "sledzenie", "kubki", "zakupy"]],
   ["Liczby", ["liczenie", "kropki", "dziesiatki", "sudoku", "schulte"]],
   ["Precyzja", ["kolo", "srodek", "kat", "kolor", "tort", "nozyczki"]],
   ["Spostrzegawczość", ["stroop", "inny", "obrot", "literowka"]],

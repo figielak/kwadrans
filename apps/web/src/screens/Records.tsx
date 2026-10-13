@@ -35,6 +35,7 @@ const FORMAT: Record<string, { value: (n: number) => string; gap?: (n: number) =
   stoper: { value: ms },
   rytm: { value: ms },
   przytrzymaj: { value: ms },
+  zaslona: { value: ms },
   balon: { value: points, tie: (n) => plural(n, "pęknięty", "pęknięte", "pękniętych") },
   schulte: { value: (n) => `${num(n / 1000)} s` },
   sudoku: { value: (n) => `${num(n / 1000)} s` },
@@ -44,6 +45,7 @@ const FORMAT: Record<string, { value: (n: number) => string; gap?: (n: number) =
   rok: { value: (n) => plural(n, "rok", "lata", "lat") },
   srodek: { value: tenthsPercent },
   tort: { value: tenthsPercent },
+  zakupy: { value: points, tie: (n) => `${num(n / 1000)} s` },
   nozyczki: { value: tenthsPercent },
   mapa: { value: (n) => `${n} km` },
 };

@@ -221,8 +221,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
               </h1>
               {dots && <GameDots dots={dots} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
             </div>
-            {/* Na ekranie instrukcji limit jeszcze nie ruszył. Stoper, Rytm i Przytrzymaj: tykający limit zdradzałby upływ sekund, więc grający go nie widzi. */}
-            {view.phase === "playing" && !game.intro && !((def.id === "stoper" || def.id === "rytm" || def.id === "przytrzymaj") && myTurn) && (
+            {/* Na ekranie instrukcji limit jeszcze nie ruszył. Stoper, Rytm, Przytrzymaj i Za zasłoną: tykający limit zdradzałby upływ sekund, więc grający go nie widzi. */}
+            {view.phase === "playing" && !game.intro && !((def.id === "stoper" || def.id === "rytm" || def.id === "przytrzymaj" || def.id === "zaslona") && myTurn) && (
               <Countdown
                 game={round ?? game}
                 total={round ? QUIZ_DURATION_MS / 1000 : (def.turn?.(game.view).seconds ?? def.turnSeconds)}
@@ -428,7 +428,7 @@ function recordHint(gameId: string, rows: RecordRow[] | null, nick: string) {
   return `${top} (${rows[0].nick})${mine ? ` · twój: ${formatRecord(gameId, mine)}` : ""}`;
 }
 
-const MINI_GAMES = new Set(["tort", "nozyczki", "refleks", "simon", "stoper", "schulte", "sudoku", "stroop", "liczenie", "kolo", "kolor", "kropki", "rok", "srodek", "stoj", "sledzenie", "kubki", "wieza", "rytm", "inny", "obrot", "literowka", "mapa", "kat", "przytrzymaj", "balon", "w-pamieci", "dziesiatki", "panstwa-miasta"]);
+const MINI_GAMES = new Set(["tort", "zakupy", "zaslona", "nozyczki", "refleks", "simon", "stoper", "schulte", "sudoku", "stroop", "liczenie", "kolo", "kolor", "kropki", "rok", "srodek", "stoj", "sledzenie", "kubki", "wieza", "rytm", "inny", "obrot", "literowka", "mapa", "kat", "przytrzymaj", "balon", "w-pamieci", "dziesiatki", "panstwa-miasta"]);
 
 const SCHULTE_LAST = SCHULTE_SIZE * SCHULTE_SIZE;
 

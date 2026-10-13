@@ -1,4 +1,4 @@
-import { type BalonView, type DziesiatkiView, type InnyView, type KatView, type KoloView, type KolorView, type KropkiView, type KubkiView, type LiczenieView, type LiterowkaView, type MapaView, type NozyczkiView, type ObrotView, type PrzytrzymajView, type RefleksView, type RokView, type RytmView, type SchulteView, type SimonView, type SledzenieView, type SrodekView, type StojView, type StoperView, type StroopView, type SudokuView, type TortView, type WPamieciView, type WiezaView, type LobbyPlayer } from "@mini-games/games";
+import { type BalonView, type DziesiatkiView, type InnyView, type KatView, type KoloView, type KolorView, type KropkiView, type KubkiView, type LiczenieView, type LiterowkaView, type MapaView, type NozyczkiView, type ObrotView, type PrzytrzymajView, type RefleksView, type RokView, type RytmView, type SchulteView, type SimonView, type SledzenieView, type SrodekView, type StojView, type StoperView, type StroopView, type SudokuView, type TortView, type WPamieciView, type WiezaView, type ZakupyView, type ZaslonaView, type LobbyPlayer } from "@mini-games/games";
 import { Balon } from "./Balon.tsx";
 import { Dziesiatki } from "./Dziesiatki.tsx";
 import { Inny } from "./Inny.tsx";
@@ -27,6 +27,8 @@ import { Stroop } from "./Stroop.tsx";
 import { Tort } from "./Tort.tsx";
 import { WPamieci } from "./WPamieci.tsx";
 import { Wieza } from "./Wieza.tsx";
+import { Zakupy } from "./Zakupy.tsx";
+import { Zaslona } from "./Zaslona.tsx";
 
 interface Props {
   id: string;
@@ -206,6 +208,28 @@ export function MiniGame({ id, view, me, players, ranking, winner, onMove, onRou
         <Tort
           key={JSON.stringify((view as TortView).cakes)}
           view={view as TortView}
+          me={me}
+          players={players}
+          ranking={ranking}
+          onMove={onMove}
+        />
+      )}
+
+      {id === "zaslona" && (
+        <Zaslona
+          key={JSON.stringify((view as ZaslonaView).rounds)}
+          view={view as ZaslonaView}
+          me={me}
+          players={players}
+          ranking={ranking}
+          onMove={onMove}
+        />
+      )}
+
+      {id === "zakupy" && (
+        <Zakupy
+          key={JSON.stringify((view as ZakupyView).items)}
+          view={view as ZakupyView}
           me={me}
           players={players}
           ranking={ranking}

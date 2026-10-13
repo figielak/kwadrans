@@ -37,6 +37,8 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | W pamięci | `w-pamieci` | 1-6 | 300 s | mini-gra |
 | Dziesiątki | `dziesiatki` | 1-6 | 90 s | mini-gra |
 | Tort | `tort` | 1-6 | 120 s | mini-gra |
+| Zakupy | `zakupy` | 1-6 | 60 s | mini-gra |
+| Za zasłoną | `zaslona` | 1-6 | 120 s | mini-gra |
 | Nożyczki | `nozyczki` | 1-6 | 60 s | mini-gra |
 | Sudoku | `sudoku` | 1-6 | 120 s | mini-gra |
 | Trzy kubki | `kubki` | 1-6 | 180 s | mini-gra |
@@ -50,7 +52,7 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
   więc nic nie jest ukryte (da się podejrzeć; świadoma decyzja, komentarze `ponytail:`).
 - Partia toczy się na kliencie. Każdy gracz wysyła jeden ruch `{ type: "result", ... }`; drugi ruch tego samego gracza jest odrzucany.
   Wyjątki: Narysuj koło (do 10 ruchów na gracza), Tabela Schultego, Policz kropki, Kąt, Który rok?, Wieża, Balon i Sudoku (dodatkowy ruch `progress` po każdym trafieniu, rundzie, klocku, balonie albo wpisanej cyfrze).
-- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon, W pamięci, Tort, Nożyczki, Trzy kubki),
+- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon, W pamięci, Tort, Zakupy, Za zasłoną, Nożyczki, Trzy kubki),
   w reszcie ufa klientowi.
 - Partia zaczyna się ekranem instrukcji (platforma, nie zasady gry): każdy klika „Start” osobno (wiadomość pokoju `begin`) i gra od razu,
   po `INTRO_SECONDS` (15 s) gra rusza sama. Limit tury startuje, gdy wystartują wszyscy albo minie 15 s; wynik oddany wcześniej go nie uruchamia.
@@ -471,6 +473,51 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
   Potem przez 1,5 s widać idealne cięcia (przerywane, liczone od gotowego) i błąd w %; kolor według celności: do 2% zielony z „Idealnie!”,
   do 8% zwykły, dalej ostrzegawczy. Potem sam wskakuje następny tort; po piątym wynik idzie na serwer.
 - Ekran końcowy: jedna tabela, torty 1-5 w kolumnach (z liczbą kawałków), gracze w wierszach. Najlepszy w rundzie (bez remisu) ma tło w kolorze gracza.
+
+### Zakupy (`zakupy`)
+- Jedna runda. Przez 10 s (`SHOW_MS`) widać listę zakupów: 10 przedmiotów (`LIST`, emoji). Potem lista znika i pojawia się półka
+  z 20 przedmiotami (`SHELF`): 10 z listy i 10 innych, wymieszane. Gracz zaznacza te, które były na liście, i zatwierdza „Gotowe”.
+- Serwer losuje to samo dla wszystkich: `items` to 20 różnych przedmiotów z puli `ITEMS` w kolejności na półce, `listed` to 10 różnych
+  indeksów półki w kolejności na liście (inna niż na półce, żeby miejsce niczego nie podpowiadało). Przedmioty spoza listy są losowe
+  z tej samej puli, bez dobierania podobnych.
+- Zaznaczyć można dowolnie wiele przedmiotów, od 0 do 20. Pustą półkę też można zatwierdzić (0 punktów z prawdziwym czasem).
+- Jeden ruch z `picked` (zaznaczone indeksy półki, różne, int 0-19, kolejność bez znaczenia) i `ms` (czas od pokazania półki do „Gotowe”,
+  int 0-50 000, `MAX_MS`). Wynik liczy serwer (`score`): `hits` = zaznaczone z listy, `wrong` = zaznaczone spoza listy,
+  `score` = `hits − wrong`, nie mniej niż 0 (dolna granica jak w Obrocie), czyli 0-10. Strzał w ciemno może więc kosztować punkt,
+  a zaznaczenie całej półki daje 0.
+- Ranking: więcej punktów wyżej, przy równych krótszy czas zaznaczania (`ms`); równe oba to remis.
+- Limit czasu = pusta półka z `ms` = 50 000: 0 punktów z najgorszym czasem (przegrywa z uczciwie zatwierdzoną pustą półką).
+- Limit tury 60 s to 10 s pokazu i do 50 s zaznaczania.
+- Bez ruchu `progress` (jedna runda).
+- Ekran: lista w siatce 5×2 z paskiem upływającego czasu, potem półka 5×4; dotknięcie kafla zaznacza i odznacza (obwódka w kolorze gracza),
+  pod spodem „Gotowe”. W pasku statystyk liczba zaznaczonych i czas.
+- Ekran końcowy: wyniki („8 pkt (9 traf., 1 błąd) · 12,3 s”) i jedna półka z odpowiedzią: przedmioty z listy podświetlone,
+  przy każdym kropki w kolorach graczy, którzy go zaznaczyli.
+
+### Za zasłoną (`zaslona`)
+- 8 rund (`ROUNDS`). W każdej po 1 s przerwy kulka rusza z lewej i toczy się w prawo ze stałą prędkością, po chwili znika za zasłoną.
+  Gracz dotyka pola w chwili, gdy kulka powinna dotrzeć do mety (kreska na zasłonie). Potem przez 1,5 s zasłona jest przezroczysta:
+  widać, gdzie kulka naprawdę była w chwili dotknięcia, i odchyłkę ze znakiem.
+- Rundy (`rounds`) losuje serwer, te same dla wszystkich. Każda to dwa niezależne czasy w pełnych ms: `visible` 800-2000
+  (`MIN_VISIBLE`, `MAX_VISIBLE`: tyle kulkę widać) i `hidden` 1000-4000 (`MIN_HIDDEN`, `MAX_HIDDEN`: tyle jedzie za zasłoną do mety).
+  Suma `hidden` to zawsze 20 000 ms (`TOTAL_HIDDEN`, losowanie do skutku przez `withSum`): odchyłka rośnie z czasem za zasłoną,
+  więc stała suma wyrównuje partie. `visible` nie wchodzi do wyniku i jest losowane swobodnie.
+  Z obu czasów wynika i prędkość kulki, i szerokość zasłony (`hidden / (visible + hidden)` toru), więc obie zmieniają się co rundę.
+  Bez `nonce`: 16 losowych ms praktycznie się nie powtarza, więc rewanż montuje ekran od nowa po samych rundach.
+- Jeden ruch z `taps`: czasy w ms (int) od zniknięcia kulki do dotknięcia w kolejnych rundach, mierzone na kliencie.
+- Wynik liczy serwer: odchyłka rundy (`deviation`) = |czas dotknięcia − `hidden`|, ucięta do `hidden`; wynik = suma z 8 rund w ms (int),
+  mniej lepiej, równe to remis. Ucięcie sprawia, że dotknięcie od razu po zniknięciu i brak dotknięcia kosztują tyle samo (jak w Przytrzymaj).
+  Czas `visible` nie wchodzi do wyniku.
+- Walidacja: lista pusta albo dokładnie 8 czasów, każdy całkowity od 0 do 8000 (`2 × MAX_HIDDEN`). Pusta lista = limit czasu = suma `hidden`,
+  czyli najgorszy możliwy wynik.
+- Dotknięcie, gdy kulkę jeszcze widać, jest ignorowane bez kary (jak dotknięcie poza strefą w Środku); liczy się pierwsze dotknięcie po zniknięciu.
+- Ekran sam kończy rundę po dwukrotności `hidden` (dalej odchyłka i tak jest ucięta). Grający nie widzi limitu tury ani żadnego licznika
+  sekund (podawałyby czas), jak w Stoperze, Rytmie i Przytrzymaj.
+- Bez ruchu `progress` (8 krótkich rund).
+- Ekran: tor poziomy, kulka w kolorze gracza, kierunek zawsze w prawo. Meta to kreska na zasłonie, nie krawędź pola: za nią zostaje kawałek toru,
+  żeby w odsłonie było widać przestrzelenie. Całe pole jest przyciskiem. Kolor odchyłki jak w Stoperze: do 100 ms zielony, ponad 500 ms ostrzegawczy.
+- Stan trzyma też `taps` każdego gracza: ekran końcowy to jedna tabela, rundy 1-8 w kolumnach, gracze w wierszach.
+  Najlepszy w rundzie (bez remisu) ma tło w kolorze gracza.
 
 ### Nożyczki (`nozyczki`)
 - 5 kształtów (`SHAPES`), te same dla wszystkich; gracz jednym ruchem palca przecina każdy prostą tak, żeby obie części miały równe pole.

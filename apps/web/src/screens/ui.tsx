@@ -188,6 +188,8 @@ export function RoundTable({
   perfect,
   close,
   unit,
+  format = tenth,
+  legend,
 }: {
   heads: ReactNode[];
   /** Pusta lista `errors` = gracz nie odpowiedział (limit czasu). */
@@ -196,6 +198,10 @@ export function RoundTable({
   close: number;
   /** Czego dotyczy liczba, np. „% tortu”. */
   unit: string;
+  /** Zapis błędu w komórce; domyślnie jedno miejsce po przecinku. */
+  format?: (d: number) => string;
+  /** Tekst progów pod tabelą; domyślnie progi w procentach. */
+  legend?: ReactNode;
 }) {
   const played = rows.filter((r) => r.errors.length);
   const best = (round: number) => {
@@ -224,14 +230,14 @@ export function RoundTable({
                 className={`rounded-md border py-1 ${grade(d, perfect, close).text} ${d <= perfect ? "font-semibold" : ""} ${best(i) === r.id ? "" : "border-line"}`}
                 style={best(i) === r.id ? { borderColor: r.color, backgroundColor: `color-mix(in srgb, ${r.color} 28%, transparent)` } : undefined}
               >
-                {tenth(d)}
+                {format(d)}
               </span>
             ))}
           </Fragment>
         ))}
       </div>
       <p className="text-xs text-fg-muted">
-        Błąd w każdej rundzie ({unit}){played.length > 1 && "; tło w kolorze gracza ma najlepszy w rundzie"}. Zielony: do {perfect}%, czerwony: ponad {close}%.
+        Błąd w każdej rundzie ({unit}){played.length > 1 && "; tło w kolorze gracza ma najlepszy w rundzie"}. {legend ?? `Zielony: do ${perfect}%, czerwony: ponad ${close}%.`}
       </p>
     </section>
   );
