@@ -19,11 +19,13 @@ function ago(at: number) {
   return minutes < 60 ? relative.format(-minutes, "minute") : relative.format(-Math.round(minutes / 60), "hour");
 }
 
-/** Znak aplikacji: tarcza zegara z zamalowanym pierwszym kwadransem (to samo co `public/icon.svg`, bez tła). */
+/** Znak aplikacji: trzy koła i zamalowany kwadrans (to samo co `public/icon.svg`, bez tła). */
 const Logo = () => (
-  <svg viewBox="92 92 328 328" className="size-8 shrink-0" aria-hidden>
-    <circle cx="256" cy="256" r="150" fill="none" stroke="currentColor" strokeWidth="28" />
-    <path d="M256 256V92A164 164 0 0 1 420 256Z" className="fill-accent" />
+  <svg viewBox="32 32 192 192" className="size-8 shrink-0" fill="currentColor" aria-hidden>
+    <circle cx="76" cy="76" r="44" />
+    <circle cx="76" cy="180" r="44" />
+    <circle cx="180" cy="180" r="44" />
+    <path d="M136 120V32a88 88 0 0 1 88 88z" className="fill-accent" />
   </svg>
 );
 
