@@ -41,7 +41,9 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
   const [open, setOpen] = useState(false);
   useEffect(() => setOpen(false), [view.phase]);
   // Poświata tła w kolorze gracza, na którego czekamy; poza turą jednej osoby zostaje akcent.
-  const turnColor = view.phase === "playing" && game.waitingFor.length === 1 ? view.players.find((p) => p.id === game.waitingFor[0])?.color : undefined;
+  // Kalambury: zawsze kolor rysującego, bo czekamy na zgadujących, a uwaga jest na rysunku.
+  const focus = def.id === "kalambury" ? (game.view as KalamburyView).drawer : game.waitingFor.length === 1 ? game.waitingFor[0] : undefined;
+  const turnColor = view.phase === "playing" && focus ? view.players.find((p) => p.id === focus)?.color : undefined;
   useEffect(() => {
     if (!turnColor) return;
     document.body.style.setProperty("--ambient", turnColor);

@@ -15,6 +15,7 @@ Trzy rzeczy budują cały styl:
 
 1. **Prawie czarne tło z jedną poświatą.** W prawym górnym rogu leży nieruchomy gradient radialny (16% koloru, 60vmax).
    Domyślnie ma kolor akcentu, a w partii kolor gracza, na którego wszyscy czekają (`--ambient`), więc o turze mówi całe tło.
+   W Kalamburach to zawsze kolor rysującego.
 2. **Jedna czerwień na ekran.** Akcent `#ff2445` dostaje jeden wypełniony przycisk, czyli najważniejsza akcja ekranu. Reszta to obrysy.
 3. **Dwa kroje o dwóch rolach.** Satoshi mówi (nazwy, zdania, przyciski), Geist Mono liczy (kody, wyniki, czasy, podpisy sekcji).
 
