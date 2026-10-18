@@ -1,5 +1,5 @@
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, standing, standings, type StatkiView, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, standing, standings, type StatkiView, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
@@ -33,6 +33,14 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
   useEffect(() => {
     if (myTurn) navigator.vibrate?.(40);
   }, [myTurn]);
+
+  // Kalambury: serwer ma dwa limity po 40 s (po pierwszym odsłania literę), a gracz widzi jeden pasek na całe rysowanie.
+  // W pierwszej połowie do czasu dochodzi cała druga; memo po wiadomości, żeby termin nie przesuwał się przy każdym renderze.
+  const drawTime = useMemo(() => {
+    const k = def.id === "kalambury" ? (game.view as KalamburyView) : null;
+    if (k?.phase !== "draw" || game.msLeft === null) return null;
+    return { msLeft: game.msLeft + (k.half === 0 ? KALAMBURY_HALF_SECONDS * 1000 : 0), total: 2 * KALAMBURY_HALF_SECONDS };
+  }, [game, def.id]);
 
   // Quizy (Kolor liter, Liczenie, Inny element, Dziesiątki): w rundzie pasek w nagłówku pokazuje jej 30 s zamiast limitu platformy.
   const [round, setRound] = useState<{ msLeft: number } | null>(null);
@@ -362,7 +370,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
             me={me}
             players={view.players}
             ranking={game.result?.ranking}
-            timer={ownHeader && <Countdown game={game} total={def.turn?.(game.view).seconds} color={turnColor} tense />}
+            timer={ownHeader && <Countdown game={drawTime ?? game} total={drawTime?.total ?? def.turn?.(game.view).seconds} color={turnColor} tense />}
             onMove={(move) => send("move", move)}
           />
         )}
