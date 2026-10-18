@@ -106,6 +106,7 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
           )}
           <Canvas strokes={view.strokes} />
           <ul className="tile flex flex-col gap-1 p-4 text-sm" aria-label="Punkty rundy">
+            <li className="label mb-1">Runda {view.round + 1}</li>
             {view.guessed.length === 0 && <li className="text-fg-muted">Nikt nie zgadł.</li>}
             {[view.drawer, ...view.guessed].map((id) => (
               <li key={id} className="flex items-center gap-2">
@@ -116,6 +117,7 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
               </li>
             ))}
           </ul>
+          <p className="label -mb-1 px-1">Suma punktów</p>
           <Scores
             rows={(ranking ?? [...view.players].sort((a, b) => view.totals[b] - view.totals[a])).map((id) => ({
               id,
