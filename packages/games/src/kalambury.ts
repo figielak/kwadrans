@@ -12,6 +12,9 @@ export const CHOICES = 3;
 export const ANSWER_MAX = 30;
 /** Współrzędne płótna 0-1000, niezależnie od ekranu. */
 export const SIDE = 1000;
+/** Paleta: 5 kolorów i gumka (ostatnia); barwy zna tylko ekran, zasady widzą indeks. */
+export const INKS = 6;
+export const ERASER = INKS - 1;
 /** Punktów (par x, y) w jednym ruchu i w całym rysunku. */
 export const BATCH_POINTS = 100;
 export const MAX_POINTS = 2000;
@@ -25,12 +28,15 @@ const SECONDS = { choose: 15, draw: 80, reveal: 6 };
 
 export type Move =
   | { type: "choose"; index: number }
-  | { type: "line"; points: number[]; start: boolean }
+  | { type: "line"; points: number[]; start: boolean; color: number }
   | { type: "undo" }
   | { type: "clear" }
   | { type: "guess"; text: string }
   | { type: "pass" }
   | { type: "next" };
+
+/** Kreska: indeks palety i płaska lista x, y. */
+export type Stroke = { color: number; points: number[] };
 
 export type Phase = "choose" | "draw" | "reveal" | "over";
 
@@ -46,8 +52,7 @@ export interface State {
   words: string[];
   /** Wybrane hasło rundy, "" przed wyborem. */
   word: string;
-  /** Kreski jako płaskie listy x, y. */
-  strokes: number[][];
+  strokes: Stroke[];
   /** Pudła rundy. */
   chat: { player: PlayerId; text: string }[];
   /** Kto zgadł, w kolejności trafień. */
@@ -67,7 +72,7 @@ export type View = Omit<State, "words"> & {
 };
 
 const guessers = (s: State) => s.players.filter((p) => p !== s.drawer && !s.guessed.includes(p) && !s.passed.includes(p));
-const points = (s: State) => s.strokes.reduce((n, stroke) => n + stroke.length / 2, 0);
+const points = (s: State) => s.strokes.reduce((n, stroke) => n + stroke.points.length / 2, 0);
 
 function newRound(state: State, round: number): State {
   const drawer = state.players[round % state.players.length];
@@ -93,7 +98,7 @@ export const kalambury: GameDefinition<State, Move> = {
   modes: MODES,
   moveSchema: z.discriminatedUnion("type", [
     z.object({ type: z.literal("choose"), index: z.number().int() }),
-    z.object({ type: z.literal("line"), points: z.array(coord).max(BATCH_POINTS * 2), start: z.boolean() }),
+    z.object({ type: z.literal("line"), points: z.array(coord).max(BATCH_POINTS * 2), start: z.boolean(), color: z.number().int() }),
     z.object({ type: z.literal("undo") }),
     z.object({ type: z.literal("clear") }),
     z.object({ type: z.literal("guess"), text: z.string().max(ANSWER_MAX) }),
@@ -120,6 +125,7 @@ export const kalambury: GameDefinition<State, Move> = {
         // validateMove jest jedynym strażnikiem, więc zakres współrzędnych sprawdza też sam, nie tylko schemat.
         if (!drawing || p.length < 2 || p.length % 2 || !p.every((n) => coord.safeParse(n).success)) return false;
         if (!move.start && s.strokes.length === 0) return false;
+        if (move.start && !(move.color >= 0 && move.color < INKS)) return false;
         return points(s) + p.length / 2 <= MAX_POINTS;
       }
       case "undo":
@@ -145,9 +151,10 @@ export const kalambury: GameDefinition<State, Move> = {
       case "choose":
         return { ...s, phase: "draw", word: s.words[s.round * CHOICES + move.index] };
       case "line": {
-        if (move.start) return { ...s, strokes: [...s.strokes, move.points] };
+        if (move.start) return { ...s, strokes: [...s.strokes, { color: move.color, points: move.points }] };
         const strokes = [...s.strokes];
-        strokes[strokes.length - 1] = [...strokes[strokes.length - 1], ...move.points];
+        const last = strokes[strokes.length - 1];
+        strokes[strokes.length - 1] = { ...last, points: [...last.points, ...move.points] };
         return { ...s, strokes };
       }
       case "undo":

@@ -1,5 +1,5 @@
-import { ArrowCounterClockwise, Check, PencilSimple, Trash } from "@phosphor-icons/react";
-import { KALAMBURY_ANSWER_MAX, KALAMBURY_BATCH_POINTS, KALAMBURY_MAX_POINTS, KALAMBURY_SIDE, type KalamburyMove, type KalamburyView, type LobbyPlayer } from "@kwadrans/games";
+import { ArrowCounterClockwise, Check, Eraser, PencilSimple, Trash } from "@phosphor-icons/react";
+import { KALAMBURY_ANSWER_MAX, KALAMBURY_BATCH_POINTS, KALAMBURY_ERASER, KALAMBURY_MAX_POINTS, KALAMBURY_SIDE, type KalamburyMove, type KalamburyStroke, type KalamburyView, type LobbyPlayer } from "@kwadrans/games";
 import { type FormEvent, type PointerEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { Scores, StickyBar } from "../screens/ui.tsx";
 
@@ -17,6 +17,17 @@ interface Props {
 const SEND_MS = 200;
 /** Krótszych odcinków nie zapisujemy (w jednostkach płótna 0-1000): mniej danych, a linia dalej gładka. */
 const MIN_STEP = 8;
+/** Kolory palety w kolejności indeksów z zasad; ostatni (gumka) to kolor płótna. Czarnego nie ma: zniknąłby na ciemnym tle. */
+const PALETTE = [
+  { name: "Biały", color: "var(--color-fg)" },
+  { name: "Żółty", color: "#facc15" },
+  { name: "Zielony", color: "#4ade80" },
+  { name: "Niebieski", color: "#60a5fa" },
+  { name: "Brązowy", color: "#b4763a" },
+  { name: "Gumka", color: "var(--color-surface)" },
+];
+const WIDTH = 10;
+const ERASER_WIDTH = 40;
 /** Ile ostatnich pudeł widać pod rysunkiem. */
 const CHAT_LINES = 3;
 /** Miejsce na czat, pole tekstowe i „Pasuję” pod płótnem, gdy klawiatura zabiera pół ekranu. */
@@ -78,10 +89,10 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
         </div>
       )}
 
-      {view.phase === "draw" && drawing && <Pad key={view.round} view={view} color={player(me)?.color} onMove={onMove} />}
+      {view.phase === "draw" && drawing && <Pad key={view.round} view={view} onMove={onMove} />}
 
       {((view.phase === "choose" && !drawing) || (view.phase === "draw" && !drawing)) && (
-        <Guess view={view} me={me} color={player(me)?.color} ink={player(view.drawer)?.color} canGuess={guessing && view.phase === "draw"} nick={nick} onMove={onMove} />
+        <Guess view={view} me={me} color={player(me)?.color} canGuess={guessing && view.phase === "draw"} nick={nick} onMove={onMove} />
       )}
 
       {(view.phase === "reveal" || view.phase === "over") && (
@@ -93,7 +104,7 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
               {view.word}
             </p>
           )}
-          <Canvas strokes={view.strokes} color={player(view.drawer)?.color} />
+          <Canvas strokes={view.strokes} />
           <ul className="tile flex flex-col gap-1 p-4 text-sm" aria-label="Punkty rundy">
             {view.guessed.length === 0 && <li className="text-fg-muted">Nikt nie zgadł.</li>}
             {[view.drawer, ...view.guessed].map((id) => (
@@ -127,18 +138,25 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
   );
 }
 
-/** Kreski jako ścieżki; pojedynczy punkt to kropka dzięki zaokrąglonym końcom. */
-/** Kreski w kolorze rysującego, u niego i u zgadujących. */
-function Canvas({ strokes, size, color, children, ...pointer }: { strokes: number[][]; size?: number; color?: string; children?: ReactNode } & React.SVGProps<SVGSVGElement>) {
+/** Kreski jako ścieżki; pojedynczy punkt to kropka dzięki zaokrąglonym końcom. Gumka maluje kolorem płótna. */
+function Canvas({ strokes, size, children, ...pointer }: { strokes: KalamburyStroke[]; size?: number; children?: ReactNode } & React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       viewBox={`0 0 ${KALAMBURY_SIDE} ${KALAMBURY_SIDE}`}
       className="mx-auto block aspect-square w-full touch-none select-none rounded-tile border border-line bg-surface [-webkit-touch-callout:none]"
-      style={{ maxWidth: size, color }}
+      style={{ maxWidth: size }}
       {...pointer}
     >
       {strokes.map((s, i) => (
-        <path key={i} d={path(s)} fill="none" stroke="currentColor" strokeWidth={10} strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          key={i}
+          d={path(s.points)}
+          fill="none"
+          stroke={PALETTE[s.color]?.color}
+          strokeWidth={s.color === KALAMBURY_ERASER ? ERASER_WIDTH : WIDTH}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       ))}
       {children}
     </svg>
@@ -151,23 +169,24 @@ const path = (s: number[]) => "M" + s.slice(0, 2).join(" ") + s.reduce((d, n, i)
  * Płótno rysującego. Rysunek żyje lokalnie (bez czekania na serwer), na serwer leci w paczkach co SEND_MS.
  * Start z rysunku z serwera, więc po odświeżeniu strony nic nie znika.
  */
-function Pad({ view, color, onMove }: { view: KalamburyView; color?: string; onMove: Props["onMove"] }) {
+function Pad({ view, onMove }: { view: KalamburyView; onMove: Props["onMove"] }) {
   const [strokes, setStrokes] = useState(view.strokes);
   /** To samo co `strokes`, ale od razu po zmianie (zdarzenia wskaźnika przychodzą szybciej niż render). */
   const local = useRef(view.strokes);
+  const [ink, setInk] = useState(0);
   const finger = useRef<number | null>(null);
-  /** Punkty jeszcze niewysłane i czy zaczynają nową kreskę. */
-  const pending = useRef<{ points: number[]; start: boolean } | null>(null);
-  const count = (all: number[][]) => all.reduce((n, s) => n + s.length / 2, 0);
+  /** Punkty jeszcze niewysłane, czy zaczynają nową kreskę i jej kolor. */
+  const pending = useRef<{ points: number[]; start: boolean; color: number } | null>(null);
+  const count = (all: KalamburyStroke[]) => all.reduce((n, s) => n + s.points.length / 2, 0);
   const full = count(strokes) >= KALAMBURY_MAX_POINTS;
-  const draw = (next: number[][]) => setStrokes((local.current = next));
+  const draw = (next: KalamburyStroke[]) => setStrokes((local.current = next));
 
   function flush() {
     const p = pending.current;
     if (!p || p.points.length === 0) return;
-    pending.current = { points: [], start: false };
+    pending.current = { points: [], start: false, color: p.color };
     for (let i = 0; i < p.points.length; i += KALAMBURY_BATCH_POINTS * 2) {
-      onMove({ type: "line", points: p.points.slice(i, i + KALAMBURY_BATCH_POINTS * 2), start: p.start && i === 0 });
+      onMove({ type: "line", points: p.points.slice(i, i + KALAMBURY_BATCH_POINTS * 2), start: p.start && i === 0, color: p.color });
     }
   }
 
@@ -190,8 +209,8 @@ function Pad({ view, color, onMove }: { view: KalamburyView; color?: string; onM
     e.currentTarget.setPointerCapture(e.pointerId);
     flush();
     const p = at(e, e.currentTarget.getBoundingClientRect());
-    pending.current = { points: [...p], start: true };
-    draw([...local.current, p]);
+    pending.current = { points: [...p], start: true, color: ink };
+    draw([...local.current, { color: ink, points: p }]);
   }
 
   function move(e: PointerEvent<SVGSVGElement>) {
@@ -199,7 +218,7 @@ function Pad({ view, color, onMove }: { view: KalamburyView; color?: string; onM
     const r = e.currentTarget.getBoundingClientRect();
     const events = e.nativeEvent.getCoalescedEvents?.() ?? [];
     const all = local.current;
-    const last = [...all[all.length - 1]];
+    const last = [...all[all.length - 1].points];
     let room = KALAMBURY_MAX_POINTS - count(all);
     for (const ev of events.length ? events : [e]) {
       const [x, y] = at(ev, r);
@@ -208,7 +227,7 @@ function Pad({ view, color, onMove }: { view: KalamburyView; color?: string; onM
       pending.current.points.push(x, y);
       room--;
     }
-    if (last.length !== all[all.length - 1].length) draw([...all.slice(0, -1), last]);
+    if (last.length !== all[all.length - 1].points.length) draw([...all.slice(0, -1), { ...all[all.length - 1], points: last }]);
   }
 
   function up(e: PointerEvent<SVGSVGElement>) {
@@ -226,8 +245,24 @@ function Pad({ view, color, onMove }: { view: KalamburyView; color?: string; onM
   return (
     <>
       <div className="relative">
-        <Canvas strokes={strokes} color={color} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} />
+        <Canvas strokes={strokes} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} />
         {full && <span className="pointer-events-none absolute top-2 left-3 text-xs text-fg-muted">Rysunek pełny: cofnij albo wyczyść</span>}
+      </div>
+      <div className="flex justify-between" role="radiogroup" aria-label="Kolor">
+        {PALETTE.map((p, i) => (
+          <button
+            key={p.name}
+            type="button"
+            role="radio"
+            aria-checked={ink === i}
+            aria-label={p.name}
+            className={`flex size-12 items-center justify-center rounded-full border border-line-hover transition-colors ${ink === i ? "ring-2 ring-fg ring-offset-2 ring-offset-bg" : ""}`}
+            style={{ backgroundColor: p.color }}
+            onClick={() => setInk(i)}
+          >
+            {i === KALAMBURY_ERASER && <Eraser size={22} aria-hidden />}
+          </button>
+        ))}
       </div>
       <div className="flex gap-3">
         <button type="button" className="btn btn-ghost flex-1" disabled={strokes.length === 0} onClick={() => edit("undo")}>
@@ -257,7 +292,7 @@ function useViewportHeight() {
 }
 
 /** Rysunek z serwera, ostatnie pudła i pole do zgadywania. Płótno maleje przy klawiaturze, żeby pole zostało widoczne. */
-function Guess({ view, me, color, ink, canGuess, nick, onMove }: { view: KalamburyView; me: string; color?: string; ink?: string; canGuess: boolean; nick: (id: string) => string; onMove: Props["onMove"] }) {
+function Guess({ view, me, color, canGuess, nick, onMove }: { view: KalamburyView; me: string; color?: string; canGuess: boolean; nick: (id: string) => string; onMove: Props["onMove"] }) {
   const [text, setText] = useState("");
   const top = useRef<HTMLDivElement>(null);
   const height = useViewportHeight();
@@ -279,7 +314,7 @@ function Guess({ view, me, color, ink, canGuess, nick, onMove }: { view: Kalambu
   return (
     <>
       <div ref={top} className="scroll-mt-2">
-        <Canvas strokes={view.strokes} size={height - BELOW_CANVAS_PX} color={ink} />
+        <Canvas strokes={view.strokes} size={height - BELOW_CANVAS_PX} />
       </div>
       <ul className="flex min-h-[4.5rem] flex-col justify-end text-sm" aria-live="polite" aria-label="Strzały">
         {view.chat.slice(-CHAT_LINES).map((m, i) => (

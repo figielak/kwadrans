@@ -71,9 +71,12 @@ export {
 export {
   ANSWER_MAX as KALAMBURY_ANSWER_MAX,
   BATCH_POINTS as KALAMBURY_BATCH_POINTS,
+  ERASER as KALAMBURY_ERASER,
+  INKS as KALAMBURY_INKS,
   MAX_POINTS as KALAMBURY_MAX_POINTS,
   type Move as KalamburyMove,
   SIDE as KALAMBURY_SIDE,
+  type Stroke as KalamburyStroke,
   type View as KalamburyView,
 } from "./kalambury.ts";
 export type { View as PiecWRzedzieView } from "./piec-w-rzedzie.ts";
