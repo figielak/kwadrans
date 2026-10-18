@@ -164,6 +164,8 @@ Każdy stan, który coś blokuje, tłumaczy się podpisem; samo przygaszenie nie
 - **Kolory będące treścią gry** nie są interfejsem i nie muszą pochodzić z tokenów: pola Sekwencji, napisy Koloru liter,
   figury Innego elementu, próbki Odcienia, grupy pól w Kampus Tour.
 - **Statki**: trafienie i zatopiony statek są w `accent`. To utrwalony znak tej gry, czerwień nie oznacza tam akcji.
+- **Państwa-miasta i Kalambury** mają własny nagłówek: gracze w jednej linii z punktami obok nicku zamiast paska `Stats`,
+  bo graczy może być 6, a `Stats` mieści trzy liczby. Każdy ma jedną liczbę, więc zapis w linii zostaje czytelny.
 - **Kampus Tour** ma własny układ poziomy, cienie pod oknami i pionkami oraz przyciski budowy o wysokości 44 px (plansza nie zostawia miejsca na 48).
 
 Rozbieżności do decyzji (nie są wzorem dla nowych ekranów):

@@ -47,11 +47,12 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
           <span className="label">
             Runda {view.round + 1}/{view.rounds} · rysuje {drawing ? "ty" : nick(view.drawer)}
           </span>
-          <h1 className="text-xl leading-tight font-semibold">
+          {/* Tytuł w kolorze gracza tylko u rysującego: to jego tura, jak „Twój ruch!” w innych grach. */}
+          <h1 className="text-xl leading-tight font-semibold" style={drawing && live ? { color: player(me)?.color } : undefined}>
             {view.phase === "choose" ? (
               drawing ? "Wybierz hasło" : `${nick(view.drawer)} wybiera hasło`
             ) : view.word ? (
-              <span style={drawing && live ? { color: player(me)?.color } : undefined}>{view.word}</span>
+              view.word
             ) : (
               <span className="font-mono tracking-[0.3em]" aria-label={`Hasło, liter: ${view.hint.length}`}>
                 {view.hint}
@@ -67,7 +68,9 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
         <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" aria-label="Gracze">
           {view.players.map((id) => (
             <li key={id} className={`flex items-center gap-1.5 ${id === view.drawer || view.guessed.includes(id) ? "" : "text-fg-muted"}`}>
-              <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: player(id)?.color }} aria-hidden />
+              <span className="relative size-2.5 shrink-0 rounded-full" style={{ backgroundColor: player(id)?.color }} aria-hidden>
+                {id === me && <span className="absolute top-full left-1/2 mt-0.5 h-0.5 w-3 -translate-x-1/2 rounded-full" style={{ backgroundColor: player(id)?.color }} />}
+              </span>
               {nick(id)}
               {id === me && <span className="text-fg-muted">(ty)</span>}
               <span className="font-mono text-fg-muted tabular-nums">{view.totals[id]}</span>

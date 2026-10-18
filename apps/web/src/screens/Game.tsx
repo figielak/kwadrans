@@ -362,7 +362,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
             me={me}
             players={view.players}
             ranking={game.result?.ranking}
-            timer={ownHeader && <Countdown game={game} total={def.turn?.(game.view).seconds} tense />}
+            timer={ownHeader && <Countdown game={game} total={def.turn?.(game.view).seconds} color={turnColor} tense />}
             onMove={(move) => send("move", move)}
           />
         )}
