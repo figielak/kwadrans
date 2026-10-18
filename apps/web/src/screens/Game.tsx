@@ -1,10 +1,11 @@
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, type KampusTourView, type KatView, type KropkiView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, standing, standings, type StatkiView, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, standing, standings, type StatkiView, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
 import { Memory } from "../games/Memory.tsx";
 import { MiniGame } from "../games/MiniGame.tsx";
+import { Kalambury } from "../games/Kalambury.tsx";
 import { PanstwaMiasta } from "../games/PanstwaMiasta.tsx";
 import { PiecWRzedzie } from "../games/PiecWRzedzie.tsx";
 import { FleetLeft, Statki } from "../games/Statki.tsx";
@@ -158,8 +159,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           .sort((a, b) => Number(b.me) - Number(a.me))
       : null;
 
-  // Państwa-miasta w trakcie partii mają własny nagłówek: runda, pasek czasu fazy, litera.
-  const ownHeader = def.id === "panstwa-miasta" && view.phase === "playing";
+  // Państwa-miasta i Kalambury w trakcie partii mają własny nagłówek: runda, pasek czasu fazy, litera albo hasło.
+  const ownHeader = (def.id === "panstwa-miasta" || def.id === "kalambury") && view.phase === "playing";
 
   const status =
     tournamentOver
@@ -346,6 +347,18 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
             me={me}
             players={view.players}
             waitingFor={game.waitingFor}
+            ranking={game.result?.ranking}
+            timer={ownHeader && <Countdown game={game} total={def.turn?.(game.view).seconds} tense />}
+            onMove={(move) => send("move", move)}
+          />
+        )}
+
+        {def.id === "kalambury" && (
+          <Kalambury
+            key={(game.view as KalamburyView).nonce}
+            view={game.view as KalamburyView}
+            me={me}
+            players={view.players}
             ranking={game.result?.ranking}
             timer={ownHeader && <Countdown game={game} total={def.turn?.(game.view).seconds} tense />}
             onMove={(move) => send("move", move)}
