@@ -794,23 +794,28 @@ Seria mini-gier puszczana po kolei w jednym pokoju. To nie jest gra z rejestru `
 - Hasła: `WORDS` w `kalambury-dane.ts`, ogólne jednowyrazowe rzeczowniki. `setup` losuje 3 hasła na każdą rundę, w całej partii bez powtórek.
   `nonce` w stanie służy tylko do montowania komponentu od nowa przy rewanżu.
 - **Wybór (`choose`, 15 s)**: rysujący wybiera jedno z trzech haseł rundy (`{ type: "choose", index }`, 0-2). Limit czasu: pierwsze hasło.
-- **Rysowanie (`draw`, 80 s)**:
+- **Rysowanie (`draw`, 2 × 40 s)**: dwie połowy (`half` 0 i 1), każda z własnym limitem `HALF_SECONDS` (40 s).
+  - pierwsza połowa kończy się ruchem `{ type: "hint" }` rysującego (wykonuje go serwer po limicie; tylko rysujący, tylko raz):
+    odsłania jedną losową literę hasła (`rng`, indeks w `revealed`) i zaczyna drugą połowę,
   - rysujący wysyła kreski: `{ type: "line", points, start, color }`, gdzie `points` to płaska lista par x, y (liczby całkowite 0-1000,
     parzysta długość, 2-200 liczb w ruchu); `start: true` zaczyna nową kreskę, `false` dokleja punkty do ostatniej (bez kreski odpada).
     `color` to indeks palety 0-5 (`INKS`: biały, żółty, zielony, niebieski, brązowy, gumka); liczy się tylko przy `start`, doklejone punkty
     mają kolor swojej kreski. Gumka (`ERASER`, 5) to kreska w kolorze płótna, grubsza od zwykłej; dla zasad to zwykły kolor.
     Cały rysunek ma najwyżej `MAX_POINTS` (2000) punktów; ruch, który by go przekroczył, odpada.
-    `{ type: "undo" }` usuwa ostatnią kreskę (bez kresek odpada), `{ type: "clear" }` czyści rysunek.
+    `{ type: "undo" }` usuwa ostatnią kreskę, `{ type: "clear" }` czyści rysunek (bez kresek odpada) i odkłada go do `cleared`.
+    `undo` przy pustym rysunku przywraca odłożony (`cleared`), więc przypadkowe „Wyczyść” da się cofnąć;
+    bez kresek i bez odłożonego rysunku `undo` odpada. Odłożony rysunek zna tylko rysujący.
   - zgadujący wysyła `{ type: "guess", text }` (do 30 znaków, po obcięciu spacji niepusty). Hasło porównuje `normalize`:
     bez wielkości liter, polskich znaków i nadmiarowych spacji. Trafienie dopisuje gracza do `guessed` (treść nie trafia nigdzie),
     pudło trafia do czatu rundy (`chat`), który widzą wszyscy. Najwyżej `MAX_GUESSES` (30) pudeł na gracza w rundzie.
     Kto zgadł albo spasował, nie strzela dalej. Rysujący nie zgaduje.
-  - `{ type: "pass" }`: zgadujący rezygnuje z rundy. Limit czasu: `pass` za każdego, kto jeszcze nie zgadł.
-  - `waitingFor` to zgadujący, którzy nie zgadli ani nie spasowali. Runda kończy się, gdy ta lista jest pusta.
+  - `{ type: "pass" }`: zgadujący rezygnuje z rundy (w obu połowach). Limit drugiej połowy: `pass` za każdego, kto jeszcze nie zgadł.
+  - `waitingFor`: w pierwszej połowie rysujący (to jego limit kończy się literą), w drugiej zgadujący, którzy nie zgadli ani nie spasowali.
+    Runda kończy się, gdy wszyscy zgadujący zgadli albo spasowali, w dowolnej połowie.
 - **Punkty rundy**: zgadujący według kolejności trafień 10, 8, 6, 5, 4 (`GUESS_POINTS`), rysujący 3 za każdego, kto zgadł (`DRAWER_POINTS`).
 - **Odsłona (`reveal`, 6 s)**: hasło, kto zgadł i punkty rundy. Następna runda, gdy wszyscy klikną „Dalej” (`next`) albo minie czas.
   Po ostatnim rysowaniu od razu koniec (`over`); hasło i rysunek ostatniej rundy zostają w widoku.
 - Wygrywa suma punktów; przy remisie na górze nie ma zwycięzcy.
 - **Ukrywanie stanu**: listy haseł nie ma w widoku. W wyborze trzy hasła (`choices`) widzi tylko rysujący, a w rysowaniu hasło (`word`)
-  zna tylko rysujący; reszta i obserwator dostają `hint` (każda litera jako „_”, spacje zostają). Od odsłony hasło jest jawne.
-- Limit przez `turn(state)`: klucz `faza:runda`, więc licznik startuje od nowa przy zmianie fazy i rundy, a nie przy kresce ani strzale.
+  zna tylko rysujący; reszta i obserwator dostają `hint` (każda litera jako „_”, odsłonięta litera jawnie, spacje zostają). Od odsłony hasło jest jawne.
+- Limit przez `turn(state)`: klucz `faza:runda:połowa`, więc licznik startuje od nowa przy zmianie fazy, rundy i połowy, a nie przy kresce ani strzale.

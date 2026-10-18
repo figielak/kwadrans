@@ -6,6 +6,7 @@ import {
   DRAWER_POINTS,
   ERASER,
   GUESS_POINTS,
+  HALF_SECONDS,
   INKS,
   kalambury as game,
   MAX_GUESSES,
@@ -19,7 +20,8 @@ import {
 // - rysuje się po kolei (players[r % n]), Krótka: każdy raz, Długa: każdy dwa razy,
 // - rysujący wybiera 1 z 3 haseł, hasła w partii się nie powtarzają,
 // - kreski: pary x, y w 0-1000, do 200 liczb w ruchu, najwyżej 2000 punktów na rysunek, cofnij i wyczyść,
-// - kreska ma kolor z palety 5 kolorów i gumki, ustalany na jej początku,
+// - kreska ma kolor z palety 5 kolorów i gumki, ustalany na jej początku; „wyczyść” da się cofnąć,
+// - rysowanie ma dwie połowy po 40 s; po pierwszej odsłania się jedna litera hasła,
 // - zgadujący piszą hasła; porównanie bez wielkości liter i polskich znaków, pudła widać na czacie, trafień nie,
 // - punkty: 10, 8, 6, 5, 4 według kolejności trafień, rysujący 3 za każdego, kto zgadł,
 // - hasło zna tylko rysujący aż do odsłony; obserwator dostaje tylko długość,
@@ -37,6 +39,9 @@ const ink = (points: number[], color = 0) => ({ color, points });
 const guess = (text: string): Move => ({ type: "guess", text });
 const pass: Move = { type: "pass" };
 const next: Move = { type: "next" };
+const hint: Move = { type: "hint" };
+const undo: Move = { type: "undo" };
+const clear: Move = { type: "clear" };
 
 function send(s: State, player: string, move: Move): State {
   expect(game.validateMove(s, player, move), `${player}: ${JSON.stringify(move)}`).toBe(true);
@@ -54,9 +59,13 @@ function drawing(players: string[], mode?: string, seed = 1): State {
   return send(s, drawer(s), choose());
 }
 
+/** Druga połowa rysowania: rysujący odsłania literę (jak po limicie pierwszej połowy). */
+const secondHalf = (s: State) => send(s, drawer(s), hint);
+
 /** Kto jeszcze zgaduje, pasuje: runda się kończy (po trafieniach wszystkich już jest skończona). */
 function endRound(s: State): State {
   if (s.phase !== "draw") return s;
+  if (game.waitingFor(s).includes(drawer(s))) s = secondHalf(s);
   for (const p of game.waitingFor(s)) s = send(s, p, pass);
   return s;
 }
@@ -161,8 +170,8 @@ describe("wybór hasła", () => {
     s = send(s, A, choose(2));
     expect(s.phase).toBe("draw");
     expect(word(s)).toBe(choices[2]);
-    expect(game.turn!(s)).toEqual({ key: "draw:0", seconds: 80 });
-    expect(game.waitingFor(s)).toEqual([B]);
+    expect(game.turn!(s)).toEqual({ key: "draw:0:0", seconds: HALF_SECONDS });
+    expect(game.waitingFor(s)).toEqual([A]);
   });
 
   test("wybiera tylko rysujący, indeks 0-2, tylko w fazie wyboru", () => {
@@ -264,6 +273,57 @@ describe("rysowanie", () => {
     expect(game.validateMove(s, B, { type: "clear" })).toBe(false);
   });
 
+  test("wyczyść da się cofnąć", () => {
+    let s = drawing([A, B]);
+    s = send(s, A, line([1, 1]));
+    s = send(s, A, line([2, 2], true, 2));
+    s = send(s, A, clear);
+    expect(view(s, B).strokes).toEqual([]);
+    s = send(s, A, undo);
+    expect(view(s, B).strokes).toEqual([ink([1, 1]), ink([2, 2], 2)]);
+  });
+
+  test("po wyczyść i nowej kresce cofnij najpierw usuwa kreskę, potem przywraca rysunek", () => {
+    let s = drawing([A, B]);
+    s = send(s, A, line([1, 1]));
+    s = send(s, A, clear);
+    s = send(s, A, line([9, 9]));
+    s = send(s, A, undo);
+    expect(view(s, B).strokes).toEqual([]);
+    s = send(s, A, undo);
+    expect(view(s, B).strokes).toEqual([ink([1, 1])]);
+    expect(game.validateMove(s, A, undo)).toBe(true);
+    s = send(s, A, undo);
+    expect(game.validateMove(s, A, undo)).toBe(false);
+  });
+
+  test("wyczyść pustego rysunku odpada (nie nadpisuje odłożonego)", () => {
+    let s = drawing([A, B]);
+    expect(game.validateMove(s, A, clear)).toBe(false);
+    s = send(s, A, line([1, 1]));
+    s = send(s, A, clear);
+    expect(game.validateMove(s, A, clear)).toBe(false);
+  });
+
+  test("odłożony rysunek zna tylko rysujący", () => {
+    let s = drawing([A, B]);
+    s = send(s, A, line([1, 1]));
+    s = send(s, A, clear);
+    expect(view(s, A).cleared).toEqual([ink([1, 1])]);
+    expect(view(s, B).cleared).toEqual([]);
+    expect(view(s, "").cleared).toEqual([]);
+  });
+
+  test("nowa runda nie przywraca rysunku z poprzedniej", () => {
+    let s = drawing([A, B], "dluga");
+    s = send(s, A, line([1, 1]));
+    s = send(s, A, clear);
+    s = endRound(s);
+    for (const p of s.players) s = send(s, p, next);
+    s = send(s, B, choose());
+    expect(game.validateMove(s, B, undo)).toBe(false);
+  });
+
   test("nowa runda zaczyna od czystego rysunku", () => {
     let s = drawing([A, B]);
     s = send(s, A, line([1, 1]));
@@ -298,7 +358,7 @@ describe("zgadywanie", () => {
     expect(game.validateMove(t, B, guess("zzz"))).toBe(false);
     expect(game.validateMove(t, B, pass)).toBe(false);
     expect(game.validateMove(t, C, guess("zzz"))).toBe(false);
-    expect(game.waitingFor(t)).toEqual([D]);
+    expect(game.waitingFor(secondHalf(t))).toEqual([D]);
   });
 
   test("rysujący nie zgaduje ani nie pasuje", () => {
@@ -337,9 +397,10 @@ describe("zgadywanie", () => {
     expect(game.turn!(s)).toEqual({ key: "reveal:0", seconds: 6 });
   });
 
-  test("limit czasu w rysowaniu: pas za każdego, kto nie zgadł", () => {
+  test("limit czasu w drugiej połowie: pas za każdego, kto nie zgadł", () => {
     let s = drawing([A, B, C]);
     s = send(s, B, guess(word(s)));
+    s = secondHalf(s);
     expect(game.waitingFor(s)).toEqual([C]);
     const move = game.timeoutMove!(s, C, createRng(1));
     expect(move).toEqual(pass);
@@ -410,6 +471,55 @@ describe("odsłona", () => {
   });
 });
 
+describe("połowy rysowania", () => {
+  test("pierwsza połowa: limit 40 s rysującego, zgadywać i pasować już można", () => {
+    let s = drawing([A, B, C]);
+    expect(HALF_SECONDS).toBe(40);
+    expect(game.waitingFor(s)).toEqual([A]);
+    s = send(s, B, guess("zzz"));
+    s = send(s, C, pass);
+    expect(view(s, "").chat).toHaveLength(1);
+  });
+
+  test("po limicie pierwszej połowy rysujący odsłania jedną literę hasła", () => {
+    let s = drawing([A, B, C]);
+    const move = game.timeoutMove!(s, A, createRng(1));
+    expect(move).toEqual(hint);
+    s = send(s, A, move);
+    expect(game.turn!(s)).toEqual({ key: "draw:0:1", seconds: HALF_SECONDS });
+    expect(game.waitingFor(s)).toEqual([B, C]);
+    const w = word(s);
+    const h = view(s, B).hint;
+    expect(h).toHaveLength(w.length);
+    const shown = [...h].map((c, i) => [c, i] as const).filter(([c]) => c !== "_");
+    expect(shown).toHaveLength(1);
+    expect(shown[0][0]).toBe(w[shown[0][1]]);
+    expect(view(s, A).word).toBe(w);
+  });
+
+  test("literę odsłania tylko rysujący, tylko raz i tylko w rysowaniu", () => {
+    let s = drawing([A, B]);
+    expect(game.validateMove(s, B, hint)).toBe(false);
+    s = secondHalf(s);
+    expect(game.validateMove(s, A, hint)).toBe(false);
+    expect(game.validateMove(game.setup([A, B], createRng(1)), A, hint)).toBe(false);
+  });
+
+  test("runda może skończyć się już w pierwszej połowie", () => {
+    let s = drawing([A, B]);
+    s = send(s, B, guess(word(s)));
+    expect(s.phase).toBe("reveal");
+  });
+
+  test("nowa runda zaczyna od pierwszej połowy i bez odsłoniętych liter", () => {
+    let s = endRound(drawing([A, B]));
+    for (const p of s.players) s = send(s, p, next);
+    s = send(s, B, choose());
+    expect(game.turn!(s).key).toBe("draw:1:0");
+    expect(view(s, A).hint).toMatch(/^_+$/);
+  });
+});
+
 describe("ukrywanie hasła", () => {
   test("w wyborze hasła widzi tylko rysujący", () => {
     const s = game.setup([A, B], createRng(1));
@@ -476,7 +586,7 @@ describe("koniec gry", () => {
 
   test("po końcu nikt nic nie może", () => {
     const s = round(round(game.setup([A, B], createRng(1))));
-    for (const m of [choose(), line([1, 1]), guess("kot"), pass, next, { type: "undo" } as Move]) {
+    for (const m of [choose(), line([1, 1]), guess("kot"), pass, next, undo, hint]) {
       for (const p of [A, B]) expect(game.validateMove(s, p, m)).toBe(false);
     }
   });
