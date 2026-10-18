@@ -1,5 +1,5 @@
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, standing, standings, type StatkiView, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, standing, standings, type StatkiView, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
@@ -7,6 +7,7 @@ import { Memory } from "../games/Memory.tsx";
 import { MiniGame } from "../games/MiniGame.tsx";
 import { Kalambury } from "../games/Kalambury.tsx";
 import { PanstwaMiasta } from "../games/PanstwaMiasta.tsx";
+import { Labirynt } from "../games/Labirynt.tsx";
 import { PiecWRzedzie } from "../games/PiecWRzedzie.tsx";
 import { FleetLeft, Statki } from "../games/Statki.tsx";
 import { fetchRecords } from "../net.ts";
@@ -95,6 +96,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
     );
   }
 
+  // Labirynt: przy wygranych liczba ścian, które graczowi zostały.
+  const maze = def.id === "labirynt" ? (game.view as LabiryntView) : null;
   // Wspólny nagłówek: wyraźne „Twój ruch!” w kolorze gracza i pasek czasu. Chińczyk zamiast punktów pokazuje pionki w domu.
   const ludo = def.id === "chinczyk" ? (game.view as ChinczykView) : null;
   // Memory zamiast punktów pokazuje zebrane pary.
@@ -168,6 +171,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           })
           .sort((a, b) => Number(b.me) - Number(a.me))
       : null;
+
 
   // Państwa-miasta i Kalambury w trakcie partii mają własny nagłówek: runda, pasek czasu fazy, litera albo hasło.
   const ownHeader = (def.id === "panstwa-miasta" || def.id === "kalambury") && view.phase === "playing";
@@ -309,6 +313,14 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                         )}
                       </span>
                     )}
+                    {maze && (
+                      <span className="flex items-center gap-1 font-mono text-base font-semibold text-fg tabular-nums" aria-label={`Ściany: ${maze.wallsLeft[maze.players.indexOf(id)]}`}>
+                        <span className="font-sans text-xs font-normal text-fg-muted" aria-hidden>
+                          ściany
+                        </span>
+                        {maze.wallsLeft[maze.players.indexOf(id)]}
+                      </span>
+                    )}
                   </li>
                 );
               })}
@@ -330,6 +342,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
             onMove={(move) => send("move", move)}
           />
         )}
+
+        {def.id === "labirynt" && <Labirynt view={game.view as LabiryntView} me={me} players={view.players} canMove={myTurn} onMove={(move) => send("move", move)} />}
 
         {def.id === "statki" && (
           <Statki

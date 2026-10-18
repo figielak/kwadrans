@@ -21,6 +21,7 @@ import {
   GridFour,
   PintGlass,
   GridNine,
+  Path,
   HandPalm,
   Balloon,
   HandTap,
@@ -282,6 +283,7 @@ export function GameTile({ game: g, players, picked, onClick }: { game: { id: st
 
 export const ICONS: Record<string, Icon> = {
   "piec-w-rzedzie": GridNine,
+  labirynt: Path,
   statki: Boat,
   chinczyk: DiceFive,
   memory: Cards,
@@ -327,6 +329,7 @@ export function seats(g: { minPlayers: number; maxPlayers: number }) {
 /** Jedno zdanie o grze dla gościa, zanim zgłosi gotowość. */
 export const BLURBS: Record<string, string> = {
   "piec-w-rzedzie": "Na zmianę stawiacie kamienie na planszy 15×15. Wygrywa pięć lub więcej w linii.",
+  labirynt: "W turze idziesz pionkiem o pole albo stawiasz ściankę. Wygrywa ten, kto pierwszy dojdzie na drugą stronę planszy.",
   statki: "Rozstawiasz flotę, potem strzelacie na zmianę. Trafienie daje kolejny strzał, wygrywa ten, kto zatopi wszystko.",
   chinczyk: "Rzucasz kostką i prowadzisz pionki dookoła planszy do domku. Stając na pionku rywala, odsyłasz go na start.",
   memory: "Na zmianę odkrywacie po dwie karty. Para zostaje u ciebie i daje kolejny ruch, wygrywa najwięcej par.",
