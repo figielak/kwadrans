@@ -11,7 +11,9 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Statki | `statki` | 2 | 90 s rozstawianie, 60 s strzał | ukryty stan |
 | Gomoku | `piec-w-rzedzie` | 2 | 60 s | po kolei |
 | Memory | `memory` | 2-6 | 60 s | po kolei, ukryty stan |
+| Labirynt | `labirynt` | 2-4 | 60 s | planszowa, po kolei |
 | Państwa-miasta | `panstwa-miasta` | 2-6 | zależny od fazy | równoczesna |
+| Kalambury | `kalambury` | 2-6 | zależny od fazy | równoczesna, ukryty stan |
 | Refleks | `refleks` | 1-6 | 60 s | mini-gra |
 | Sekwencja | `simon` | 1-6 | 300 s | mini-gra |
 | Stoper | `stoper` | 1-6 | 60 s | mini-gra |
@@ -785,3 +787,59 @@ Seria mini-gier puszczana po kolei w jednym pokoju. To nie jest gra z rejestru `
 - Wyjście gracza: bieżąca gra kończy się bez punktów, gracz znika z tabeli, turniej trwa dalej z pozostałymi.
 - Zakończyć turniej przed czasem może tylko gospodarz. Rewanż po turnieju losuje gry od nowa z tą samą konfiguracją.
 - Ranking w SQLite: pojedyncze gry zapisują się jak poza turniejem, zwycięzca turnieju dodatkowo pod `id` `turniej`.
+
+## 9. Kalambury (`kalambury`)
+
+- 2-6 graczy. Rysuje się po kolei: w rundzie `r` rysuje `players[r % n]`, reszta zgaduje. Tryb wybiera gospodarz w lobby
+  (`MODES` w `kalambury.ts`): `krotka` (Krótka, każdy rysuje raz, domyślna) albo `dluga` (Długa, każdy rysuje dwa razy).
+- Hasła: `WORDS` w `kalambury-dane.ts`, ogólne jednowyrazowe rzeczowniki. `setup` losuje 3 hasła na każdą rundę, w całej partii bez powtórek.
+  `nonce` w stanie służy tylko do montowania komponentu od nowa przy rewanżu.
+- **Wybór (`choose`, 15 s)**: rysujący wybiera jedno z trzech haseł rundy (`{ type: "choose", index }`, 0-2). Limit czasu: pierwsze hasło.
+- **Rysowanie (`draw`, 2 × 40 s)**: dwie połowy (`half` 0 i 1), każda z własnym limitem `HALF_SECONDS` (40 s).
+  - ekran pokazuje jeden pasek 80 s na całe rysowanie (w pierwszej połowie dolicza drugą); podział widać tylko po odsłoniętej literze,
+  - pierwsza połowa kończy się ruchem `{ type: "hint" }` rysującego (wykonuje go serwer po limicie; tylko rysujący, tylko raz):
+    odsłania jedną losową literę hasła (`rng`, indeks w `revealed`) i zaczyna drugą połowę,
+  - rysujący wysyła kreski: `{ type: "line", points, start, color }`, gdzie `points` to płaska lista par x, y (liczby całkowite 0-1000,
+    parzysta długość, 2-200 liczb w ruchu); `start: true` zaczyna nową kreskę, `false` dokleja punkty do ostatniej (bez kreski odpada).
+    `color` to indeks palety 0-5 (`INKS`: biały, żółty, zielony, niebieski, brązowy, gumka); liczy się tylko przy `start`, doklejone punkty
+    mają kolor swojej kreski. Gumka (`ERASER`, 5) to kreska w kolorze płótna, grubsza od zwykłej; dla zasad to zwykły kolor.
+    Cały rysunek ma najwyżej `MAX_POINTS` (2000) punktów; ruch, który by go przekroczył, odpada.
+    `{ type: "undo" }` usuwa ostatnią kreskę, `{ type: "clear" }` czyści rysunek (bez kresek odpada) i odkłada go do `cleared`.
+    `undo` przy pustym rysunku przywraca odłożony (`cleared`), więc przypadkowe „Wyczyść” da się cofnąć;
+    bez kresek i bez odłożonego rysunku `undo` odpada. Odłożony rysunek zna tylko rysujący.
+  - zgadujący wysyła `{ type: "guess", text }` (do 30 znaków, po obcięciu spacji niepusty). Hasło porównuje `normalize`:
+    bez wielkości liter, polskich znaków i nadmiarowych spacji. Trafienie dopisuje gracza do `guessed` (treść nie trafia nigdzie),
+    pudło trafia do czatu rundy (`chat`), który widzą wszyscy. Najwyżej `MAX_GUESSES` (30) pudeł na gracza w rundzie.
+    Kto zgadł albo spasował, nie strzela dalej. Rysujący nie zgaduje.
+  - `{ type: "pass" }`: zgadujący rezygnuje z rundy (w obu połowach). Limit drugiej połowy: `pass` za każdego, kto jeszcze nie zgadł.
+  - `waitingFor`: w pierwszej połowie rysujący (to jego limit kończy się literą), w drugiej zgadujący, którzy nie zgadli ani nie spasowali.
+    Runda kończy się, gdy wszyscy zgadujący zgadli albo spasowali, w dowolnej połowie.
+- **Punkty rundy**: zgadujący według kolejności trafień 10, 8, 6, 5, 4 (`GUESS_POINTS`), rysujący 3 za każdego, kto zgadł (`DRAWER_POINTS`).
+- **Odsłona (`reveal`, 6 s)**: hasło, kto zgadł i punkty rundy. Następna runda, gdy wszyscy klikną „Dalej” (`next`) albo minie czas.
+  Po ostatnim rysowaniu od razu koniec (`over`); hasło i rysunek ostatniej rundy zostają w widoku.
+- Wygrywa suma punktów; przy remisie na górze nie ma zwycięzcy.
+- **Ukrywanie stanu**: listy haseł nie ma w widoku. W wyborze trzy hasła (`choices`) widzi tylko rysujący, a w rysowaniu hasło (`word`)
+  zna tylko rysujący; reszta i obserwator dostają `hint` (każda litera jako „_”, odsłonięta litera jawnie, spacje zostają). Od odsłony hasło jest jawne.
+- Limit przez `turn(state)`: klucz `faza:runda:połowa`, więc licznik startuje od nowa przy zmianie fazy, rundy i połowy, a nie przy kresce ani strzale.
+
+## 10. Labirynt (`labirynt`)
+
+- Tryb wybiera gospodarz w lobby (`MODES` w `labirynt.ts`); nieznany albo brak = `klasyczny`.
+
+  | Tryb | Plansza | Ścianki na gracza (2 / 3 / 4 os.) |
+  |---|---|---|
+  | `klasyczny` | 9×9 | 10 / 7 / 5 |
+  | `szybki` | 7×7 | 6 / 4 / 3 |
+
+- Pionki startują na środku krawędzi, kolejność miejsc zgodnie z ruchem wskazówek zegara: `players[0]` na dole,
+  przy 2 osobach drugi u góry, przy 3-4 kolejni po lewej, u góry i po prawej. Cel: dowolne pole przeciwległej krawędzi. Zaczyna `players[0]`.
+- W turze jeden ruch: krok pionkiem (`step`) albo ścianka (`wall`).
+- Krok: o jedno pole w pionie lub poziomie, nie przez ściankę. Gdy na sąsiednim polu stoi pionek, przeskakuje się go prosto;
+  jeśli za nim jest ścianka, krawędź albo inny pionek, wolno stanąć skośnie obok niego (z jego pola, nie przez ściankę). Nad dwoma pionkami się nie skacze.
+- Ścianka ma długość 2 pól i zaczepia się w punkcie przecięcia linii (`x`, `y` od 0 do rozmiaru − 2), poziomo (`h`, między wierszami `y` i `y+1`,
+  kolumny `x` i `x+1`) albo pionowo (`v`). Nie może nachodzić na inną ani krzyżować się z nią (ten sam punkt, druga orientacja)
+  i nie może odciąć żadnemu graczowi drogi do celu (pionki nie zasłaniają drogi). Ścianki z puli się kończą.
+- `pass` tylko wtedy, gdy pionek nie ma żadnego kroku (możliwe przy 3-4 osobach).
+- Koniec: pierwszy, kto stanie na polu celu, wygrywa (także przy 3-4 osobach, bez pełnego rankingu). Remisu nie ma.
+- Limit czasu: krok w stronę celu (pole najbliższe celowi po ściankach), a gdy kroku nie ma, `pass`. Losowości w grze nie ma.
+- Nic nie jest ukryte: widok to cały stan.

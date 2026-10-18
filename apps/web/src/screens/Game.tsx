@@ -1,11 +1,13 @@
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, type KampusTourView, type KatView, type KropkiView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, standing, standings, type StatkiView, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, standing, standings, type StatkiView, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
 import { Memory } from "../games/Memory.tsx";
 import { MiniGame } from "../games/MiniGame.tsx";
+import { Kalambury } from "../games/Kalambury.tsx";
 import { PanstwaMiasta } from "../games/PanstwaMiasta.tsx";
+import { Labirynt } from "../games/Labirynt.tsx";
 import { PiecWRzedzie } from "../games/PiecWRzedzie.tsx";
 import { FleetLeft, Statki } from "../games/Statki.tsx";
 import { fetchRecords } from "../net.ts";
@@ -33,6 +35,14 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
     if (myTurn) navigator.vibrate?.(40);
   }, [myTurn]);
 
+  // Kalambury: serwer ma dwa limity po 40 s (po pierwszym odsłania literę), a gracz widzi jeden pasek na całe rysowanie.
+  // W pierwszej połowie do czasu dochodzi cała druga; memo po wiadomości, żeby termin nie przesuwał się przy każdym renderze.
+  const drawTime = useMemo(() => {
+    const k = def.id === "kalambury" ? (game.view as KalamburyView) : null;
+    if (k?.phase !== "draw" || game.msLeft === null) return null;
+    return { msLeft: game.msLeft + (k.half === 0 ? KALAMBURY_HALF_SECONDS * 1000 : 0), total: 2 * KALAMBURY_HALF_SECONDS };
+  }, [game, def.id]);
+
   // Quizy (Kolor liter, Liczenie, Inny element, Dziesiątki): w rundzie pasek w nagłówku pokazuje jej 30 s zamiast limitu platformy.
   const [round, setRound] = useState<{ msLeft: number } | null>(null);
   const onRound = (msLeft: number | null) => setRound(msLeft === null ? null : { msLeft });
@@ -40,7 +50,9 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
   const [open, setOpen] = useState(false);
   useEffect(() => setOpen(false), [view.phase]);
   // Poświata tła w kolorze gracza, na którego czekamy; poza turą jednej osoby zostaje akcent.
-  const turnColor = view.phase === "playing" && game.waitingFor.length === 1 ? view.players.find((p) => p.id === game.waitingFor[0])?.color : undefined;
+  // Kalambury: zawsze kolor rysującego, bo czekamy na zgadujących, a uwaga jest na rysunku.
+  const focus = def.id === "kalambury" ? (game.view as KalamburyView).drawer : game.waitingFor.length === 1 ? game.waitingFor[0] : undefined;
+  const turnColor = view.phase === "playing" && focus ? view.players.find((p) => p.id === focus)?.color : undefined;
   useEffect(() => {
     if (!turnColor) return;
     document.body.style.setProperty("--ambient", turnColor);
@@ -84,7 +96,9 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
     );
   }
 
-  // Wspólny nagłówek: wyraźne „Twój ruch!” w kolorze gracza i pasek czasu. Chińczyk zamiast punktów pokazuje pionki w domu.
+  // Labirynt: przy wygranych liczba ścian, które graczowi zostały.
+  const maze = def.id === "labirynt" ? (game.view as LabiryntView) : null;
+  // Wspólny nagłówek: wyraźne „Twój ruch” w kolorze gracza i pasek czasu. Chińczyk zamiast punktów pokazuje pionki w domu.
   const ludo = def.id === "chinczyk" ? (game.view as ChinczykView) : null;
   // Memory zamiast punktów pokazuje zebrane pary.
   const memory = def.id === "memory" ? (game.view as MemoryView) : null;
@@ -158,8 +172,11 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           .sort((a, b) => Number(b.me) - Number(a.me))
       : null;
 
-  // Państwa-miasta w trakcie partii mają własny nagłówek: runda, pasek czasu fazy, litera.
-  const ownHeader = def.id === "panstwa-miasta" && view.phase === "playing";
+  // Gra po kolei: jedna osoba ma ruch. Jej kolor (`turnColor`, jak poświata) dostaje tytuł i pasek limitu, też u czekających.
+  const turnOf = view.phase === "playing" && game.waitingFor.length === 1 ? game.waitingFor[0] : undefined;
+
+  // Państwa-miasta i Kalambury w trakcie partii mają własny nagłówek: runda, pasek czasu fazy, litera albo hasło.
+  const ownHeader = (def.id === "panstwa-miasta" || def.id === "kalambury") && view.phase === "playing";
 
   const status =
     tournamentOver
@@ -183,8 +200,16 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           ? "Ustaw statki"
           : MINI_GAMES.has(def.id)
             ? def.name // wszyscy grają naraz, więc to nie jest niczyj „ruch”
-            : "Twój ruch!"
-        : `Czekamy na: ${waitingNicks}`;
+            : "Twój ruch"
+        : turnOf && !MINI_GAMES.has(def.id)
+          ? <>Ruch: <span style={{ color: turnColor }}>{nick(turnOf)}</span></>
+          : `Czekamy na: ${waitingNicks}`;
+
+  // Na ekranie instrukcji limit jeszcze nie ruszył. Stoper, Rytm, Przytrzymaj i Za zasłoną: tykający limit zdradzałby upływ sekund, więc grający go nie widzi.
+  const timer =
+    view.phase === "playing" && !game.intro && !((def.id === "stoper" || def.id === "rytm" || def.id === "przytrzymaj" || def.id === "zaslona") && myTurn);
+  // Sam w partii: pigułka z własnym nickiem i postępem nic nie mówi, zostaje tytuł i czas.
+  const pillsHidden = (dots && !open) || (seated && view.seats.length === 1);
 
   const intro = {
     game,
@@ -203,8 +228,9 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
             Wyjdź
           </button>
         )}
+        {/* Sam tytuł (gra solo bez widocznego limitu) nie potrzebuje kafla. */}
         {!ownHeader && (
-          <header className="tile flex flex-col gap-3 p-4">
+          <header className={`flex flex-col gap-3 ${!t && !timer && pillsHidden && !dots && seated ? "" : "tile p-4"}`}>
             {t && (
               <p className="label">
                 Turniej · {t.extra && gameNo === t.games.length ? "dogrywka" : `gra ${gameNo}/${t.games.length}`}
@@ -221,17 +247,15 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
               </h1>
               {dots && <GameDots dots={dots} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
             </div>
-            {/* Na ekranie instrukcji limit jeszcze nie ruszył. Stoper, Rytm, Przytrzymaj i Za zasłoną: tykający limit zdradzałby upływ sekund, więc grający go nie widzi. */}
-            {view.phase === "playing" && !game.intro && !((def.id === "stoper" || def.id === "rytm" || def.id === "przytrzymaj" || def.id === "zaslona") && myTurn) && (
+            {timer && (
               <Countdown
                 game={round ?? game}
                 total={round ? QUIZ_DURATION_MS / 1000 : (def.turn?.(game.view).seconds ?? def.turnSeconds)}
-                color={myTurn ? myColor : undefined}
+                color={myTurn ? myColor : MINI_GAMES.has(def.id) ? undefined : turnColor}
                 label={round ? "Czas" : MINI_GAMES.has(def.id) ? "Limit" : undefined}
               />
             )}
-            {/* Sam w partii: pigułka z własnym nickiem i postępem nic nie mówi, zostaje tytuł i czas. */}
-            <ul className={`flex flex-wrap gap-2 ${(dots && !open) || (seated && view.seats.length === 1) ? "hidden" : ""}`}>
+            <ul className={`flex flex-wrap gap-2 ${pillsHidden ? "hidden" : ""}`}>
               {view.seats.map((id) => {
                 const p = view.players.find((pl) => pl.id === id);
                 const active = id === winner || (view.phase === "playing" && game.waitingFor.includes(id));
@@ -240,7 +264,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                   <li
                     key={id}
                     className={`flex min-h-9 items-center gap-2 rounded-full border px-3 text-sm transition-colors ${fleet ? "w-full" : ""} ${
-                      active ? "" : "border-transparent text-fg-muted"
+                      active ? "" : "border-line text-fg-muted"
                     }`}
                     style={active ? { borderColor: p?.color, backgroundColor: `color-mix(in srgb, ${p?.color} 16%, transparent)` } : undefined}
                   >
@@ -273,9 +297,9 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                       </span>
                     ) : (
                       // Puchar odróżnia wygrane partie w pokoju od wyniku bieżącej partii.
-                      <span className="relative flex items-center gap-1 text-base font-semibold text-fg tabular-nums" aria-label={`Wygrane partie: ${view.scores[id] ?? 0}`}>
+                      <span className="relative flex items-center gap-1 font-mono text-base font-semibold text-fg tabular-nums" aria-label={`Wygrane partie: ${view.scores[id] ?? 0}`}>
                         <Trophy size={14} weight="fill" className="text-fg-muted" aria-hidden />
-                        <span className="text-xs font-normal text-fg-muted" aria-hidden>
+                        <span className="font-sans text-xs font-normal text-fg-muted" aria-hidden>
                           wygrane
                         </span>
                         {/* Klucz z wyniku: po wygranej liczba montuje się od nowa i wskakuje. */}
@@ -291,6 +315,14 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                             +1
                           </span>
                         )}
+                      </span>
+                    )}
+                    {maze && (
+                      <span className="flex items-center gap-1 font-mono text-base font-semibold text-fg tabular-nums" aria-label={`Ściany: ${maze.wallsLeft[maze.players.indexOf(id)]}`}>
+                        <span className="font-sans text-xs font-normal text-fg-muted" aria-hidden>
+                          ściany
+                        </span>
+                        {maze.wallsLeft[maze.players.indexOf(id)]}
                       </span>
                     )}
                   </li>
@@ -314,6 +346,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
             onMove={(move) => send("move", move)}
           />
         )}
+
+        {def.id === "labirynt" && <Labirynt view={game.view as LabiryntView} me={me} players={view.players} canMove={myTurn} onMove={(move) => send("move", move)} />}
 
         {def.id === "statki" && (
           <Statki
@@ -348,6 +382,18 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
             waitingFor={game.waitingFor}
             ranking={game.result?.ranking}
             timer={ownHeader && <Countdown game={game} total={def.turn?.(game.view).seconds} tense />}
+            onMove={(move) => send("move", move)}
+          />
+        )}
+
+        {def.id === "kalambury" && (
+          <Kalambury
+            key={(game.view as KalamburyView).nonce}
+            view={game.view as KalamburyView}
+            me={me}
+            players={view.players}
+            ranking={game.result?.ranking}
+            timer={ownHeader && <Countdown game={drawTime ?? game} total={drawTime?.total ?? def.turn?.(game.view).seconds} color={turnColor} tense />}
             onMove={(move) => send("move", move)}
           />
         )}

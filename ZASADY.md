@@ -112,7 +112,7 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
 (oraz `canMove` albo `ranking`) i nie wie nic o sieci.
 
 **Czego gra nie rysuje sama**
-- Nagłówek ze statusem („Twój ruch!”, „Czekamy na: ...”, „Wygrywasz!”), pasek czasu, lista graczy z liczbą wygranych partii (puchar i podpis „wygrane” przed liczbą, „+1” nad pigułką zwycięzcy),
+- Nagłówek ze statusem („Twój ruch”, „Ruch: <nick>” z nickiem w kolorze gracza, „Czekamy na: ...” przy kilku osobach, „Wygrywasz!”), pasek czasu w kolorze gracza z ruchem, lista graczy z liczbą wygranych partii (puchar i podpis „wygrane” przed liczbą, „+1” nad pigułką zwycięzcy),
   w mini-grach zamiast pigułek rząd kropek obok tytułu (`GameDots` w ui.tsx): inicjał z `initials`, pierścień postępu z ruchu `progress` (pełny po oddaniu wyniku),
   przygaszenie u czytającego zasady, przerywany obrys u rozłączonego, kreska pod własną kropką (zawsze pierwszą), odznaka z wygranymi (w turnieju prostokątna, z punktami; zera nie widać);
   dotknięcie kropek rozwija pigułki z nickami i dokładnym postępem. W grze solo kropek nie ma.
