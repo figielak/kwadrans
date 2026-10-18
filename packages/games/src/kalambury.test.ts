@@ -4,7 +4,9 @@ import { WORDS } from "./kalambury-dane.ts";
 import {
   ANSWER_MAX,
   DRAWER_POINTS,
+  ERASER,
   GUESS_POINTS,
+  INKS,
   kalambury as game,
   MAX_GUESSES,
   MAX_POINTS,
@@ -17,6 +19,7 @@ import {
 // - rysuje się po kolei (players[r % n]), Krótka: każdy raz, Długa: każdy dwa razy,
 // - rysujący wybiera 1 z 3 haseł, hasła w partii się nie powtarzają,
 // - kreski: pary x, y w 0-1000, do 200 liczb w ruchu, najwyżej 2000 punktów na rysunek, cofnij i wyczyść,
+// - kreska ma kolor z palety 5 kolorów i gumki, ustalany na jej początku,
 // - zgadujący piszą hasła; porównanie bez wielkości liter i polskich znaków, pudła widać na czacie, trafień nie,
 // - punkty: 10, 8, 6, 5, 4 według kolejności trafień, rysujący 3 za każdego, kto zgadł,
 // - hasło zna tylko rysujący aż do odsłony; obserwator dostaje tylko długość,
@@ -28,7 +31,9 @@ const C = "celina";
 const D = "darek";
 
 const choose = (index = 0): Move => ({ type: "choose", index });
-const line = (points: number[], start = true): Move => ({ type: "line", points, start });
+const line = (points: number[], start = true, color = 0): Move => ({ type: "line", points, start, color });
+/** Kreska w stanie: kolor i punkty. */
+const ink = (points: number[], color = 0) => ({ color, points });
 const guess = (text: string): Move => ({ type: "guess", text });
 const pass: Move = { type: "pass" };
 const next: Move = { type: "next" };
@@ -184,7 +189,37 @@ describe("rysowanie", () => {
     s = send(s, A, line([0, 0, 10, 10]));
     s = send(s, A, line([20, 20], false));
     s = send(s, A, line([500, 500, 1000, 1000]));
-    expect(view(s, B).strokes).toEqual([[0, 0, 10, 10, 20, 20], [500, 500, 1000, 1000]]);
+    expect(view(s, B).strokes).toEqual([ink([0, 0, 10, 10, 20, 20]), ink([500, 500, 1000, 1000])]);
+  });
+
+  test("paleta: 5 kolorów i gumka jako ostatni", () => {
+    expect(INKS).toBe(6);
+    expect(ERASER).toBe(INKS - 1);
+  });
+
+  test("kolor: 0 i 5 (gumka) przechodzą, -1 i 6 nie", () => {
+    const s = drawing([A, B]);
+    expect(game.validateMove(s, A, line([1, 1], true, 0))).toBe(true);
+    expect(game.validateMove(s, A, line([1, 1], true, ERASER))).toBe(true);
+    expect(game.validateMove(s, A, line([1, 1], true, -1))).toBe(false);
+    expect(game.validateMove(s, A, line([1, 1], true, INKS))).toBe(false);
+  });
+
+  test("kolor ustala początek kreski, doklejone punkty go nie zmieniają", () => {
+    let s = drawing([A, B]);
+    s = send(s, A, line([1, 1], true, 3));
+    s = send(s, A, line([2, 2], false, 1));
+    s = send(s, A, line([5, 5], true, ERASER));
+    expect(view(s, B).strokes).toEqual([ink([1, 1, 2, 2], 3), ink([5, 5], ERASER)]);
+  });
+
+  test("gumka wlicza się do limitu punktów i cofa się jak zwykła kreska", () => {
+    let s = drawing([A, B]);
+    const batch = Array.from({ length: 200 }, (_, i) => i);
+    for (let i = 0; i < MAX_POINTS / 100; i++) s = send(s, A, line(batch, true, ERASER));
+    expect(game.validateMove(s, A, line([1, 1]))).toBe(false);
+    s = send(s, A, { type: "undo" });
+    expect(view(s, B).strokes).toHaveLength(MAX_POINTS / 100 - 1);
   });
 
   test("rysuje tylko rysujący i tylko w fazie rysowania", () => {
@@ -212,7 +247,7 @@ describe("rysowanie", () => {
     let s = drawing([A, B]);
     const batch = Array.from({ length: 200 }, (_, i) => i);
     for (let i = 0; i < MAX_POINTS / 100; i++) s = send(s, A, line(batch));
-    expect(view(s, A).strokes.flat()).toHaveLength(MAX_POINTS * 2);
+    expect(view(s, A).strokes.flatMap((k) => k.points)).toHaveLength(MAX_POINTS * 2);
     expect(game.validateMove(s, A, line([1, 1]))).toBe(false);
     expect(game.validateMove(s, A, line([1, 1], false))).toBe(false);
   });
@@ -223,7 +258,7 @@ describe("rysowanie", () => {
     s = send(s, A, line([1, 1]));
     s = send(s, A, line([2, 2]));
     s = send(s, A, { type: "undo" });
-    expect(view(s, B).strokes).toEqual([[1, 1]]);
+    expect(view(s, B).strokes).toEqual([ink([1, 1])]);
     s = send(s, A, { type: "clear" });
     expect(view(s, B).strokes).toEqual([]);
     expect(game.validateMove(s, B, { type: "clear" })).toBe(false);
@@ -369,7 +404,7 @@ describe("odsłona", () => {
     s = endRound(s);
     expect(s.phase).toBe("over");
     expect(view(s, "").word).toBe(w);
-    expect(view(s, "").strokes).toEqual([[1, 1]]);
+    expect(view(s, "").strokes).toEqual([ink([1, 1])]);
     expect(game.waitingFor(s)).toEqual([]);
     expect(game.turn!(s).seconds).toBe(0);
   });
@@ -452,9 +487,11 @@ describe("schemat i stan", () => {
     const bad = [
       {},
       { type: "line" },
-      { type: "line", points: [1.5, 2], start: true },
-      { type: "line", points: ["1", "2"], start: true },
-      { type: "line", points: Array.from({ length: 202 }, () => 1), start: true },
+      { type: "line", points: [1.5, 2], start: true, color: 0 },
+      { type: "line", points: ["1", "2"], start: true, color: 0 },
+      { type: "line", points: Array.from({ length: 202 }, () => 1), start: true, color: 0 },
+      { type: "line", points: [1, 2], start: true },
+      { type: "line", points: [1, 2], start: true, color: 1.5 },
       { type: "choose", index: 0.5 },
       { type: "guess", text: 5 },
       { type: "nie-ma" },

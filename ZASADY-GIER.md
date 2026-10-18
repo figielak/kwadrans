@@ -795,8 +795,10 @@ Seria mini-gier puszczana po kolei w jednym pokoju. To nie jest gra z rejestru `
   `nonce` w stanie służy tylko do montowania komponentu od nowa przy rewanżu.
 - **Wybór (`choose`, 15 s)**: rysujący wybiera jedno z trzech haseł rundy (`{ type: "choose", index }`, 0-2). Limit czasu: pierwsze hasło.
 - **Rysowanie (`draw`, 80 s)**:
-  - rysujący wysyła kreski: `{ type: "line", points, start }`, gdzie `points` to płaska lista par x, y (liczby całkowite 0-1000,
+  - rysujący wysyła kreski: `{ type: "line", points, start, color }`, gdzie `points` to płaska lista par x, y (liczby całkowite 0-1000,
     parzysta długość, 2-200 liczb w ruchu); `start: true` zaczyna nową kreskę, `false` dokleja punkty do ostatniej (bez kreski odpada).
+    `color` to indeks palety 0-5 (`INKS`: biały, żółty, zielony, niebieski, brązowy, gumka); liczy się tylko przy `start`, doklejone punkty
+    mają kolor swojej kreski. Gumka (`ERASER`, 5) to kreska w kolorze płótna, grubsza od zwykłej; dla zasad to zwykły kolor.
     Cały rysunek ma najwyżej `MAX_POINTS` (2000) punktów; ruch, który by go przekroczył, odpada.
     `{ type: "undo" }` usuwa ostatnią kreskę (bez kresek odpada), `{ type: "clear" }` czyści rysunek.
   - zgadujący wysyła `{ type: "guess", text }` (do 30 znaków, po obcięciu spacji niepusty). Hasło porównuje `normalize`:
