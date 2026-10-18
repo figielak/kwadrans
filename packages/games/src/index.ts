@@ -3,6 +3,7 @@ import { balon } from "./balon.ts";
 import { chinczyk } from "./chinczyk.ts";
 import { dziesiatki } from "./dziesiatki.ts";
 import { inny } from "./inny.ts";
+import { kalambury } from "./kalambury.ts";
 import { kampusTour } from "./kampus-tour.ts";
 import { kat } from "./kat.ts";
 import { kolo } from "./kolo.ts";
@@ -67,6 +68,14 @@ export {
   type Move as PanstwaMiastaMove,
   type View as PanstwaMiastaView,
 } from "./panstwa-miasta.ts";
+export {
+  ANSWER_MAX as KALAMBURY_ANSWER_MAX,
+  BATCH_POINTS as KALAMBURY_BATCH_POINTS,
+  MAX_POINTS as KALAMBURY_MAX_POINTS,
+  type Move as KalamburyMove,
+  SIDE as KALAMBURY_SIDE,
+  type View as KalamburyView,
+} from "./kalambury.ts";
 export type { View as PiecWRzedzieView } from "./piec-w-rzedzie.ts";
 export { SYMBOLS as MEMORY_SYMBOLS, type View as MemoryView } from "./memory.ts";
 export { PENALTY_MS as REFLEKS_PENALTY_MS, ROUNDS as REFLEKS_ROUNDS, type View as RefleksView } from "./refleks.ts";
@@ -142,6 +151,7 @@ export const GAMES: Record<string, GameDefinition<any, any>> = Object.assign(Obj
   [nozyczki.id]: nozyczki,
   [sudoku.id]: sudoku,
   [panstwaMiasta.id]: panstwaMiasta,
+  [kalambury.id]: kalambury,
 });
 
 /** Id mini-gier (gry solo, minPlayers 1): pula turnieju i lista na ekranie mini-gier. */

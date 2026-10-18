@@ -49,8 +49,9 @@ function drawing(players: string[], mode?: string, seed = 1): State {
   return send(s, drawer(s), choose());
 }
 
-/** Wszyscy zgadujący spasowali: runda się kończy. */
+/** Kto jeszcze zgaduje, pasuje: runda się kończy (po trafieniach wszystkich już jest skończona). */
 function endRound(s: State): State {
+  if (s.phase !== "draw") return s;
   for (const p of game.waitingFor(s)) s = send(s, p, pass);
   return s;
 }
