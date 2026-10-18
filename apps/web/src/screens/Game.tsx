@@ -197,6 +197,12 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
             : "Twój ruch!"
         : `Czekamy na: ${waitingNicks}`;
 
+  // Na ekranie instrukcji limit jeszcze nie ruszył. Stoper, Rytm, Przytrzymaj i Za zasłoną: tykający limit zdradzałby upływ sekund, więc grający go nie widzi.
+  const timer =
+    view.phase === "playing" && !game.intro && !((def.id === "stoper" || def.id === "rytm" || def.id === "przytrzymaj" || def.id === "zaslona") && myTurn);
+  // Sam w partii: pigułka z własnym nickiem i postępem nic nie mówi, zostaje tytuł i czas.
+  const pillsHidden = (dots && !open) || (seated && view.seats.length === 1);
+
   const intro = {
     game,
     others: view.seats.filter((id) => id !== me).map((id) => ({ id, nick: nick(id), color: view.players.find((p) => p.id === id)?.color ?? "", began: game.began.includes(id) })),
@@ -214,8 +220,9 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
             Wyjdź
           </button>
         )}
+        {/* Sam tytuł (gra solo bez widocznego limitu) nie potrzebuje kafla. */}
         {!ownHeader && (
-          <header className="tile flex flex-col gap-3 p-4">
+          <header className={`flex flex-col gap-3 ${!t && !timer && pillsHidden && !dots && seated ? "" : "tile p-4"}`}>
             {t && (
               <p className="label">
                 Turniej · {t.extra && gameNo === t.games.length ? "dogrywka" : `gra ${gameNo}/${t.games.length}`}
@@ -232,8 +239,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
               </h1>
               {dots && <GameDots dots={dots} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
             </div>
-            {/* Na ekranie instrukcji limit jeszcze nie ruszył. Stoper, Rytm, Przytrzymaj i Za zasłoną: tykający limit zdradzałby upływ sekund, więc grający go nie widzi. */}
-            {view.phase === "playing" && !game.intro && !((def.id === "stoper" || def.id === "rytm" || def.id === "przytrzymaj" || def.id === "zaslona") && myTurn) && (
+            {timer && (
               <Countdown
                 game={round ?? game}
                 total={round ? QUIZ_DURATION_MS / 1000 : (def.turn?.(game.view).seconds ?? def.turnSeconds)}
@@ -241,8 +247,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                 label={round ? "Czas" : MINI_GAMES.has(def.id) ? "Limit" : undefined}
               />
             )}
-            {/* Sam w partii: pigułka z własnym nickiem i postępem nic nie mówi, zostaje tytuł i czas. */}
-            <ul className={`flex flex-wrap gap-2 ${(dots && !open) || (seated && view.seats.length === 1) ? "hidden" : ""}`}>
+            <ul className={`flex flex-wrap gap-2 ${pillsHidden ? "hidden" : ""}`}>
               {view.seats.map((id) => {
                 const p = view.players.find((pl) => pl.id === id);
                 const active = id === winner || (view.phase === "playing" && game.waitingFor.includes(id));
