@@ -28,6 +28,8 @@ const PALETTE = [
 ];
 const WIDTH = 10;
 const ERASER_WIDTH = 40;
+/** Ile czasu czeka drugie dotknięcie „Pasuję”. */
+const CONFIRM_MS = 3000;
 /** Ile ostatnich pudeł widać pod rysunkiem. */
 const CHAT_LINES = 3;
 /** Miejsce na czat, pole tekstowe i „Pasuję” pod płótnem, gdy klawiatura zabiera pół ekranu. */
@@ -41,7 +43,7 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
   const live = view.phase === "choose" || view.phase === "draw";
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-1 flex-col gap-3">
       {timer && (
         <header className="flex flex-col gap-2">
           <span className="label">
@@ -54,7 +56,7 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
             ) : view.word ? (
               view.word
             ) : (
-              <span className="font-mono tracking-[0.3em]" aria-label={`Hasło, liter: ${view.hint.length}`}>
+              <span className="font-mono tracking-[0.3em]" aria-label={`Hasło, liter: ${view.hint.length}${view.revealed.length ? `, odsłonięta: ${view.hint.replace(/_/g, "")}` : ""}`}>
                 {view.hint}
               </span>
             )}
@@ -82,8 +84,10 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
         </ul>
       )}
 
+      {/* Hasła przy dolnej krawędzi, w zasięgu kciuka; w pustym miejscu wyjaśnienie, co zrobi limit. */}
       {view.phase === "choose" && drawing && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-1 flex-col gap-2">
+          <p className="grid flex-1 place-items-center text-center text-sm text-fg-muted">Gdy czas minie, dostaniesz pierwsze hasło z listy.</p>
           {view.choices.map((word, i) => (
             <button key={word} type="button" className="btn btn-ghost w-full text-lg" onClick={() => onMove({ type: "choose", index: i })}>
               {word}
@@ -179,6 +183,8 @@ function Pad({ view, onMove }: { view: KalamburyView; onMove: Props["onMove"] })
   /** To samo co `strokes`, ale od razu po zmianie (zdarzenia wskaźnika przychodzą szybciej niż render). */
   const local = useRef(view.strokes);
   const [ink, setInk] = useState(0);
+  /** Rysunek sprzed „Wyczyść”; „Cofnij” na pustym płótnie go przywraca (tak samo liczy serwer). */
+  const [cleared, setCleared] = useState(view.cleared);
   const finger = useRef<number | null>(null);
   /** Punkty jeszcze niewysłane, czy zaczynają nową kreskę i jej kolor. */
   const pending = useRef<{ points: number[]; start: boolean; color: number } | null>(null);
@@ -243,7 +249,14 @@ function Pad({ view, onMove }: { view: KalamburyView; onMove: Props["onMove"] })
 
   function edit(type: "undo" | "clear") {
     flush();
-    draw(type === "undo" ? local.current.slice(0, -1) : []);
+    if (type === "clear") {
+      setCleared(local.current);
+      draw([]);
+    } else if (local.current.length) draw(local.current.slice(0, -1));
+    else {
+      draw(cleared);
+      setCleared([]);
+    }
     onMove({ type });
   }
 
@@ -270,7 +283,7 @@ function Pad({ view, onMove }: { view: KalamburyView; onMove: Props["onMove"] })
         ))}
       </div>
       <div className="flex gap-3">
-        <button type="button" className="btn btn-ghost flex-1" disabled={strokes.length === 0} onClick={() => edit("undo")}>
+        <button type="button" className="btn btn-ghost flex-1" disabled={strokes.length === 0 && cleared.length === 0} onClick={() => edit("undo")}>
           <ArrowCounterClockwise size={18} aria-hidden />
           Cofnij
         </button>
@@ -299,6 +312,13 @@ function useViewportHeight() {
 /** Rysunek z serwera, ostatnie pudła i pole do zgadywania. Płótno maleje przy klawiaturze, żeby pole zostało widoczne. */
 function Guess({ view, me, color, canGuess, nick, onMove }: { view: KalamburyView; me: string; color?: string; canGuess: boolean; nick: (id: string) => string; onMove: Props["onMove"] }) {
   const [text, setText] = useState("");
+  /** „Pasuję” wymaga drugiego dotknięcia w ciągu CONFIRM_MS: jedno przypadkowe nie kończy rundy. */
+  const [sure, setSure] = useState(false);
+  useEffect(() => {
+    if (!sure) return;
+    const id = setTimeout(() => setSure(false), CONFIRM_MS);
+    return () => clearTimeout(id);
+  }, [sure]);
   const top = useRef<HTMLDivElement>(null);
   const height = useViewportHeight();
   const hit = view.guessed.includes(me);
@@ -318,8 +338,14 @@ function Guess({ view, me, color, canGuess, nick, onMove }: { view: KalamburyVie
 
   return (
     <>
-      <div ref={top} className="scroll-mt-2">
+      <div ref={top} className="relative scroll-mt-2">
         <Canvas strokes={view.strokes} size={height - BELOW_CANVAS_PX} />
+        {/* Stan pusty: zanim padnie pierwsza kreska, płótno mówi, na co czekamy. */}
+        {view.strokes.length === 0 && (
+          <p className="pointer-events-none absolute inset-0 grid place-items-center px-6 text-center text-sm text-fg-muted">
+            {view.phase === "choose" ? "Czekamy na hasło…" : `${nick(view.drawer)} zaczyna rysować…`}
+          </p>
+        )}
       </div>
       <ul className="flex min-h-[4.5rem] flex-col justify-end text-sm" aria-live="polite" aria-label="Strzały">
         {view.chat.slice(-CHAT_LINES).map((m, i) => (
@@ -350,8 +376,8 @@ function Guess({ view, me, color, canGuess, nick, onMove }: { view: KalamburyVie
             Zgadnij
           </button>
           </div>
-          <button type="button" className="btn btn-ghost w-full" onClick={() => onMove({ type: "pass" })}>
-            Pasuję
+          <button type="button" className={`btn btn-ghost w-full ${sure ? "border-fg" : ""}`} onClick={() => (sure ? onMove({ type: "pass" }) : setSure(true))}>
+            {sure ? "Dotknij jeszcze raz, żeby spasować" : "Pasuję"}
           </button>
         </form>
       )}

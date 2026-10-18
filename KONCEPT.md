@@ -96,6 +96,7 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
 - 2-6 graczy, rysuje się po kolei; tryb Krótka (każdy rysuje raz) albo Długa (dwa razy).
 - Rysujący wybiera jedno z trzech haseł (ogólne rzeczowniki, `kalambury-dane.ts`) i rysuje palcem, reszta wpisuje strzały; pudła widać na czacie, trafienia nie.
 - Punkty: 10, 8, 6, 5, 4 według kolejności trafień, rysujący 3 za każdego, kto zgadł. Hasło zna tylko rysujący, reszta widzi jego długość.
+- Rysowanie ma dwie połowy po 40 s; po pierwszej odsłania się jedna losowa litera hasła. „Wyczyść” da się cofnąć, „Pasuję” wymaga drugiego dotknięcia.
 - Paleta: 5 kolorów (biały, żółty, zielony, niebieski, brązowy) i gumka, która maluje kolorem płótna grubszą kreską.
 - Kreski lecą zwykłymi ruchami w paczkach co 200 ms, a cały rysunek (do 2000 punktów) jest w stanie gry, więc odświeżenie niczego nie gubi.
 

@@ -24,13 +24,16 @@ export const MAX_GUESSES = 30;
 export const GUESS_POINTS = [10, 8, 6, 5, 4];
 /** Dla rysującego za każdego, kto zgadł. */
 export const DRAWER_POINTS = 3;
-const SECONDS = { choose: 15, draw: 80, reveal: 6 };
+/** Rysowanie ma dwie połowy; po pierwszej odsłania się litera hasła. */
+export const HALF_SECONDS = 40;
+const SECONDS = { choose: 15, draw: HALF_SECONDS, reveal: 6 };
 
 export type Move =
   | { type: "choose"; index: number }
   | { type: "line"; points: number[]; start: boolean; color: number }
   | { type: "undo" }
   | { type: "clear" }
+  | { type: "hint" }
   | { type: "guess"; text: string }
   | { type: "pass" }
   | { type: "next" };
@@ -53,6 +56,12 @@ export interface State {
   /** Wybrane hasło rundy, "" przed wyborem. */
   word: string;
   strokes: Stroke[];
+  /** Rysunek sprzed „Wyczyść”, do przywrócenia przez „Cofnij”; zna go tylko rysujący. */
+  cleared: Stroke[];
+  /** Połowa rysowania: 0, potem 1 (po odsłonięciu litery). */
+  half: number;
+  /** Indeksy odsłoniętych liter hasła. */
+  revealed: number[];
   /** Pudła rundy. */
   chat: { player: PlayerId; text: string }[];
   /** Kto zgadł, w kolejności trafień. */
@@ -76,7 +85,7 @@ const points = (s: State) => s.strokes.reduce((n, stroke) => n + stroke.points.l
 
 function newRound(state: State, round: number): State {
   const drawer = state.players[round % state.players.length];
-  return { ...state, round, phase: "choose", drawer, word: "", strokes: [], chat: [], guessed: [], passed: [], ready: [], roundScores: {} };
+  return { ...state, round, phase: "choose", drawer, word: "", strokes: [], cleared: [], half: 0, revealed: [], chat: [], guessed: [], passed: [], ready: [], roundScores: {} };
 }
 
 /** Koniec rysowania: punkty rundy, potem odsłona albo koniec partii. */
@@ -101,6 +110,7 @@ export const kalambury: GameDefinition<State, Move> = {
     z.object({ type: z.literal("line"), points: z.array(coord).max(BATCH_POINTS * 2), start: z.boolean(), color: z.number().int() }),
     z.object({ type: z.literal("undo") }),
     z.object({ type: z.literal("clear") }),
+    z.object({ type: z.literal("hint") }),
     z.object({ type: z.literal("guess"), text: z.string().max(ANSWER_MAX) }),
     z.object({ type: z.literal("pass") }),
     z.object({ type: z.literal("next") }),
@@ -129,9 +139,11 @@ export const kalambury: GameDefinition<State, Move> = {
         return points(s) + p.length / 2 <= MAX_POINTS;
       }
       case "undo":
-        return drawing && s.strokes.length > 0;
+        return drawing && (s.strokes.length > 0 || s.cleared.length > 0);
       case "clear":
-        return drawing;
+        return drawing && s.strokes.length > 0;
+      case "hint":
+        return drawing && s.half === 0;
       case "guess":
         return (
           s.phase === "draw" &&
@@ -146,7 +158,7 @@ export const kalambury: GameDefinition<State, Move> = {
     }
   },
 
-  applyMove: (s, player, move) => {
+  applyMove: (s, player, move, rng) => {
     switch (move.type) {
       case "choose":
         return { ...s, phase: "draw", word: s.words[s.round * CHOICES + move.index] };
@@ -158,9 +170,13 @@ export const kalambury: GameDefinition<State, Move> = {
         return { ...s, strokes };
       }
       case "undo":
-        return { ...s, strokes: s.strokes.slice(0, -1) };
+        return s.strokes.length ? { ...s, strokes: s.strokes.slice(0, -1) } : { ...s, strokes: s.cleared, cleared: [] };
       case "clear":
-        return { ...s, strokes: [] };
+        return { ...s, strokes: [], cleared: s.strokes };
+      case "hint": {
+        const letters = [...s.word].flatMap((c, i) => (c === " " ? [] : [i]));
+        return { ...s, half: 1, revealed: [letters[Math.floor(rng() * letters.length)]] };
+      }
       case "guess":
       case "pass": {
         const hit = move.type === "guess" && normalize(move.text) === normalize(s.word);
@@ -186,7 +202,8 @@ export const kalambury: GameDefinition<State, Move> = {
     return {
       ...rest,
       word: secret ? "" : s.word,
-      hint: s.word.replace(/\S/g, "_"),
+      cleared: player === s.drawer ? s.cleared : [],
+      hint: [...s.word].map((c, i) => (c === " " || s.revealed.includes(i) ? c : "_")).join(""),
       choices: s.phase === "choose" && player === s.drawer ? words.slice(s.round * CHOICES, (s.round + 1) * CHOICES) : [],
     };
   },
@@ -195,16 +212,16 @@ export const kalambury: GameDefinition<State, Move> = {
 
   waitingFor: (s) => {
     if (s.phase === "choose") return [s.drawer];
-    if (s.phase === "draw") return guessers(s);
+    if (s.phase === "draw") return s.half === 0 ? [s.drawer] : guessers(s);
     if (s.phase === "reveal") return s.players.filter((p) => !s.ready.includes(p));
     return [];
   },
 
-  turn: (s) => ({ key: `${s.phase}:${s.round}`, seconds: s.phase === "over" ? 0 : SECONDS[s.phase] }),
+  turn: (s) => ({ key: s.phase === "draw" ? `draw:${s.round}:${s.half}` : `${s.phase}:${s.round}`, seconds: s.phase === "over" ? 0 : SECONDS[s.phase] }),
 
   timeoutMove: (s) => {
     if (s.phase === "choose") return { type: "choose", index: 0 };
-    if (s.phase === "draw") return { type: "pass" };
+    if (s.phase === "draw") return s.half === 0 ? { type: "hint" } : { type: "pass" };
     return { type: "next" };
   },
 };
