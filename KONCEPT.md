@@ -91,6 +91,13 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
 - Trzy tryby w lobby: Mała (4×4, 8 par), Średnia (4×6, 12 par, domyślna) i Duża (6×6, 18 par).
 - Układ kart zna tylko serwer: `playerView` pokazuje symbole kart zebranych, pierwszej karty tury i ostatniego pudła.
 
+### 2.3c Kalambury (spoza pierwotnego planu)
+
+- 2-6 graczy, rysuje się po kolei; tryb Krótka (każdy rysuje raz) albo Długa (dwa razy).
+- Rysujący wybiera jedno z trzech haseł (ogólne rzeczowniki, `kalambury-dane.ts`) i rysuje palcem, reszta wpisuje strzały; pudła widać na czacie, trafienia nie.
+- Punkty: 10, 8, 6, 5, 4 według kolejności trafień, rysujący 3 za każdego, kto zgadł. Hasło zna tylko rysujący, reszta widzi jego długość.
+- Kreski lecą zwykłymi ruchami w paczkach co 200 ms, a cały rysunek (do 2000 punktów) jest w stanie gry, więc odświeżenie niczego nie gubi.
+
 ### 2.4 Mini-gry (przerywniki)
 
 - **Refleks**: dotknij pola, gdy zmieni kolor; 12 zmian po losowym opóźnieniu 1-3 s, wynik = średnia reakcja w ms (mniej lepiej), falstart albo reakcja ponad 1 s liczy się jak 1000 ms.
@@ -216,7 +223,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
 - Rewanż po zgodzie wszystkich grających, kolejność miejsc rotuje (poza mini-grami, gdzie wszyscy grają naraz); do lobby może wrócić każdy.
 - W mini-grach (gry solo, `minPlayers: 1`) limit rusza po ekranie instrukcji: gdy wszyscy klikną „Start” albo po 15 s.
 - Limit tury: 60 s w większości gier; dłużej w Sekwencji, Śledzeniu i W pamięci (300 s), Który rok? (240 s), Tabeli Schultego, Odcieniu, Wieży, Mapie i Trzech kubkach (180 s),
-  Narysuj koło, Sudoku, Policz kropki, Kąt, Przytrzymaj, Za zasłoną, Balon i Tort (120 s), Kolorze liter, Liczeniu, Innym elemencie, Obrocie, Literówce i Dziesiątkach (90 s); Państwa-miasta mają limit per faza, Statki 90 s na całe rozstawianie, Chińczyk w trybie Szybkim 20 s.
+  Narysuj koło, Sudoku, Policz kropki, Kąt, Przytrzymaj, Za zasłoną, Balon i Tort (120 s), Kolorze liter, Liczeniu, Innym elemencie, Obrocie, Literówce i Dziesiątkach (90 s); Państwa-miasta i Kalambury mają limit per faza, Statki 90 s na całe rozstawianie, Chińczyk w trybie Szybkim 20 s.
 - Gdy gracz z miejscem zniknie z pokoju w trakcie partii (wyjdzie sam albo nie wróci w 10 minut), partia się kończy:
   jeśli został jeden gracz, wygrywa walkowerem; przy większej liczbie kończy się bez zwycięzcy.
 - Lobby: gospodarz wybiera grę i daje start, goście potwierdzają gotowość; każdy może zmienić swój kolor
@@ -310,7 +317,7 @@ podpięcie w `screens/Game.tsx` i ikona w `screens/Lobby.tsx`.
 | 5 | Kampus Tour: dodatki (Kolokwium, Juwenalia, karty, wykupienie, Bilet MPK, monopol) | Pełna wersja (gotowe) |
 | 6 | Poprawka | Gra karciana (do zrobienia) |
 | 7 | PWA, animacje, statystyki, szlify | Polerka (PWA, ranking po nicku i rekordy mini-gier gotowe) |
-| + | Chińczyk, Memory, mini-gry (30 sztuk), Państwa-miasta, Turniej z mini-gier | Poza planem (gotowe) |
+| + | Chińczyk, Memory, mini-gry (30 sztuk), Państwa-miasta, Kalambury, Turniej z mini-gier | Poza planem (gotowe) |
 | dalej | Zapis stanu pokoi w SQLite | Do zrobienia |
 
 ## 8a. Sposób pracy
