@@ -98,7 +98,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
 
   // Labirynt: przy wygranych liczba ścian, które graczowi zostały.
   const maze = def.id === "labirynt" ? (game.view as LabiryntView) : null;
-  // Wspólny nagłówek: wyraźne „Twój ruch!” w kolorze gracza i pasek czasu. Chińczyk zamiast punktów pokazuje pionki w domu.
+  // Wspólny nagłówek: wyraźne „Twój ruch” w kolorze gracza i pasek czasu. Chińczyk zamiast punktów pokazuje pionki w domu.
   const ludo = def.id === "chinczyk" ? (game.view as ChinczykView) : null;
   // Memory zamiast punktów pokazuje zebrane pary.
   const memory = def.id === "memory" ? (game.view as MemoryView) : null;
@@ -172,6 +172,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           .sort((a, b) => Number(b.me) - Number(a.me))
       : null;
 
+  // Gra po kolei: jedna osoba ma ruch. Jej kolor (`turnColor`, jak poświata) dostaje tytuł i pasek limitu, też u czekających.
+  const turnOf = view.phase === "playing" && game.waitingFor.length === 1 ? game.waitingFor[0] : undefined;
 
   // Państwa-miasta i Kalambury w trakcie partii mają własny nagłówek: runda, pasek czasu fazy, litera albo hasło.
   const ownHeader = (def.id === "panstwa-miasta" || def.id === "kalambury") && view.phase === "playing";
@@ -198,8 +200,10 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           ? "Ustaw statki"
           : MINI_GAMES.has(def.id)
             ? def.name // wszyscy grają naraz, więc to nie jest niczyj „ruch”
-            : "Twój ruch!"
-        : `Czekamy na: ${waitingNicks}`;
+            : "Twój ruch"
+        : turnOf && !MINI_GAMES.has(def.id)
+          ? <>Ruch: <span style={{ color: turnColor }}>{nick(turnOf)}</span></>
+          : `Czekamy na: ${waitingNicks}`;
 
   // Na ekranie instrukcji limit jeszcze nie ruszył. Stoper, Rytm, Przytrzymaj i Za zasłoną: tykający limit zdradzałby upływ sekund, więc grający go nie widzi.
   const timer =
@@ -247,7 +251,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
               <Countdown
                 game={round ?? game}
                 total={round ? QUIZ_DURATION_MS / 1000 : (def.turn?.(game.view).seconds ?? def.turnSeconds)}
-                color={myTurn ? myColor : undefined}
+                color={myTurn ? myColor : MINI_GAMES.has(def.id) ? undefined : turnColor}
                 label={round ? "Czas" : MINI_GAMES.has(def.id) ? "Limit" : undefined}
               />
             )}
@@ -260,7 +264,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                   <li
                     key={id}
                     className={`flex min-h-9 items-center gap-2 rounded-full border px-3 text-sm transition-colors ${fleet ? "w-full" : ""} ${
-                      active ? "" : "border-transparent text-fg-muted"
+                      active ? "" : "border-line text-fg-muted"
                     }`}
                     style={active ? { borderColor: p?.color, backgroundColor: `color-mix(in srgb, ${p?.color} 16%, transparent)` } : undefined}
                   >
@@ -293,9 +297,9 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                       </span>
                     ) : (
                       // Puchar odróżnia wygrane partie w pokoju od wyniku bieżącej partii.
-                      <span className="relative flex items-center gap-1 text-base font-semibold text-fg tabular-nums" aria-label={`Wygrane partie: ${view.scores[id] ?? 0}`}>
+                      <span className="relative flex items-center gap-1 font-mono text-base font-semibold text-fg tabular-nums" aria-label={`Wygrane partie: ${view.scores[id] ?? 0}`}>
                         <Trophy size={14} weight="fill" className="text-fg-muted" aria-hidden />
-                        <span className="text-xs font-normal text-fg-muted" aria-hidden>
+                        <span className="font-sans text-xs font-normal text-fg-muted" aria-hidden>
                           wygrane
                         </span>
                         {/* Klucz z wyniku: po wygranej liczba montuje się od nowa i wskakuje. */}

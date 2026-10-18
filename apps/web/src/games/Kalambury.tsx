@@ -49,7 +49,7 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
           <span className="label">
             Runda {view.round + 1}/{view.rounds} · rysuje {drawing ? "ty" : nick(view.drawer)}
           </span>
-          {/* Tytuł w kolorze gracza tylko u rysującego: to jego tura, jak „Twój ruch!” w innych grach. */}
+          {/* Tytuł w kolorze gracza tylko u rysującego: to jego tura, jak „Twój ruch” w innych grach. */}
           <h1 className="text-xl leading-tight font-semibold" style={drawing && live ? { color: player(me)?.color } : undefined}>
             {view.phase === "choose" ? (
               drawing ? "Wybierz hasło" : `${nick(view.drawer)} wybiera hasło`
