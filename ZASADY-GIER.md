@@ -11,6 +11,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Statki | `statki` | 2 | 90 s rozstawianie, 60 s strzał | ukryty stan |
 | Gomoku | `piec-w-rzedzie` | 2 | 60 s | po kolei |
 | Memory | `memory` | 2-6 | 60 s | po kolei, ukryty stan |
+| Labirynt | `labirynt` | 2-4 | 60 s | planszowa, po kolei |
 | Państwa-miasta | `panstwa-miasta` | 2-6 | zależny od fazy | równoczesna |
 | Kalambury | `kalambury` | 2-6 | zależny od fazy | równoczesna, ukryty stan |
 | Refleks | `refleks` | 1-6 | 60 s | mini-gra |
@@ -820,3 +821,25 @@ Seria mini-gier puszczana po kolei w jednym pokoju. To nie jest gra z rejestru `
 - **Ukrywanie stanu**: listy haseł nie ma w widoku. W wyborze trzy hasła (`choices`) widzi tylko rysujący, a w rysowaniu hasło (`word`)
   zna tylko rysujący; reszta i obserwator dostają `hint` (każda litera jako „_”, odsłonięta litera jawnie, spacje zostają). Od odsłony hasło jest jawne.
 - Limit przez `turn(state)`: klucz `faza:runda:połowa`, więc licznik startuje od nowa przy zmianie fazy, rundy i połowy, a nie przy kresce ani strzale.
+
+## 10. Labirynt (`labirynt`)
+
+- Tryb wybiera gospodarz w lobby (`MODES` w `labirynt.ts`); nieznany albo brak = `klasyczny`.
+
+  | Tryb | Plansza | Ścianki na gracza (2 / 3 / 4 os.) |
+  |---|---|---|
+  | `klasyczny` | 9×9 | 10 / 7 / 5 |
+  | `szybki` | 7×7 | 6 / 4 / 3 |
+
+- Pionki startują na środku krawędzi, kolejność miejsc zgodnie z ruchem wskazówek zegara: `players[0]` na dole,
+  przy 2 osobach drugi u góry, przy 3-4 kolejni po lewej, u góry i po prawej. Cel: dowolne pole przeciwległej krawędzi. Zaczyna `players[0]`.
+- W turze jeden ruch: krok pionkiem (`step`) albo ścianka (`wall`).
+- Krok: o jedno pole w pionie lub poziomie, nie przez ściankę. Gdy na sąsiednim polu stoi pionek, przeskakuje się go prosto;
+  jeśli za nim jest ścianka, krawędź albo inny pionek, wolno stanąć skośnie obok niego (z jego pola, nie przez ściankę). Nad dwoma pionkami się nie skacze.
+- Ścianka ma długość 2 pól i zaczepia się w punkcie przecięcia linii (`x`, `y` od 0 do rozmiaru − 2), poziomo (`h`, między wierszami `y` i `y+1`,
+  kolumny `x` i `x+1`) albo pionowo (`v`). Nie może nachodzić na inną ani krzyżować się z nią (ten sam punkt, druga orientacja)
+  i nie może odciąć żadnemu graczowi drogi do celu (pionki nie zasłaniają drogi). Ścianki z puli się kończą.
+- `pass` tylko wtedy, gdy pionek nie ma żadnego kroku (możliwe przy 3-4 osobach).
+- Koniec: pierwszy, kto stanie na polu celu, wygrywa (także przy 3-4 osobach, bez pełnego rankingu). Remisu nie ma.
+- Limit czasu: krok w stronę celu (pole najbliższe celowi po ściankach), a gdy kroku nie ma, `pass`. Losowości w grze nie ma.
+- Nic nie jest ukryte: widok to cały stan.
