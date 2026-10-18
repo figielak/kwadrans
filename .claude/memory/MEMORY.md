@@ -1,0 +1,4 @@
+- [Hosting setup](hosting-setup.md) — Pi 192.168.10.10 ~/kwadrans, tunel cloudflared z CLI (bez Zero Trust, CGNAT), GHCR, wolumen bazy i backup.sh
+- [Postęp projektu](project-progress.md) — etapy 0-5 + Chińczyk + mini-gry (Refleks, Simon, Stoper, Schulte, Stroop, Liczenie, Koło, Kolor z pamięci, Ile kropek?) + Państwa-miasta, PWA i ranking gotowe, zasady gier, kontrakt, pułapki testów i zod/colyseus, styl
+- [Ekonomia Kampus Tour](kampus-tour-economy.md) — 200 zł start, 40 zł kieszonkowe, bez kompletu do poziomu 2, 8 grup, formuły z ceny P
+- [Zostaw serwery dev](zostaw-serwery-dev.md) — po pracy nie ubijać server/web dev, użytkownik zawsze sam testuje
