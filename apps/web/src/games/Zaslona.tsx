@@ -28,8 +28,8 @@ const seconds = (ms: number) => (ms / 1000).toFixed(2).replace(".", ",");
 function Preview({ color }: { color?: string }) {
   return (
     <div className="relative h-12 w-44 overflow-hidden rounded-inset border border-line bg-surface">
-      <span className="absolute inset-y-0 right-[20%] left-[45%] bg-bg" />
-      <span className="absolute inset-y-0 right-[20%] w-0.5 bg-fg" />
+      <span className="absolute top-1/2 right-[20%] left-[15%] h-px bg-line" />
+      <span className="absolute inset-y-0 right-[20%] left-[45%] border border-r-2 border-line border-r-fg bg-fg/5" />
       <span
         className="absolute top-1/2 left-[15%] size-5 -translate-y-1/2 animate-[preview-half_3s_linear_infinite] rounded-full"
         style={{ backgroundColor: color }}
@@ -84,10 +84,7 @@ export function Zaslona({ view, me, players, ranking, onMove }: Props) {
     let id = requestAnimationFrame(function frame(now) {
       const t = now - r.start;
       if (t >= limit) return finish(2 * round.hidden);
-      if (ball.current) {
-        ball.current.style.left = `${at(t) * 100}%`;
-        ball.current.style.visibility = t < round.visible ? "visible" : "hidden";
-      }
+      if (ball.current) ball.current.style.left = `${at(t) * 100}%`;
       id = requestAnimationFrame(frame);
     });
     return () => cancelAnimationFrame(id);
@@ -138,7 +135,7 @@ export function Zaslona({ view, me, players, ranking, onMove }: Props) {
       <Intro
         preview={<Preview color={color} />}
         time={`${ZASLONA_ROUNDS} rund, kulka toczy się od 1 do 6 sekund`}
-        task="Kulka znika za zasłoną. Dotknij w chwili, gdy dotrze do mety"
+        task="Kulka znika za zasłoną. Dotknij ekranu w chwili, gdy dotrze do mety"
         score="Liczy się suma odchyłek, mniej znaczy lepiej"
         onStart={lead}
       />
@@ -148,6 +145,8 @@ export function Zaslona({ view, me, players, ranking, onMove }: Props) {
   const reveal = phase === "reveal";
   const tap = reveal ? taps[index] : 0;
   const diff = tap - round.hidden;
+  // Poniżej 5 ms odchyłka wychodzi jako 0,00 s: wtedy bez znaku i bez „za wcześnie”.
+  const exact = seconds(Math.abs(diff)) === "0,00";
   const sum = taps.reduce((s, t, i) => s + zaslonaDeviation(view.rounds[i].hidden, t), 0);
   // W odsłonie kulka stoi tam, gdzie była w chwili dotknięcia.
   const ballLeft = reveal ? at(round.visible + tap) : 0;
@@ -156,7 +155,7 @@ export function Zaslona({ view, me, players, ranking, onMove }: Props) {
       <Stats
         items={[
           { label: "Runda", value: `${index + 1}/${ZASLONA_ROUNDS}` },
-          { label: "Suma odchyłek", value: `${sum} ms` },
+          { label: "Suma odchyłek", value: `${seconds(sum)} s` },
         ]}
       />
       {/* Bez przejść i bez licznika: czas ma być widać tylko „na oko”. */}
@@ -167,29 +166,40 @@ export function Zaslona({ view, me, players, ranking, onMove }: Props) {
         className="tile relative flex min-h-48 flex-1 touch-none select-none flex-col items-center justify-center gap-1 overflow-hidden text-2xl font-semibold [-webkit-touch-callout:none]"
       >
         <span className="relative h-24 w-[calc(100%-3rem)]">
+          {/* Tor od startu do mety: punkt odniesienia dla prędkości. */}
+          <span className="absolute top-1/2 left-0 h-px bg-line" style={{ width: `${GOAL * 100}%` }} />
+          {/* Zasłona jaśniejsza od pola i z obrysem, żeby była warstwą nad torem, nie dziurą; w odsłonie zostaje sam przerywany obrys. */}
           <span
-            className={`absolute inset-y-0 border-r-2 border-fg ${reveal ? "bg-fg/10" : "bg-bg"}`}
+            className={`absolute inset-y-0 border border-r-2 border-line border-r-fg ${reveal ? "border-dashed" : "bg-fg/5"}`}
             style={{ left: `${maskLeft * 100}%`, width: `${(GOAL - maskLeft) * 100}%` }}
           />
+          {/* Kulka jest ucinana na brzegu zasłony, więc chowa się pod nią stopniowo (w chwili `visible` w połowie); w odsłonie widać ją całą. */}
           <span
-            ref={ball}
-            className="absolute top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 rounded-full"
-            style={{ left: `${ballLeft * 100}%`, backgroundColor: color, visibility: reveal ? "visible" : undefined }}
-          />
+            className="absolute inset-0"
+            style={{ clipPath: reveal ? undefined : `polygon(-100% -100%, ${maskLeft * 100}% -100%, ${maskLeft * 100}% 200%, -100% 200%)` }}
+          >
+            <span
+              ref={ball}
+              className="absolute top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 rounded-full"
+              style={{ left: `${ballLeft * 100}%`, backgroundColor: color }}
+            />
+          </span>
         </span>
         {reveal ? (
           <>
-            <span className="text-5xl tabular-nums">{seconds(tap)} s</span>
-            <span className="text-lg text-fg-muted tabular-nums">meta {seconds(round.hidden)} s</span>
-            <span className={`tabular-nums ${grade(Math.abs(diff), PERFECT, CLOSE).text}`}>
-              {diff < 0 ? "−" : "+"}
+            {/* Najważniejsza jest odchyłka; czas dotknięcia i meta to tylko kontekst. */}
+            <span className={`font-mono text-5xl tabular-nums ${grade(Math.abs(diff), PERFECT, CLOSE).text}`}>
+              {exact ? "" : diff < 0 ? "−" : "+"}
               {seconds(Math.abs(diff))} s
             </span>
+            <span className="text-base font-normal text-fg-muted">{exact ? "idealnie" : diff < 0 ? "za wcześnie" : "za późno"}</span>
+            <span className="font-mono text-sm font-normal text-fg-muted tabular-nums">
+              {seconds(tap)} s · meta {seconds(round.hidden)} s
+            </span>
           </>
-        ) : phase === "run" ? (
-          "Dotknij na mecie"
         ) : (
-          "Patrz"
+          // Podpowiedź tylko w pierwszej rundzie, potem tor zostaje sam.
+          index === 0 && <span className="text-sm font-normal text-fg-muted">Kulka na mecie? Dotknij gdziekolwiek</span>
         )}
       </button>
     </div>
