@@ -16,6 +16,7 @@ import { literowka } from "./literowka.ts";
 import { nozyczki } from "./nozyczki.ts";
 import { obrot } from "./obrot.ts";
 import { panstwaMiasta } from "./panstwa-miasta.ts";
+import { labirynt } from "./labirynt.ts";
 import { piecWRzedzie } from "./piec-w-rzedzie.ts";
 import { przytrzymaj } from "./przytrzymaj.ts";
 import { refleks } from "./refleks.ts";
@@ -81,6 +82,7 @@ export {
   type View as KalamburyView,
 } from "./kalambury.ts";
 export type { View as PiecWRzedzieView } from "./piec-w-rzedzie.ts";
+export { atGoal as labiryntAtGoal, type Cell as LabiryntCell, pawnMoves as labiryntPawnMoves, type View as LabiryntView, type Wall as LabiryntWall, wallError as labiryntWallError } from "./labirynt.ts";
 export { SYMBOLS as MEMORY_SYMBOLS, type View as MemoryView } from "./memory.ts";
 export { PENALTY_MS as REFLEKS_PENALTY_MS, ROUNDS as REFLEKS_ROUNDS, type View as RefleksView } from "./refleks.ts";
 export type { View as SimonView } from "./simon.ts";
@@ -120,6 +122,7 @@ export { around as shipAround, isValidFleet, MODES as STATKI_MODES, randomFleet,
 // Bez prototypu: gameId przychodzi z sieci, a GAMES["constructor"] na zwykłym obiekcie zwróciłoby funkcję zamiast gry.
 export const GAMES: Record<string, GameDefinition<any, any>> = Object.assign(Object.create(null), {
   [piecWRzedzie.id]: piecWRzedzie,
+  [labirynt.id]: labirynt,
   [statki.id]: statki,
   [chinczyk.id]: chinczyk,
   [kampusTour.id]: kampusTour,

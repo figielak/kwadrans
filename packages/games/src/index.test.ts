@@ -15,14 +15,15 @@ const MAX_STEPS = 100_000;
 /** Fazy odwiedzone w losowych partiach, po id gry. */
 const visited: Record<string, Set<string>> = {};
 
-/** Ruchy „chętnego” gracza: sam timeoutMove nigdy nie kupuje, więc nie doszedłby do budowy, wykupu, sprzedaży ani Juwenaliów. */
+/** Ruchy „chętnego” gracza: sam timeoutMove nigdy nie kupuje (Kampus Tour) ani nie stawia ścianek (Labirynt). */
 const EAGER: Record<string, (rng: () => number) => unknown[]> = {
   "kampus-tour": (rng) => [{ type: "buy" }, { type: "buyout" }, { type: "build", level: 1 }, { type: "travel", tile: Math.floor(rng() * 32) }],
+  labirynt: (rng) => (rng() < 0.3 ? [{ type: "wall", x: Math.floor(rng() * 8), y: Math.floor(rng() * 8), dir: rng() < 0.5 ? "h" : "v" }] : []),
 };
 
 test("rejestr: id z sieci nie trafia w pola prototypu obiektu, a klucz to id gry", () => {
   for (const id of ["constructor", "toString", "__proto__", "hasOwnProperty", "nie-ma-takiej"]) expect(GAMES[id], id).toBeUndefined();
-  expect(Object.keys(GAMES)).toHaveLength(37);
+  expect(Object.keys(GAMES)).toHaveLength(38);
   for (const [id, game] of Object.entries(GAMES)) expect(game.id).toBe(id);
 });
 
