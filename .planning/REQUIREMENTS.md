@@ -72,12 +72,33 @@ Kryteria pochodzą z `ZASADY.md` (§2–6), `ZASADY-GIER.md` i `KONCEPT.md`. Ka�
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| RULE-01 | Phase 1 | Pending |
+| RULE-02 | Phase 1 | Pending |
+| RULE-03 | Phase 1 | Pending |
+| WIRE-01 | Phase 1 | Pending |
+| WIRE-02 | Phase 1 | Pending |
+| UI-01 | Phase 2 | Pending |
+| UI-02 | Phase 2 | Pending |
+| UI-03 | Phase 2 | Pending |
+| UI-04 | Phase 2 | Pending |
+| UI-05 | Phase 2 | Pending |
+| ANIM-01 | Phase 2 | Pending |
+| ANIM-02 | Phase 2 | Pending |
+| ANIM-03 | Phase 2 | Pending |
+| REC-01 | Phase 3 | Pending |
+| REC-02 | Phase 3 | Pending |
+| REC-03 | Phase 3 | Pending |
+| DIFF-01 | Phase 3 | Pending |
+| DIFF-02 | Phase 3 | Pending |
+| DIFF-03 | Phase 3 | Pending |
+| FIX-01 | Phase 4 | Pending |
+| FIX-02 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 20 total
-- Mapped to phases: 0
-- Unmapped: 20 ⚠️
+- v1 requirements: 21 total
+- Mapped to phases: 21
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-21 after initial definition*
+*Last updated: 2026-10-21 after roadmap creation*
