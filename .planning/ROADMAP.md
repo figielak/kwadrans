@@ -32,7 +32,17 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Dla każdego `<gra>.test.ts` jest lista brakujących testów obowiązkowych z `ZASADY.md` §2, ogólnych i zależnych od typu gry
   4. Tabela podpięć pokazuje dla każdej gry komplet z §6 (`GAMES`, `View`, gałąź `Game.tsx`, `ICONS`; mini-gra: `MINI_GAMES`, `record` i `tie`, `RECORDS`, `FORMAT`, `MiniGame.tsx`) z zaznaczonymi lukami
   5. Dla każdej mini-gry wiadomo, czy ekran końcowy rysuje się z samego stanu (`soloState`, `me=""`); każda zależność od stanu lokalnego komponentu ma `plik:linia`
-**Plans**: TBD
+**Plans**: 10 plans
+- [x] 01-01-PLAN.md — skrypty hurtowe reguł §3 i mapa pokrycia index.test.ts (fala 1)
+- [x] 01-02-PLAN.md — tabela podpięć §6 i ekran końcowy mini-gier z samego stanu (fala 1)
+- [x] 01-03-PLAN.md — Kampus Tour (fala 2)
+- [ ] 01-04-PLAN.md — gry główne turowe: Gomoku, Statki, Chińczyk, Labirynt, Memory (fala 2)
+- [ ] 01-05-PLAN.md — fazy równoczesne i Turniej: Państwa-miasta, Kalambury, Turniej (fala 2)
+- [ ] 01-06-PLAN.md — mini-gry na czas i reakcję (8 gier, fala 2)
+- [ ] 01-07-PLAN.md — mini-gry na trafienia (9 gier, fala 2)
+- [ ] 01-08-PLAN.md — mini-gry z odchyłką w rundach (9 gier, fala 2)
+- [ ] 01-09-PLAN.md — mini-gry do pierwszej pomyłki (4 gry, fala 2)
+- [ ] 01-10-PLAN.md — scalenie w FINDINGS.md (fala 3)
 
 ### Phase 2: Audyt wyglądu, animacji i wibracji
 **Goal**: Wiadomo, które ekrany gier i platformy łamią reguły wyglądu (`ZASADY.md` §4) oraz animacji i wibracji (§5)
@@ -90,7 +100,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Audyt zasad, testów i podpięcia | 0/TBD | Not started | - |
+| 1. Audyt zasad, testów i podpięcia | 3/10 | In progress | - |
 | 2. Audyt wyglądu, animacji i wibracji | 0/TBD | Not started | - |
 | 3. Audyt balansu rekordów i trudności | 0/TBD | Not started | - |
 | 4. Raport zbiorczy i akceptacja | 0/TBD | Not started | - |

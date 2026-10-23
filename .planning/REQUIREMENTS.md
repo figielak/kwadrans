@@ -29,8 +29,8 @@ Kryteria pochodzą z `ZASADY.md` (§2–6), `ZASADY-GIER.md` i `KONCEPT.md`. Ka�
 
 ### Podpięcie
 
-- [ ] **WIRE-01**: Każda gra ma komplet podpięć z §6: `GAMES`, eksport `View`, gałąź `Game.tsx`, ikona `ICONS`; mini-gra: `MINI_GAMES`, `record` (+`tie`), `RECORDS` w `index.test.ts`, `FORMAT` w `Records.tsx`, `MiniGame.tsx`
-- [ ] **WIRE-02**: Ekran końcowy każdej mini-gry rysuje się z samego stanu (rekordowa partia z `soloState` i `me=""` wyświetla się poprawnie)
+- [x] **WIRE-01**: Każda gra ma komplet podpięć z §6: `GAMES`, eksport `View`, gałąź `Game.tsx`, ikona `ICONS`; mini-gra: `MINI_GAMES`, `record` (+`tie`), `RECORDS` w `index.test.ts`, `FORMAT` w `Records.tsx`, `MiniGame.tsx`
+- [x] **WIRE-02**: Ekran końcowy każdej mini-gry rysuje się z samego stanu (rekordowa partia z `soloState` i `me=""` wyświetla się poprawnie)
 
 ### Balans rekordów
 
@@ -72,11 +72,11 @@ Kryteria pochodzą z `ZASADY.md` (§2–6), `ZASADY-GIER.md` i `KONCEPT.md`. Ka�
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RULE-01 | Phase 1 | Pending |
-| RULE-02 | Phase 1 | Pending |
-| RULE-03 | Phase 1 | Pending |
-| WIRE-01 | Phase 1 | Pending |
-| WIRE-02 | Phase 1 | Pending |
+| RULE-01 | Phase 1 | In progress (01-03 Kampus Tour gotowe; 01-04..01-09 w toku) |
+| RULE-02 | Phase 1 | In progress (01-01 dowód hurtowy, 01-03 Kampus Tour gotowe) |
+| RULE-03 | Phase 1 | In progress (01-01 mapa pokrycia, 01-03 Kampus Tour gotowe) |
+| WIRE-01 | Phase 1 | Complete (01-02) |
+| WIRE-02 | Phase 1 | Complete (01-02) |
 | UI-01 | Phase 2 | Pending |
 | UI-02 | Phase 2 | Pending |
 | UI-03 | Phase 2 | Pending |
@@ -101,4 +101,4 @@ Kryteria pochodzą z `ZASADY.md` (§2–6), `ZASADY-GIER.md` i `KONCEPT.md`. Ka�
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-21 after roadmap creation*
+*Last updated: 2026-10-23 po planie 01-03*
