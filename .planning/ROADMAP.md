@@ -14,8 +14,8 @@ Wspólny format ustaleń (fazy 1-3): plik `FINDINGS.md` w katalogu fazy, jeden w
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Audyt zasad, testów i podpięcia** - kod zasad, testy i podpięcie każdej gry kontra `KONCEPT.md`, `ZASADY-GIER.md` i `ZASADY.md` §2, §3, §6
-- [ ] **Phase 2: Audyt wyglądu, animacji i wibracji** - ekrany gier kontra `ZASADY.md` §4 i §5
+- [x] **Phase 1: Audyt zasad, testów i podpięcia** - kod zasad, testy i podpięcie każdej gry kontra `KONCEPT.md`, `ZASADY-GIER.md` i `ZASADY.md` §2, §3, §6
+- [x] **Phase 2: Audyt wyglądu, animacji i wibracji** - ekrany gier kontra `ZASADY.md` §4 i §5 oraz `DESIGN.md`
 - [ ] **Phase 3: Audyt balansu rekordów i trudności** - równe szanse partii, sufit, remisy, krzywa trudności, limity tury, gry główne
 - [ ] **Phase 4: Raport zbiorczy i akceptacja** - jedna lista rozbieżności z priorytetami i decyzją użytkownika
 - [ ] **Phase 5: Poprawki zaakceptowanych rozbieżności** - kod, testy i dokumenty znowu mówią to samo
@@ -36,16 +36,16 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 01-01-PLAN.md — skrypty hurtowe reguł §3 i mapa pokrycia index.test.ts (fala 1)
 - [x] 01-02-PLAN.md — tabela podpięć §6 i ekran końcowy mini-gier z samego stanu (fala 1)
 - [x] 01-03-PLAN.md — Kampus Tour (fala 2)
-- [ ] 01-04-PLAN.md — gry główne turowe: Gomoku, Statki, Chińczyk, Labirynt, Memory (fala 2)
-- [ ] 01-05-PLAN.md — fazy równoczesne i Turniej: Państwa-miasta, Kalambury, Turniej (fala 2)
-- [ ] 01-06-PLAN.md — mini-gry na czas i reakcję (8 gier, fala 2)
-- [ ] 01-07-PLAN.md — mini-gry na trafienia (9 gier, fala 2)
-- [ ] 01-08-PLAN.md — mini-gry z odchyłką w rundach (9 gier, fala 2)
-- [ ] 01-09-PLAN.md — mini-gry do pierwszej pomyłki (4 gry, fala 2)
-- [ ] 01-10-PLAN.md — scalenie w FINDINGS.md (fala 3)
+- [x] 01-04-PLAN.md — gry główne turowe: Gomoku, Statki, Chińczyk, Labirynt, Memory (fala 2)
+- [x] 01-05-PLAN.md — fazy równoczesne i Turniej: Państwa-miasta, Kalambury, Turniej (fala 2)
+- [x] 01-06-PLAN.md — mini-gry na czas i reakcję (8 gier, fala 2)
+- [x] 01-07-PLAN.md — mini-gry na trafienia (9 gier, fala 2)
+- [x] 01-08-PLAN.md — mini-gry z odchyłką w rundach (9 gier, fala 2)
+- [x] 01-09-PLAN.md — mini-gry do pierwszej pomyłki (4 gry, fala 2)
+- [x] 01-10-PLAN.md — scalenie w FINDINGS.md (fala 3)
 
 ### Phase 2: Audyt wyglądu, animacji i wibracji
-**Goal**: Wiadomo, które ekrany gier i platformy łamią reguły wyglądu (`ZASADY.md` §4) oraz animacji i wibracji (§5)
+**Goal**: Wiadomo, które ekrany gier i platformy łamią reguły wyglądu (`ZASADY.md` §4, `DESIGN.md`) oraz animacji i wibracji (§5)
 **Depends on**: Nothing (niezależna od fazy 1, może iść równolegle)
 **Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05, ANIM-01, ANIM-02, ANIM-03
 **Success Criteria** (what must be TRUE):
@@ -54,7 +54,18 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Wymienione są teksty z em-dashem, kropką dziesiętną albo innym słowem niż „Start”, „Dalej”, „Rewanż”, „Do lobby”, „(ty)”, liczby bez mono i `tabular-nums`, mini-gry z niepełnym `Intro` (brak `Preview` albo punktu time / task / score) oraz braki `aria-hidden` i `aria-label`
   4. Wymienione są animacje spoza keyframes `index.css` albo z czasem niezgodnym z tabelą §5, ta sama sytuacja animowana różnie w różnych grach, animacje JS bez `reducedMotion`, animacje blokujące grę i pomiar czasu zależny od animacji
   5. Wymienione są wibracje o wzorze innym niż 40 / 60 / [60, 40, 60], gry dublujące wibrację tury z `Game.tsx` i wibracje przy poprawnym trafieniu
-**Plans**: TBD
+**Plans**: 11 plans
+- [x] 02-01-PLAN.md — skrypty hurtowe po `apps/web/src` (kolory spoza tokenów i czerwień, `rounded-*`, em-dash, `toFixed` bez przecinka, `vibrate`, `animate-[...]` kontra keyframes, `setTimeout`/`requestAnimationFrame` bez `reducedMotion`, `onClick` zamiast `onPointerDown`, stałe `w-[..px]`, przyciski bez `aria-label`) → `02-01-CHECKS.md` (fala 1)
+- [x] 02-02-PLAN.md — wzorce platformy: `index.css` (tokeny, katalog keyframes z czasami, reguła `prefers-reduced-motion`, `.btn` 48 px) i `ui.tsx` (`Intro`, `GameDots`, `Scores`, `Stats`, `StickyBar`) jako punkt odniesienia dla gier (fala 1)
+- [x] 02-03-PLAN.md — ekrany platformy: `Game.tsx` (nagłówek, wibracja tury, „Rewanż” / „Do lobby”), `Home`, `Lobby`, `Setup` (bez `TournamentSetup`), `MiniGames`, `Records`, `App` (fala 2)
+- [x] 02-04-PLAN.md — Kampus Tour i `KampusSummary` (własny nagłówek, kroki pionka `STEP_MS`/`ROLL_MS`, kości, pływające kwoty) (fala 2)
+- [x] 02-05-PLAN.md — gry główne turowe: Gomoku, Statki (`SWAP_MS`), Chińczyk (wzór kroków), Labirynt, Memory: kolor gracza, `stone-pop`, wibracja zbicia (fala 2)
+- [x] 02-06-PLAN.md — fazy równoczesne: Państwa-miasta (własny nagłówek), Kalambury (płótno, paleta), ekran turnieju (`TournamentSetup` i część turniejowa `Game.tsx`) (fala 2)
+- [x] 02-07-PLAN.md — mini-gry na czas i reakcję (8 gier): bodziec bez przejścia, `touch-none select-none`, pomiar niezależny od animacji, Rytm i Przytrzymaj bez licznika (fala 2)
+- [x] 02-08-PLAN.md — mini-gry na trafienia (9 gier): `Quiz.tsx` raz, blokada 1 s i wibracja pomyłki, trafienie bez wibracji (fala 2)
+- [x] 02-09-PLAN.md — mini-gry z odchyłką w rundach (9 gier): `Szacowanie.tsx` raz, odsłona wyniku, przecinek dziesiętny, tabele rund na 360 px (fala 2)
+- [x] 02-10-PLAN.md — mini-gry do pierwszej pomyłki (4 gry): animacje kubków, kulek i klocków z `reducedMotion`, przerywanie animacji nowym stanem (fala 2)
+- [x] 02-11-PLAN.md — porównanie między grami (ta sama sytuacja = ta sama animacja, te same słowa) i scalenie w `FINDINGS.md` (fala 3)
 **UI hint**: yes
 
 ### Phase 3: Audyt balansu rekordów i trudności
@@ -100,8 +111,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Audyt zasad, testów i podpięcia | 3/10 | In progress | - |
-| 2. Audyt wyglądu, animacji i wibracji | 0/TBD | Not started | - |
+| 1. Audyt zasad, testów i podpięcia | 10/10 | Complete | 2026-10-23 |
+| 2. Audyt wyglądu, animacji i wibracji | 11/11 | Complete | 2026-10-24 |
 | 3. Audyt balansu rekordów i trudności | 0/TBD | Not started | - |
 | 4. Raport zbiorczy i akceptacja | 0/TBD | Not started | - |
 | 5. Poprawki zaakceptowanych rozbieżności | 0/TBD | Not started | - |

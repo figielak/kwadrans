@@ -9,23 +9,23 @@ Kryteria pochodzą z `ZASADY.md` (§2–6), `ZASADY-GIER.md` i `KONCEPT.md`. Ka�
 
 ### Zasady: kod vs dokumenty
 
-- [ ] **RULE-01**: Każda gra z `GAMES` ma sekcję w `ZASADY-GIER.md` i opis w `KONCEPT.md` §2, a stałe w kodzie (rundy, czasy, kary, limity tury, tryby) zgadzają się z dokumentami
-- [ ] **RULE-02**: Każda gra spełnia reguły `ZASADY.md` §3 (`timeoutMove` = ruch / najgorszy wynik, remis bez zwycięzcy, start pierwszego z `players`, tylko `rng`, stan JSON, `ranked`/`places`, wspólne funkcje `core.ts`); odstępstwa mają wpis z powodem
-- [ ] **RULE-03**: Każdy plik testów ma testy obowiązkowe z `ZASADY.md` §2 (lista luk per gra)
+- [x] **RULE-01**: Każda gra z `GAMES` ma sekcję w `ZASADY-GIER.md` i opis w `KONCEPT.md` §2, a stałe w kodzie (rundy, czasy, kary, limity tury, tryby) zgadzają się z dokumentami
+- [x] **RULE-02**: Każda gra spełnia reguły `ZASADY.md` §3 (`timeoutMove` = ruch / najgorszy wynik, remis bez zwycięzcy, start pierwszego z `players`, tylko `rng`, stan JSON, `ranked`/`places`, wspólne funkcje `core.ts`); odstępstwa mają wpis z powodem
+- [x] **RULE-03**: Każdy plik testów ma testy obowiązkowe z `ZASADY.md` §2 (lista luk per gra)
 
 ### Wygląd UI
 
-- [ ] **UI-01**: Kolory tylko z tokenów, kolor gracza zamiast czerwieni, zaokrąglenia 20/10 px
-- [ ] **UI-02**: Pola dotykowe min. 48 px; gry na czas mają `touch-none select-none` i `onPointerDown`
-- [ ] **UI-03**: Każdy ekran mieści się na 360×640 bez poziomego przewijania i stałych pikseli
-- [ ] **UI-04**: Teksty po polsku, bez em-dashy, przecinek dziesiętny, te same słowa („Start”, „Dalej”, „Rewanż”, „Do lobby”, „(ty)”); liczby mono z `tabular-nums`
-- [ ] **UI-05**: Każda mini-gra ma `Intro` z `Preview` i trzema punktami (time/task/score); ozdobne `aria-hidden`, przyciski bez tekstu `aria-label`
+- [x] **UI-01**: Kolory tylko z tokenów, kolor gracza zamiast czerwieni, zaokrąglenia 20/10 px
+- [x] **UI-02**: Pola dotykowe min. 48 px; gry na czas mają `touch-none select-none` i `onPointerDown`
+- [x] **UI-03**: Każdy ekran mieści się na 360×640 bez poziomego przewijania i stałych pikseli
+- [x] **UI-04**: Teksty po polsku, bez em-dashy, przecinek dziesiętny, te same słowa („Start”, „Dalej”, „Rewanż”, „Do lobby”, „(ty)”); liczby mono z `tabular-nums`
+- [x] **UI-05**: Każda mini-gra ma `Intro` z `Preview` i trzema punktami (time/task/score); ozdobne `aria-hidden`, przyciski bez tekstu `aria-label`
 
 ### Animacje i wibracje
 
-- [ ] **ANIM-01**: Animacje z istniejących keyframes `index.css` (ta sama sytuacja = ta sama animacja), czasy zgodne z tabelą `ZASADY.md` §5
-- [ ] **ANIM-02**: Animacje JS sprawdzają `reducedMotion`, animacja nie blokuje gry, pomiar czasu nie zależy od animacji
-- [ ] **ANIM-03**: Wibracje zgodne z tabelą §5 (40 / 60 / [60,40,60]); gra nie dubluje wibracji tury; trafienie nie wibruje
+- [x] **ANIM-01**: Animacje z istniejących keyframes `index.css` (ta sama sytuacja = ta sama animacja), czasy zgodne z tabelą `ZASADY.md` §5
+- [x] **ANIM-02**: Animacje JS sprawdzają `reducedMotion`, animacja nie blokuje gry, pomiar czasu nie zależy od animacji
+- [x] **ANIM-03**: Wibracje zgodne z tabelą §5 (40 / 60 / [60,40,60]); gra nie dubluje wibracji tury; trafienie nie wibruje
 
 ### Podpięcie
 
@@ -72,19 +72,19 @@ Kryteria pochodzą z `ZASADY.md` (§2–6), `ZASADY-GIER.md` i `KONCEPT.md`. Ka�
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RULE-01 | Phase 1 | In progress (01-03 Kampus Tour gotowe; 01-04..01-09 w toku) |
-| RULE-02 | Phase 1 | In progress (01-01 dowód hurtowy, 01-03 Kampus Tour gotowe) |
-| RULE-03 | Phase 1 | In progress (01-01 mapa pokrycia, 01-03 Kampus Tour gotowe) |
+| RULE-01 | Phase 1 | Complete (01-03..01-09, scalone w FINDINGS.md 01-10) |
+| RULE-02 | Phase 1 | Complete (01-01, 01-03..01-09, scalone w FINDINGS.md 01-10) |
+| RULE-03 | Phase 1 | Complete (01-01, 01-03..01-09, scalone w FINDINGS.md 01-10) |
 | WIRE-01 | Phase 1 | Complete (01-02) |
 | WIRE-02 | Phase 1 | Complete (01-02) |
-| UI-01 | Phase 2 | Pending |
-| UI-02 | Phase 2 | Pending |
-| UI-03 | Phase 2 | Pending |
-| UI-04 | Phase 2 | Pending |
-| UI-05 | Phase 2 | Pending |
-| ANIM-01 | Phase 2 | Pending |
-| ANIM-02 | Phase 2 | Pending |
-| ANIM-03 | Phase 2 | Pending |
+| UI-01 | Phase 2 | Complete (02-01..02-10, scalone w FINDINGS.md 02-11) |
+| UI-02 | Phase 2 | Complete (02-01..02-10, scalone w FINDINGS.md 02-11) |
+| UI-03 | Phase 2 | Complete (02-01..02-10, scalone w FINDINGS.md 02-11) |
+| UI-04 | Phase 2 | Complete (02-01..02-10, scalone w FINDINGS.md 02-11) |
+| UI-05 | Phase 2 | Complete (02-01..02-10, scalone w FINDINGS.md 02-11) |
+| ANIM-01 | Phase 2 | Complete (02-01..02-10, scalone w FINDINGS.md 02-11) |
+| ANIM-02 | Phase 2 | Complete (02-01..02-10, scalone w FINDINGS.md 02-11) |
+| ANIM-03 | Phase 2 | Complete (02-01..02-10, scalone w FINDINGS.md 02-11) |
 | REC-01 | Phase 3 | Pending |
 | REC-02 | Phase 3 | Pending |
 | REC-03 | Phase 3 | Pending |
@@ -101,4 +101,4 @@ Kryteria pochodzą z `ZASADY.md` (§2–6), `ZASADY-GIER.md` i `KONCEPT.md`. Ka�
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-23 po planie 01-03*
+*Last updated: 2026-10-24 po planie 02-11*
