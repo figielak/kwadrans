@@ -25,12 +25,13 @@ Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumen
 
 ### Active
 
-- [ ] Raport rozbieżności: zasady w kodzie vs `ZASADY-GIER.md` / `KONCEPT.md` oraz reguły `ZASADY.md` §3
-- [ ] Raport rozbieżności: wygląd UI wg `ZASADY.md` §4
-- [ ] Raport rozbieżności: animacje i wibracje wg `ZASADY.md` §5
-- [ ] Raport rozbieżności: podpięcie i testy wg `ZASADY.md` §2 i §6
-- [ ] Raport balansu rekordów: równe szanse partii, sufit wyniku, remisy i drugie kryterium
-- [ ] Raport balansu trudności: krzywa w grze, limity czasu, gry główne
+- [x] Raport rozbieżności: zasady w kodzie vs `ZASADY-GIER.md` / `KONCEPT.md` oraz reguły `ZASADY.md` §3 (faza 1, `FINDINGS.md`)
+- [x] Raport rozbieżności: wygląd UI wg `ZASADY.md` §4 (faza 2, `FINDINGS.md`)
+- [x] Raport rozbieżności: animacje i wibracje wg `ZASADY.md` §5 (faza 2, `FINDINGS.md`)
+- [x] Raport rozbieżności: podpięcie i testy wg `ZASADY.md` §2 i §6 (faza 1, `FINDINGS.md`)
+- [x] Raport balansu rekordów: równe szanse partii, sufit wyniku, remisy i drugie kryterium (faza 3, `FINDINGS.md`)
+- [x] Raport balansu trudności: krzywa w grze, limity czasu, gry główne (faza 3, `FINDINGS.md`)
+- [ ] Raport zbiorczy z priorytetami i decyzją użytkownika, co poprawiać (faza 4)
 - [ ] Poprawki zaakceptowanych rozbieżności (osobne fazy, po akceptacji raportu)
 
 ### Out of Scope
@@ -47,7 +48,8 @@ Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumen
 - Mapa kodu: `.planning/codebase/` (zrobiona 2026-10-21 na commicie `fb3f095`), w tym `CONCERNS.md`.
 - Źródłem prawdy są `KONCEPT.md`, `ZASADY-GIER.md`, `ZASADY.md`, `AGENTS.md`; przy sprzeczności z mapą kodu wygrywają one.
 - Szkice nowych mini-gier w `plany/` (sudoku, trzy-kubki, zakupy, za-zaslona) — gry są już zrobione, szkice mogą być nieaktualne.
-- Balans ekonomii Kampus Tour do sprawdzenia w kolejnych partiach (`KONCEPT.md` §9).
+- Balans ekonomii Kampus Tour do sprawdzenia w kolejnych partiach (`KONCEPT.md` §9); symulacja botów z fazy 3 i 22 pytania „sprawdzić w partii” w `phases/03-…/FINDINGS.md` §11.
+- Wejście do fazy 4: trzy pliki `FINDINGS.md` w `phases/01-…`, `02-…`, `03-…` (prefiksy F1:, F2:, F3:).
 
 ## Constraints
 
@@ -62,10 +64,10 @@ Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumen
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Najpierw raport, poprawki w osobnych fazach | Użytkownik akceptuje rozbieżności przed zmianami | — Pending |
-| Kryteria spójności z `ZASADY.md` §2–6 | Istniejące, spisane reguły; bez wymyślania nowych | — Pending |
-| Balans rekordów: równe szanse, sufit, remisy | Wybór użytkownika; walidacja oszustw poza zakresem | — Pending |
-| Balans trudności: krzywa, limity, gry główne | Wybór użytkownika; porównanie mini-gier poza zakresem | — Pending |
+| Najpierw raport, poprawki w osobnych fazach | Użytkownik akceptuje rozbieżności przed zmianami | ✓ Fazy 1-3 bez zmian w kodzie, akceptacja w fazie 4 |
+| Kryteria spójności z `ZASADY.md` §2–6 | Istniejące, spisane reguły; bez wymyślania nowych | ✓ Fazy 1-2; w fazie 2 także `DESIGN.md`, przy sprzeczności wygrywa `ZASADY.md` |
+| Balans rekordów: równe szanse, sufit, remisy | Wybór użytkownika; walidacja oszustw poza zakresem | ✓ Faza 3 (symulacja `setup` na 1000 seedów, wpisy R1-R8) |
+| Balans trudności: krzywa, limity, gry główne | Wybór użytkownika; porównanie mini-gier poza zakresem | ✓ Faza 3 (limit = najdłuższa uczciwa partia + zapas ≥ 20% i ≥ 10 s) |
 
 ## Evolution
 
@@ -85,4 +87,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-21 after initialization*
+*Last updated: 2026-10-25 po fazie 3 (fazy 1-3 zamknięte, następna faza 4)*

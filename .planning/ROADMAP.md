@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Audyt zasad, testów i podpięcia** - kod zasad, testy i podpięcie każdej gry kontra `KONCEPT.md`, `ZASADY-GIER.md` i `ZASADY.md` §2, §3, §6
 - [x] **Phase 2: Audyt wyglądu, animacji i wibracji** - ekrany gier kontra `ZASADY.md` §4 i §5 oraz `DESIGN.md`
-- [ ] **Phase 3: Audyt balansu rekordów i trudności** - równe szanse partii, sufit, remisy, krzywa trudności, limity tury, gry główne
+- [x] **Phase 3: Audyt balansu rekordów i trudności** - równe szanse partii, sufit, remisy, krzywa trudności, limity tury, gry główne
 - [ ] **Phase 4: Raport zbiorczy i akceptacja** - jedna lista rozbieżności z priorytetami i decyzją użytkownika
 - [ ] **Phase 5: Poprawki zaakceptowanych rozbieżności** - kod, testy i dokumenty znowu mówią to samo
 
@@ -78,7 +78,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Każda gra z progresją (Kubki, Śledzenie, Wieża, W pamięci, Inny element, Obrót, Sekwencja, Stój! i inne) ma krzywą trudności wyliczoną ze stałych przyrostu i ocenę, gdzie robi się za łatwa albo niemożliwa
   4. Limit tury każdej mini-gry jest zestawiony z najdłuższą uczciwą partią policzoną ze stałych plus zapas, a gry po kolei są sprawdzone na 60 s
   5. Ekonomia Kampus Tour (pytania z `KONCEPT.md` §9), przewaga pierwszego gracza w Gomoku i Labiryncie oraz tryby Szybkie mają ocenę i rekomendację: zostawić, zmienić albo sprawdzić w partii
-**Plans**: TBD
+**Plans**: 9 plans
+- [x] 03-01-PLAN.md — tabela stałych 30 mini-gier, symulacja `setup` na 1000 seedów (do zdobycia, trudność z losowania), rozkład wyników z lokalnej `games.db` → `03-01-CHECKS.md` (fala 1)
+- [x] 03-02-PLAN.md — model czasu partii (limit = najdłuższa uczciwa partia + zapas), progi ludzkie, wzorce `withSum` i kompletów, szablon sekcji → `03-02-BASELINE.md` (fala 1)
+- [x] 03-03-PLAN.md — Kampus Tour: ekonomia statycznie, symulacja botów (2-4 graczy, 500+ partii), K2, K11, długość partii i limit 60 s z marszem pionka (fala 2)
+- [x] 03-04-PLAN.md — gry główne: Gomoku, Labirynt, Statki, Chińczyk, Memory, Państwa-miasta, Kalambury, Turniej: przewaga kolejności, tryby, limity tur i faz (fala 2)
+- [x] 03-05-PLAN.md — mini-gry na czas i reakcję (8 gier, fala 2)
+- [x] 03-06-PLAN.md — mini-gry na trafienia (9 gier, fala 2)
+- [x] 03-07-PLAN.md — mini-gry z odchyłką w rundach (9 gier, fala 2)
+- [x] 03-08-PLAN.md — mini-gry do pierwszej pomyłki (4 gry, fala 2)
+- [x] 03-09-PLAN.md — scalenie w `FINDINGS.md`: macierz gra × kryterium, wpisy zbiorcze, zamknięcie wpisów z faz 1-2, lista „sprawdzić w partii” (fala 3)
 
 ### Phase 4: Raport zbiorczy i akceptacja
 **Goal**: Użytkownik ma jedną listę rozbieżności z priorytetami i zdecydował, co poprawiać
@@ -113,6 +122,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 |-------|----------------|--------|-----------|
 | 1. Audyt zasad, testów i podpięcia | 10/10 | Complete | 2026-10-23 |
 | 2. Audyt wyglądu, animacji i wibracji | 11/11 | Complete | 2026-10-24 |
-| 3. Audyt balansu rekordów i trudności | 0/TBD | Not started | - |
+| 3. Audyt balansu rekordów i trudności | 9/9 | Complete | 2026-10-24 |
 | 4. Raport zbiorczy i akceptacja | 0/TBD | Not started | - |
 | 5. Poprawki zaakceptowanych rozbieżności | 0/TBD | Not started | - |

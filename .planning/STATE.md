@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Audyt balansu rekordów i trudności
-status: ready_to_plan
-stopped_at: Faza 2 zamknięta (02-11, FINDINGS.md)
-last_updated: "2026-10-24T09:30:00.000Z"
+status: phase-complete
+stopped_at: Faza 3 zamknięta (03-09 scalenie), następna faza 4
+last_updated: "2026-10-24T21:00:00.000Z"
 last_activity: 2026-10-24
-last_activity_desc: 02-11 scalenie fazy 2 w FINDINGS.md (102 wpisy, macierz sytuacji)
+last_activity_desc: 03-09 FINDINGS.md fazy 3 (R1-R8, macierz 39 gier, 22 pytania do partii)
 state_head: d625d21e2897eb4036bc55fb4e8ab7a05bd76d02
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 21
-  completed_plans: 21
+  completed_phases: 3
+  total_plans: 30
+  completed_plans: 30
   percent: 100
 ---
 
@@ -20,26 +20,26 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-21)
+See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Phase 3: Audyt balansu rekordów i trudności (planowanie); faza 4 czeka na 3
+**Current focus:** Phase 4: Raport zbiorczy i akceptacja (fazy 1-3 zamknięte, faza 4 bez planów)
 
 ## Current Position
 
-Phase: 2 of 5 (Audyt wyglądu, animacji i wibracji), zamknięta
-Plan: 11 of 11 in current phase (fala 1: 02-01, 02-02; fala 2: 02-03..02-10; fala 3: 02-11, wszystkie gotowe)
-Status: Phase complete (faza 2 zamknięta; następna faza 3, plany TBD; faza 4 czeka na 3)
-Last activity: 2026-10-24: 02-11: FINDINGS.md fazy 2, 102 wpisy (wysokie 4, średnie 27, niskie 71), 300 wystąpień, macierz sytuacji A1-A17
+Phase: 3 of 5 (Audyt balansu rekordów i trudności), zamknięta; następna 4 (Raport zbiorczy i akceptacja)
+Plan: 9 of 9 in current phase (fale 1-3 gotowe)
+Status: Phase complete (decyzje D-01..D-14 w 03-CONTEXT.md nadal do potwierdzenia przez użytkownika; faza 4 do zaplanowania)
+Last activity: 2026-10-24: 03-09: FINDINGS.md fazy 3, 16 wpisów (wysokie 2: R1 limit-tury-bez-zapasu, R3 sufit-bez-tie warunkowo; średnie 5: R2, R4, R5, R7, B-KT3; niskie 9) z 44 częściowych, macierz 39 gier × 6 kryteriów (zmienić 16, sprawdzić w partii 7, zostawić 16), 14 wpisów D-02 zamkniętych, 22 pytania do partii. Wcześniej fala 2 fazy 3: 44 wpisy B-* (wysokie 5: B-SQ1 Sekwencja, B-ZK1 Zakupy, B-SR1 Środek, B-TO1 Tort, B-WP2 W pamięci; średnie 20, niskie 19). Wcześniej fala 1: 03-01-CHECKS.md (stałe 30 mini-gier, 66 miar z 1000 seedów, baza dev prawie pusta), 03-02-BASELINE.md (L ≥ 1,2·T i ≥ T + 10 s, progi ludzkie, wzorce). Wcześniej plany fazy 3 (9 planów: CHECKS i BASELINE, Kampus Tour, gry główne, 4 grupy mini-gier, scalenie). Wcześniej 02-11: FINDINGS.md fazy 2, 102 wpisy (wysokie 4, średnie 27, niskie 71), 300 wystąpień, macierz sytuacji A1-A17
 
-Progress: [██████████] 100% zaplanowanych planów (faza 1: 10/10, faza 2: 11/11; fazy 3-5 bez planów)
+Progress: [██████████] 100% zaplanowanych planów (faza 1: 10/10, faza 2: 11/11, faza 3: 9/9; fazy 4-5 bez planów)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
-- Average duration: ok. 38 min (01-01: 25 min, 01-02: 30 min, 01-03: 40 min, 01-04: 45 min, 01-05: 35 min, 01-06: 40 min, 01-07: 45 min, 01-08: 50 min, 01-09: 35 min, 01-10: 40 min, 02-01: 11 min, 02-02: 8 min, 02-03: 45 min, 02-04: 55 min, 02-05: 60 min, 02-06: 45 min, 02-07: 45 min, 02-08: 45 min, 02-09: 50 min, 02-10: 50 min, 02-11: 70 min)
-- Total execution time: ok. 14,5 h (fala 2 równolegle, ok. 1 h zegarowo bez przerwy na limit API)
+- Total plans completed: 30
+- Average duration: ok. 38 min (01-01: 25 min, 01-02: 30 min, 01-03: 40 min, 01-04: 45 min, 01-05: 35 min, 01-06: 40 min, 01-07: 45 min, 01-08: 50 min, 01-09: 35 min, 01-10: 40 min, 02-01: 11 min, 02-02: 8 min, 02-03: 45 min, 02-04: 55 min, 02-05: 60 min, 02-06: 45 min, 02-07: 45 min, 02-08: 45 min, 02-09: 50 min, 02-10: 50 min, 02-11: 70 min, 03-01: 35 min, 03-02: 25 min, 03-03: 45 min, 03-04: 60 min, 03-05: 50 min, 03-06: 45 min, 03-07: 40 min, 03-08: 45 min, 03-09: 40 min)
+- Total execution time: ok. 15,2 h (fala 2 równolegle, ok. 1 h zegarowo bez przerwy na limit API)
 
 **By Phase:**
 
@@ -47,9 +47,10 @@ Progress: [██████████] 100% zaplanowanych planów (faza 1: 1
 |-------|-------|-------|----------|
 | 1 | 10/10 | ok. 6,4 h | ok. 38 min |
 | 2 | 11/11 | ok. 8,1 h | ok. 44 min |
+| 3 | 9/9 | ok. 7,2 h | ok. 43 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-07, 02-08, 02-09, 02-10, 02-11
+- Last 5 plans: 03-05, 03-06, 03-07, 03-08, 03-09
 - Trend: fala 2 równolegle (8 agentów), plany per gra ok. 45-60 min
 
 *Updated after each plan completion*
@@ -65,9 +66,13 @@ Recent decisions affecting current work:
 - [Roadmap]: Fazy 1-3 są od siebie niezależne; faza 4 (raport i akceptacja) czeka na wszystkie trzy
 - [Faza 2]: Źródła reguł UI to `ZASADY.md` §4/§5, `DESIGN.md` i `AGENTS.md`; przy sprzeczności wygrywa `ZASADY.md` (D-13); wyjątki z `DESIGN.md` §6 idą na listę odstępstw z powodem
 - [Roadmap]: Zakres fazy 5 ustala zaakceptowany raport; przy dużym zakresie rozbić ją na kolejne fazy
+- [Faza 3]: Podział jak w fazach 1-2 (Kampus Tour osobno, gry główne, 4 grupy mini-gier); limit = najdłuższa uczciwa partia + zapas ≥ 20% i ≥ 10 s (D-07); symulacje `setup` i botów w scratchpadzie, lokalna `games.db` tylko do odczytu, bez łączenia z Pi (D-10, D-11); każdy wpis z rekomendacją zostawić / zmienić / sprawdzić w partii
 
 ### Pending Todos
 
+- Faza 3 zamknięta (2026-10-24): wejście do fazy 4 to `phases/03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md` (R1-R8 i wpisy pojedyncze B-*, cytowane z prefiksem F3:); styki z fazami 1-2: R1 = F1:Z2 (+ F2:ZK1), R2 = F1:Z3, R6 = F2:U28, B-KT4 = F1:K2, B-KT5 = F1:K11, B-KT6 z F2:U2; wysokie: R1 (Sekwencja, Zakupy, Środek, Tort), R3 (W pamięci, warunkowo); 22 pytania „sprawdzić w partii” w §11 (pozycje 9-13 da kopia bazy produkcyjnej), propozycje do dokumentów w §12
+- Do fali 2 fazy 3 z 03-01/03-02: liczby brać z `03-01-CHECKS.md` (§1 stałe, §2 symulacja, §2.1 krzywa Kubków), limit i progi z `03-02-BASELINE.md`; baza dev ma tylko 9 wyników Za zasłoną, więc remisy na szczycie ocenia się ze stałych; nowe do oceny: limit mini-gier bez `turn()` odnawia się po wyniku rywala (`LobbyRoom.ts:375-376`), a w 7 grach ze stałym `key` nie (różny czas wolnego gracza w grze wieloosobowej)
+- Faza 3 zaplanowana (2026-10-24): wpisy z faz 1-2 do zamknięcia wymienia D-02 w `03-CONTEXT.md`; poniższe listy „Do fazy 3” są w nim zebrane
 - Faza 2 zamknięta (2026-10-24): wejście do fazy 4 to `phases/02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md` (U1-U37, A1-A17 i wpisy pojedyncze, cytowane z prefiksem F2:); poniższe listy „Do 02-11” i „Do fazy 4 z fali 2” są w nim scalone (§5.0 ujednolicenia, §7 propozycje do dokumentów, §9 do potwierdzenia w przeglądarce)
 - Do fazy 4 z 02-11: wysokie U1 (ekran partii > 640 px w 11 grach, w tym nowy WP5), U2 (akcja po animacji: Chińczyk, Kampus Tour), KT10, F2:ZK1; nowy wpis A17 („Gotowe” w trzech rolach)
 - Faza 1 zamknięta: wejście do fazy 4 to `phases/01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md` (Z1-Z21 i wpisy pojedyncze; poniższe listy są już w nim scalone)
@@ -104,5 +109,5 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-24
-Stopped at: Faza 2 zamknięta (02-11), następna faza 3
-Resume file: .planning/ROADMAP.md (Phase 3, plany TBD)
+Stopped at: Faza 3 zamknięta (03-09), następna faza 4 do zaplanowania (`/gsd-plan-phase 4`)
+Resume file: .planning/phases/03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md

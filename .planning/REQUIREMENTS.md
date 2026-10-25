@@ -34,15 +34,15 @@ Kryteria pochodzą z `ZASADY.md` (§2–6), `ZASADY-GIER.md` i `KONCEPT.md`. Ka�
 
 ### Balans rekordów
 
-- [ ] **REC-01**: Każda mini-gra z losowymi celami daje w każdej partii tyle samo do zdobycia (`withSum`, stała liczba bodźców, potasowane komplety); raport wskazuje gry, w których tego brakuje
-- [ ] **REC-02**: Gry „do pierwszej pomyłki” i z limitem rund mają ocenione ryzyko osiągnięcia sufitu (maksimum osiągalne, remisy na szczycie rekordów)
-- [ ] **REC-03**: `record.tie` jest tam, gdzie wyniki często się powtarzają, a kierunek `lower` zgadza się z dokumentacją
+- [x] **REC-01**: Każda mini-gra z losowymi celami daje w każdej partii tyle samo do zdobycia (`withSum`, stała liczba bodźców, potasowane komplety); raport wskazuje gry, w których tego brakuje
+- [x] **REC-02**: Gry „do pierwszej pomyłki” i z limitem rund mają ocenione ryzyko osiągnięcia sufitu (maksimum osiągalne, remisy na szczycie rekordów)
+- [x] **REC-03**: `record.tie` jest tam, gdzie wyniki często się powtarzają, a kierunek `lower` zgadza się z dokumentacją
 
 ### Balans trudności
 
-- [ ] **DIFF-01**: Krzywa trudności w grach z progresją (Kubki, Śledzenie, Wieża, W pamięci, Inny element, Obrót, Sekwencja, Stój! i inne) oceniona na podstawie stałych przyrostu
-- [ ] **DIFF-02**: Limit tury każdej mini-gry = najdłuższa uczciwa partia + zapas; gry po kolei 60 s
-- [ ] **DIFF-03**: Gry główne ocenione: ekonomia Kampus Tour (`KONCEPT.md` §9), przewaga pierwszego gracza (Gomoku, Labirynt), tryby Szybkie
+- [x] **DIFF-01**: Krzywa trudności w grach z progresją (Kubki, Śledzenie, Wieża, W pamięci, Inny element, Obrót, Sekwencja, Stój! i inne) oceniona na podstawie stałych przyrostu
+- [x] **DIFF-02**: Limit tury każdej mini-gry = najdłuższa uczciwa partia + zapas; gry po kolei 60 s
+- [x] **DIFF-03**: Gry główne ocenione: ekonomia Kampus Tour (`KONCEPT.md` §9), przewaga pierwszego gracza (Gomoku, Labirynt), tryby Szybkie
 
 ### Raport i poprawki
 
@@ -85,12 +85,12 @@ Kryteria pochodzą z `ZASADY.md` (§2–6), `ZASADY-GIER.md` i `KONCEPT.md`. Ka�
 | ANIM-01 | Phase 2 | Complete (02-01..02-10, scalone w FINDINGS.md 02-11) |
 | ANIM-02 | Phase 2 | Complete (02-01..02-10, scalone w FINDINGS.md 02-11) |
 | ANIM-03 | Phase 2 | Complete (02-01..02-10, scalone w FINDINGS.md 02-11) |
-| REC-01 | Phase 3 | Pending |
-| REC-02 | Phase 3 | Pending |
-| REC-03 | Phase 3 | Pending |
-| DIFF-01 | Phase 3 | Pending |
-| DIFF-02 | Phase 3 | Pending |
-| DIFF-03 | Phase 3 | Pending |
+| REC-01 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
+| REC-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
+| REC-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
+| DIFF-01 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
+| DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
+| DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Pending |
 | FIX-02 | Phase 5 | Pending |
 
@@ -101,4 +101,4 @@ Kryteria pochodzą z `ZASADY.md` (§2–6), `ZASADY-GIER.md` i `KONCEPT.md`. Ka�
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-24 po planie 02-11*
+*Last updated: 2026-10-24 po planie 03-09 (faza 3 zamknięta)*
