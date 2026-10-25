@@ -1,7 +1,7 @@
 # Faza 4: Raport zbiorczy i akceptacja
 
 **Data:** 2026-10-25
-**Status:** 5 planów przygotowanych do akceptacji; wykonano 0/5.
+**Status:** 04-01 wykonany na zlecenie użytkownika, 1/5; następny 04-02. Warianty poprawek nadal oczekują decyzji.
 **Wymaganie:** FIX-01. FIX-02 należy do fazy 5.
 
 ## Cel i granice

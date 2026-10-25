@@ -2,18 +2,18 @@
 gsd_state_version: "1.0"
 current_phase: 4
 current_phase_name: Raport zbiorczy i akceptacja
-status: planned
-stopped_at: Plany 04-01..04-05 przygotowane do akceptacji, wykonanie nierozpoczęte
+status: in_progress
+stopped_at: 04-01 wykonany; następny 04-02 (dowody i warianty)
 last_updated: "2026-10-25"
 last_activity: 2026-10-25
-last_activity_desc: Rozpisano 5 planów fazy 4, kontekst, zależności i kryteria odbioru
+last_activity_desc: "Wykonano 04-01: 173 źródła scalone w 168 wpisów F4, mapa pokrycia i otwarte dowody"
 state_head: e5ac65a40a918f38c2cfac785a66639641cd5d89
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 35
-  completed_plans: 30
-  percent: 86
+  completed_plans: 31
+  percent: 89
 ---
 
 # Project State
@@ -23,25 +23,25 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Phase 4: Raport zbiorczy i akceptacja (5 planów przygotowanych do akceptacji, 0/5 wykonanych)
+**Current focus:** Phase 4: Raport zbiorczy i akceptacja (04-01 wykonany, 1/5; następny 04-02)
 
 ## Current Position
 
-Phase: 4 of 5 (Raport zbiorczy i akceptacja), zaplanowana
-Plan: 0 of 5 completed; następny 04-01 po akceptacji planu
-Status: Planned, awaiting approval. Propozycje D-01..D-14 z 03-CONTEXT.md uwzględnia plan 04-02; decyzje użytkownika zbiera 04-04.
-Last activity: 2026-10-25: rozpisano 04-01..04-05 i 04-CONTEXT.md. Kolejność: scalenie → dowody i warianty → pakiety i raport → decyzje użytkownika → zakres fazy 5. FIX-01 i FIX-02 pozostają otwarte.
+Phase: 4 of 5 (Raport zbiorczy i akceptacja), w toku
+Plan: 1 of 5 completed; następny 04-02 (dowody i warianty)
+Status: In progress. Użytkownik zlecił wykonanie 04-01. Rejestr F4 v1 gotowy, wszystkie decyzje oczekują; propozycje D-01..D-14 i otwarte dowody przekazano do 04-02, decyzje użytkownika zbiera 04-04.
+Last activity: 2026-10-25: wykonano 04-01. FINDINGS.md v1: 173 źródła → 168 wpisów (7 wysokich, 55 średnich, 106 niskich), 47 odstępstw, 44 aliasy F3, 22 pytania, pokrycie 39 pozycji i ekranów. Kod i dokumenty zasad bez zmian od baz audytów. FIX-01 i FIX-02 pozostają otwarte.
 
 Previous activity: 2026-10-24: 03-09 zamknął fazę 3: 16 wpisów z 44 częściowych, macierz 39 gier × 6 kryteriów, 14 przekazań D-02 i 22 pytania do partii. Faza 2 zakończona raportem 102 wpisów (300 wystąpień), faza 1 raportem 55 wpisów.
 
-Progress: [████████░░] 86% zaplanowanych planów, 30/35 (faza 1: 10/10, faza 2: 11/11, faza 3: 9/9, faza 4: 0/5; faza 5 bez planów). To postęp wykonania planów, nie procent ukończenia całego projektu.
+Progress: [█████████░] 89% zaplanowanych planów, 31/35 (faza 1: 10/10, faza 2: 11/11, faza 3: 9/9, faza 4: 1/5; faza 5 bez planów). To postęp wykonania planów, nie procent ukończenia całego projektu.
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 30
-- Average duration: ok. 38 min (01-01: 25 min, 01-02: 30 min, 01-03: 40 min, 01-04: 45 min, 01-05: 35 min, 01-06: 40 min, 01-07: 45 min, 01-08: 50 min, 01-09: 35 min, 01-10: 40 min, 02-01: 11 min, 02-02: 8 min, 02-03: 45 min, 02-04: 55 min, 02-05: 60 min, 02-06: 45 min, 02-07: 45 min, 02-08: 45 min, 02-09: 50 min, 02-10: 50 min, 02-11: 70 min, 03-01: 35 min, 03-02: 25 min, 03-03: 45 min, 03-04: 60 min, 03-05: 50 min, 03-06: 45 min, 03-07: 40 min, 03-08: 45 min, 03-09: 40 min)
-- Total execution time: ok. 15,2 h (fala 2 równolegle, ok. 1 h zegarowo bez przerwy na limit API)
+- Total plans completed: 31
+- Average duration (pierwsze 30 planów; 04-01 bez pomiaru): ok. 38 min (01-01: 25 min, 01-02: 30 min, 01-03: 40 min, 01-04: 45 min, 01-05: 35 min, 01-06: 40 min, 01-07: 45 min, 01-08: 50 min, 01-09: 35 min, 01-10: 40 min, 02-01: 11 min, 02-02: 8 min, 02-03: 45 min, 02-04: 55 min, 02-05: 60 min, 02-06: 45 min, 02-07: 45 min, 02-08: 45 min, 02-09: 50 min, 02-10: 50 min, 02-11: 70 min, 03-01: 35 min, 03-02: 25 min, 03-03: 45 min, 03-04: 60 min, 03-05: 50 min, 03-06: 45 min, 03-07: 40 min, 03-08: 45 min, 03-09: 40 min)
+- Total execution time (pierwsze 30 planów; 04-01 bez pomiaru): ok. 15,2 h (fala 2 równolegle, ok. 1 h zegarowo bez przerwy na limit API)
 
 **By Phase:**
 
@@ -72,7 +72,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- Faza 4 zaplanowana (2026-10-25): `phases/04-raport-zbiorczy-i-akceptacja/04-CONTEXT.md` i plany 04-01..04-05 do akceptacji. Pierwszy rezultat po wykonaniu: rejestr F4 z mapą źródeł. 04-02 obejmuje niepewne dowody, 22 pytania do partii oraz niezatwierdzone propozycje fazy 3; 04-04 wymaga decyzji użytkownika, 04-05 zamyka FIX-01 dopiero po kontroli całości.
+- Faza 4 w toku (2026-10-25), 04-01 ukończony na zlecenie użytkownika: `phases/04-raport-zbiorczy-i-akceptacja/FINDINGS.md` (168 wpisów, mapa 173 źródeł). Następny 04-02: pomiary UI, 22 pytania do partii, istniejące odstępstwa (w tym timeout Labiryntu) oraz warianty i niezatwierdzone założenia fazy 3. 04-04 wymaga decyzji użytkownika; FIX-01 pozostaje otwarte do 04-05. Rekomendacja „zostawić” nie jest akceptacją.
 - Faza 3 zamknięta (2026-10-24): wejście do fazy 4 to `phases/03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md` (R1-R8 i wpisy pojedyncze B-*, cytowane z prefiksem F3:); styki z fazami 1-2: R1 = F1:Z2 (+ F2:ZK1), R2 = F1:Z3, R6 = F2:U28, B-KT4 = F1:K2, B-KT5 = F1:K11, B-KT6 z F2:U2; wysokie: R1 (Sekwencja, Zakupy, Środek, Tort), R3 (W pamięci, warunkowo); 22 pytania „sprawdzić w partii” w §11 (pozycje 9-13 da kopia bazy produkcyjnej), propozycje do dokumentów w §12
 - Do fali 2 fazy 3 z 03-01/03-02: liczby brać z `03-01-CHECKS.md` (§1 stałe, §2 symulacja, §2.1 krzywa Kubków), limit i progi z `03-02-BASELINE.md`; baza dev ma tylko 9 wyników Za zasłoną, więc remisy na szczycie ocenia się ze stałych; nowe do oceny: limit mini-gier bez `turn()` odnawia się po wyniku rywala (`LobbyRoom.ts:375-376`), a w 7 grach ze stałym `key` nie (różny czas wolnego gracza w grze wieloosobowej)
 - Faza 3 zaplanowana (2026-10-24): wpisy z faz 1-2 do zamknięcia wymienia D-02 w `03-CONTEXT.md`; poniższe listy „Do fazy 3” są w nim zebrane
@@ -112,5 +112,5 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-25
-Stopped at: Plany fazy 4 rozpisane do akceptacji, wykonanie 0/5; po akceptacji rozpocząć 04-01
-Resume file: .planning/phases/04-raport-zbiorczy-i-akceptacja/04-01-PLAN.md
+Stopped at: 04-01 ukończony; następny 04-02, bez decyzji o poprawkach
+Resume file: .planning/phases/04-raport-zbiorczy-i-akceptacja/04-02-PLAN.md
