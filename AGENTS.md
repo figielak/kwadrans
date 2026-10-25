@@ -12,9 +12,14 @@ serwer Colyseus (Node 24), frontend Vite + React, zasady gier jako czyste funkcj
 | `KONCEPT.md` | założenia, lista gier, architektura, kontrakt `GameDefinition`, reguły platformy, stack, struktura repo | zawsze, przed pierwszą zmianą |
 | `ZASADY-GIER.md` | dokładne zasady każdej gry | przed zmianą gry (jej sekcja) |
 | `ZASADY.md` | proces dodawania gry, obowiązkowe testy, spójność zasad, wyglądu, animacji i wibracji | przed nową grą albo zmianą ekranu gry |
+| `DESIGN.md` | styl wizualny: tokeny, wzorcowe sekcje, stany (przy sprzeczności wygrywa `ZASADY.md`) | przed zmianą wyglądu |
 | `README.md` | dev i deploy | przy pracy z infrastrukturą |
 
 Te pliki są źródłem prawdy. Nie powielaj ich treści tutaj; po zmianie zasad lub architektury popraw właściwy plik.
+
+`.planning/` to bieżący etap prac (audyt spójności): `STATE.md` mówi, gdzie jesteśmy, `ROADMAP.md` podaje fazy,
+a `phases/*/FINDINGS.md` zbiera rozbieżności z fazy. To notatki robocze, nie źródło prawdy; mapa kodu w `.planning/codebase/`
+może być nieaktualna. Po każdym planie uaktualnij `STATE.md`, `ROADMAP.md` i `REQUIREMENTS.md`.
 
 ## Komendy
 
