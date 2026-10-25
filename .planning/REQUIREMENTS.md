@@ -49,6 +49,18 @@ Kryteria pochodzą z `ZASADY.md` (§2–6), `ZASADY-GIER.md` i `KONCEPT.md`. Ka�
 - [ ] **FIX-01**: Zbiorczy raport rozbieżności z priorytetami, zaakceptowany przez użytkownika (które poprawiać)
 - [ ] **FIX-02**: Zaakceptowane rozbieżności poprawione zgodnie z procesem (test i dokument przed kodem); `pnpm typecheck && pnpm test` bez błędów
 
+Pokrycie FIX-01 w planach fazy 4 (0/5 wykonanych, plan do akceptacji):
+
+| Plan | Dowód spełnienia wymagania po wykonaniu |
+|---|---|
+| 04-01 | `FINDINGS.md`: jeden rejestr, mapa źródeł, aktualność i kompletność rozbieżności |
+| 04-02 | `04-02-EVIDENCE.md` i `DECISIONS.md`: pewność dowodów, warianty, konsekwencje i otwarte pomiary |
+| 04-03 | `PACKAGES.md` i `REPORT.md`: priorytety, zamknięte zakresy, zależności i odbiór |
+| 04-04 | decyzja użytkownika dla każdego wpisu i konkretnej wersji pakietu |
+| 04-05 | `PHASE-5-SCOPE.md`: zaakceptowany zakres oraz kontrola czterech kryteriów fazy 4 |
+
+Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-02 pozostaje zakresem fazy 5.
+
 ## v2 Requirements
 
 ### Rekordy
@@ -91,7 +103,7 @@ Kryteria pochodzą z `ZASADY.md` (§2–6), `ZASADY-GIER.md` i `KONCEPT.md`. Ka�
 | DIFF-01 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
-| FIX-01 | Phase 4 | Pending |
+| FIX-01 | Phase 4 | Planned (04-01..04-05), awaiting approval; 0/5 wykonanych |
 | FIX-02 | Phase 5 | Pending |
 
 **Coverage:**
@@ -101,4 +113,4 @@ Kryteria pochodzą z `ZASADY.md` (§2–6), `ZASADY-GIER.md` i `KONCEPT.md`. Ka�
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-24 po planie 03-09 (faza 3 zamknięta)*
+*Last updated: 2026-10-25 po rozpisaniu planów 04-01..04-05 (faza 4 zaplanowana, do akceptacji)*

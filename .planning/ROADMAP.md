@@ -98,7 +98,18 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Wpisy są zgrupowane w pakiety poprawek z priorytetem (per gra albo per reguła), z których każdy da się zrobić i sprawdzić osobno; pakiety zmieniające zasady gry są oznaczone
   3. Każdy wpis ma decyzję użytkownika: poprawić, zostawić jako odstępstwo z powodem w `ZASADY-GIER.md` albo odrzucić
   4. Lista zaakceptowanych pakietów jest zapisana jako zakres fazy 5 (przy dużym zakresie rozbita na kolejne fazy przez `/gsd-phase`)
-**Plans**: TBD
+**Plans**: 5 plans (przygotowane 2026-10-25, do akceptacji; wykonanie nierozpoczęte)
+
+Kontekst i kolejność: [04-CONTEXT.md](phases/04-raport-zbiorczy-i-akceptacja/04-CONTEXT.md).
+
+- [ ] [04-01-PLAN.md](phases/04-raport-zbiorczy-i-akceptacja/04-01-PLAN.md) - scalenie i aktualność ustaleń F1/F2/F3, mapa źródeł i wpisy F4 → `FINDINGS.md` (fala 1)
+- [ ] [04-02-PLAN.md](phases/04-raport-zbiorczy-i-akceptacja/04-02-PLAN.md) - wybrane pomiary, niepewne dowody i warianty decyzji → `04-02-EVIDENCE.md`, `DECISIONS.md` (fala 2)
+- [ ] [04-03-PLAN.md](phases/04-raport-zbiorczy-i-akceptacja/04-03-PLAN.md) - pakiety, priorytety, zależności i odbiór → `PACKAGES.md`, `REPORT.md` (fala 3)
+- [ ] [04-04-PLAN.md](phases/04-raport-zbiorczy-i-akceptacja/04-04-PLAN.md) - decyzje użytkownika o konkretnej wersji wpisów i pakietów, z obsługą częściowej akceptacji (fala 4, wymaga udziału użytkownika)
+- [ ] [04-05-PLAN.md](phases/04-raport-zbiorczy-i-akceptacja/04-05-PLAN.md) - zaakceptowany zakres fazy 5 i kontrola czterech kryteriów FIX-01 → `PHASE-5-SCOPE.md` (fala 5)
+
+Planowanie nie zamyka FIX-01. Faza 4 kończy się po decyzji dla każdego wpisu i przekazaniu zaakceptowanego zakresu;
+otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumentów źródłowych należą do fazy 5.
 
 ### Phase 5: Poprawki zaakceptowanych rozbieżności
 **Goal**: Zaakceptowane rozbieżności w zasadach, testach, podpięciu, UI i balansie są usunięte, a kod, testy i dokumenty znowu mówią to samo
@@ -123,5 +134,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 | 1. Audyt zasad, testów i podpięcia | 10/10 | Complete | 2026-10-23 |
 | 2. Audyt wyglądu, animacji i wibracji | 11/11 | Complete | 2026-10-24 |
 | 3. Audyt balansu rekordów i trudności | 9/9 | Complete | 2026-10-24 |
-| 4. Raport zbiorczy i akceptacja | 0/TBD | Not started | - |
+| 4. Raport zbiorczy i akceptacja | 0/5 | Planned, awaiting approval | - |
 | 5. Poprawki zaakceptowanych rozbieżności | 0/TBD | Not started | - |
