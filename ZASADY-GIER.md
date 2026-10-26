@@ -797,8 +797,12 @@ Seria mini-gier puszczana po kolei w jednym pokoju. To nie jest gra z rejestru `
 - **Wybór (`choose`, 15 s)**: rysujący wybiera jedno z trzech haseł rundy (`{ type: "choose", index }`, 0-2). Limit czasu: pierwsze hasło.
 - **Rysowanie (`draw`, 2 × 40 s)**: dwie połowy (`half` 0 i 1), każda z własnym limitem `HALF_SECONDS` (40 s).
   - ekran pokazuje jeden pasek 80 s na całe rysowanie (w pierwszej połowie dolicza drugą); podział widać tylko po odsłoniętej literze,
-  - pierwsza połowa kończy się ruchem `{ type: "hint" }` rysującego (wykonuje go serwer po limicie; tylko rysujący, tylko raz):
-    odsłania jedną losową literę hasła (`rng`, indeks w `revealed`) i zaczyna drugą połowę,
+  - pierwsza połowa kończy się ruchem `{ type: "hint" }` wykonywanym przez serwer za rysującego po limicie.
+    `validateMove` dopuszcza go wyłącznie w `draw`, przy `half: 0`, za rysującego i z zaufanym kontekstem `source: "timeout"`.
+    Klient, także rysujący, nie może odsłonić litery wcześniej. Brak kontekstu oznacza klienta; `source` w treści ruchu
+    nie zmienia źródła walidacji. Hint odsłania jedną losową literę hasła (`rng`, indeks w `revealed`), ustawia `half: 1`
+    i zmienia klucz `turn` na drugą połowę. Kolejny hint odpada, także od timeoutu.
+    Stan wdrożenia P4-027: ograniczenie i testy przygotowano przed kodem; implementacja oczekuje osobnego commitu testów,
   - rysujący wysyła kreski: `{ type: "line", points, start, color }`, gdzie `points` to płaska lista par x, y (liczby całkowite 0-1000,
     parzysta długość, 2-200 liczb w ruchu); `start: true` zaczyna nową kreskę, `false` dokleja punkty do ostatniej (bez kreski odpada).
     `color` to indeks palety 0-5 (`INKS`: biały, żółty, zielony, niebieski, brązowy, gumka); liczy się tylko przy `start`, doklejone punkty

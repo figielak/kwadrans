@@ -54,6 +54,15 @@ const CASES = Object.values(GAMES).flatMap((game) =>
 );
 
 describe.each(CASES)("$name: kontrakt", ({ game, mode }) => {
+  test("walidacja z trzema argumentami zachowuje kontekst klienta", () => {
+    const rng = createRng(1);
+    const state = game.setup(["p1", "p2"].slice(0, game.minPlayers), rng, mode);
+    const player = game.waitingFor(state)[0];
+    const move = game.timeoutMove!(state, player, rng);
+    expect(game.validateMove(state, player, move)).toBe(game.validateMove(state, player, move, { source: "client" }));
+    expect(game.validateMove(state, STRANGER, move)).toBe(false);
+  });
+
   test.each([...new Set([game.minPlayers, game.maxPlayers])])("%i graczy: losowa partia do końca", (n) => {
     for (const seed of SEEDS) {
       const players = ["p1", "p2", "p3", "p4", "p5", "p6"].slice(0, n);
@@ -70,19 +79,20 @@ describe.each(CASES)("$name: kontrakt", ({ game, mode }) => {
         for (const p of waiting) {
           const fallback = game.timeoutMove!(s, p, rng);
           expect(game.moveSchema.safeParse(fallback).success, `seed ${seed}, ruch ${steps}: schemat ${JSON.stringify(fallback)}`).toBe(true);
-          expect(game.validateMove(s, p, fallback), `seed ${seed}, ruch ${steps}: timeoutMove ${p} ${JSON.stringify(fallback)}`).toBe(true);
+          expect(game.validateMove(s, p, fallback, { source: "timeout" }), `seed ${seed}, ruch ${steps}: timeoutMove ${p} ${JSON.stringify(fallback)}`).toBe(true);
         }
         const player = waiting[Math.floor(rng() * waiting.length)];
         const eager = rng() < 0.7 ? EAGER[game.id]?.(rng).find((m) => game.validateMove(s, player, m)) : undefined;
         const move = eager ?? game.timeoutMove!(s, player, rng);
+        const context = { source: eager === undefined ? "timeout" : "client" } as const;
         phases.add((s as { phase?: string }).phase ?? "");
         const label = `seed ${seed}, ruch ${steps}: ${JSON.stringify(move).slice(0, 80)}`;
 
         expect(game.moveSchema.safeParse(move).success, label).toBe(true);
-        expect(game.validateMove(s, player, move), label).toBe(true);
-        expect(game.validateMove(s, STRANGER, move), `${label} (obcy)`).toBe(false);
+        expect(game.validateMove(s, player, move, context), label).toBe(true);
+        expect(game.validateMove(s, STRANGER, move, context), `${label} (obcy)`).toBe(false);
         for (const other of players) {
-          if (!waiting.includes(other)) expect(game.validateMove(s, other, move), `${label} (${other} poza turą)`).toBe(false);
+          if (!waiting.includes(other)) expect(game.validateMove(s, other, move, context), `${label} (${other} poza turą)`).toBe(false);
         }
         views(s);
 
@@ -110,6 +120,7 @@ describe.each(CASES)("$name: kontrakt", ({ game, mode }) => {
       for (const move of seen.values()) {
         for (const player of [...players, STRANGER]) {
           expect(game.validateMove(s, player, move), `seed ${seed}, po końcu: ${player} ${JSON.stringify(move).slice(0, 80)}`).toBe(false);
+          expect(game.validateMove(s, player, move, { source: "timeout" }), `seed ${seed}, timeout po końcu: ${player}`).toBe(false);
         }
       }
     }

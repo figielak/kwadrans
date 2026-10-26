@@ -198,6 +198,8 @@ Każda gra to moduł niezależny od sieci i UI:
 
 ```ts
 // packages/games/src/core.ts
+type MoveContext = { source: "client" | "timeout" };
+
 interface GameDefinition<State, Move> {
   id: string;
   name: string;
@@ -206,7 +208,7 @@ interface GameDefinition<State, Move> {
   moveSchema: z.ZodType<Move>;          // kształt ruchu z sieci; reguły sprawdza validateMove
   modes?: { id: string; name: string; hint: string; default?: boolean }[]; // tryby do wyboru w lobby
   setup(players: PlayerId[], rng: Rng, mode?: string): State;
-  validateMove(state: State, player: PlayerId, move: Move): boolean;
+  validateMove(state: State, player: PlayerId, move: Move, context?: MoveContext): boolean;
   applyMove(state: State, player: PlayerId, move: Move, rng: Rng): State;
   playerView(state: State, player: PlayerId): unknown; // ukrywanie informacji; obserwator dostaje ""
   isOver(state: State): { winner?: PlayerId; ranking?: PlayerId[] } | null;
@@ -220,6 +222,11 @@ interface GameDefinition<State, Move> {
 ```
 
 Rejestr gier: `GAMES` w `packages/games/src/index.ts`. Wiadomości pokoju: `ROOM_MESSAGES` w `lobby.ts`.
+Kontekst `validateMove` pochodzi z miejsca wywołania w serwerze: wiadomość gracza ma `source: "client"`,
+ruch zegara `source: "timeout"`. Brak kontekstu oznacza klienta, więc wywołania z trzema argumentami pozostają poprawne.
+Kontekst nie jest częścią ruchu ani JSON klienta; pole `source` przesłane przez klienta nie daje uprawnień timeoutu.
+Każdy ruch po limicie nadal przechodzi przez `validateMove`. Podpowiedź `hint` Kalamburów jest dozwolona tylko z kontekstem timeoutu.
+Stan wdrożenia P4-027: ten kontrakt i testy przygotowano przed kodem; implementacja oczekuje osobnego commitu testów.
 Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResults`, `rankPlaces`, `ranked`, `shuffle`, `average`, `byHitsThenAverage`, `byScoreThenAverage`,
 `normalize`, `nickKey`, `initials` (inicjały na kropkach graczy), `standing`, `compareRecords`, `soloState`, `dailyGame`, `withSum` (losowanie o stałej sumie, żeby każda partia miała tyle samo do zdobycia).
 
