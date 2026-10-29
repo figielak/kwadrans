@@ -178,6 +178,8 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
   a głosowanie i podsumowanie przewijają odpowiedzi pionowo. Przy 4+ osobach każda kategoria ma graczy
   w wierszach. Bez przewijania w bok, z pełną treścią i celami głosu minimum 48 px.
   Odbiór formularza wymaga fizycznego Androida z klawiaturą (U02); sama symulacja viewportu nie wystarcza.
+  Wyniki partii i odsłony rund mogą przewijać się pionowo. Rewanż/Do lobby, akcje solo i przejście
+  turnieju pozostają w StickyBar; ostatni wiersz treści musi dać się przewinąć ponad pasek.
 - Teksty po polsku, krótkie, bez em-dashy, przecinek dziesiętny („10,00 s”), te same słowa co w innych grach
   („Start”, „Dalej”, „Rewanż”, „Do lobby”, „(ty)”).
 - Elementy ozdobne mają `aria-hidden`, a przyciski bez tekstu `aria-label`.

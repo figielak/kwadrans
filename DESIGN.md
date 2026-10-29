@@ -216,3 +216,9 @@ aktywne pole jest przewijane po przeliczeniu układu. Głosowanie i podsumowanie
 na kategorię przy 4+ osobach, z graczami w wierszach; przy 2/3 zachowują zwartą tabelę.
 Pełne nicki i odpowiedzi mogą łamać się w wierszach; brak poziomego przewijania, cele głosu minimum 48 px.
 Jest to lokalny wyjątek przewijania formularza i odpowiedzi opisany w ZASADY §4.
+
+Wyniki (P4-016): wspólny ekran końcowy umieszcza OverActions/NextActions w StickyBar.
+Rysunki, rekordy i tabela turnieju mogą przewijać się pionowo w naturalnych rozmiarach;
+przyciski są dostępne od razu, a na końcu przewijania ostatni wiersz leży nad paskiem.
+Solo ma Jeszcze raz/Wyjdź; między grami turnieju Dalej/Zakończ turniej (dla gospodarza),
+a finał Rewanż/Do lobby. Własny poziomy układ Kampus Tour pozostaje osobny.

@@ -12,7 +12,7 @@ import { PiecWRzedzie } from "../games/PiecWRzedzie.tsx";
 import { FleetLeft, Statki } from "../games/Statki.tsx";
 import { fetchRecords } from "../net.ts";
 import { formatRecord, RecordPanel } from "./Records.tsx";
-import { type GameDot, GameDots, IntroContext, Screen, type Send } from "./ui.tsx";
+import { type GameDot, GameDots, IntroContext, Screen, StickyBar, type Send } from "./ui.tsx";
 
 interface Props {
   view: RoomView;
@@ -469,9 +469,11 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
         )}
 
         {view.phase === "over" && (
-          <div className="mt-auto flex flex-col gap-2 pt-4">
-            {t && !tournamentOver ? <NextActions view={view} me={me} send={send} countdown={<Countdown game={game} />} /> : <OverActions view={view} me={me} send={send} onLeave={onLeave} />}
-          </div>
+          <StickyBar className="z-10 mt-auto">
+            <div className="flex w-full flex-col gap-2">
+              {t && !tournamentOver ? <NextActions view={view} me={me} send={send} countdown={<Countdown game={game} />} /> : <OverActions view={view} me={me} send={send} onLeave={onLeave} />}
+            </div>
+          </StickyBar>
         )}
       </Screen>
     </IntroContext.Provider>

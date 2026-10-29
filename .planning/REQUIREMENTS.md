@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 05-01..10 wykonane, 10/62 pakietów, 17/267 części; P4-014 wdrożony (2/3), U02 fizyczne otwarte; typy/1947 testów/build PASS; następny niezależny P4-015 |
+| FIX-02 | Phase 5 | In progress; 05-01..10 wykonane, 11/62 pakietów, 18/267 części; P4-014 (2/3) i P4-015 oczekują U02; P4-016 odebrany; typy/1947 testów/build PASS; następny P4-017 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -183,3 +183,10 @@ tabele kategorii z graczami w wierszach przy 4+, cele głosu minimum 48 px.
 Przeglądarka 2/6 i vote/summary 2/3/4/6, szkic, timeout i remis PASS; typy, 1947 testów, build PASS.
 Pełny odbiór oczekuje fizycznego U02 Android; 2/3 części odebrane. 10/62 pakietów, 17/267 części.
 05-11 w toku; następny niezależny pakiet P4-015. Dowody: 05-11-SUMMARY.md. Commit bez push.
+
+
+2026-10-29, 05-12/P4-016 zakończony: wyniki z OverActions/NextActions w StickyBar.
+Koło solo/4/6 z pełnym RecordPanel, awansem i rekordem; turniej między grami i finał oraz E08/E12 PASS.
+Typy, 1947 testów i build PASS. 11/62 pakietów, 18/267 części; FIX-02 otwarte.
+P4-014 oczekuje fizycznego U02; P4-015 wymaga pomiaru telefonu przed wyborem poprawki, bez zmian kodu.
+Następny niezależny P4-017. Dowody: 05-12-SUMMARY.md. Commit bez push.

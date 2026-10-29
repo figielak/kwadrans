@@ -248,8 +248,8 @@ export function RoundTable({
 }
 
 /** Przycisk przyklejony do dołu ekranu: przy otwartej klawiaturze i długiej liście zostaje pod kciukiem. */
-export function StickyBar({ children }: { children: ReactNode }) {
-  return <div className="sticky bottom-0 -mx-4 flex items-center gap-3 bg-bg/90 px-4 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">{children}</div>;
+export function StickyBar({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <div className={`sticky bottom-0 -mx-4 flex items-center gap-3 bg-bg/90 px-4 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur ${className}`}>{children}</div>;
 }
 
 /** To, czego ekran instrukcji potrzebuje z pokoju; podaje `Game.tsx`, żeby nie przeciągać tego przez propsy każdej gry. */
