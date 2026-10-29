@@ -7,7 +7,7 @@ import { DURATION_MS } from "./quiz.ts";
 // - wszyscy dostają te same pary figur z klocków: `a`, `b` i `mirror` (czy `b` to lustrzane odbicie `a`),
 // - figura to spójne poliomino dosunięte do rogu (0, 0), klocków przybywa co 3 pary od 4 do 7,
 // - `b` to `a` (albo jej odbicie) obrócona o 90, 180 albo 270°; figura jest chiralna, więc odpowiedź jest jedna,
-// - klient oddaje czasy trafień (150-5000 ms, razem max 30 s) i liczbę pomyłek,
+// - klient oddaje czasy trafień (całkowite 0-30000 ms, razem max 30 s) i liczbę pomyłek,
 // - wynik = trafienia − pomyłki, nie mniej niż 0; ranking: więcej punktów wyżej, remis rozstrzyga niższa średnia.
 
 const A = "ania";
@@ -135,8 +135,8 @@ describe("punktacja", () => {
 describe("walidacja", () => {
   const s = game.setup([A, B], createRng(1));
   test.each([
-    ["za szybko", result([149])],
-    ["za wolno", result([5001])],
+    ["ujemny czas", result([-1])],
+    ["czas ponad długość rundy", result([30001])],
     ["ponad 30 s", result(Array(11).fill(3000))],
     ["ujemne pomyłki", result([500], -1)],
     ["niecałkowite pomyłki", result([500], 1.5)],
@@ -153,7 +153,7 @@ describe("schemat", () => {
     ["zły typ ruchu", { type: "tap", times: [], errors: 0 }],
     ["brak czasów", { type: "result", errors: 0 }],
     ["czas tekstem", { type: "result", times: ["500"], errors: 0 }],
-    ["za dużo czasów", { type: "result", times: Array(201).fill(150), errors: 0 }],
+    ["suma czasów ponad 30 s", { type: "result", times: Array(201).fill(150), errors: 0 }],
     ["niecałkowite pomyłki", { type: "result", times: [], errors: 0.5 }],
   ])("%s", (_, move) => expect(game.moveSchema.safeParse(move).success).toBe(false));
   test("poprawny ruch", () => expect(game.moveSchema.safeParse(result([500], 2)).success).toBe(true));

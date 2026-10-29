@@ -5,7 +5,7 @@ import { COLORS, DURATION_MS, type Move, type State, stroop as game, type View }
 // Testy napisane przed implementacją. Ustalają zasady:
 // - wszyscy dostają te same plansze: słowo (nazwa koloru) napisane innym kolorem (ink), odpowiedź = ink,
 // - plansz wystarczy na 30 s, większość jest niezgodna (słowo ≠ kolor),
-// - klient oddaje czasy trafień (150-5000 ms, razem max 30 s) i liczbę pomyłek,
+// - klient oddaje czasy trafień (całkowite 0-30000 ms, razem max 30 s) i liczbę pomyłek,
 // - ranking: więcej trafień wyżej, remis rozstrzyga niższa średnia.
 
 const A = "ania";
@@ -43,8 +43,8 @@ test("w każdej czwórce plansz dokładnie jedna zgodna, na różnych pozycjach:
 describe("walidacja", () => {
   const s = game.setup([A, B], createRng(1));
   test.each([
-    ["za szybko", result([149])],
-    ["za wolno", result([5001])],
+    ["ujemny czas", result([-1])],
+    ["czas ponad długość rundy", result([30001])],
     ["ponad 30 s", result(Array(11).fill(3000))],
     ["ujemne pomyłki", result([500], -1)],
   ])("%s", (_, move) => expect(game.validateMove(s, A, move)).toBe(false));

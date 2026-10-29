@@ -5,7 +5,7 @@ import { DURATION_MS, liczenie as game, type Move, type State, type View } from 
 // Testy napisane przed implementacją. Ustalają zasady:
 // - wszyscy dostają te same działania (+, −, ×, :) z czterema różnymi, nieujemnymi odpowiedziami, jedna poprawna,
 // - działań wystarczy na 30 s,
-// - wynik i ranking jak w Stroopie: czasy trafień (150-5000 ms, razem max 30 s), pomyłki, remis rozstrzyga średnia.
+// - wynik i ranking jak w Stroopie: czasy trafień (całkowite 0-30000 ms, razem max 30 s), pomyłki, remis rozstrzyga średnia.
 
 const A = "ania";
 const B = "bartek";
@@ -60,7 +60,7 @@ test("złe odpowiedzi: blisko poprawnej, a liczby z działania nie ma wśród op
 describe("walidacja", () => {
   const s = game.setup([A, B], createRng(1));
   test.each([
-    ["za szybko", result([149])],
+    ["ujemny czas", result([-1])],
     ["ponad 30 s", result(Array(11).fill(3000))],
     ["ujemne pomyłki", result([500], -1)],
   ])("%s", (_, move) => expect(game.validateMove(s, A, move)).toBe(false));

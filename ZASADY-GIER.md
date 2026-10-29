@@ -123,12 +123,20 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
 
 ### Kolor liter (`stroop`) i Liczenie (`liczenie`)
 Wspólne zasady w `quiz.ts`, wspólny ekran `Quiz.tsx` (dzielą je też Inny element, Obrót i Literówka).
-- 30 s pytań z czterema odpowiedziami; serwer losuje 200 pytań (starczy przy 150 ms na odpowiedź).
+- 30 s pytań z czterema odpowiedziami; serwer losuje pulę 200 pytań, powtarzaną po wyczerpaniu. Rozmiar puli nie ogranicza liczby trafień.
 - Pomyłka blokuje na 1 s (inaczej losowe klepanie byłoby szybsze niż myślenie).
 - Wynik: `times` (czasy poprawnych) i `errors`. Ranking jak w Refleksie: trafienia, potem niższa średnia. `errors` nie wpływa na ranking, ale jest widoczne w pasku statystyk i w wynikach.
 - Ekran końcowy: tabela z miejscem (puchar u zwycięzcy), trafieniami, średnim czasem (od 1 s w sekundach) i błędami; pod nią notka, jak liczony jest ranking.
 - Dotknięta odpowiedź błyska: zielono przy trafieniu, czerwono z potrząśnięciem przy pomyłce.
-- Walidacja: każdy czas 150-5000 ms, suma ≤ 30 s, najwyżej 200 czasów. Limit czasu: zero trafień.
+- Walidacja wspólna sześciu quizów (także Inny element, Obrót, Literówka, Dziesiątki): każdy czas całkowity 0-30000 ms,
+  suma ≤ 30000 ms, `errors` całkowite 0-30. Pierwsza pomyłka może paść od razu, kolejne najwcześniej co 1000 ms:
+  trzydziesta przed końcem rundy, trzydziesta pierwsza dopiero po jej końcu. Suma czasów nie jest powiększana o blokady,
+  bo w Inny element i Dziesiątkach czasy trafień już zawierają blokady tego samego zadania.
+  Są to konieczne granice danych, nie dowód prawdziwości pomiaru klienta. Limit czasu: zero trafień.
+- Ekran zachowuje każde trafienie, także poniżej 150 ms, i cały czas ponad 5 s. Czasy to różnice zaokrąglonych
+  znaczników monotonicznego zegara w pełnych ms; 0 ms może wynikać z rozdzielczości zegara. Od końca 30000 ms
+  nowe odpowiedzi nie są przyjmowane, wynik jest wysyłany raz. Pula pytań i dostaw zapętla się jak dotychczas.
+  Historyczne rekordy/detail pozostają bez przeliczania; nowe wyniki używają poprawionego pomiaru.
 - **Kolor liter**: nazwa koloru (CZERWONY, NIEBIESKI, ŻÓŁTY, ZIELONY) napisana kolorem liter; odpowiedź to kolor liter, nie słowo.
   W 25% plansz słowo zgadza się z kolorem (żeby nie dało się grać „zawsze inny”): dokładnie jedna w każdej kolejnej czwórce plansz,
   na losowej pozycji. Zgodne plansze są szybsze, więc każda partia ma ich tyle samo.
@@ -361,7 +369,7 @@ Wynik, walidacja, ranking i ekran końcowy jak w Kolorze liter (`quiz.ts`, `Quiz
     dopóki siatka rośnie): inna liczba boków rzuca się w oczy nawet na 6×6, więc dalej zostają same subtelne różnice.
   Barwa bazowa, kąt bazowy, znak różnicy i pole `odd` są losowe.
 - Pomyłka blokuje na 1 s i plansza zostaje (numer planszy = liczba trafień). Czas trafienia liczy się od pierwszego pokazania planszy;
-  szukanie dłuższe niż 5 s liczy się jak 5 s.
+  zachowujemy cały czas szukania, także ponad 5 s.
 - Limit czasu: zero trafień.
 
 ### Obrót (`obrot`)
@@ -473,7 +481,7 @@ Przebieg, walidacja, punktacja i ekran końcowy jak w Obrocie (`quiz.ts`, `Quiz.
 Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Results` z `Quiz.tsx`); inny jest przebieg planszy.
 - 30 s. Siatka 4×4 (`SIDE`) z liczbami 1-9. Gracz dotyka dwóch pól, które w sumie dają 10 (`TARGET`); pola nie muszą sąsiadować.
   Trafiona para znika, a w jej miejsce wchodzą dwie nowe liczby.
-- Serwer losuje to samo dla wszystkich: planszę startową `board` (16 liczb) i dostawy `refills` (400 liczb, starczy przy 150 ms na parę).
+- Serwer losuje to samo dla wszystkich: planszę startową `board` (16 liczb) i dostawy `refills` (400 liczb w zapętlanej puli dostaw).
   Para nr `n` (liczona od 0) dostaje `refills[2n]` w pierwszym dotkniętym polu i `refills[2n + 1]` w drugim.
   Dwie liczby jednej dostawy nigdy nie dają razem 10 (inaczej opłacałoby się klepać w te same dwa pola).
 - Na planszy zawsze jest co najmniej jedna para. Jeśli po dostawie żadnej nie ma, drugie nowe pole dostaje `10 − wartość` pierwszego pola
@@ -481,7 +489,7 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
   bo plansza gracza zależy od tego, które pary wybrał.
 - Pierwsze dotknięcie zaznacza pole, dotknięcie zaznaczonego pola je odznacza (bez kary). Drugie pole, które nie daje 10, to pomyłka:
   blokada 1 s, zaznaczenie znika, plansza zostaje.
-- Czas pary liczy się od poprzedniej pary (albo startu) do drugiego dotknięcia; szukanie dłuższe niż 5 s liczy się jak 5 s.
+- Czas pary liczy się od poprzedniej pary (albo startu) do drugiego dotknięcia; zachowujemy cały czas szukania, także ponad 5 s.
 - Wynik liczy klient (jak w Kolorze liter), serwer odrzuca tylko nierealne wartości. Limit czasu: zero par.
 
 ### Tort (`tort`)
