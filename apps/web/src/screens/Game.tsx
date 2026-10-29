@@ -46,9 +46,9 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
   // Quizy (Kolor liter, Liczenie, Inny element, Dziesiątki): w rundzie pasek w nagłówku pokazuje jej 30 s zamiast limitu platformy.
   const [round, setRound] = useState<{ msLeft: number } | null>(null);
   const onRound = (msLeft: number | null) => setRound(msLeft === null ? null : { msLeft });
-  // Mini-gry pokazują graczy kropkami; dotknięcie rozwija pigułki z nickami i dokładnym postępem, do końca tej partii.
+  // Dotknięcie kropek rozwija pełne dane graczy; nowa gra i koniec partii zwijają nagłówek.
   const [open, setOpen] = useState(false);
-  useEffect(() => setOpen(false), [view.phase]);
+  useEffect(() => setOpen(false), [view.phase, view.gameId]);
   // Poświata tła w kolorze gracza, na którego czekamy; poza turą jednej osoby zostaje akcent.
   // Kalambury: zawsze kolor rysującego, bo czekamy na zgadujących, a uwaga jest na rysunku.
   const focus = def.id === "kalambury" ? (game.view as KalamburyView).drawer : game.waitingFor.length === 1 ? game.waitingFor[0] : undefined;
@@ -146,11 +146,11 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
   // W trakcie gry `index` to gry już rozegrane, po grze obejmuje też tę na ekranie.
   const gameNo = t ? t.index + (view.phase === "playing" ? 1 : 0) : 0;
 
-  // Mini-gry: zamiast pigułek z nickami kropki obok tytułu, ja pierwszy, reszta w kolejności miejsc (nie wyniku, żeby nie skakały).
+  // W aktywnej partii kropki zamiast pigułek; ja pierwszy, pozostali w kolejności miejsc.
   // Gra solo nie ma kogo pokazywać.
   const labels = initials(view.seats.map(nick));
   const dots: GameDot[] | null =
-    def.minPlayers === 1 && view.seats.length > 1
+    (def.minPlayers === 1 || view.phase === "playing") && view.seats.length > 1
       ? view.seats
           .map((id, i) => {
             const p = view.players.find((pl) => pl.id === id);
@@ -166,10 +166,10 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
               me: id === me,
               badge: table ? (table.find((r) => r.id === id)?.total ?? 0) : (view.scores[id] ?? 0),
               plus: !table && id === winner,
-              fraction: done ? 1 : progress ? progress.done / progress.total : 0,
+              fraction: def.minPlayers > 1 ? (game.waitingFor.includes(id) ? 1 : 0) : done ? 1 : progress ? progress.done / progress.total : 0,
               reading,
               connected: p?.connected ?? false,
-              status: !p?.connected ? "rozłączony" : reading ? "czyta zasady" : playing ? (done ? "wynik oddany" : "gra") : undefined,
+              status: !p?.connected ? "rozłączony" : reading ? "czyta zasady" : playing ? (def.minPlayers > 1 ? (game.waitingFor.includes(id) ? "ma ruch" : "czeka") : done ? "wynik oddany" : "gra") : undefined,
             };
           })
           .sort((a, b) => Number(b.me) - Number(a.me))
@@ -214,6 +214,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
   // Sam w partii: pigułka z własnym nickiem i postępem nic nie mówi, zostaje tytuł i czas.
   const pillsHidden = (dots && !open) || (seated && view.seats.length === 1);
 
+  const compact = view.phase === "playing" && !!dots;
+
   const intro = {
     game,
     others: view.seats.filter((id) => id !== me).map((id) => ({ id, nick: nick(id), color: view.players.find((p) => p.id === id)?.color ?? "", began: game.began.includes(id) })),
@@ -233,7 +235,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
         )}
         {/* Sam tytuł (gra solo bez widocznego limitu) nie potrzebuje kafla. */}
         {!ownHeader && (
-          <header className={`flex flex-col gap-3 ${!t && !timer && pillsHidden && !dots && seated ? "" : "tile p-4"}`}>
+          <header className={`flex flex-col ${compact ? "tile gap-2 p-3" : `gap-3 ${!t && !timer && pillsHidden && !dots && seated ? "" : "tile p-4"}`}`}>
             {t && (
               <p className="label">
                 Turniej · {t.extra && gameNo === t.games.length ? "dogrywka" : `gra ${gameNo}/${t.games.length}`}
@@ -243,22 +245,27 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
               {/* Koniec partii: tytuł w kolorze zwycięzcy; podbicie tylko u niego, przegrany dostaje spokojną wersję. */}
               <h1
-                className={`origin-left text-xl font-semibold ${headline === me ? "animate-[title-pop_0.5s_cubic-bezier(0.2,0.8,0.4,1)]" : ""}`}
+                className={`min-w-0 origin-left break-words ${compact ? "text-base" : "text-xl"} font-semibold ${headline === me ? "animate-[title-pop_0.5s_cubic-bezier(0.2,0.8,0.4,1)]" : ""}`}
                 style={{ color: headline ? winnerColor : myTurn ? myColor : undefined }}
               >
-                {status}
+                {compact && !open && !myTurn && !turnOf && game.waitingFor.length > 1 ? `Czekamy na: ${game.waitingFor.length} graczy` : status}
               </h1>
-              {dots && <GameDots dots={dots} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
+              {dots && !compact && <GameDots dots={dots} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
             </div>
-            {timer && (
-              <Countdown
-                game={round ?? game}
-                total={round ? QUIZ_DURATION_MS / 1000 : (def.turn?.(game.view).seconds ?? def.turnSeconds)}
-                color={myTurn ? myColor : MINI_GAMES.has(def.id) ? undefined : turnColor}
-                label={round ? "Czas" : MINI_GAMES.has(def.id) ? "Limit" : undefined}
-              />
-            )}
-            <ul className={`flex flex-wrap gap-2 ${pillsHidden ? "hidden" : ""}`}>
+            <div className={compact ? "flex min-h-12 items-center gap-2" : "contents"}>
+              {compact && <GameDots compact dots={dots!} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
+              {timer && (
+                <div className="min-w-0 flex-1">
+                  <Countdown
+                    game={round ?? game}
+                    total={round ? QUIZ_DURATION_MS / 1000 : (def.turn?.(game.view).seconds ?? def.turnSeconds)}
+                    color={myTurn ? myColor : MINI_GAMES.has(def.id) ? undefined : turnColor}
+                    label={compact ? undefined : round ? "Czas" : MINI_GAMES.has(def.id) ? "Limit" : undefined}
+                  />
+                </div>
+              )}
+            </div>
+            <ul aria-label="Szczegóły graczy" className={`flex flex-wrap gap-2 ${pillsHidden ? "hidden" : ""}`}>
               {view.seats.map((id) => {
                 const p = view.players.find((pl) => pl.id === id);
                 const active = id === winner || (view.phase === "playing" && game.waitingFor.includes(id));
@@ -266,14 +273,14 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                 return (
                   <li
                     key={id}
-                    className={`flex min-h-9 items-center gap-2 rounded-full border px-3 text-sm transition-colors ${fleet ? "w-full" : ""} ${
+                    className={`flex min-h-9 max-w-full flex-wrap items-center gap-2 rounded-full border px-3 text-sm transition-colors ${fleet ? "w-full" : ""} ${
                       active ? "" : "border-line text-fg-muted"
                     }`}
                     style={active ? { borderColor: p?.color, backgroundColor: `color-mix(in srgb, ${p?.color} 16%, transparent)` } : undefined}
                   >
                     <span className="size-2.5 rounded-full" style={{ backgroundColor: p?.color }} aria-hidden />
-                    {nick(id)}
-                    {id === me && " (ty)"}
+                    <span className="min-w-0 break-words">{nick(id)}{id === me && " (ty)"}</span>
+                    {p && !p.connected && <span className="text-xs text-fg-muted">rozłączony</span>}
                     {fleet?.phase === "placing" && fleet.boards[id].ready && <Check size={14} weight="bold" aria-label="gotowy" />}
                     {ludo ? (
                       <span className="flex gap-1" aria-label={`W domu: ${ludo.pawns[id].filter((p) => p >= CHINCZYK_TRACK).length} z 4`}>
@@ -318,6 +325,12 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                             +1
                           </span>
                         )}
+                      </span>
+                    )}
+                    {compact && (ludo || memory || fleet || progress) && (
+                      <span className="flex items-center gap-1 font-mono text-sm text-fg tabular-nums" aria-label={table ? `Punkty w turnieju: ${table.find((r) => r.id === id)?.total ?? 0}` : `Wygrane partie: ${view.scores[id] ?? 0}`}>
+                        <span className="font-sans text-xs text-fg-muted">{table ? "punkty" : "wygrane"}</span>
+                        {table ? (table.find((r) => r.id === id)?.total ?? 0) : (view.scores[id] ?? 0)}
                       </span>
                     )}
                     {maze && (

@@ -94,12 +94,12 @@ export interface GameDot {
 }
 
 /**
- * Gracze mini-gry jako kropki z inicjałem obok tytułu: nicki zajęłyby przy sześciu osobach trzy rzędy nad polem gry.
+ * Gracze jako kropki z inicjałem: nicki zajęłyby przy sześciu osobach trzy rzędy nad polem gry.
  * Dotknięcie rzędu rozwija pełną listę z nickami (rysuje ją `Game.tsx`). `square`: odznaka z punktami turnieju, a nie z wygranymi.
  */
-export function GameDots({ dots, square, open, onToggle }: { dots: GameDot[]; square: boolean; open: boolean; onToggle: () => void }) {
+export function GameDots({ dots, square, open, onToggle, compact = false }: { dots: GameDot[]; square: boolean; open: boolean; onToggle: () => void; compact?: boolean }) {
   return (
-    <button type="button" className="-my-2.5 flex min-h-12 items-center gap-1.5" aria-expanded={open} title="Pokaż graczy" onClick={onToggle}>
+    <button type="button" className={`-my-2.5 flex min-h-12 shrink-0 items-center ${compact ? "gap-1" : "gap-1.5"}`} aria-expanded={open} aria-label={open ? "Zwiń graczy" : "Pokaż graczy"} onClick={onToggle}>
       {dots.map((d) => (
         <span
           key={d.id}
