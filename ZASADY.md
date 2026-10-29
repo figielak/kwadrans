@@ -87,24 +87,56 @@ Nagłówek pliku to komentarz z listą zasad, które testy ustalają (wzór: `st
 Te rzeczy działają tak samo w każdej grze. Odstępstwo wymaga wpisu w `ZASADY-GIER.md` z powodem.
 
 - **Po limicie tury jest ruch, nie przegrana.** `timeoutMove` wybiera ruch neutralny albo losowy dozwolony;
-  w mini-grze jest to najgorszy możliwy wynik.
-- **Remis nie ma zwycięzcy.** `isOver` zwraca wtedy samo `ranking`. Mini-gry używają `ranked` (czyli `rankResults` i `places` z jednego komparatora) i nie liczą remisu ani gry solo do wygranych (rekord zapisuje się zawsze, także solo);
+  w mini-grze jest to najgorszy możliwy wynik. Schulte i Sudoku oznaczają nowe nieukończenie przez `completed: false`:
+  każde ukończenie jest wyżej, nieukończeni remisują. Taki wynik powstaje wyłącznie w zaufanej ścieżce timeoutu serwera.
+- **Remis nie ma zwycięzcy.** `isOver` zwraca wtedy samo `ranking`. Mini-gry używają `ranked` (czyli `rankResults` i `places` z jednego komparatora) i nie liczą remisu ani gry solo do wygranych (rekord zapisuje się także solo, z wyjątkiem nowych timeoutów Schultego/Sudoku);
+  te timeouty zwracają niefinitywny `record.score` jako sygnał „brak rekordu”, filtrowany przed zapisem.
+  Nieskończoność nie trafia do stanu JSON ani bazy. Stare detail bez `completed` zachowujemy bez przypisywania statusu;
   bez `places` mini-gra nie przejdzie testu kontraktu, bo turniej liczy z niego punkty.
+  Świadomy remis po osiągnięciu kompletu jest dopuszczalny: zasady gry opisują powód, a wspólny komparator zachowuje
+  ten sam remis w wyniku i miejscach. Sam osiągalny sufit nie wymusza nowego `tie`, pomiaru szybkości ani dodatkowych rund.
 - **Kto zaczyna**: pierwszy z `players`. Kolejność miejsc rotuje platforma przy rewanżu, gra nie losuje startu sama.
 - **Losowość tylko z `rng`** przekazanego do `setup` i `applyMove`. Żadnego `Math.random` ani `Date.now` w zasadach.
+  Losowość czysto klienckiej dekoracji lub wyboru gry nie ustala wyzwania, punktacji ani stanu zasad i nie podlega tej regule.
 - **Stan to zwykły obiekt** dający się zapisać do JSON, a `applyMove` zwraca nowy.
 - **`validateMove` jest jedynym strażnikiem.** Ekran może blokować przyciski, ale serwer niczego nie zakłada.
+  Mini-gry zachowują model zaufania opisany w `ZASADY-GIER.md` §1: czas i reakcje mierzy klient, aby opóźnienie sieci
+  nie wpływało na pomiar; serwer waliduje dane i liczy wynik tam, gdzie ma dane surowe (np. Koło z punktów rysunku).
+  Walidacja nie jest dowodem prawdziwości pomiaru klienta.
 - **Mini-gra ma jeden ruch `result`** i pole odróżniające partie (wyzwanie albo `nonce`), po którym ekran montuje się od nowa przy rewanżu.
 - **Ekran końcowy mini-gry rysuje się z samego stanu.** Rekordowa partia w rankingu to stan z `soloState` pokazany komponentem gry z `me=""`,
   więc dane gracza leżą w mapach z id gracza w kluczach (`results`, `taps`…), a wyniki nie zależą od stanu lokalnego komponentu. Nową mini-grę dopisz w `MiniGame.tsx`.
 - **Losowanie nie zmienia sufitu wyniku.** Rekordy porównują różne partie, więc każda musi dawać tyle samo do zdobycia:
-  cele, od których zależy wynik, mają stałą sumę (`withSum` z `core.ts`: Balon, Przytrzymaj, Policz kropki), a gra na reakcję ma stałą liczbę bodźców (Refleks), nie stały czas z losowymi przerwami.
+  cele, od których zależy wynik, mają stałą sumę (`withSum` z `core.ts`), a gra na reakcję ma stałą liczbę bodźców (Refleks), nie stały czas z losowymi przerwami.
   Rodzaje plansz o różnej trudności idą potasowanymi kompletami, nie osobnym losowaniem na planszę (Kolor liter, Inny element).
+  Gdy gracz decyduje, kiedy przestać i zachować zdobycz (decyzja stop), obowiązuje stały komplet celów tasowany między partiami;
+  równa suma różnych rozkładów nie zapewnia tego samego ryzyka. Sama stała suma wystarcza dopiero po uzasadnieniu
+  w zasadach gry wpływu rozkładu na decyzje i wynik, nie jako dowód jednakowej trudności dla ludzi.
+  Przytrzymaj i Za zasłoną zachowują losowe cele o stałej sumie: odtwarzanie różnych czasów jest treścią zadania,
+  a gracz nie wybiera chwili zgarnięcia punktów kosztem ryzyka ich utraty. Nie przenosimy do nich kompletu gry ryzyka.
 - **Kara za pomyłkę w grach na czas** to blokada 1 s albo doliczony czas, nigdy koniec partii (inaczej losowe klepanie wygrywa albo jedna pomyłka psuje zabawę).
 - **Wspólne funkcje z `core.ts`** zamiast własnych: `shuffle`, `rankResults`, `ranked`, `average`, `byHitsThenAverage`.
   Dwie gry o tej samej mechanice dzielą moduł (jak `quiz.ts` dla Kolorów i Liczenia).
-- **Limity tury**: 60 s na ruch w grach po kolei; w mini-grze tyle, ile trwa najdłuższa uczciwa partia plus zapas.
+- **Limity tury**: 60 s na ruch w grach po kolei; w mini-grze limit `L >= max(1,2 * T, T + 10 s)`.
+  Zapas wynosi więc co najmniej 20% czasu `T` i co najmniej 10 s. Model `T` zapisujemy jawnie:
+  suma czasów stałych (wstęp po starcie, pokazy, odsłony, pauzy) + czas decyzji wolnego, uczciwego gracza + czas sieci.
+  Każdy składnik ma źródło: stała kodu, założenie albo pomiar. Czasy ludzkie, np. 5 s na celowanie,
+  oraz budżet sieci są założeniami, dopóki nie zostaną zmierzone; model nie jest pomiarem ani gwarancją wystarczającego czasu.
+  Decyzji objętych twardym limitem wewnętrznym nie doliczamy drugi raz ponad ten limit. Uwzględniamy wymagane kliknięcia
+  po odsłonach; oceniamy przypadek solo lub ostatniego gracza klikającego „Start”, bez czasu zyskanego od rywali.
+  Zapas podajemy w sekundach i procentach. Gdy długość zależy od osiąganej serii, opisujemy `T(N)` oraz zachowanie po limicie,
+  zamiast deklarować nieograniczoną partię mieszczącą się w stałym czasie.
 - **Obserwator** dostaje widok dla `""` i zawsze widzi coś sensownego.
+
+**Wyjątki od zapasu i stan wdrożenia normy (2026-10-26)**
+
+- Środek pozostaje przy 60 s, a Tort przy 120 s. Są to świadome wyjątki na ten etap, mimo wątpliwości modelowych;
+  brak pomiaru ludzi nie potwierdza wystarczalności czasu. Ewentualne zwiększenie po pomiarach wymaga osobnej decyzji.
+- Dla Który rok? zatwierdzono 270 s przy `T = 228 s`: 42 s zapasu, około 18,4%, zamiast 273,6 s wymaganych przez pełne 20%.
+  To nazwany wyjątek. Zmiana limitu z obecnych 240 s należy do osobnego wdrożenia P4-021.
+- Przyjęcie normy nie zmienia automatycznie stałych, losowania ani punktacji istniejących gier. Aktualne liczby pozostają
+  w `ZASADY-GIER.md` i `KONCEPT.md`; ich dostosowanie wymaga testu i dokumentacji przed kodem w odpowiednim pakiecie.
+  W szczególności nowy komplet Balonu należy do P4-060. Nie wszystkie obecne gry spełniają już powyższe normy.
 
 ## 4. Spójność wyglądu
 
@@ -123,19 +155,24 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
 - Układ: `Screen` (jedna kolumna, `max-w-md`), akcje przy dolnej krawędzi, przy długiej treści `StickyBar`.
 - Klasy z `index.css`: `.tile` (karta), `.label` (podpis), `.btn` + `.btn-primary` / `.btn-ghost`, `.field`.
   Nowa klasa wspólna powstaje dopiero, gdy potrzebuje jej druga gra.
+  Zatwierdzony kontrakt wspólnej `.btn-player` dla akcji gracza opisuje [DESIGN.md §5](DESIGN.md#5-zasady-które-z-tego-wynikają);
+  jej implementacja i migracja użyć należą do P4-050, klasa nie jest jeszcze dostępna w CSS.
 - Wyniki mini-gry: komponent `Scores`, wiersz na gracza, „gra…” dopóki nie oddał.
-- Kolory tylko z tokenów (`bg`, `surface`, `line`, `fg`, `fg-muted`, `accent`, `warning`, `success`), zaokrąglenia 20 px (kafel) i 10 px (wnętrze).
+- Kolory tylko z tokenów, zaokrąglenia według wspólnej skali: pełna tabela tokenów, ich ról i skala promieni
+  mają jedno źródło w [DESIGN.md §2](DESIGN.md#2-tokeny).
 - Liczby, czasy i kody czcionką mono z `tabular-nums`.
 - Ikony z `@phosphor-icons/react`; ikona gry w lobby ma wagę `regular`.
 
 **Reguły**
 - **Kolor gracza, nie czerwień**, dla wszystkiego, co jest „moje” lub „czyjeś”: pionki, kamienie, podświetlenie mojej tury.
-  Czerwień akcentu zostaje dla głównego przycisku i ostrzeżeń (`warning` na ostatnie 10 s).
+  `accent` służy akcji platformy i pozostałym rolom z DESIGN §2, w tym znakowi aplikacji; ostrzeżenia używają `warning`.
 - Mini-gra zaczyna od ekranu instrukcji: komponent `Intro` (ui.tsx) z animowanym podglądem gry (mały komponent `Preview` w pliku gry,
   sama animacja CSS w pętli), trzema krótkimi punktami (`time`: czas, `task`: co zrobić, `score`: jak liczone są punkty) i przyciskiem „Start”.
   Limit gry jeszcze wtedy nie tyka; po `INTRO_SECONDS` (15 s) gra rusza sama. Pod przyciskiem widać, kto już gra, a kto czyta zasady.
 - Pola dotykowe co najmniej 48 px (tyle ma `.btn`), a pola gry na czas mają `touch-none select-none` i reagują na `onPointerDown`.
-- Ekran mieści się na 360×640 bez poziomego przewijania; plansza skaluje się do szerokości, nie ma stałych pikseli.
+- Ekran partii mieści się na 360×640 bez poziomego przewijania; plansza skaluje się do szerokości, nie ma stałych pikseli.
+  Listy poza partią mogą przewijać się pionowo; dolna akcja pozostaje dostępna w `StickyBar`, a edytowane pole
+  nie znika pod klawiaturą. Nie jest to wyjątek dla plansz, pól dotykowych ani formularzy w trakcie partii.
 - Teksty po polsku, krótkie, bez em-dashy, przecinek dziesiętny („10,00 s”), te same słowa co w innych grach
   („Start”, „Dalej”, „Rewanż”, „Do lobby”, „(ty)”).
 - Elementy ozdobne mają `aria-hidden`, a przyciski bez tekstu `aria-label`.

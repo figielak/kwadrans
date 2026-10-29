@@ -3,8 +3,10 @@
 Styl wizualny Kwadransa: jak strona wygląda i dlaczego. Opis powstał z przeglądu ekranów na 360×640
 (ekran główny, lobby, lista mini-gier, rekordy, ekran instrukcji, partia).
 
-Źródłem wartości jest kod: tokeny i klasy w `apps/web/src/index.css`, wspólne komponenty w `apps/web/src/screens/ui.tsx`.
-Reguły odbioru nowej gry (pola dotykowe, czasy animacji, wibracje) są w `ZASADY.md`, sekcje 4 i 5; tutaj ich nie powtarzamy.
+Jedynym katalogiem tokenów, ich ról i skali promieni w dokumentacji jest sekcja 2 tego pliku.
+Ich implementacja to `apps/web/src/index.css`, a wspólne komponenty są w `apps/web/src/screens/ui.tsx`.
+Reguły odbioru nowej gry (pola dotykowe, czasy animacji, wibracje) są w [ZASADY.md](ZASADY.md), sekcje 4 i 5;
+przy sprzeczności obowiązują ZASADY. Opis zatwierdzonej klasy przed wdrożeniem jest jawnie oznaczony w §5.
 
 ## 1. Charakter
 
@@ -16,7 +18,8 @@ Trzy rzeczy budują cały styl:
 1. **Prawie czarne tło z jedną poświatą.** W prawym górnym rogu leży nieruchomy gradient radialny (16% koloru, 60vmax).
    Domyślnie ma kolor akcentu, a w partii kolor gracza, na którego wszyscy czekają (`--ambient`), więc o turze mówi całe tło.
    W Kalamburach to zawsze kolor rysującego.
-2. **Jedna czerwień na ekran.** Akcent `#ff2445` dostaje jeden wypełniony przycisk, czyli najważniejsza akcja ekranu. Reszta to obrysy.
+2. **Jedna główna akcja na ekran.** Akcent dostaje jeden wypełniony przycisk, czyli najważniejsza akcja platformy. Reszta to obrysy.
+   Akcent w znaku aplikacji identyfikuje markę i nie jest drugą akcją.
 3. **Dwa kroje o dwóch rolach.** Satoshi mówi (nazwy, zdania, przyciski), Geist Mono liczy (kody, wyniki, czasy, podpisy sekcji).
 
 ## 2. Tokeny
@@ -34,7 +37,8 @@ Trzy rzeczy budują cały styl:
 | `fg` | `#ededef` | tekst |
 | `fg-muted` | `#8b8b92` | opisy, podpisy, ikony pomocnicze |
 | `fg-subtle` | `#5c5c63` | tylko nieistotne detale (kontrast poniżej 4,5:1) |
-| `accent` | `#ff2445` | główna akcja, focus, zaznaczony kafel |
+| `accent` | `#ff2445` | główna akcja platformy, focus, zaznaczony kafel, znak aplikacji |
+| `accent-hover` | `#ff4560` | akcent pod kursorem, tylko `.btn-primary` |
 | `accent-soft` | akcent 12% | tło ikony wyzwania dnia, pasek „Łączenie ponownie…” |
 | `accent-fg` | `#0e0e10` | tekst na akcencie (grafit ma 5,1:1, biały tylko 3,8:1) |
 | `warning` | `#ff6369` | ostatnie 10 s limitu, pomyłka, kara, błąd formularza, bodziec „nie wolno” w Stój! (zawsze z ikoną i tekstem) |
@@ -142,12 +146,18 @@ Każdy stan, który coś blokuje, tłumaczy się podpisem; samo przygaszenie nie
 
 ## 5. Zasady, które z tego wynikają
 
-- **Akcent jest rzadki.** Jeśli na ekranie są dwa czerwone elementy, jeden z nich jest zbędny. Link w tekście („zmień”) to `fg-muted` z podkreśleniem.
+- **Akcent jest rzadki.** Jeden wypełniony przycisk platformy na ekranie; znak aplikacji może zachować akcent,
+  bo identyfikuje markę, nie proponuje kolejnej czynności. Link w tekście („zmień”) to `fg-muted` z podkreśleniem.
 - **Akcent należy do platformy, kolor gracza do partii.** Wypełniony akcentem jest przycisk, który prowadzi przez aplikację
   („Zagraj”, „Start”, gotowość, „Rewanż”, „Dalej”, „Jeszcze raz”). Akcja w trakcie partii („Zatwierdź”, „Gotowe”, „Rzuć”, „Zgarnij”)
-  jest wypełniona kolorem gracza z tekstem `bg`: `btn text-bg` i `backgroundColor` z koloru gracza.
+  jest wypełniona kolorem gracza z tekstem `bg`.
+  Zatwierdzony wspólny kontrakt to `.btn` + `.btn-player`: kolor gracza przekazany przez komponent stanowi tło,
+  tekst korzysta z `bg`, a rozmiar, focus, stan nieaktywny i reakcja na dotyk pochodzą z `.btn`.
+  Klasa współdzieli wygląd, nie zmienia znaczenia akcji ani ról tokenów.
+  **Stan przejściowy:** `.btn-player` nie jest jeszcze zaimplementowana; obecne użycia to `btn text-bg`
+  i `backgroundColor` z koloru gracza. Dodanie klasy i migracja stylów należą do P4-050.
 - **Kolor nigdy nie jest jedynym sygnałem.** Błąd ma ikonę i tekst, bodziec ma napis i skok jasności, stan nieaktywny ma podpis.
-- **Kolor znaczy.** `accent`: zrób to, tu jesteś (focus) albo to wybrane. `warning`: problem (czas, pomyłka, kara). Kolor gracza: to czyjeś. Zieleń: dobrze. Szarości: wszystko inne.
+- **Kolor znaczy.** Role tokenów określa tabela w §2; kolor gracza wskazuje właściciela lub jego akcję.
 - **Obrys przed wypełnieniem.** Karty, przyciski drugorzędne i pola mają obrys 1 px w `line`; pełne tło dostaje tylko to, co ma przyciągać.
 - **Liczby są mono.** Kod, wynik, czas, miejsce i licznik idą Geist Mono z `tabular-nums`, żeby nie skakały przy zmianie.
   Liczby nad polem gry to zawsze pasek `Stats`, tabela rund po partii to `RoundTable` (oba w `ui.tsx`).
@@ -158,6 +168,11 @@ Każdy stan, który coś blokuje, tłumaczy się podpisem; samo przygaszenie nie
 - **Tylko ciemny motyw, teksty po polsku, bez em-dashy, z przecinkiem dziesiętnym.**
 
 ## 6. Wyjątki i rozbieżności
+
+**Listy poza partią** (np. ekran główny, wybór gry, ustawienia i rekordy) mogą przewijać się pionowo.
+Nie muszą w całości mieścić się w 640 px; dolna akcja pozostaje dostępna w `StickyBar`, a edytowane pole nie znika
+pod klawiaturą. Wymóg 360×640 dotyczy ekranu partii. Nie znosi to zakazu poziomego przewijania ani wymogów pól dotykowych
+z [ZASADY.md §4](ZASADY.md#4-spójność-wyglądu); lokalne wyjątki formularzy i wyników w partii są rozliczane osobno.
 
 Świadome wyjątki od zasad z sekcji 5:
 
@@ -171,4 +186,5 @@ Każdy stan, który coś blokuje, tłumaczy się podpisem; samo przygaszenie nie
 Rozbieżności do decyzji (nie są wzorem dla nowych ekranów):
 
 - **Gry główne na 360×640.** Rozstawianie w Statkach (około 770 px), Gomoku (około 670 px) i Państwa-miasta wymagają przewinięcia;
-  mini-gry i pozostałe ekrany mieszczą się w 640 px.
+  są to rozbieżności do poprawy, a nie zgoda na przewijanie plansz. Także mini-gry wymagają osobnego odbioru;
+  nie zakładamy, że każda mieści się w 640 px. Przewijanie list poza partią jest dopuszczone powyżej.
