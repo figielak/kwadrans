@@ -1,6 +1,6 @@
 import { Check, HandPalm, ThumbsDown, X } from "@phosphor-icons/react";
 import { type LobbyPlayer, type PanstwaMiastaMove, type PanstwaMiastaView, PM_ANSWER_MAX, PM_CATEGORIES, pmFits } from "@kwadrans/games";
-import { Fragment, type ReactNode, useEffect, useRef, useState } from "react";
+import { Fragment, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Scores, StickyBar } from "../screens/ui.tsx";
 
 interface Props {
@@ -126,6 +126,37 @@ function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView;
   const letter = view.letters[view.round];
   const [answers, setAnswers] = useState(() => view.answers[me] ?? PM_CATEGORIES.map(() => ""));
   const timer = useRef<number>(undefined);
+  const form = useRef<HTMLFormElement>(null);
+  const [height, setHeight] = useState<number>();
+  useLayoutEffect(() => {
+    const element = form.current;
+    if (!element) return;
+    const viewport = window.visualViewport;
+    const measure = () => {
+      const y = element.getBoundingClientRect().top + window.scrollY;
+      const padding = parseFloat(getComputedStyle(element.closest("main")!).paddingBottom);
+      // Z klawiaturą zostaje przynajmniej miejsce na jedno pole i dolną akcję.
+      setHeight(Math.max(192, Math.floor((viewport?.height ?? window.innerHeight) - y - padding)));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    for (const sibling of element.parentElement!.children) if (sibling !== element) observer.observe(sibling);
+    viewport?.addEventListener("resize", measure);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      viewport?.removeEventListener("resize", measure);
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+  // Dopiero po zmianie układu przewijamy aktywne pole, aby nie schowało się w krótszej liście.
+  useLayoutEffect(() => {
+    const element = form.current;
+    if (element?.contains(document.activeElement)) {
+      element.scrollIntoView({ block: "end" });
+      document.activeElement?.scrollIntoView({ block: "nearest" });
+    }
+  }, [height]);
   useEffect(() => () => clearTimeout(timer.current), []);
 
   function change(i: number, value: string) {
@@ -161,8 +192,8 @@ function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView;
   }
 
   return (
-    <form className="flex flex-col gap-3" onSubmit={submit}>
-      <div className="tile flex flex-col gap-5 p-4">
+    <form ref={form} className="flex min-h-0 flex-col gap-3" style={{ maxHeight: height }} onSubmit={submit}>
+      <div className="tile flex min-h-0 flex-col gap-5 overflow-y-auto p-4" aria-label="Kategorie odpowiedzi">
         {stopBy && <StopBanner nick={stopBy} />}
         {PM_CATEGORIES.map((category, i) => {
           const typed = answers[i].trim() !== "";
@@ -175,6 +206,7 @@ function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView;
               <div className="relative">
                 <input
                   id={`pm-${i}`}
+                  autoFocus={i === 0}
                   className="field pr-10 placeholder:text-fg-subtle"
                   value={answers[i]}
                   placeholder={`${letter}…`}
@@ -194,7 +226,7 @@ function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView;
           );
         })}
       </div>
-      <StickyBar>
+      <div className="flex shrink-0 items-center gap-3 bg-bg pt-2 pb-3">
         <span className="w-10 shrink-0 font-mono text-sm text-fg-muted tabular-nums" aria-label={`Wypełnione ${filled} z ${PM_CATEGORIES.length}`}>
           {filled}/{PM_CATEGORIES.length}
         </span>
@@ -213,7 +245,7 @@ function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView;
             </button>
           </>
         )}
-      </StickyBar>
+      </div>
     </form>
   );
 }
@@ -250,11 +282,7 @@ function Voting({ view, me, player, onMove }: { view: PanstwaMiastaView; me: str
   );
 }
 
-/**
- * Odpowiedzi wszystkich w tabeli: kategorie w wierszach, gracze w kolumnach (przy 4+ graczach przewija się w bok).
- * Nazwa kategorii leży nad wierszem, nie w osobnej kolumnie: na telefonie każda kolumna jest na wagę złota.
- * Z `onToggle`: cudze ważne odpowiedzi to przyciski do odrzucania. Ze `scored`: punkty i werdykt z ostatniej rundy.
- */
+/** Przy 4+ osobach kategorie osobno, gracze w wierszach; przy 2/3 kompaktowa tabela. */
 function Answers({
   view,
   player,
@@ -271,81 +299,89 @@ function Answers({
   scored?: boolean;
 }) {
   const letter = view.letters[view.round];
+  const label = (id: string) => (
+    <span className="flex min-w-0 items-center gap-1.5">
+      <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: player(id)?.color }} aria-hidden />
+      <span className="min-w-0 break-words">{player(id)?.nick ?? "Gracz"}{id === me && " (ty)"}</span>
+    </span>
+  );
+  const cell = (id: string, c: number) => {
+    const category = PM_CATEGORIES[c];
+    const answer = view.answers[id]?.[c]?.trim() ?? "";
+    const fits = pmFits(letter, answer);
+    const key = `${c}:${id}`;
+    const canToggle = onToggle && fits && id !== me;
+    // Mój głos (w trakcie głosowania) albo ostateczny werdykt (w podsumowaniu).
+    const voted = rejected?.has(key) ?? false;
+    const out = scored && fits && view.roundScores[id]?.[c] === 0;
+    // Cudze głosy są jawne dopiero w podsumowaniu.
+    const against = scored ? view.players.filter((v) => view.votes[v]?.some((x) => x.player === id && x.category === c)).length : 0;
+    const Cell = canToggle ? "button" : "div";
+    return (
+      <Cell
+        {...(canToggle && {
+          type: "button" as const,
+          onClick: () => onToggle(key),
+          "aria-pressed": voted,
+          "aria-label": `${player(id)?.nick ?? "Gracz"}, ${category}: ${answer}. ${voted ? "Odrzucasz" : "Uznajesz"}`,
+        })}
+        className={`flex min-h-12 w-full items-center gap-1.5 rounded-inset border px-2 py-1.5 text-left ${
+          voted || out ? "bg-accent-soft" : canToggle ? "bg-surface-inset" : ""
+        } ${canToggle ? (voted ? "border-accent" : "border-line-hover") : "border-transparent"} ${onToggle && id === me ? "opacity-50" : ""}`}
+      >
+        {answer ? (
+          <span className={`min-w-0 flex-1 break-words ${!fits || out ? "text-fg-muted line-through" : ""}`}>{answer}</span>
+        ) : (
+          <span className="flex-1 text-fg-muted">brak</span>
+        )}
+        {voted ? (
+          <X size={16} weight="bold" className="shrink-0 text-warning" aria-hidden />
+        ) : (
+          canToggle && <Check size={16} weight="bold" className="shrink-0 text-success" aria-hidden />
+        )}
+        {scored && (
+          <span className="flex shrink-0 flex-col items-end font-mono tabular-nums">
+            {view.roundScores[id]?.[c] ?? 0}
+            {against > 0 && (
+              <span className="flex items-center gap-0.5 text-xs text-fg-muted" aria-label={`Przeciw: ${against}`}>
+                <ThumbsDown size={12} aria-hidden />
+                {against}
+              </span>
+            )}
+          </span>
+        )}
+      </Cell>
+    );
+  };
+  if (view.players.length >= 4) {
+    return (
+      <div className="flex flex-col gap-3">
+        {PM_CATEGORIES.map((category, c) => (
+          <table key={category} className="tile w-full table-fixed border-separate border-spacing-1 p-2 text-sm">
+            <caption className="label px-3 pt-2 text-left">{category}</caption>
+            <thead className="sr-only"><tr><th scope="col">Gracz</th><th scope="col">Odpowiedź</th></tr></thead>
+            <tbody>
+              {view.players.map((id) => (
+                <tr key={id}>
+                  <th scope="row" className="w-1/3 px-1 text-left text-xs font-medium">{label(id)}</th>
+                  <td className="p-0">{cell(id, c)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ))}
+      </div>
+    );
+  }
   return (
-    <div className="tile overflow-x-auto p-2">
-      <table className="w-full table-fixed border-separate border-spacing-1 text-sm" style={{ minWidth: `${view.players.length * 6}rem` }}>
-        <thead>
-          <tr>
-            {view.players.map((id) => (
-              <th key={id} scope="col" className="px-1 pb-1 text-left text-xs font-medium">
-                <span className="flex items-center gap-1.5">
-                  <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: player(id)?.color }} aria-hidden />
-                  <span className="truncate">{player(id)?.nick ?? "Gracz"}</span>
-                  {id === me && <span className="text-fg-muted">(ty)</span>}
-                </span>
-              </th>
-            ))}
-          </tr>
-        </thead>
+    <div className="tile p-2">
+      <table className="w-full table-fixed border-separate border-spacing-1 text-sm">
+        <thead><tr>{view.players.map((id) => <th key={id} scope="col" className="px-1 pb-1 text-left text-xs font-medium">{label(id)}</th>)}</tr></thead>
         <tbody>
           {PM_CATEGORIES.map((category, c) => (
             <Fragment key={category}>
-              <tr>
-                <th scope="colgroup" colSpan={view.players.length} className="label px-1 pt-2 text-left font-normal">
-                  <span className="sticky left-1">{category}</span>
-                </th>
-              </tr>
-              <tr>
-              {view.players.map((id) => {
-                const answer = view.answers[id]?.[c]?.trim() ?? "";
-                const fits = pmFits(letter, answer);
-                const key = `${c}:${id}`;
-                const canToggle = onToggle && fits && id !== me;
-                // Mój głos (w trakcie głosowania) albo ostateczny werdykt (w podsumowaniu).
-                const voted = rejected?.has(key);
-                const out = scored && fits && view.roundScores[id]?.[c] === 0;
-                // Cudze głosy są jawne dopiero w podsumowaniu.
-                const against = scored ? view.players.filter((v) => view.votes[v]?.some((x) => x.player === id && x.category === c)).length : 0;
-                const Cell = canToggle ? "button" : "div";
-                return (
-                  <td key={id} className="p-0 align-top">
-                    <Cell
-                      {...(canToggle && {
-                        type: "button" as const,
-                        onClick: () => onToggle(key),
-                        "aria-pressed": voted,
-                        "aria-label": `${player(id)?.nick ?? "Gracz"}, ${category}: ${answer}. ${voted ? "Odrzucasz" : "Uznajesz"}`,
-                      })}
-                      className={`flex min-h-11 w-full items-center gap-1.5 rounded-inset border px-2 py-1.5 text-left ${
-                        voted || out ? "bg-accent-soft" : canToggle ? "bg-surface-inset" : ""
-                      } ${canToggle ? (voted ? "border-accent" : "border-line-hover") : "border-transparent"} ${onToggle && id === me ? "opacity-50" : ""}`}
-                    >
-                      {answer ? (
-                        <span className={`min-w-0 flex-1 break-words ${!fits || out ? "text-fg-muted line-through" : ""}`}>{answer}</span>
-                      ) : (
-                        <span className="flex-1 text-fg-muted">brak</span>
-                      )}
-                      {voted ? (
-                        <X size={16} weight="bold" className="shrink-0 text-warning" aria-hidden />
-                      ) : (
-                        canToggle && <Check size={16} weight="bold" className="shrink-0 text-success" aria-hidden />
-                      )}
-                      {scored && (
-                        <span className="flex shrink-0 flex-col items-end font-mono tabular-nums">
-                          {view.roundScores[id]?.[c] ?? 0}
-                          {against > 0 && (
-                            <span className="flex items-center gap-0.5 text-xs text-fg-muted" aria-label={`Przeciw: ${against}`}>
-                              <ThumbsDown size={12} aria-hidden />
-                              {against}
-                            </span>
-                          )}
-                        </span>
-                      )}
-                    </Cell>
-                  </td>
-                );
-              })}
-              </tr>
+              <tr><th scope="colgroup" colSpan={view.players.length} className="label px-1 pt-2 text-left font-normal">{category}</th></tr>
+              <tr>{view.players.map((id) => <td key={id} className="p-0 align-top">{cell(id, c)}</td>)}</tr>
             </Fragment>
           ))}
         </tbody>

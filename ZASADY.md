@@ -173,7 +173,11 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
 - Pola dotykowe co najmniej 48 px (tyle ma `.btn`), a pola gry na czas mają `touch-none select-none` i reagują na `onPointerDown`.
 - Ekran partii mieści się na 360×640 bez poziomego przewijania; plansza skaluje się do szerokości, nie ma stałych pikseli.
   Listy poza partią mogą przewijać się pionowo; dolna akcja pozostaje dostępna w `StickyBar`, a edytowane pole
-  nie znika pod klawiaturą. Nie jest to wyjątek dla plansz, pól dotykowych ani formularzy w trakcie partii.
+  nie znika pod klawiaturą. Nie jest to ogólny wyjątek dla plansz ani formularzy w trakcie partii.
+  Państwa-miasta mają lokalny wyjątek: lista kategorii w formularzu przewija się pionowo z dolną akcją,
+  a głosowanie i podsumowanie przewijają odpowiedzi pionowo. Przy 4+ osobach każda kategoria ma graczy
+  w wierszach. Bez przewijania w bok, z pełną treścią i celami głosu minimum 48 px.
+  Odbiór formularza wymaga fizycznego Androida z klawiaturą (U02); sama symulacja viewportu nie wystarcza.
 - Teksty po polsku, krótkie, bez em-dashy, przecinek dziesiętny („10,00 s”), te same słowa co w innych grach
   („Start”, „Dalej”, „Rewanż”, „Do lobby”, „(ty)”).
 - Elementy ozdobne mają `aria-hidden`, a przyciski bez tekstu `aria-label`.

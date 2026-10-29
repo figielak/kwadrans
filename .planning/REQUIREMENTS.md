@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 05-01..10 wykonane, 10/62 pakietów, 15/267 części; typy, 1947 testów, build i UI PASS; U02 fizyczne otwarte; następny P4-014 |
+| FIX-02 | Phase 5 | In progress; 05-01..10 wykonane, 10/62 pakietów, 17/267 części; P4-014 wdrożony (2/3), U02 fizyczne otwarte; typy/1947 testów/build PASS; następny niezależny P4-015 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -176,3 +176,10 @@ Stała zgoda użytkownika na commity po każdym zadaniu obowiązuje; push nadal 
 me="" i rewanż PASS; rzeczywisty pokój solo z reload i rekordem PASS.
 Typy, 1947 testów i build PASS. 10/62 pakietów, 15/267 części, FIX-02 otwarte.
 Następny P4-014 (Państwa-miasta). Dowody: 05-10-SUMMARY.md. Commit po zadaniu, bez push.
+
+
+2026-10-29, 05-11/P4-014 wdrożony: Państwa-miasta, przewijany formularz, dolna akcja,
+tabele kategorii z graczami w wierszach przy 4+, cele głosu minimum 48 px.
+Przeglądarka 2/6 i vote/summary 2/3/4/6, szkic, timeout i remis PASS; typy, 1947 testów, build PASS.
+Pełny odbiór oczekuje fizycznego U02 Android; 2/3 części odebrane. 10/62 pakietów, 17/267 części.
+05-11 w toku; następny niezależny pakiet P4-015. Dowody: 05-11-SUMMARY.md. Commit bez push.

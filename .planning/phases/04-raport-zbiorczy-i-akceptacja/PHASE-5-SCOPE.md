@@ -2,8 +2,8 @@
 
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
-**Stan wykonania: 10/62 pakietów, 15/267 części poprawek.** Zakończono P4-001, P4-027, P4-002..006 i P4-011..013.
-Dowody: 05-01..10-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
+**Stan wykonania: 10/62 pakietów, 17/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013.
+Dowody: 05-01..11-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
 ## 1. Pełne pokrycie i granice
 
@@ -42,7 +42,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 8 | [P4-011: Memory: wszystkie rzędy kart](#scope-p4-011) | P1 | 1 | wykonano 2026-10-29, 05-08 |
 | 9 | [P4-012: Kalambury: zgadywanie i Pasuję](#scope-p4-012) | P1 | 1 | wykonano 2026-10-29, 05-09; U02 fizyczne otwarte |
 | 10 | [P4-013: Koło: zakończenie prób widoczne](#scope-p4-013) | P1 | 1 | wykonano 2026-10-29, 05-10 |
-| 11 | [P4-014: Państwa-miasta: formularz i tabela głosowania](#scope-p4-014) | P1 | 3 | nie rozpoczęto |
+| 11 | [P4-014: Państwa-miasta: formularz i tabela głosowania](#scope-p4-014) | P1 | 3 | wdrożono 2026-10-29; 2/3 odebrane, U02 fizyczne oczekuje |
 | 12 | [P4-015: Kropki, Kąt, W pamięci: pole przy klawiaturze](#scope-p4-015) | P1 | 3 | nie rozpoczęto |
 | 13 | [P4-016: Wyniki: dostępne Rewanż i Do lobby](#scope-p4-016) | P1 | 1 | nie rozpoczęto |
 | 14 | [P4-017: Kampus Tour: środek i akcje po skalowaniu](#scope-p4-017) | P1 | 4 | nie rozpoczęto |
@@ -265,7 +265,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: brak. Dodatkowy warunek: U02 jest warunkiem odbioru formularza z klawiaturą; pomiar samego viewportu nie zamyka go.
 - Odbiór: T + UI. E11 write oraz vote/summary przy 2/6 osobach: pełna odpowiedź i wszystkie głosy dostępne bez poziomego scroll; każda kategoria osiągalna, nic nie jest domyślnie odrzucane przez zmianę ekranu. U02: Android z klawiaturą, autoFocus, Oddaj i STOP. Refresh szkicu, koniec czasu i remis.
 - Granice: Zmiana sposobu przeglądania nie zmienia progu głosowania ani 45 s; tę stałą rozstrzyga H-003.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **wdrożone 2026-10-29; pełny odbiór oczekuje U02**. 2/3 części (F4-093 i F4-152) odebrane; F4-056 wymaga fizycznego Androida. [05-11-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-11-SUMMARY.md). Typy, 1947 testów, build i scenariusze przeglądarkowe PASS.
 
 <a id="scope-p4-015"></a>
 

@@ -209,3 +209,10 @@ po nagłówku, statystykach, komunikacie i dolnym marginesie. Miejsce na zakońc
 zarezerwowane od startu, dzięki czemu pierwsza oceniona próba nie zmienia rozmiaru pola.
 Na 360×640 przycisk ma 48 px i kończy się na 616 px; bok płótna wynosi 261 px solo lub 293 px
 w pokoju 2/6 osób ze zwiniętym nagłówkiem. Współrzędne i ocena rysunku pozostają niezależne od rozmiaru.
+
+Państwa-miasta (P4-014, wdrożone, fizyczny odbiór U02 otwarty): sześć kategorii formularza przewija
+się wewnątrz listy, a dolne Oddaj/Dalej/STOP pozostają poza tą listą. Po zmianie widocznej wysokości
+aktywne pole jest przewijane po przeliczeniu układu. Głosowanie i podsumowanie mają osobną tabelę
+na kategorię przy 4+ osobach, z graczami w wierszach; przy 2/3 zachowują zwartą tabelę.
+Pełne nicki i odpowiedzi mogą łamać się w wierszach; brak poziomego przewijania, cele głosu minimum 48 px.
+Jest to lokalny wyjątek przewijania formularza i odpowiedzi opisany w ZASADY §4.
