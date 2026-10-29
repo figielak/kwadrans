@@ -229,3 +229,9 @@ z poziomami w dwóch kolumnach, żeby decyzje miały 48 px na ekranie po zoom sc
 Podsumowanie ma ograniczoną wysokość, przewijaną treść i stałe akcje; po jego otwarciu akcje planszy
 nie są renderowane drugi raz. Panele pokazują wygrane, obserwator ma „Oglądasz”. Pełne nicki wykresu
 pozostają w legendzie i tytułach etykiet; krótkie etykiety przy końcach linii nie nachodzą na statystyki.
+
+Kampus Tour (P4-018): turlanie rozpoczyna rzeczywisty rzut rozpoznany w istniejącym widoku,
+łącznie z kolejnym dubletem o identycznych oczkach i rzutem w Kolokwium bez przesunięcia.
+MPK i karta przestawiają pionek bez turlania. Nakładka „Dotknij, aby przejść do decyzji”
+kończy pokaz jednym dotknięciem, bez wysyłania ruchu; decyzję wybiera dopiero następne.
+Nowa wiadomość zastępuje poprzedni pokaz; refresh i reduced motion pokazują od razu stan serwera.

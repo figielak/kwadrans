@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 5
 current_phase_name: Poprawki zaakceptowanych rozbieżności
 status: in_progress
-stopped_at: 05-13 zakończony; P4-014/015 oczekują U02; następny P4-018
+stopped_at: 05-14 zakończony; P4-014/015 oczekują U02; następny P4-023
 last_updated: "2026-10-29"
 last_activity: 2026-10-29
-last_activity_desc: "Kampus Tour P4-017 odebrany; 12/62 pakietów, 22/267 części; P4-014/015 oczekują U02"
+last_activity_desc: "Kampus Tour P4-018 odebrany; 13/62 pakietów, 25/267 części; P4-014/015 oczekują U02"
 state_head: 28196b51b38fb21b53c0992a2777b5a397f57777
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 48
-  completed_plans: 47
+  total_plans: 49
+  completed_plans: 48
   percent: 98
 ---
 
@@ -23,15 +23,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Faza 5: 05-13/P4-017 odebrany. P4-014/015 oczekują U02. Następny P4-018.
+**Current focus:** Faza 5: 05-14/P4-018 odebrany. P4-014/015 oczekują U02. Następny P4-023.
 
 ## Current Position
 
 Phase: 5 of 5 (Poprawki zaakceptowanych rozbieżności), zakres ZG4-v1/S5-v1 zatwierdzony.
-Plan: 12 of 13 currently planned completed; 05-11 wdrożony, oczekuje fizycznego U02.
+Plan: 13 of 14 currently planned completed; 05-11 wdrożony, oczekuje fizycznego U02.
 Status: In progress. Fazy 1-4 zakończone, FIX-01 zakończone. FIX-02 otwarte.
-Wykonano 12/62 pakietów (P4-001, P4-027, P4-002..006, P4-011..013, P4-016..017), 22/267 części poprawek; P4-014 wdrożony, 2/3 części odebrane.
-Last activity: 2026-10-29: zakończono 05-13/P4-017. Kampus Tour: środek, kontrolki,
+Wykonano 13/62 pakietów (P4-001, P4-027, P4-002..006, P4-011..013, P4-016..018), 25/267 części poprawek; P4-014 wdrożony, 2/3 części odebrane.
+Last activity: 2026-10-29: zakończono 05-14/P4-018. Kampus Tour: dotyk pomija pokaz,
+MPK/karta bez turlania; dublety, Kolokwium, refresh/reduced motion i sieć PASS.
+Typy, 1947 testów i build PASS. Dowody w 05-14-SUMMARY.md.
+
+Poprzednio zakończono 05-13/P4-017. Kampus Tour: środek, kontrolki,
 podsumowanie i statusy graczy; E13-E15, 2/4, obie orientacje PASS. Typy, 1947 testów i build PASS.
 Użytkownik odłożył pomiary telefonu i zlecił kontynuować pozostałe pakiety.
 Dowody w 05-13-SUMMARY.md.
@@ -70,13 +74,13 @@ commity implementacji po każdym zadaniu. Nie pytać ponownie; push wymaga osobn
 
 Previous activity: 2026-10-24: 03-09 zamknął fazę 3: 16 wpisów z 44 częściowych, macierz 39 gier × 6 kryteriów, 14 przekazań D-02 i 22 pytania do partii. Faza 2 zakończona raportem 102 wpisów (300 wystąpień), faza 1 raportem 55 wpisów.
 
-Progress: [██████████] 98% obecnie rozpisanych planów, 47/48 (fazy 1-4: 35/35; faza 5: 12/13).
-To nie jest procent ukończenia wdrożenia: wykonano 12/62 pakietów, dalsze plany będą dopisywane.
+Progress: [██████████] 98% obecnie rozpisanych planów, 48/49 (fazy 1-4: 35/35; faza 5: 13/14).
+To nie jest procent ukończenia wdrożenia: wykonano 13/62 pakietów, dalsze plany będą dopisywane.
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 47
+- Total plans completed: 48
 - Average duration (pierwsze 30 planów; 04-01..04-03 bez pomiaru): ok. 38 min (01-01: 25 min, 01-02: 30 min, 01-03: 40 min, 01-04: 45 min, 01-05: 35 min, 01-06: 40 min, 01-07: 45 min, 01-08: 50 min, 01-09: 35 min, 01-10: 40 min, 02-01: 11 min, 02-02: 8 min, 02-03: 45 min, 02-04: 55 min, 02-05: 60 min, 02-06: 45 min, 02-07: 45 min, 02-08: 45 min, 02-09: 50 min, 02-10: 50 min, 02-11: 70 min, 03-01: 35 min, 03-02: 25 min, 03-03: 45 min, 03-04: 60 min, 03-05: 50 min, 03-06: 45 min, 03-07: 40 min, 03-08: 45 min, 03-09: 40 min)
 - Total execution time (pierwsze 30 planów; 04-01..04-03 bez pomiaru): ok. 15,2 h (fala 2 równolegle, ok. 1 h zegarowo bez przerwy na limit API)
 
@@ -109,7 +113,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- Faza 5: P4-014 wdrożony, pełny odbiór oczekuje U02; P4-015 wymaga pomiaru telefonu przed poprawką. Następny P4-018; 12/62 pakietów, 22/267 części.
+- Faza 5: P4-014 wdrożony, pełny odbiór oczekuje U02; P4-015 wymaga pomiaru telefonu przed poprawką. Następny P4-023; 13/62 pakietów, 25/267 części.
   Stała zgoda użytkownika z 2026-10-29: „Zapisz ten i kolejne commity testów”. Obowiązkowe commity testów
   przed kodem są już autoryzowane; nowsza stała zgoda obejmuje też commity implementacji po każdym zadaniu; push wymaga osobnej prośby.
 - Faza 3 zamknięta (2026-10-24): wejście do fazy 4 to `phases/03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md` (R1-R8 i wpisy pojedyncze B-*, cytowane z prefiksem F3:); styki z fazami 1-2: R1 = F1:Z2 (+ F2:ZK1), R2 = F1:Z3, R6 = F2:U28, B-KT4 = F1:K2, B-KT5 = F1:K11, B-KT6 z F2:U2; wysokie: R1 (Sekwencja, Zakupy, Środek, Tort), R3 (W pamięci, warunkowo); 22 pytania „sprawdzić w partii” w §11 (pozycje 9-13 może częściowo uzupełnić udostępniona kopia bazy; brak pełnych czasów/przebiegów), propozycje do dokumentów w §12
@@ -151,8 +155,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-29
-Stopped at: 05-13 zakończony; P4-014/015 oczekują U02; następny P4-018; FIX-02 otwarte
-Resume file: .planning/phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md#scope-p4-018
+Stopped at: 05-14 zakończony; P4-014/015 oczekują U02; następny P4-023; FIX-02 otwarte
+Resume file: .planning/phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md#scope-p4-023
 
 
 2026-10-29, 05-03/P4-002: dokumentacja i testy regresji przygotowane przed kodem. Typecheck PASS;
@@ -220,3 +224,10 @@ budowa w szczegółach pola, pojedyncze akcje podsumowania, wygrane i Oglądasz.
 E13-E15, 2/4 i obserwator, obie orientacje, typy/1947 testów/build PASS. 4/4 części.
 12/62 pakietów, 22/267 części; FIX-02 otwarte. Następny P4-018; P4-014/015 oczekują U02.
 Użytkownik: „Zrobię pomiar później, kontynuuj pozostałe pakiety”. Dowody: 05-13-SUMMARY.md.
+
+
+2026-10-29, 05-14/P4-018 zakończony: Kampus Tour, dotyk kończy turlanie/marsz bez ruchu,
+MPK i karta bez fałszywego rzutu, nowy stan anuluje stary pokaz. Bez zmian kontraktu playerView.
+Rzut 12/dublety/Kolokwium, oba układy, refresh/reduced motion i /dev przez WebSocket PASS.
+Typy, 1947 testów i build PASS. 13/62 pakietów, 25/267 części; FIX-02 otwarte. Następny P4-023.
+P4-014/015 oczekują odłożonych pomiarów. Dowody: 05-14-SUMMARY.md. Commit bez push.

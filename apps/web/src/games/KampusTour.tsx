@@ -238,40 +238,54 @@ function useStage() {
   return stage;
 }
 
-function useWalk(target: Record<string, number>, paused: boolean): Record<string, number> {
-  const [shown, setShown] = useState(target);
-  useEffect(() => {
-    if (paused) return;
-    const behind = Object.keys(target).filter((p) => shown[p] !== target[p]);
-    if (behind.length === 0) return;
-    const far = behind.some((p) => shown[p] === undefined || (target[p] - shown[p] + BOARD.length) % BOARD.length > 12);
-    if (reducedMotion || far) return setShown(target);
-    const t = setTimeout(() => {
-      setShown((prev) => {
-        const next = { ...prev };
-        for (const p of behind) next[p] = (prev[p] + 1) % BOARD.length;
-        return next;
-      });
-    }, STEP_MS);
-    return () => clearTimeout(t);
-  }, [shown, target, paused]);
-  return shown;
+/** Istniejący widok wystarcza do odróżnienia rzutu od podróży i efektu karty. */
+function isRoll(before: KampusTourView, after: KampusTourView): boolean {
+  if (before.phase !== "roll" || !before.turn || !after.dice) return false;
+  const oldEvents = before.events.map((e) => JSON.stringify(e));
+  const newEvents = after.events.map((e) => JSON.stringify(e));
+  let overlap = Math.min(oldEvents.length, newEvents.length);
+  while (overlap && oldEvents.slice(-overlap).join("|") !== newEvents.slice(0, overlap).join("|")) overlap--;
+  if (after.events.slice(overlap).some((e) => e.type === "travel")) return false;
+  return JSON.stringify(before.positions) !== JSON.stringify(after.positions)
+    || JSON.stringify(before.dice) !== JSON.stringify(after.dice)
+    || before.stats.doubles[before.turn] !== after.stats.doubles[before.turn]
+    || (before.kolokwium.includes(before.turn) && !after.kolokwium.includes(before.turn));
 }
 
-/** Czy kostki się właśnie turlają: przez chwilę po każdym rzucie (rzut zawsze przesuwa jakiś pionek). */
-function useRolling(positions: Record<string, number>): boolean {
-  const key = JSON.stringify(positions);
-  const last = useRef(key);
-  const [rolling, setRolling] = useState(false);
+/** Jeden przerywalny pokaz: kostki, potem krok po kroku; nowa wiadomość zastępuje poprzedni pokaz. */
+function useMoveAnimation(view: KampusTourView) {
+  const [frame, setFrame] = useState({ view, shown: view.positions, rolling: false });
+  if (frame.view !== view) {
+    const rolling = !reducedMotion && isRoll(frame.view, view);
+    // Nowy rzut zaczyna się w ostatniej pozycji serwera, nawet gdy poprzedni pokaz jeszcze trwał.
+    setFrame({ view, shown: rolling ? frame.view.positions : view.positions, rolling });
+  }
   useEffect(() => {
-    if (last.current === key) return;
-    last.current = key;
-    if (reducedMotion) return;
-    setRolling(true);
-    const t = setTimeout(() => setRolling(false), ROLL_MS);
-    return () => clearTimeout(t);
-  }, [key]);
-  return rolling;
+    if (frame.view !== view) return;
+    if (frame.rolling) {
+      const id = setTimeout(() => setFrame({ ...frame, rolling: false }), ROLL_MS);
+      return () => clearTimeout(id);
+    }
+    const behind = view.players.filter((p) => frame.shown[p] !== view.positions[p]);
+    if (!behind.length) return;
+    const far = behind.some((p) => frame.shown[p] === undefined || (view.positions[p] - frame.shown[p] + BOARD.length) % BOARD.length > 12);
+    if (reducedMotion || far) {
+      setFrame({ view, shown: view.positions, rolling: false });
+      return;
+    }
+    const id = setTimeout(() => {
+      const shown = { ...frame.shown };
+      for (const p of behind) shown[p] = (shown[p] + 1) % BOARD.length;
+      setFrame({ view, shown, rolling: false });
+    }, STEP_MS);
+    return () => clearTimeout(id);
+  }, [frame, view]);
+  return {
+    shown: frame.shown,
+    rolling: frame.rolling,
+    settled: !frame.rolling && view.players.every((p) => frame.shown[p] === view.positions[p]),
+    finish: () => setFrame({ view, shown: view.positions, rolling: false }),
+  };
 }
 
 /** Kostki: w trakcie turlania co chwilę losowe oczka i podskakiwanie, potem wynik z serwera. */
@@ -347,11 +361,9 @@ function cell(i: number): [number, number] {
 export function KampusTour({ view, me, players, dropped, scores, seated, canMove, result, onMove, timer, actions }: Props) {
   const [selected, setSelected] = useState<number | null>(null);
   const stage = useStage();
-  const rolling = useRolling(view.positions);
-  // Pionek rusza dopiero, gdy kostki się zatrzymają.
-  const shown = useWalk(view.positions, rolling);
-  // Komunikaty i decyzje dopiero, gdy pionek dojdzie na pole, żeby nie zdradzać wyniku przed animacją.
-  const settled = !rolling && view.players.every((p) => shown[p] === view.positions[p]);
+  const { shown, rolling, settled, finish: finishAnimation } = useMoveAnimation(view);
+  // Szczegóły starego pola nie mogą zostać nad decyzją z nowej wiadomości.
+  useEffect(() => setSelected(null), [view]);
   // Podczas animacji widać zdarzenia sprzed rzutu; nowe pojawiają się po dojściu pionka.
   const settledEvents = useRef(view.events);
   if (settled) settledEvents.current = view.events;
@@ -989,6 +1001,19 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
             </div>
           </div>
         </div>
+
+        {!settled && (
+          <button
+            type="button"
+            className="absolute inset-0 z-40 cursor-pointer"
+            aria-label="Pomiń animację"
+            onClick={(e) => { e.stopPropagation(); finishAnimation(); }}
+          >
+            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full bg-bg/90 px-3 py-1 text-xs whitespace-nowrap text-fg-muted">
+              Dotknij, aby przejść do decyzji
+            </span>
+          </button>
+        )}
 
         {/* Wybór postaci na starcie: wszyscy naraz, zajęte postaci w kolorze i z nickiem właściciela. */}
         {!over && view.phase === "pick" && (

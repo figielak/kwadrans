@@ -212,6 +212,9 @@ animacja tylko go dogania na ekranie.
 
 - **Animacja nie blokuje gry.** Przyciski działają w trakcie, kolejny stan z serwera przerywa poprzednią animację,
   a przy dużym skoku (odświeżenie, powrót do karty) element od razu ląduje na miejscu.
+  Kampus Tour: pierwsze dotknięcie podczas turlania lub marszu kończy pokaz do pozycji serwera,
+  bez wysyłania ruchu. Kolejne dotknięcie wybiera decyzję. Nowa wiadomość przerywa stary pokaz,
+  limit tury biegnie niezależnie. Karta i MPK przestawiają pionek bez udawanego rzutu kośćmi.
   Wyjątek: Statki po pudle trzymają stary układ plansz przez 1,2 s (`SWAP_MS`), zanim plansze się zamienią i pojawi się
   przycisk strzału; bez tego broniący nie widział, gdzie padł strzał.
 - **Kroki sekwencyjne** (pionek idzie pole po polu) to stan „pokazywany” goniący stan „docelowy” w `setTimeout`,

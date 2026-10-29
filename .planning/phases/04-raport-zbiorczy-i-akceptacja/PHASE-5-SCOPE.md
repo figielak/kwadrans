@@ -2,8 +2,8 @@
 
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
-**Stan wykonania: 12/62 pakietów, 22/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..017.
-Dowody: 05-01..13-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
+**Stan wykonania: 13/62 pakietów, 25/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..018.
+Dowody: 05-01..14-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
 ## 1. Pełne pokrycie i granice
 
@@ -46,7 +46,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 12 | [P4-015: Kropki, Kąt, W pamięci: pole przy klawiaturze](#scope-p4-015) | P1 | 3 | oczekuje pomiaru U02 telefonu przed wyborem poprawki |
 | 13 | [P4-016: Wyniki: dostępne Rewanż i Do lobby](#scope-p4-016) | P1 | 1 | wykonano 2026-10-29, 05-12 |
 | 14 | [P4-017: Kampus Tour: środek i akcje po skalowaniu](#scope-p4-017) | P1 | 4 | wykonano 2026-10-29, 05-13 |
-| 15 | [P4-018: Kampus Tour: decyzja bez czekania na marsz](#scope-p4-018) | P1 | 3 | nie rozpoczęto |
+| 15 | [P4-018: Kampus Tour: decyzja bez czekania na marsz](#scope-p4-018) | P1 | 3 | wykonano 2026-10-29, 05-14 |
 | 16 | [P4-023: Quizy: walidacja i wierne czasy trafień](#scope-p4-023) | P1 | 2 | nie rozpoczęto |
 | 17 | [P4-036: Gęste plansze: wybór z potwierdzeniem](#scope-p4-036) | P2 | 1 | nie rozpoczęto |
 | 18 | [P4-007: Gomoku: plansza nad dolną akcją](#scope-p4-007) | P1 | 1 | nie rozpoczęto |
@@ -321,7 +321,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-017](PACKAGES.md#p4-017). Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. /dev: rzut 12, dublet i kolejny rzut, dotyk przed/dojście/po marszu, MPK, karta i Kolokwium, refresh w marszu oraz reduced motion. Jedno dotknięcie nie wykonuje przypadkowej innej decyzji; nowy stan przerywa stary pokaz, zegar nie jest zatrzymywany.
 - Granice: Jeśli konieczna nowa informacja w widoku, opisać i sprawdzić playerView przed kodem; bez nowego zdarzenia bez akceptacji kontraktu.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-29**, 3/3 części. [05-14-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-14-SUMMARY.md). Rzut/dublet/MPK/karta/Kolokwium, ghost click, refresh/reduced motion i /dev WebSocket PASS; bez nowego kontraktu. Typy, 1947 testów i build PASS.
 
 <a id="scope-p4-023"></a>
 

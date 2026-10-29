@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 05-01..10 wykonane, 12/62 pakietów, 22/267 części; P4-014 (2/3) i P4-015 oczekują U02; P4-017 odebrany; typy/1947 testów/build PASS; następny P4-018 |
+| FIX-02 | Phase 5 | In progress; 05-01..10 wykonane, 13/62 pakietów, 25/267 części; P4-014 (2/3) i P4-015 oczekują U02; P4-018 odebrany; typy/1947 testów/build PASS; następny P4-023 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -197,3 +197,10 @@ budowa w szczegółach pola, pojedyncze akcje podsumowania, wygrane i Oglądasz.
 E13-E15, 2/4 i obserwator, obie orientacje, typy/1947 testów/build PASS. 4/4 części.
 12/62 pakietów, 22/267 części; FIX-02 otwarte. Następny P4-018; P4-014/015 oczekują U02.
 Użytkownik: „Zrobię pomiar później, kontynuuj pozostałe pakiety”. Dowody: 05-13-SUMMARY.md.
+
+
+2026-10-29, 05-14/P4-018 zakończony: Kampus Tour, dotyk kończy turlanie/marsz bez ruchu,
+MPK i karta bez fałszywego rzutu, nowy stan anuluje stary pokaz. Bez zmian kontraktu playerView.
+Rzut 12/dublety/Kolokwium, oba układy, refresh/reduced motion i /dev przez WebSocket PASS.
+Typy, 1947 testów i build PASS. 13/62 pakietów, 25/267 części; FIX-02 otwarte. Następny P4-023.
+P4-014/015 oczekują odłożonych pomiarów. Dowody: 05-14-SUMMARY.md. Commit bez push.
