@@ -173,6 +173,8 @@ describe("Zakupy: zapas na oddanie wyniku", () => {
     const record = vi.spyOn(stats, "recordScores");
     const state = snapshot().game!.view as ZakupyView;
     vi.advanceTimersByTime(60_000);
+    // Pokój rozsyła czas przy wiadomości, nie co sekundę. begin po intro tylko odświeża widok.
+    send(0, "begin", {});
     expect(snapshot().phase).toBe("playing");
     expect(snapshot().game!.msLeft).toBe(20_000);
     for (let i = 0; i < n; i++) send(i, "move", { type: "result", picked: state.listed, ms: 50_000 });
