@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { createRng } from "./core.ts";
+import { createRng, soloState } from "./core.ts";
 import { ITEMS, LIST, MAX_MS, type Move, score, SHELF, SHOW_MS, type State, type View, zakupy as game } from "./zakupy.ts";
 
 // Testy napisane przed implementacją. Ustalają zasady:
@@ -34,14 +34,14 @@ function send(s: State, player: string, move: Move): State {
 }
 
 describe("definicja", () => {
-  test("1-6 graczy, limit 60 s, świeża gra trwa", () => {
-    expect([game.id, game.minPlayers, game.maxPlayers, game.turnSeconds]).toEqual(["zakupy", 1, 6, 60]);
+  test("1-6 graczy, limit 80 s, świeża gra trwa", () => {
+    expect([game.id, game.minPlayers, game.maxPlayers, game.turnSeconds]).toEqual(["zakupy", 1, 6, 80]);
     expect(game.isOver(fresh())).toBeNull();
   });
 
-  test("limit tury to 10 s pokazu i do 50 s zaznaczania", () => {
+  test("limit tury daje zapas ponad 10 s pokazu i 50 s zaznaczania", () => {
     expect([LIST, SHELF, SHOW_MS, MAX_MS]).toEqual([10, 20, 10_000, 50_000]);
-    expect(SHOW_MS + MAX_MS).toBe(game.turnSeconds! * 1000);
+    expect(game.turnSeconds! * 1000 - SHOW_MS - MAX_MS).toBe(20_000);
   });
 });
 
@@ -262,5 +262,42 @@ describe("koniec", () => {
     const after = send(send(s, A, play(s, 6, 2)), B, play(s));
     expect(JSON.stringify(s)).toBe(before);
     expect(JSON.parse(JSON.stringify(after))).toEqual(after);
+  });
+});
+
+// P4-003: limit platformy z zapasem, ten sam kontrakt ręcznego i automatycznego oddania.
+describe("pełny czas wybierania", () => {
+  test.each([1, 2, 6])("%i graczy: zaznaczenia z granicy MAX_MS dają normalny wynik, rekord i miejsca", (n) => {
+    const players = [A, B, C, "darek", "ewa", "filip"].slice(0, n);
+    let s = fresh(players);
+    const picked = picks(s, 8, 1);
+    const move = result(picked, MAX_MS);
+    for (const player of players) s = send(s, player, move);
+    expect(game.isOver(s)).toEqual({ ranking: players });
+    expect(game.places!(s)).toEqual(Object.fromEntries(players.map(p => [p, 1])));
+    for (const player of players) {
+      expect(s.picked[player]).toEqual(picked);
+      expect(s.results[player]).toEqual({ score: 7, hits: 8, wrong: 1, ms: MAX_MS });
+      expect(game.record!.score(s, player)).toBe(7);
+      expect(game.record!.tie!.score(s, player)).toBe(MAX_MS);
+      expect(accepts(s, player, move)).toBe(false);
+    }
+    expect(JSON.parse(JSON.stringify(s))).toEqual(s);
+    const solo = soloState(s, A);
+    expect(game.record!.score(solo, "1")).toBe(7);
+    expect(game.record!.tie!.score(solo, "1")).toBe(MAX_MS);
+    expect(solo.picked["1"]).toEqual(picked);
+  });
+
+  test("oddanie na końcu wyboru zachowuje zaznaczenia i nie jest timeoutem serwera", () => {
+    const initial = fresh();
+    const before = JSON.stringify(initial);
+    const picked = picks(initial, LIST, 2);
+    const manual = send(initial, A, result(picked, MAX_MS));
+    const automatic = send(initial, A, result([...picked], MAX_MS));
+    expect(automatic).toEqual(manual);
+    expect(automatic.results[A]).toEqual({ score: 8, hits: 10, wrong: 2, ms: MAX_MS });
+    expect(automatic.results[A]).not.toEqual(send(initial, A, game.timeoutMove!(initial, A, createRng(1))).results[A]);
+    expect(JSON.stringify(initial)).toBe(before);
   });
 });

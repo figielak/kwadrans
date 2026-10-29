@@ -1,5 +1,5 @@
 import { type Client } from "@colyseus/core";
-import { GAMES, KALAMBURY_HALF_SECONDS, type KalamburyView, type RoomView } from "@kwadrans/games";
+import { GAMES, KALAMBURY_HALF_SECONDS, type KalamburyView, type RoomView, type ZakupyView } from "@kwadrans/games";
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 // Testy przed poprawką P4-027: prawdziwe handlery pokoju i walidator gry,
@@ -163,5 +163,38 @@ describe.each(["schulte", "sudoku"])("%s: ukończenie i zapis rekordów", (gameI
       expect(snapshot().game!.view).toEqual(before);
     }
     expect(validate).toHaveBeenCalledWith(expect.anything(), clients[0].sessionId, expect.objectContaining({ completed: false }), { source: "client" });
+  });
+});
+
+// P4-003: prawdziwy limit serwera nie wyprzedza wyniku po 10 s pokazu i 50 s wyboru.
+describe("Zakupy: zapas na oddanie wyniku", () => {
+  test.each([1, 2, 6])("%i graczy: wynik z 50 s wybierania dociera po 60 s partii", async (n) => {
+    const { send, snapshot, clients } = await drawing(n, "zakupy");
+    const record = vi.spyOn(stats, "recordScores");
+    const state = snapshot().game!.view as ZakupyView;
+    vi.advanceTimersByTime(60_000);
+    expect(snapshot().phase).toBe("playing");
+    expect(snapshot().game!.msLeft).toBe(20_000);
+    for (let i = 0; i < n; i++) send(i, "move", { type: "result", picked: state.listed, ms: 50_000 });
+    expect(snapshot().phase).toBe("over");
+    expect(snapshot().game!.result).toEqual({ ranking: clients.slice(0, n).map(c => c.sessionId) });
+    expect(record).toHaveBeenCalledTimes(1);
+    const rows = record.mock.calls[0][1];
+    expect(rows).toHaveLength(n);
+    for (const row of rows) expect(row).toMatchObject({ score: 10, tie: 50_000, detail: { picked: { "1": state.listed } } });
+  });
+
+  test("dopiero po 80 s serwer wpisuje pustą półkę, bez wyniku po 60 s", async () => {
+    const { snapshot } = await drawing(2, "zakupy");
+    vi.advanceTimersByTime(79_999);
+    expect(snapshot().phase).toBe("playing");
+    expect((snapshot().game!.view as ZakupyView).results).toEqual({});
+    vi.advanceTimersByTime(1);
+    expect(snapshot().phase).toBe("over");
+    expect(snapshot().game!.result?.winner).toBeUndefined();
+    expect(Object.values((snapshot().game!.view as ZakupyView).results)).toEqual([
+      { score: 0, hits: 0, wrong: 0, ms: 50_000 },
+      { score: 0, hits: 0, wrong: 0, ms: 50_000 },
+    ]);
   });
 });
