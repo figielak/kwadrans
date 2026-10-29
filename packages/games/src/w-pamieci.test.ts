@@ -242,3 +242,21 @@ describe("stan", () => {
     expect(game.isOver(send(copy, B, play(s, 3)))).toEqual({ winner: B, ranking: [B, A] });
   });
 });
+
+// P4-005: istniejący kontrakt przyjmuje wynik zaraz po pomyłce, bez osobnego potwierdzenia.
+test.each([1, 6])("%i graczy: wynik po trzech rundach jest zapisany i nie daje się nadpisać timeoutem", (n) => {
+  const players = [A, B, C, "darek", "ewa", "filip"].slice(0, n);
+  let s = fresh(players);
+  for (const p of players) s = send(s, p, play(s, 3, 2));
+  expect(game.isOver(s)).toEqual({ ranking: players });
+  expect(game.places!(s)).toEqual(Object.fromEntries(players.map(p => [p, 1])));
+  for (const p of players) {
+    expect(s.results[p]).toEqual({ rounds: 3, diff: 2 });
+    expect(game.record!.score(s, p)).toBe(3);
+    expect(game.record!.tie!.score(s, p)).toBe(2);
+    expect(accepts(s, p, play(s, 3, 2))).toBe(false);
+    expect(accepts(s, p, game.timeoutMove!(s, p, createRng(1)))).toBe(false);
+  }
+  const copy = JSON.parse(JSON.stringify(s)) as State;
+  expect(game.playerView(copy, "")).toEqual(s);
+});
