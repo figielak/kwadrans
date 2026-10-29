@@ -200,3 +200,22 @@ describe("Zakupy: zapas na oddanie wyniku", () => {
     ]);
   });
 });
+
+// P4-004: postęp nie odnawia 300 s, także w grze jednej osoby.
+describe("Sekwencja: wynik po limicie", () => {
+  test.each([1, 2, 6])("%i graczy: ostatnia zaliczona seria zostaje po 300 s", async (n) => {
+    const { send, snapshot, clients } = await drawing(n, "simon");
+    const record = vi.spyOn(stats, "recordScores");
+    vi.advanceTimersByTime(290_000);
+    for (let i = 0; i < n; i++) send(i, "move", { type: "progress", score: 7 });
+    expect(snapshot().game!.view).toMatchObject({ progress: Object.fromEntries(clients.slice(0, n).map(c => [c.sessionId, 7])), results: {} });
+    expect(snapshot().game!.msLeft).toBe(10_000);
+    vi.advanceTimersByTime(10_000);
+    expect(snapshot().phase).toBe("over");
+    expect(snapshot().game!.result).toEqual({ ranking: clients.slice(0, n).map(c => c.sessionId) });
+    const results = (snapshot().game!.view as { results: Record<string, number> }).results;
+    expect(Object.values(results)).toEqual(Array(n).fill(7));
+    expect(record).toHaveBeenCalledTimes(1);
+    for (const row of record.mock.calls[0][1]) expect(row).toMatchObject({ score: 7, tie: null });
+  });
+});
