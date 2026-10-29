@@ -2,8 +2,8 @@
 
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
-**Stan wykonania: 8/62 pakietów, 13/267 części poprawek.** Zakończono P4-001, P4-027, P4-002..006 i P4-011.
-Dowody: 05-01..08-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
+**Stan wykonania: 9/62 pakietów, 14/267 części poprawek.** Zakończono P4-001, P4-027, P4-002..006 i P4-011..012.
+Dowody: 05-01..09-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
 ## 1. Pełne pokrycie i granice
 
@@ -40,7 +40,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 6 | [P4-005: W pamięci: oddanie bez dodatkowego przycisku](#scope-p4-005) | P1 | 1 | wykonano 2026-10-29, testy 28196b5 |
 | 7 | [P4-006: Wspólny nagłówek aktywnej partii](#scope-p4-006) | P1 | 1 | wykonano 2026-10-29, 05-07 |
 | 8 | [P4-011: Memory: wszystkie rzędy kart](#scope-p4-011) | P1 | 1 | wykonano 2026-10-29, 05-08 |
-| 9 | [P4-012: Kalambury: zgadywanie i Pasuję](#scope-p4-012) | P1 | 1 | nie rozpoczęto |
+| 9 | [P4-012: Kalambury: zgadywanie i Pasuję](#scope-p4-012) | P1 | 1 | wykonano 2026-10-29, 05-09; U02 fizyczne otwarte |
 | 10 | [P4-013: Koło: zakończenie prób widoczne](#scope-p4-013) | P1 | 1 | nie rozpoczęto |
 | 11 | [P4-014: Państwa-miasta: formularz i tabela głosowania](#scope-p4-014) | P1 | 3 | nie rozpoczęto |
 | 12 | [P4-015: Kropki, Kąt, W pamięci: pole przy klawiaturze](#scope-p4-015) | P1 | 3 | nie rozpoczęto |
@@ -234,10 +234,10 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zachowanie: Płótno liczy wysokość po całym własnym nagłówku; Zgadnij i Pasuję pozostają w zasięgu.
 - Pliki: apps/web/src/games/Kalambury.tsx:36,342-382.
 - Zasady/dokumenty: **nie: układ**. Dokumenty: DESIGN §6.
-- Zależności i rozpoczęcie: brak. Dodatkowy warunek: B4-001 zaakceptowana; pozostałe warunki odbioru karty obowiązują, wykonania jeszcze nie rozpoczęto.
+- Zależności i rozpoczęcie: brak. Dodatkowy warunek: B4-001 zaakceptowana; pozostałe warunki odbioru karty obowiązują, warunek spełniony.
 - Odbiór: T + UI. Odtworzyć E07 (Krótka, 4 osoby, zgadujący), oba przyciski wewnątrz 640. /dev przy 2/6 osobach, obie role, choose/draw/reveal/over, refresh i pełna partia; U02 dla klawiatury jeśli wpływa na pole.
 - Granice: Nie usuwać czatu ani limitu; nie zmieniać wcześniejszego hint w tej poprawce.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-29 w odbiorze przeglądarkowym**. [05-09-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-09-SUMMARY.md). UI/typy/1947 testów/build PASS. U02: symulacja PASS, fizyczny Android pozostaje otwarty.
 
 <a id="scope-p4-013"></a>
 

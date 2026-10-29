@@ -197,3 +197,9 @@ Rozbieżności do decyzji (nie są wzorem dla nowych ekranów):
 Odbiór Memory po P4-006/P4-011: Mała, Średnia i Duża mieszczą planszę oraz instrukcję na 360×640
 przy 2/6 graczach, także u obserwatora i z długimi nickami. Odstęp plansza–instrukcja to 8 px;
 karty mają odpowiednio 76×76, 76×60,8 i 48×48 px przy szerokości 360 px. To pomiar zwiniętego nagłówka.
+
+Kalambury (P4-012): w fazie rysowania rozmiar kwadratowego płótna wynika z rzeczywistego miejsca
+pod własnym nagłówkiem i listą graczy, z zachowaniem miejsca na kontrolki danej roli i dolny margines.
+Zmiany wysokości nagłówka, czatu i widocznego obszaru aktualizują pomiar. Przy otwartej klawiaturze
+zgadujący może przewinąć do pola i przycisków; minimalny bok płótna to 48 px. Czat i potwierdzenie
+„Pasuję” pozostają obecne. Odsłona i wyniki zachowują dotychczasowy układ.

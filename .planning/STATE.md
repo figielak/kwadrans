@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 5
 current_phase_name: Poprawki zaakceptowanych rozbieżności
 status: in_progress
-stopped_at: 05-08 zakończony; następny P4-012, Kalambury
+stopped_at: 05-09 zakończony; następny P4-013, Koło
 last_updated: "2026-10-29"
 last_activity: 2026-10-29
-last_activity_desc: "Memory P4-011 wykonane; typy, 1947 testów, build i UI PASS; 8/62 pakietów, 13/267 części"
+last_activity_desc: "Kalambury P4-012 wykonane; typy, 1947 testów, build i UI PASS; 9/62 pakietów, 14/267 części; U02 fizyczne otwarte"
 state_head: 28196b51b38fb21b53c0992a2777b5a397f57777
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 43
-  completed_plans: 43
+  total_plans: 44
+  completed_plans: 44
   percent: 100
 ---
 
@@ -23,15 +23,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Faza 5: 05-01..08 zakończone; następny P4-012, Kalambury.
+**Current focus:** Faza 5: 05-01..09 zakończone; następny P4-013, Koło.
 
 ## Current Position
 
 Phase: 5 of 5 (Poprawki zaakceptowanych rozbieżności), zakres ZG4-v1/S5-v1 zatwierdzony.
-Plan: 8 of 8 currently planned completed; następne plany według S5-v1.
+Plan: 9 of 9 currently planned completed; następne plany według S5-v1.
 Status: In progress. Fazy 1-4 zakończone, FIX-01 zakończone. FIX-02 otwarte.
-Wykonano 8/62 pakietów (P4-001, P4-027, P4-002..006, P4-011), 13/267 części poprawek.
-Last activity: 2026-10-29: zakończono 05-08/P4-011. Memory: wszystkie tryby 360×640,
+Wykonano 9/62 pakietów (P4-001, P4-027, P4-002..006, P4-011..012), 14/267 części poprawek.
+Last activity: 2026-10-29: zakończono 05-09/P4-012. Kalambury: zmierzone płótno obu ról,
+pełne partie i /dev 2/6 z odświeżeniem PASS; U02 fizyczny Android otwarty.
+Typy, 1947 testów i build PASS. Dowody w 05-09-SUMMARY.md.
+
+Poprzednio zakończono 05-08/P4-011. Memory: wszystkie tryby 360×640,
 2/6 osób i obserwator, karty minimum 48 px; typy, 1947 testów, build i UI PASS.
 Dowody w 05-08-SUMMARY.md.
 
@@ -44,17 +48,18 @@ Poprzednio zakończono Zakupy, Sekwencję i W pamięci. Osobne commity testów
 Typy, 1947 testów i build poprawne; odbiór UI solo/2/6, refresh, klawiatura/dotyk i autozapis Zakupów,
 postęp Sekwencji i wynik W pamięci przed Wyniki opisano w 05-04..06-SUMMARY.md.
 Użytkownik „Zapisz ten i kolejne commity testów” dał stałą zgodę na obowiązkowe osobne commity testów
-w kolejnych zatwierdzonych pakietach. Nie pytać o nie ponownie. Zgoda nie obejmuje commitów implementacji ani push.
+w kolejnych zatwierdzonych pakietach. Nie pytać o nie ponownie. Nowsza zgoda: użytkownik „Po każdym tasku rób commity, pozwalam na to” autoryzuje także
+commity implementacji po każdym zadaniu. Nie pytać ponownie; push wymaga osobnej prośby.
 
 Previous activity: 2026-10-24: 03-09 zamknął fazę 3: 16 wpisów z 44 częściowych, macierz 39 gier × 6 kryteriów, 14 przekazań D-02 i 22 pytania do partii. Faza 2 zakończona raportem 102 wpisów (300 wystąpień), faza 1 raportem 55 wpisów.
 
-Progress: [██████████] 100% obecnie rozpisanych planów, 43/43 (fazy 1-4: 35/35; faza 5: 8/8).
-To nie jest procent ukończenia wdrożenia: wykonano 8/62 pakietów, dalsze plany będą dopisywane.
+Progress: [██████████] 100% obecnie rozpisanych planów, 44/44 (fazy 1-4: 35/35; faza 5: 9/9).
+To nie jest procent ukończenia wdrożenia: wykonano 9/62 pakietów, dalsze plany będą dopisywane.
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 43
+- Total plans completed: 44
 - Average duration (pierwsze 30 planów; 04-01..04-03 bez pomiaru): ok. 38 min (01-01: 25 min, 01-02: 30 min, 01-03: 40 min, 01-04: 45 min, 01-05: 35 min, 01-06: 40 min, 01-07: 45 min, 01-08: 50 min, 01-09: 35 min, 01-10: 40 min, 02-01: 11 min, 02-02: 8 min, 02-03: 45 min, 02-04: 55 min, 02-05: 60 min, 02-06: 45 min, 02-07: 45 min, 02-08: 45 min, 02-09: 50 min, 02-10: 50 min, 02-11: 70 min, 03-01: 35 min, 03-02: 25 min, 03-03: 45 min, 03-04: 60 min, 03-05: 50 min, 03-06: 45 min, 03-07: 40 min, 03-08: 45 min, 03-09: 40 min)
 - Total execution time (pierwsze 30 planów; 04-01..04-03 bez pomiaru): ok. 15,2 h (fala 2 równolegle, ok. 1 h zegarowo bez przerwy na limit API)
 
@@ -87,9 +92,9 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- Faza 5: następny P4-012 według S5-v1, bez ponownej zgody na zakres. 8/62 pakietów, 13/267 części.
+- Faza 5: następny P4-013 według S5-v1, bez ponownej zgody na zakres. 9/62 pakietów, 14/267 części.
   Stała zgoda użytkownika z 2026-10-29: „Zapisz ten i kolejne commity testów”. Obowiązkowe commity testów
-  przed kodem są już autoryzowane; pozostałych commitów ani push ta zgoda nie obejmuje.
+  przed kodem są już autoryzowane; nowsza stała zgoda obejmuje też commity implementacji po każdym zadaniu; push wymaga osobnej prośby.
 - Faza 3 zamknięta (2026-10-24): wejście do fazy 4 to `phases/03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md` (R1-R8 i wpisy pojedyncze B-*, cytowane z prefiksem F3:); styki z fazami 1-2: R1 = F1:Z2 (+ F2:ZK1), R2 = F1:Z3, R6 = F2:U28, B-KT4 = F1:K2, B-KT5 = F1:K11, B-KT6 z F2:U2; wysokie: R1 (Sekwencja, Zakupy, Środek, Tort), R3 (W pamięci, warunkowo); 22 pytania „sprawdzić w partii” w §11 (pozycje 9-13 może częściowo uzupełnić udostępniona kopia bazy; brak pełnych czasów/przebiegów), propozycje do dokumentów w §12
 - Do fali 2 fazy 3 z 03-01/03-02: liczby brać z `03-01-CHECKS.md` (§1 stałe, §2 symulacja, §2.1 krzywa Kubków), limit i progi z `03-02-BASELINE.md`; baza dev ma tylko 9 wyników Za zasłoną, więc remisy na szczycie ocenia się ze stałych; nowe do oceny: limit mini-gier bez `turn()` odnawia się po wyniku rywala (`LobbyRoom.ts:375-376`), a w 7 grach ze stałym `key` nie (różny czas wolnego gracza w grze wieloosobowej)
 - Faza 3 zaplanowana (2026-10-24): wpisy z faz 1-2 do zamknięcia wymienia D-02 w `03-CONTEXT.md`; poniższe listy „Do fazy 3” są w nim zebrane
@@ -129,8 +134,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-29
-Stopped at: 05-08 zakończony; następny P4-012; FIX-02 otwarte
-Resume file: .planning/phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md#scope-p4-012
+Stopped at: 05-09 zakończony; następny P4-013; FIX-02 otwarte
+Resume file: .planning/phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md#scope-p4-013
 
 
 2026-10-29, 05-03/P4-002: dokumentacja i testy regresji przygotowane przed kodem. Typecheck PASS;
@@ -163,3 +168,10 @@ FIX-02 otwarte, następny P4-011 (Memory). Dowody: 05-07-SUMMARY.md.
 karty minimum 48 px. Pełne partie UI, ponowny montaż i rewanż PASS.
 Typy, 1947 testów i build PASS. 8/62 pakietów, 13/267 części, FIX-02 otwarte.
 Następny P4-012 (Kalambury). Dowody: 05-08-SUMMARY.md. Bez zmian zasad i commitów.
+
+
+2026-10-29, 05-09/P4-012: Kalambury, płótno mierzy rzeczywisty nagłówek i kontrolki obu ról.
+Zgadnij i Pasuję w 640 px, 2/6 osób, pełne partie obu trybów i /dev z WebSocket + refresh PASS.
+Typy, 1947 testów i build PASS. U02 fizyczny Android otwarty, symulacja viewportu PASS.
+9/62 pakietów, 14/267 części, FIX-02 otwarte; następny P4-013. Dowody: 05-09-SUMMARY.md.
+Stała zgoda użytkownika na commity po każdym zadaniu obowiązuje; push nadal wymaga prośby.
