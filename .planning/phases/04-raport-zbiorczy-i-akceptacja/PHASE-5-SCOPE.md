@@ -2,8 +2,8 @@
 
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
-**Stan wykonania: 13/62 pakietów, 25/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..018.
-Dowody: 05-01..14-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
+**Stan wykonania: 14/62 pakietów, 27/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..018 oraz P4-023.
+Dowody: 05-01..15-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
 ## 1. Pełne pokrycie i granice
 
@@ -47,7 +47,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 13 | [P4-016: Wyniki: dostępne Rewanż i Do lobby](#scope-p4-016) | P1 | 1 | wykonano 2026-10-29, 05-12 |
 | 14 | [P4-017: Kampus Tour: środek i akcje po skalowaniu](#scope-p4-017) | P1 | 4 | wykonano 2026-10-29, 05-13 |
 | 15 | [P4-018: Kampus Tour: decyzja bez czekania na marsz](#scope-p4-018) | P1 | 3 | wykonano 2026-10-29, 05-14 |
-| 16 | [P4-023: Quizy: walidacja i wierne czasy trafień](#scope-p4-023) | P1 | 2 | nie rozpoczęto |
+| 16 | [P4-023: Quizy: walidacja i wierne czasy trafień](#scope-p4-023) | P1 | 2 | wykonano 2026-10-29, TDD f127c6c, 05-15 |
 | 17 | [P4-036: Gęste plansze: wybór z potwierdzeniem](#scope-p4-036) | P2 | 1 | nie rozpoczęto |
 | 18 | [P4-007: Gomoku: plansza nad dolną akcją](#scope-p4-007) | P1 | 1 | nie rozpoczęto |
 | 19 | [P4-008: Statki: rozstawianie i bitwa w ekranie](#scope-p4-008) | P1 | 1 | nie rozpoczęto |
@@ -335,7 +335,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: brak. Dodatkowy warunek: G-DANE rozstrzygnięte w ZG4-v1 §3.2, z zachowaniem starej historii; pozostałe testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Najpierw dowód i testy granic wynikających z 30 s i blokady 1 s; odrzucić ułamki/nieosiągalne pomyłki, przyjąć dozwolone <150 ms i >5 s. Wynik, tie i liczba trafień zgodne w pokoju/rekordzie/turnieju; zła odpowiedź nadal blokuje 1 s.
 - Granice: Nie projektować progów pod obecne błędy UI ani dodawać arbitralnego antycheatu.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-29**, 2/2 części. [05-15-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-15-SUMMARY.md). TDD f127c6c przed kodem, typy/2049 testów/build, UI i sieciowy rekord/turniej PASS.
 
 <a id="scope-p4-036"></a>
 

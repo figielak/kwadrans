@@ -74,6 +74,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] [05-12-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-12-PLAN.md) - P4-016, dostępne akcje wyników; P4-015 pominięty do pomiaru U02
 - [x] [05-13-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-13-PLAN.md) - P4-017, Kampus Tour: środek, rozmiary kontrolek i podsumowanie; 4/4 odebrane
 - [x] [05-14-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-14-PLAN.md) - P4-018, Kampus Tour: przerywalny pokaz, prawdziwe rzuty i teleporty; 3/3 odebrane
+- [x] [05-15-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-15-PLAN.md) - P4-023, quizy: granice i zachowanie czasów; TDD f127c6c, 2/2 odebrane
 **UI hint**: yes
 
 ### Phase 3: Audyt balansu rekordów i trudności
@@ -135,7 +136,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
   3. `pnpm typecheck && pnpm test` przechodzi bez błędów po każdym pakiecie
   4. Ponowne sprawdzenie poprawionych wpisów tą samą metodą co w audycie nie znajduje ich w kodzie
   5. Żadne `id` gry się nie zmieniło, nie doszła żadna zależność bez zgody, `apps/server` dalej nie ma bezpośredniego `zod`
-**Plans**: 14 obecnie rozpisanych (13/14 odebranych; 05-11 wdrożony, oczekuje fizycznego U02); pełny zakres 62 pakietów w [S5-v1](phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md). Kolejne plany zgodnie z zatwierdzonym grafem, bez ponownej akceptacji zakresu.
+**Plans**: 15 obecnie rozpisanych (14/15 odebranych; 05-11 wdrożony, oczekuje fizycznego U02); pełny zakres 62 pakietów w [S5-v1](phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md). Kolejne plany zgodnie z zatwierdzonym grafem, bez ponownej akceptacji zakresu.
 
 - [x] [05-01-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-01-PLAN.md) - P4-001, wspólne normy i granice wyjątków, już zatwierdzone ZG4-v1
 - [x] [05-02-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-PLAN.md) - P4-027, Kalambury i zaufane źródło walidacji; TDD 50172d5, wdrożenie i odbiór zakończone
@@ -151,6 +152,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
 - [x] [05-12-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-12-PLAN.md) - P4-016, dostępne akcje wyników; P4-015 pominięty do pomiaru U02
 - [x] [05-13-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-13-PLAN.md) - P4-017, Kampus Tour: środek, rozmiary kontrolek i podsumowanie; 4/4 odebrane
 - [x] [05-14-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-14-PLAN.md) - P4-018, Kampus Tour: przerywalny pokaz, prawdziwe rzuty i teleporty; 3/3 odebrane
+- [x] [05-15-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-15-PLAN.md) - P4-023, quizy: granice i zachowanie czasów; TDD f127c6c, 2/2 odebrane
 **UI hint**: yes
 
 ## Progress
@@ -164,7 +166,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 | 2. Audyt wyglądu, animacji i wibracji | 11/11 | Complete | 2026-10-24 |
 | 3. Audyt balansu rekordów i trudności | 9/9 | Complete | 2026-10-24 |
 | 4. Raport zbiorczy i akceptacja | 5/5 | Complete; ZG4-v1, S5-v1, FIX-01 | 2026-10-26 |
-| 5. Poprawki zaakceptowanych rozbieżności | 13/14 obecnie rozpisanych | In progress; 13/62 pakietów, 25/267 części; P4-014/015 oczekują U02 | - |
+| 5. Poprawki zaakceptowanych rozbieżności | 14/15 obecnie rozpisanych | In progress; 14/62 pakietów, 27/267 części; P4-014/015 oczekują U02 | - |
 
 04-04 rozpoczęty 2026-10-26: przygotowano B4-001 (P4-005/006/012/013/016, warianty w DECISIONS §10). Użytkownik zatwierdził B4-001 („Zatweirdzam”): pięć pakietów i ich warianty. B4-002 (P4-003/004/036) oczekuje; liczba ukończonych planów nadal 3/5, FIX-01 otwarte.
 
@@ -266,3 +268,11 @@ MPK i karta bez fałszywego rzutu, nowy stan anuluje stary pokaz. Bez zmian kont
 Rzut 12/dublety/Kolokwium, oba układy, refresh/reduced motion i /dev przez WebSocket PASS.
 Typy, 1947 testów i build PASS. 13/62 pakietów, 25/267 części; FIX-02 otwarte. Następny P4-023.
 P4-014/015 oczekują odłożonych pomiarów. Dowody: 05-14-SUMMARY.md. Commit bez push.
+
+
+2026-10-29, 05-15/P4-023 zakończony: quizy, czasy int 0-30000 i suma <=30000,
+pomyłki int 0-30; każdy szybki/wolny czas zachowany. 200 to pula plansz, nie limit trafień.
+ZASADY-GIER i testy przed kodem, commit TDD f127c6c. Typy/2049 testów/build PASS.
+UI Quiz/retry/Dziesiątki, 201 trafień i rzeczywisty rekord/turniej przez WebSocket PASS.
+14/62 pakietów, 27/267 części; FIX-02 otwarte. Następny P4-036; P4-014/015 oczekują pomiarów.
+Dowody: 05-15-SUMMARY.md. Historia bez przeliczania; commit implementacji bez push.

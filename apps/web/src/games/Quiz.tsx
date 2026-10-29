@@ -1,6 +1,6 @@
-import { type LobbyPlayer, QUIZ_DURATION_MS, type QuizMove } from "@kwadrans/games";
+import { type LobbyPlayer, QUIZ_DURATION_MS, QUIZ_BLOCK_MS, type QuizMove } from "@kwadrans/games";
 import { Trophy } from "@phosphor-icons/react";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
 
 /** Wspólny przebieg Koloru liter, Liczenia, Innego elementu, Obrotu i Literówki: 30 s pytań z odpowiedziami do wyboru, pomyłka blokuje na chwilę. */
@@ -30,9 +30,7 @@ interface Props {
 }
 
 /** Bez kary losowe klepanie byłoby szybsze niż myślenie. */
-export const BLOCK_MS = 1000;
-export const MIN_ANSWER = 150;
-export const MAX_ANSWER = 5000;
+export const BLOCK_MS = QUIZ_BLOCK_MS;
 
 type Phase = "intro" | "play" | "wrong" | "sent";
 
@@ -162,56 +160,76 @@ export function Quiz({ view, me, players, ranking, winner, task, preview, questi
   const [index, setIndex] = useState(0);
   /** Ostatnio dotknięta odpowiedź: zielony błysk przy trafieniu, czerwony z potrząśnięciem przy pomyłce. */
   const [flash, setFlash] = useState<{ i: number; ok: boolean; id: number } | null>(null);
-  const run = useRef({ start: 0, shownAt: 0, times: [] as number[], errors: 0, streak: 0, timer: 0 });
+  const run = useRef({ start: 0, shownAt: 0, times: [] as number[], errors: 0, streak: 0, timer: 0, accepting: false, blockedUntil: 0, sent: false });
 
-  function next() {
-    run.current.shownAt = performance.now();
+  function next(at = Math.round(performance.now())) {
+    run.current.shownAt = at;
     setIndex((i) => i + 1);
     setPhase("play");
   }
 
   function start() {
-    const t = performance.now();
-    run.current = { start: t, shownAt: t, times: [], errors: 0, streak: 0, timer: 0 };
+    const t = Math.round(performance.now());
+    run.current = { start: t, shownAt: t, times: [], errors: 0, streak: 0, timer: 0, accepting: false, blockedUntil: 0, sent: false };
     setPhase("play");
   }
 
-  function answer(option: number) {
-    if (phase !== "play") return;
+  useLayoutEffect(() => {
+    run.current.accepting = phase === "play" && playing;
+  }, [phase, index, playing]);
+
+  function finish() {
     const r = run.current;
-    const took = Math.round(performance.now() - r.shownAt);
+    if (r.sent || !playing) return;
+    r.sent = true;
+    r.accepting = false;
+    clearTimeout(r.timer);
+    setPhase("sent");
+    onMove({ type: "result", times: [...r.times], errors: r.errors });
+  }
+
+  function answer(option: number) {
+    const r = run.current;
+    if (phase !== "play" || !playing || !r.accepting || r.sent) return;
+    const now = Math.round(performance.now());
+    if (now - r.start >= QUIZ_DURATION_MS) return finish();
+    if (now < r.blockedUntil) return;
+    r.accepting = false;
+    const took = now - r.shownAt;
     const ok = option === question(index).correct;
     setFlash((f) => ({ i: option, ok, id: (f?.id ?? 0) + 1 }));
     if (ok) {
       r.streak++;
-      // ponytail: odpowiedź po 5 s liczona jako 5 s, szybsza niż 150 ms przepada (serwer by ją odrzucił)
-      if (took >= MIN_ANSWER) r.times.push(Math.min(took, MAX_ANSWER));
-      next();
+      r.times.push(took);
+      next(now);
     } else {
       r.errors++;
       r.streak = 0;
       navigator.vibrate?.(60);
+      r.blockedUntil = now + BLOCK_MS;
       setPhase("wrong");
-      r.timer = window.setTimeout(retry ? () => setPhase("play") : next, BLOCK_MS);
+      r.timer = window.setTimeout(() => {
+        if (Math.round(performance.now()) - r.start >= QUIZ_DURATION_MS) return finish();
+        if (retry) setPhase("play");
+        else next();
+      }, BLOCK_MS);
     }
   }
 
   // Zegar gry: kończy partię po 30 s (czas do końca pokazuje nagłówek).
   useEffect(() => {
-    if (phase === "intro" || phase === "sent") return;
+    if (phase === "intro" || phase === "sent" || !playing) return;
     const id = setInterval(() => {
       const r = run.current;
-      if (performance.now() - r.start < QUIZ_DURATION_MS) return;
-      clearTimeout(r.timer);
-      setPhase("sent");
-      onMove({ type: "result", times: r.times, errors: r.errors });
+      if (Math.round(performance.now()) - r.start < QUIZ_DURATION_MS) return;
+      finish();
     }, 100);
     return () => clearInterval(id);
-  }, [phase === "intro" || phase === "sent"]);
+  }, [phase === "intro" || phase === "sent", playing]);
 
   useEffect(() => () => clearTimeout(run.current.timer), []);
 
-  const idle = phase === "intro" || phase === "sent";
+  const idle = phase === "intro" || phase === "sent" || !playing;
   useEffect(() => onRound?.(idle ? null : QUIZ_DURATION_MS), [idle]);
 
   if (!playing || phase === "sent") return <Results view={view} me={me} players={players} ranking={ranking} winner={winner} points={points} note={note} />;
