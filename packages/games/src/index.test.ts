@@ -7,7 +7,7 @@ import { createRng, GAMES, MINI_GAME_IDS, ROOM_MESSAGES, soloState } from "./ind
 // - partia się kończy, po końcu nikt nie może już nic zrobić, a wynik wskazuje tylko graczy tej partii,
 // - widok każdego gracza i obserwatora ("") da się wysłać jako JSON na każdym etapie,
 // - mini-gra podaje po końcu miejsca z remisami (`places`), zgodne z rankingiem i zwycięzcą,
-// - mini-gra podaje wynik każdego gracza do rankingu rekordów (`record`) jako liczbę skończoną.
+// - rekord jest skończony poza jawnym wyjątkiem: nowy timeout Schultego/Sudoku nie daje rekordu.
 
 const STRANGER = "obcy";
 const SEEDS = [1, 2, 3];
@@ -115,7 +115,7 @@ describe.each(CASES)("$name: kontrakt", ({ game, mode }) => {
         expect(order, `seed ${seed}: miejsca rosną wzdłuż rankingu`).toEqual([...order].sort((a, b) => a - b));
         expect(order[0]).toBe(1);
         expect(winner !== undefined, `seed ${seed}: zwycięzca tylko przy samodzielnym 1. miejscu`).toBe(n > 1 && order.filter((x) => x === 1).length === 1);
-        for (const p of players) expect(Number.isFinite(game.record!.score(s, p)), `seed ${seed}: rekord ${p}`).toBe(true);
+        for (const p of players) expect(Number.isFinite(game.record!.score(s, p)), `seed ${seed}: rekord ${p}`).toBe(!["schulte", "sudoku"].includes(game.id));
       }
       for (const move of seen.values()) {
         for (const player of [...players, STRANGER]) {
