@@ -80,15 +80,17 @@ export function Schulte({ view, me, players, ranking, onMove }: Props) {
       nick: p?.nick ?? "Gracz",
       color: p?.color,
       me: id === me,
-      score: res ? `${seconds(schulteTotal(res))} s${res.mistakes ? ` (+${(res.mistakes * SCHULTE_PENALTY_MS) / 1000} s kary)` : ""}` : null,
+      score: res?.completed === false ? "Nieukończono" : res ? `${seconds(schulteTotal(res))} s${res.mistakes ? ` (+${(res.mistakes * SCHULTE_PENALTY_MS) / 1000} s kary)` : ""}` : null,
     };
   });
 
   if (!playing || phase === "sent") {
     const series = rows.flatMap((r) => (view.results[r.id]?.splits.length ? [{ ...r, splits: view.results[r.id].splits }] : []));
     // Przewaga zwycięzcy nad drugim miejscem; przy remisie i w grze solo nie ma czego pokazywać.
-    const [first, second] = (ranking ?? []).map((id) => schulteTotal(view.results[id]));
-    const lead = second - first;
+    const [first, second] = (ranking ?? []).map((id) => view.results[id]);
+    const lead = first && second && first.completed !== false && second.completed !== false
+      ? schulteTotal(second) - schulteTotal(first)
+      : 0;
     return (
       <>
         <Scores rows={rows} />

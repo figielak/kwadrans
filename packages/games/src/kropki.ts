@@ -14,7 +14,7 @@ const MARGIN = 0.05;
 
 export type Dot = { x: number; y: number };
 
-/** Pusta lista = limit czasu (liczona jak same zera). */
+/** Pusta lista = limit czasu (najgorszy błąd każdej rundy). */
 export type Move = { type: "result"; answers: number[] } | { type: "progress"; done: number };
 
 export interface State {
@@ -75,7 +75,7 @@ export const kropki: GameDefinition<State, Move> = {
       ? { ...state, progress: { ...state.progress, [player]: move.done } }
       : {
           ...state,
-          results: { ...state.results, [player]: state.rounds.reduce((s, dots, i) => s + Math.abs((move.answers[i] ?? 0) - dots.length), 0) },
+          results: { ...state.results, [player]: state.rounds.reduce((s, dots, i) => s + (move.answers[i] === undefined ? Math.max(dots.length, 99 - dots.length) : Math.abs(move.answers[i] - dots.length)), 0) },
           answers: { ...state.answers, [player]: move.answers },
         },
 

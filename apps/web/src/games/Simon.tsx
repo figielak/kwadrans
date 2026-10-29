@@ -8,7 +8,7 @@ interface Props {
   me: string;
   players: LobbyPlayer[];
   ranking?: string[];
-  onMove: (move: { type: "result"; score: number }) => void;
+  onMove: (move: { type: "result" | "progress"; score: number }) => void;
 }
 
 /** Kolor i kształt, żeby dało się grać bez rozróżniania kolorów. */
@@ -44,9 +44,11 @@ type Phase = "intro" | "show" | "input" | "sent";
 export function Simon({ view, me, players, ranking, onMove }: Props) {
   const playing = view.players.includes(me) && !(me in view.results);
   const [phase, setPhase] = useState<Phase>("intro");
-  const [length, setLength] = useState(1);
+  const [length, setLength] = useState((view.progress?.[me] ?? 0) + 1);
   const [lit, setLit] = useState<number | null>(null);
   const step = useRef(0);
+  const accepting = useRef(false);
+  const sent = useRef(false);
   const timers = useRef<number[]>([]);
 
   const later = (ms: number, fn: () => void) => timers.current.push(window.setTimeout(fn, ms));
@@ -54,6 +56,7 @@ export function Simon({ view, me, players, ranking, onMove }: Props) {
 
   /** Odtwarza n pierwszych kroków, potem oddaje głos graczowi. */
   function show(n: number) {
+    accepting.current = false;
     setLength(n);
     setPhase("show");
     step.current = 0;
@@ -61,20 +64,25 @@ export function Simon({ view, me, players, ranking, onMove }: Props) {
       later(600 + i * (LIT_MS + GAP_MS), () => setLit(view.sequence[i]));
       later(600 + i * (LIT_MS + GAP_MS) + LIT_MS, () => setLit(null));
     }
-    later(600 + n * (LIT_MS + GAP_MS), () => setPhase("input"));
+    later(600 + n * (LIT_MS + GAP_MS), () => { accepting.current = true; setPhase("input"); });
   }
 
   function finish(score: number) {
+    if (!playing || sent.current) return;
+    sent.current = true;
+    accepting.current = false;
     setPhase("sent");
     onMove({ type: "result", score });
   }
 
   function press(pad: number) {
-    if (phase !== "input") return;
+    if (phase !== "input" || !playing || !accepting.current) return;
     setLit(pad);
     later(200, () => setLit(null));
     if (pad !== view.sequence[step.current]) return finish(length - 1);
     if (++step.current < length) return;
+    accepting.current = false;
+    onMove({ type: "progress", score: length });
     if (length === view.sequence.length) return finish(length);
     setPhase("show");
     later(400, () => show(length + 1));
@@ -94,7 +102,11 @@ export function Simon({ view, me, players, ranking, onMove }: Props) {
         time="Bez pośpiechu: co rundę dochodzi jeden krok"
         task="Zapamiętaj sekwencję i powtórz ją"
         score="Liczy się najdłuższa seria, pierwsza pomyłka kończy grę"
-        onStart={() => show(1)}
+        onStart={() => {
+          const completed = view.progress?.[me] ?? 0;
+          if (completed === view.sequence.length) finish(completed);
+          else show(completed + 1);
+        }}
       />
     );
   }

@@ -34,7 +34,7 @@ export interface State {
 
 export type View = State;
 
-const TURN_SECONDS = 60;
+const TURN_SECONDS = 80;
 
 /** Trafienia minus zaznaczenia spoza listy, nie mniej niż 0. Powtórzony indeks liczy się raz, indeks spoza półki to błąd. */
 export function score(listed: number[], picked: number[]): Omit<Result, "ms"> {

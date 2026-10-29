@@ -7,6 +7,9 @@ export type Rng = () => number;
 
 export type GameResult = { winner?: PlayerId; ranking?: PlayerId[] };
 
+/** Zaufane źródło z miejsca wywołania w serwerze, nigdy z treści ruchu klienta. */
+export type MoveContext = { source: "client" | "timeout" };
+
 export interface GameDefinition<State, Move> {
   id: string;
   name: string;
@@ -18,7 +21,8 @@ export interface GameDefinition<State, Move> {
   modes?: { id: string; name: string; hint: string; default?: boolean }[];
   /** `mode` to id z `modes` wybrane przez gospodarza; nieznane albo brak oznacza tryb domyślny. */
   setup(players: PlayerId[], rng: Rng, mode?: string): State;
-  validateMove(state: State, player: PlayerId, move: Move): boolean;
+  /** Brak kontekstu oznacza klienta. Ruchy po limicie również wymagają walidacji. */
+  validateMove(state: State, player: PlayerId, move: Move, context?: MoveContext): boolean;
   applyMove(state: State, player: PlayerId, move: Move, rng: Rng): State;
   /** Widok stanu dla konkretnego gracza: tu ukrywamy informacje. Obserwator dostaje widok dla "". */
   playerView(state: State, player: PlayerId): unknown;
@@ -77,6 +81,13 @@ export function rankResults<R>(players: PlayerId[], results: Record<PlayerId, R>
 /** Miejsca z remisami: 1 + liczba graczy ze ściśle lepszym wynikiem. Tylko po końcu gry (każdy ma wynik). */
 export function rankPlaces<R>(players: PlayerId[], results: Record<PlayerId, R>, compare: (a: R, b: R) => number): Record<PlayerId, number> {
   return Object.fromEntries(players.map((p) => [p, 1 + players.filter((q) => compare(results[q], results[p]) < 0).length]));
+}
+
+/** Nieukończone nowe partie są na końcu i remisują. Brak znacznika w historii nie zmienia wyniku. */
+export function byCompletion<R extends { completed?: boolean }>(compare: (a: R, b: R) => number): (a: R, b: R) => number {
+  return (a, b) => a.completed === false || b.completed === false
+    ? Number(a.completed === false) - Number(b.completed === false)
+    : compare(a, b);
 }
 
 type Ranked<S> = { isOver: (state: S) => GameResult | null; places: (state: S) => Record<PlayerId, number> };

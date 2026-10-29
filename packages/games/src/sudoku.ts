@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type GameDefinition, type PlayerId, type Rng, ranked, shuffle } from "./core.ts";
+import { byCompletion, type GameDefinition, type PlayerId, type Rng, ranked, shuffle } from "./core.ts";
 
 const SIZE = 4;
 const CELLS = SIZE * SIZE;
@@ -11,7 +11,8 @@ export const PENALTY_MS = 5000;
 const MIN_MS = BLANKS * 300;
 const TURN_SECONDS = 120;
 
-export type Result = { ms: number; mistakes: number };
+/** Brak completed występuje tylko w historycznym detail; nie odtwarzamy statusu. */
+export type Result = { ms: number; mistakes: number; completed?: boolean };
 export type Move = ({ type: "result" } & Result) | { type: "progress"; filled: number };
 
 export interface State {
@@ -85,29 +86,32 @@ export const sudoku: GameDefinition<State, Move> = {
   // Stały klucz: ruch progress nie odnawia limitu, nawet gdy gra już tylko jedna osoba.
   turn: () => ({ key: "run", seconds: TURN_SECONDS }),
   moveSchema: z.discriminatedUnion("type", [
-    z.object({ type: z.literal("result"), ms: z.number(), mistakes: z.number() }),
+    z.object({ type: z.literal("result"), ms: z.number(), mistakes: z.number(), completed: z.boolean().optional() }),
     z.object({ type: z.literal("progress"), filled: z.number() }),
   ]),
 
   setup: (players, rng) => ({ players, ...makePuzzle(rng), results: {}, progress: {} }),
 
-  validateMove: (state, player, move) =>
+  validateMove: (state, player, move, context) =>
     state.players.includes(player) &&
     !(player in state.results) &&
     (move.type === "progress"
       ? Number.isInteger(move.filled) && move.filled >= 1 && move.filled < BLANKS
-      : move.ms >= MIN_MS && move.ms <= TURN_SECONDS * 1000 && Number.isInteger(move.mistakes) && move.mistakes >= 0),
+      : (context?.source === "timeout"
+          ? move.completed === false && move.ms === TURN_SECONDS * 1000 && move.mistakes === 0
+          : move.completed !== false) &&
+        move.ms >= MIN_MS && move.ms <= TURN_SECONDS * 1000 && Number.isInteger(move.mistakes) && move.mistakes >= 0),
 
   applyMove: (state, player, move) =>
     move.type === "progress"
       ? { ...state, progress: { ...state.progress, [player]: move.filled } }
-      : { ...state, results: { ...state.results, [player]: { ms: Math.round(move.ms), mistakes: move.mistakes } } },
+      : { ...state, results: { ...state.results, [player]: { ms: Math.round(move.ms), mistakes: move.mistakes, completed: move.completed !== false } } },
 
   playerView: (state): View => state,
 
-  ...ranked((state: State) => state.results, (a, b) => total(a) - total(b), { lower: true, score: total }),
+  ...ranked((state: State) => state.results, byCompletion((a, b) => total(a) - total(b)), { lower: true, score: (r) => r.completed === false ? Infinity : total(r) }),
 
   waitingFor: (state) => state.players.filter((p) => !(p in state.results)),
 
-  timeoutMove: () => ({ type: "result", ms: TURN_SECONDS * 1000, mistakes: 0 }),
+  timeoutMove: () => ({ type: "result", ms: TURN_SECONDS * 1000, mistakes: 0, completed: false }),
 };

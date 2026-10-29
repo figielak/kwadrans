@@ -1,5 +1,5 @@
 import { type LobbyPlayer, W_PAMIECI_MAX_ANSWER, W_PAMIECI_ROUNDS, W_PAMIECI_SHOW_MS, type WPamieciRound, type WPamieciView, wPamieciValue } from "@kwadrans/games";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
 
 interface Props {
@@ -45,6 +45,7 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
   /** Pokazywana pozycja ciągu: 0 to liczba startowa. */
   const [pos, setPos] = useState(0);
   const [input, setInput] = useState("");
+  const submitted = useRef(false);
   const color = players.find((p) => p.id === me)?.color;
 
   const index = phase === "reveal" ? answers.length - 1 : answers.length;
@@ -66,25 +67,28 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
   }, [phase, pos]);
 
   function send(all: number[]) {
-    setPhase("sent");
+    if (submitted.current || !playing) return;
+    submitted.current = true;
     onMove({ type: "result", answers: all });
   }
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    if (input === "") return;
+    if (phase !== "answer" || input === "" || submitted.current || !playing) return;
     const all = [...answers, Number(input)];
     setAnswers(all);
     setInput("");
     if (all.at(-1) !== wPamieciValue(round)) {
       navigator.vibrate?.(60);
+      send(all);
       return setPhase("reveal");
     }
     if (all.length < W_PAMIECI_ROUNDS) return setPhase("wait");
     send(all);
+    setPhase("sent");
   }
 
-  if (!playing || phase === "sent") {
+  if (phase !== "reveal" && (!playing || phase === "sent")) {
     const rows = (ranking ?? view.players).map((id) => {
       const p = players.find((pl) => pl.id === id);
       const r = view.results[id];
@@ -166,7 +170,7 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
         )}
       </div>
       {phase === "reveal" && (
-        <button type="button" className="btn w-full text-bg" style={{ backgroundColor: color }} autoFocus onClick={() => send(answers)}>
+        <button type="button" className="btn w-full text-bg" style={{ backgroundColor: color }} autoFocus onClick={() => setPhase("sent")}>
           Wyniki
         </button>
       )}

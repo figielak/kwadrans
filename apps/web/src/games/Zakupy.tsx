@@ -42,6 +42,9 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
   /** Pasek pokazu startuje od pełnego i po zamontowaniu przechodzi do zera. */
   const [draining, setDraining] = useState(false);
   const start = useRef(0);
+  // Synchroniczne dane dla timera i zdarzeń z tej samej klatki, zanim React odmaluje ekran.
+  const selected = useRef<number[]>([]);
+  const submitted = useRef(false);
   const color = players.find((p) => p.id === me)?.color;
 
   useEffect(() => {
@@ -55,20 +58,27 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
   }, [phase]);
 
   useEffect(() => {
-    if (phase !== "pick") return;
+    if (phase !== "pick" || !playing) return;
     const id = setInterval(() => setElapsed(performance.now() - start.current), 200);
-    return () => clearInterval(id);
-  }, [phase]);
+    const deadline = setTimeout(() => done(), Math.max(0, ZAKUPY_MAX_MS - (performance.now() - start.current)));
+    return () => {
+      clearInterval(id);
+      clearTimeout(deadline);
+    };
+  }, [phase, playing]);
 
   function toggle(i: number) {
-    if (phase !== "pick") return;
-    setPicked((list) => (list.includes(i) ? list.filter((n) => n !== i) : [...list, i]));
+    if (phase !== "pick" || !playing || submitted.current) return;
+    const list = selected.current;
+    selected.current = list.includes(i) ? list.filter((n) => n !== i) : [...list, i];
+    setPicked(selected.current);
   }
 
   function done() {
-    if (phase !== "pick") return;
+    if (phase !== "pick" || !playing || submitted.current) return;
+    submitted.current = true;
     setPhase("sent");
-    onMove({ type: "result", picked, ms: Math.min(ZAKUPY_MAX_MS, Math.round(performance.now() - start.current)) });
+    onMove({ type: "result", picked: selected.current, ms: Math.min(ZAKUPY_MAX_MS, Math.round(performance.now() - start.current)) });
   }
 
   if (!playing || phase === "sent") {
@@ -172,7 +182,7 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
           );
         })}
       </div>
-      <button type="button" className="btn text-bg" style={{ backgroundColor: color }} onClick={done}>
+      <button type="button" className="btn text-bg" style={{ backgroundColor: color }} onPointerDown={done} onClick={(e) => e.detail === 0 && done()}>
         Gotowe
       </button>
       <p className="text-center text-sm text-fg-muted">Zaznacz przedmioty z listy. Każdy zły zabiera punkt.</p>

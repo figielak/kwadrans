@@ -1,5 +1,5 @@
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, standing, standings, type StatkiView, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
@@ -116,9 +116,12 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
   // Sudoku: ile pól gracz już wypełnił.
   const sudoku = def.id === "sudoku" && view.phase === "playing" ? (game.view as SudokuView) : null;
   const rok = def.id === "rok" && view.phase === "playing" ? (game.view as RokView) : null;
+  const simon = def.id === "simon" && view.phase === "playing" ? (game.view as SimonView) : null;
   /** Postęp gracza w mini-grze z ruchem `progress`; po oddaniu wyniku komplet (w Wieży wysokość z wyniku). */
   const progressOf = (id: string): { done: number; total: number } | null =>
-    schulte
+    simon
+      ? { done: id in simon.results ? simon.sequence.length : (simon.progress?.[id] ?? 0), total: simon.sequence.length }
+      : schulte
       ? { done: id in schulte.results ? SCHULTE_LAST : (schulte.progress[id] ?? 0), total: SCHULTE_LAST }
       : kropki
         ? { done: id in kropki.results ? kropki.rounds.length : (kropki.progress[id] ?? 0), total: kropki.rounds.length }
@@ -412,7 +415,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           </ol>
         )}
 
-        {view.phase === "over" && def.record && game.result?.ranking && records.after && (
+        {view.phase === "over" && def.record && game.result?.ranking && records.after && (!seated || Number.isFinite(def.record.score(game.view, me))) && (
           <RecordPanel
             gameId={def.id}
             before={records.before}

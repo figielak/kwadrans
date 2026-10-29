@@ -92,14 +92,16 @@ export function Sudoku({ view, me, players, ranking, onMove }: Props) {
       nick: p?.nick ?? "Gracz",
       color: p?.color,
       me: id === me,
-      score: res ? `${seconds(sudokuTotal(res))} s${res.mistakes ? ` (+${(res.mistakes * SUDOKU_PENALTY_MS) / 1000} s kary)` : ""}` : null,
+      score: res?.completed === false ? "Nieukończono" : res ? `${seconds(sudokuTotal(res))} s${res.mistakes ? ` (+${(res.mistakes * SUDOKU_PENALTY_MS) / 1000} s kary)` : ""}` : null,
     };
   });
 
   if (!playing || phase === "sent") {
     // Przewaga zwycięzcy nad drugim miejscem; przy remisie i w grze solo nie ma czego pokazywać.
-    const [first, second] = (ranking ?? []).map((id) => sudokuTotal(view.results[id]));
-    const lead = second - first;
+    const [first, second] = (ranking ?? []).map((id) => view.results[id]);
+    const lead = first && second && first.completed !== false && second.completed !== false
+      ? sudokuTotal(second) - sudokuTotal(first)
+      : 0;
     return (
       <>
         <Scores rows={rows} />
