@@ -100,7 +100,7 @@ Do skopiowania: stały szkielet zamiast dowolnego opisu; ikony `fg-muted` w roli
 
 ### 3.4 Nagłówek partii i pasek statystyk (`Game.tsx`, `Stats` w `ui.tsx`)
 
-Tytuł gry w kolorze gracza, pod nim cienki pasek limitu (6 px, pigułka) w tym samym kolorze i sekundy mono;
+Status gry w kolorze gracza, pod nim kropki graczy, cienki pasek limitu (6 px, pigułka) i sekundy mono;
 tło strony przyjmuje ten sam odcień przez `--ambient`. Niżej `Stats`: trzy liczby mono 18 px, każda pod własnym `.label`,
 skrajne wyrównane do krawędzi. Pole gry zajmuje całą resztę ekranu i jest jedyną dużą plamą koloru.
 
@@ -183,8 +183,17 @@ z [ZASADY.md §4](ZASADY.md#4-spójność-wyglądu); lokalne wyjątki formularzy
   bo graczy może być 6, a `Stats` mieści trzy liczby. Każdy ma jedną liczbę, więc zapis w linii zostaje czytelny.
 - **Kampus Tour** ma własny układ poziomy, cienie pod oknami i pionkami oraz przyciski budowy o wysokości 44 px (plansza nie zostawia miejsca na 48).
 
+W aktywnej partii wspólny nagłówek pokazuje status oraz jeden wiersz kropek graczy i limitu czasu.
+Dotknięcie kropek rozwija pełne nicki, wygrane i statystyki gry; rozłączenie pozostaje oznaczone także w zwiniętym widoku.
+Przy kilku oczekujących zwinięty status podaje ich liczbę, rozwinięty pełne nicki. Własne nagłówki pozostają bez zmian.
+Zmniejszenie nagłówka nie zastępuje osobnego odbioru geometrii plansz.
+
 Rozbieżności do decyzji (nie są wzorem dla nowych ekranów):
 
 - **Gry główne na 360×640.** Rozstawianie w Statkach (około 770 px), Gomoku (około 670 px) i Państwa-miasta wymagają przewinięcia;
   są to rozbieżności do poprawy, a nie zgoda na przewijanie plansz. Także mini-gry wymagają osobnego odbioru;
   nie zakładamy, że każda mieści się w 640 px. Przewijanie list poza partią jest dopuszczone powyżej.
+
+Odbiór Memory po P4-006/P4-011: Mała, Średnia i Duża mieszczą planszę oraz instrukcję na 360×640
+przy 2/6 graczach, także u obserwatora i z długimi nickami. Odstęp plansza–instrukcja to 8 px;
+karty mają odpowiednio 76×76, 76×60,8 i 48×48 px przy szerokości 360 px. To pomiar zwiniętego nagłówka.

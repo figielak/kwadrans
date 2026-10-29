@@ -56,7 +56,7 @@ export function Memory({ view, players, canMove, onMove }: Props) {
   const tall = view.faces.length / view.cols > view.cols;
 
   return (
-    <div className="flex flex-1 flex-col gap-3">
+    <div className="flex flex-1 flex-col gap-2">
       <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${view.cols}, minmax(0, 1fr))` }}>
         {view.faces.map((face, i) => {
           const owner = view.owner[i];

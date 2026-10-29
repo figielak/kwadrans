@@ -2,8 +2,8 @@
 
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
-**Stan wykonania: 6/62 pakietów, 11/267 części poprawek.** Zakończono P4-001, P4-027 i P4-002..005.
-Dowody: 05-01..06-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
+**Stan wykonania: 8/62 pakietów, 13/267 części poprawek.** Zakończono P4-001, P4-027, P4-002..006 i P4-011.
+Dowody: 05-01..08-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
 ## 1. Pełne pokrycie i granice
 
@@ -38,8 +38,8 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 4 | [P4-003: Zakupy: pełny czas i pomiar zatwierdzenia](#scope-p4-003) | P1 | 2 | wykonano 2026-10-29, testy 7045659/76455c9 |
 | 5 | [P4-004: Sekwencja: zachowanie zaliczonej serii](#scope-p4-004) | P1 | 1 | wykonano 2026-10-29, testy f3e7958 |
 | 6 | [P4-005: W pamięci: oddanie bez dodatkowego przycisku](#scope-p4-005) | P1 | 1 | wykonano 2026-10-29, testy 28196b5 |
-| 7 | [P4-006: Wspólny nagłówek aktywnej partii](#scope-p4-006) | P1 | 1 | nie rozpoczęto |
-| 8 | [P4-011: Memory: wszystkie rzędy kart](#scope-p4-011) | P1 | 1 | nie rozpoczęto |
+| 7 | [P4-006: Wspólny nagłówek aktywnej partii](#scope-p4-006) | P1 | 1 | wykonano 2026-10-29, 05-07 |
+| 8 | [P4-011: Memory: wszystkie rzędy kart](#scope-p4-011) | P1 | 1 | wykonano 2026-10-29, 05-08 |
 | 9 | [P4-012: Kalambury: zgadywanie i Pasuję](#scope-p4-012) | P1 | 1 | nie rozpoczęto |
 | 10 | [P4-013: Koło: zakończenie prób widoczne](#scope-p4-013) | P1 | 1 | nie rozpoczęto |
 | 11 | [P4-014: Państwa-miasta: formularz i tabela głosowania](#scope-p4-014) | P1 | 3 | nie rozpoczęto |
@@ -206,10 +206,10 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zachowanie: Zwinąć pigułki i odliczanie tak, by nagłówek zostawiał miejsce planszy, zachowując status, wyniki i rozłączenie. Własne nagłówki nie są przebudowywane.
 - Pliki: apps/web/src/screens/Game.tsx:233-338; ui.tsx wyłącznie wykorzystanie/małe rozszerzenie wzorca GameDots.
 - Zasady/dokumenty: **nie: układ, bez utraty informacji**. Dokumenty: DESIGN §6.
-- Zależności i rozpoczęcie: brak. Dodatkowy warunek: B4-001 zaakceptowana; pozostałe warunki odbioru karty obowiązują, wykonania jeszcze nie rozpoczęto.
+- Zależności i rozpoczęcie: brak. Dodatkowy warunek: B4-001 zaakceptowana; pozostałe warunki odbioru karty obowiązują, warunek spełniony.
 - Odbiór: T + UI. 360×640 przy 2/4/6 osobach i długich nickach: zwinięty nagłówek mieści status i timer, rozwinięcie pokazuje pełne wygrane i postęp. Pomiar przed/po E01-E06; stan obserwatora, refresh, rozłączenie i koniec. Bez zasłaniania pól samym nagłówkiem.
 - Granice: Nie obiecywać, że sam nagłówek rozwiąże geometrię każdej planszy; akcje i plansze mają osobnych właścicieli.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-29**. 1/1 części; [05-07-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-07-SUMMARY.md), typy, 1947 testów, build i UI PASS.
 
 <a id="scope-p4-011"></a>
 
@@ -223,7 +223,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-006](PACKAGES.md#p4-006). Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Wszystkie 6 rzędów Średniej i instrukcja widoczne bez scroll; Mała/Duża również przy min/max graczy. Porównać E01/E02 przy 360×640. Minimalna/maksymalna liczba miejsc + obserwator, wszystkie tryby, własny/cudzy ruch, odświeżenie i rewanż. Brak zmiany reguł ruchu.
 - Granice: Nie zmniejszać hitboxów poniżej wybranego wyjątku. Zmieniony nagłówek może usunąć potrzebę części korekt; wówczas zapisać pomiar i nie dodawać zbędnego CSS.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-29**. 1/1 części, [05-08-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-08-SUMMARY.md). Wszystkie tryby 2/6 + obserwator, 48 px, typy, 1947 testów i build PASS.
 
 <a id="scope-p4-012"></a>
 

@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 05-01..06 wykonane, 6/62 pakietów, 11/267 części; typy, 1947 testów, build i UI PASS; następny P4-006 |
+| FIX-02 | Phase 5 | In progress; 05-01..08 wykonane, 8/62 pakietów, 13/267 części; typy, 1947 testów, build i UI PASS; następny P4-012 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -148,3 +148,17 @@ Osobne commity testów 7045659/76455c9, f3e7958 i 28196b5; dokumentacja przed ko
 Typy, 1947 testów, build i UI PASS. Dowody w 05-04-SUMMARY.md, 05-05-SUMMARY.md i 05-06-SUMMARY.md.
 6/62 pakietów i 11/267 części; FIX-02 otwarte, następny P4-006. Wcześniejsze wpisy RED są historią.
 Stała zgoda użytkownika na obowiązkowe kolejne commity testów obowiązuje, bez ponownych pytań.
+
+
+2026-10-29, 05-07/P4-006 zakończony: wspólny zwijany nagłówek aktywnej partii.
+Pomiar E01-E06: 106 px zamiast 142-274 px; 2/4/6 osób, długie nicki, obserwator,
+rozłączenie, rozwinięcie klawiaturą, ponowny montaż i koniec sprawdzone na komponencie.
+Typy, 1947 testów i build PASS. Bez zmian zasad i commitów; 7/62 pakietów, 12/267 części.
+FIX-02 otwarte, następny P4-011 (Memory). Dowody: 05-07-SUMMARY.md.
+
+
+2026-10-29, 05-08/P4-011 zakończony: Memory, odstęp plansza–instrukcja 8 zamiast 12 px.
+18 konfiguracji trzech trybów, 2/6 osób i ról gracz/rywal/obserwator: dokument 360×640,
+karty minimum 48 px. Pełne partie UI, ponowny montaż i rewanż PASS.
+Typy, 1947 testów i build PASS. 8/62 pakietów, 13/267 części, FIX-02 otwarte.
+Następny P4-012 (Kalambury). Dowody: 05-08-SUMMARY.md. Bez zmian zasad i commitów.

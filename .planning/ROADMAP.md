@@ -66,6 +66,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 02-09-PLAN.md — mini-gry z odchyłką w rundach (9 gier): `Szacowanie.tsx` raz, odsłona wyniku, przecinek dziesiętny, tabele rund na 360 px (fala 2)
 - [x] 02-10-PLAN.md — mini-gry do pierwszej pomyłki (4 gry): animacje kubków, kulek i klocków z `reducedMotion`, przerywanie animacji nowym stanem (fala 2)
 - [x] 02-11-PLAN.md — porównanie między grami (ta sama sytuacja = ta sama animacja, te same słowa) i scalenie w `FINDINGS.md` (fala 3)
+- [x] [05-07-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-07-PLAN.md) - P4-006, wspólny zwijany nagłówek; pomiar przed/po i odbiór UI PASS
+- [x] [05-08-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-08-PLAN.md) - P4-011, Memory: wszystkie tryby mieszczą się w ekranie, minimum 48 px; UI i testy PASS
 **UI hint**: yes
 
 ### Phase 3: Audyt balansu rekordów i trudności
@@ -127,7 +129,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
   3. `pnpm typecheck && pnpm test` przechodzi bez błędów po każdym pakiecie
   4. Ponowne sprawdzenie poprawionych wpisów tą samą metodą co w audycie nie znajduje ich w kodzie
   5. Żadne `id` gry się nie zmieniło, nie doszła żadna zależność bez zgody, `apps/server` dalej nie ma bezpośredniego `zod`
-**Plans**: 6 obecnie rozpisane (6/6 wykonane); pełny zakres 62 pakietów w [S5-v1](phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md). Kolejne plany zgodnie z zatwierdzonym grafem, bez ponownej akceptacji zakresu.
+**Plans**: 8 obecnie rozpisane (8/8 wykonane); pełny zakres 62 pakietów w [S5-v1](phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md). Kolejne plany zgodnie z zatwierdzonym grafem, bez ponownej akceptacji zakresu.
 
 - [x] [05-01-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-01-PLAN.md) - P4-001, wspólne normy i granice wyjątków, już zatwierdzone ZG4-v1
 - [x] [05-02-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-PLAN.md) - P4-027, Kalambury i zaufane źródło walidacji; TDD 50172d5, wdrożenie i odbiór zakończone
@@ -135,6 +137,8 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
 - [x] [05-04-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-04-PLAN.md) - P4-003, Zakupy: 80 s, autozapis i pointerdown; wykonano po TDD 7045659/76455c9
 - [x] [05-05-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-05-PLAN.md) - P4-004, Sekwencja: zaliczona seria po limicie; wykonano po TDD f3e7958
 - [x] [05-06-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-06-PLAN.md) - P4-005, W pamięci: wynik natychmiast; wykonano po regresji 28196b5
+- [x] [05-07-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-07-PLAN.md) - P4-006, wspólny zwijany nagłówek; pomiar przed/po i odbiór UI PASS
+- [x] [05-08-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-08-PLAN.md) - P4-011, Memory: wszystkie tryby mieszczą się w ekranie, minimum 48 px; UI i testy PASS
 **UI hint**: yes
 
 ## Progress
@@ -148,7 +152,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 | 2. Audyt wyglądu, animacji i wibracji | 11/11 | Complete | 2026-10-24 |
 | 3. Audyt balansu rekordów i trudności | 9/9 | Complete | 2026-10-24 |
 | 4. Raport zbiorczy i akceptacja | 5/5 | Complete; ZG4-v1, S5-v1, FIX-01 | 2026-10-26 |
-| 5. Poprawki zaakceptowanych rozbieżności | 6/6 obecnie rozpisane | In progress; wykonano 6/62 pakietów, 11/267 części poprawek | - |
+| 5. Poprawki zaakceptowanych rozbieżności | 8/8 obecnie rozpisane | In progress; wykonano 8/62 pakietów, 13/267 części poprawek | - |
 
 04-04 rozpoczęty 2026-10-26: przygotowano B4-001 (P4-005/006/012/013/016, warianty w DECISIONS §10). Użytkownik zatwierdził B4-001 („Zatweirdzam”): pięć pakietów i ich warianty. B4-002 (P4-003/004/036) oczekuje; liczba ukończonych planów nadal 3/5, FIX-01 otwarte.
 
@@ -194,3 +198,17 @@ Osobne commity testów 7045659/76455c9, f3e7958 i 28196b5; dokumentacja przed ko
 Typy, 1947 testów, build i UI PASS. Dowody w 05-04-SUMMARY.md, 05-05-SUMMARY.md i 05-06-SUMMARY.md.
 6/62 pakietów i 11/267 części; FIX-02 otwarte, następny P4-006. Wcześniejsze wpisy RED są historią.
 Stała zgoda użytkownika na obowiązkowe kolejne commity testów obowiązuje, bez ponownych pytań.
+
+
+2026-10-29, 05-07/P4-006 zakończony: wspólny zwijany nagłówek aktywnej partii.
+Pomiar E01-E06: 106 px zamiast 142-274 px; 2/4/6 osób, długie nicki, obserwator,
+rozłączenie, rozwinięcie klawiaturą, ponowny montaż i koniec sprawdzone na komponencie.
+Typy, 1947 testów i build PASS. Bez zmian zasad i commitów; 7/62 pakietów, 12/267 części.
+FIX-02 otwarte, następny P4-011 (Memory). Dowody: 05-07-SUMMARY.md.
+
+
+2026-10-29, 05-08/P4-011 zakończony: Memory, odstęp plansza–instrukcja 8 zamiast 12 px.
+18 konfiguracji trzech trybów, 2/6 osób i ról gracz/rywal/obserwator: dokument 360×640,
+karty minimum 48 px. Pełne partie UI, ponowny montaż i rewanż PASS.
+Typy, 1947 testów i build PASS. 8/62 pakietów, 13/267 części, FIX-02 otwarte.
+Następny P4-012 (Kalambury). Dowody: 05-08-SUMMARY.md. Bez zmian zasad i commitów.
