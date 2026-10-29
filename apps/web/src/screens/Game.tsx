@@ -87,6 +87,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
         me={me}
         players={view.players}
         dropped={dropped}
+        scores={view.scores}
+        seated={seated}
         canMove={myTurn}
         result={game.result}
         onMove={(move) => send("move", move)}

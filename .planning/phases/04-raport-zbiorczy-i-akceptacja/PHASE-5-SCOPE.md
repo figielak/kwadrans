@@ -2,8 +2,8 @@
 
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
-**Stan wykonania: 11/62 pakietów, 18/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016.
-Dowody: 05-01..12-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
+**Stan wykonania: 12/62 pakietów, 22/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..017.
+Dowody: 05-01..13-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
 ## 1. Pełne pokrycie i granice
 
@@ -45,7 +45,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 11 | [P4-014: Państwa-miasta: formularz i tabela głosowania](#scope-p4-014) | P1 | 3 | wdrożono 2026-10-29; 2/3 odebrane, U02 fizyczne oczekuje |
 | 12 | [P4-015: Kropki, Kąt, W pamięci: pole przy klawiaturze](#scope-p4-015) | P1 | 3 | oczekuje pomiaru U02 telefonu przed wyborem poprawki |
 | 13 | [P4-016: Wyniki: dostępne Rewanż i Do lobby](#scope-p4-016) | P1 | 1 | wykonano 2026-10-29, 05-12 |
-| 14 | [P4-017: Kampus Tour: środek i akcje po skalowaniu](#scope-p4-017) | P1 | 4 | nie rozpoczęto |
+| 14 | [P4-017: Kampus Tour: środek i akcje po skalowaniu](#scope-p4-017) | P1 | 4 | wykonano 2026-10-29, 05-13 |
 | 15 | [P4-018: Kampus Tour: decyzja bez czekania na marsz](#scope-p4-018) | P1 | 3 | nie rozpoczęto |
 | 16 | [P4-023: Quizy: walidacja i wierne czasy trafień](#scope-p4-023) | P1 | 2 | nie rozpoczęto |
 | 17 | [P4-036: Gęste plansze: wybór z potwierdzeniem](#scope-p4-036) | P2 | 1 | nie rozpoczęto |
@@ -307,7 +307,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: brak. Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Powtórzyć E13-E15 w 360×640 obróconym i 640×360: buy, roll z MPK, over i dialog. Runda, licznik, log oraz każdy przycisk dostępne, rzeczywisty rect min.48 px po zoom. Pick/build/sell/juwenalia, 2/4 osoby+obserwator, refresh i rewanż.
 - Granice: Powiększenie przycisków nie może wrócić do overflow; najpierw pomiar budżetu wysokości. Nie zmieniać ekonomii.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-29**, 4/4 części. [05-13-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-13-SUMMARY.md). E13-E15, kontrolki po zoom >=48 px, 2/4 i obserwator, typy, 1947 testów i build PASS.
 
 <a id="scope-p4-018"></a>
 
@@ -1059,3 +1059,5 @@ Pierwszy plan wykonawczy: [05-01: P4-001, wspólne normy](../05-poprawki-zaakcep
 Faza 4 jest zakończona, faza 5 ma **wykonany P4-001 (1/62 pakietów)**; pozostałe pakiety nie rozpoczęte. Następny plan 05-02/P4-027 przygotowany. FIX-02 można zakończyć dopiero po wykonaniu i udokumentowaniu odbioru wszystkich przypisanych części oraz wymaganych testów; niewykonanych U nie ukrywać w podsumowaniu.
 
 2026-10-26, upoważnienie Git: użytkownik „Tak” zezwolił na konkretny commit pięciu plików TDD 05-02 (`50172d5`) i dalszą implementację. To spełniło warunek kolejności P4-027; nie zmienia domyślnej zasady commitów na prośbę ani zakazu push/produkcji.
+
+2026-10-29: użytkownik odłożył pomiar P4-015 do później i polecił kontynuować pozostałe pakiety.

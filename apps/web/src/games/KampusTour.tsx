@@ -54,7 +54,7 @@ import {
   type GameResult,
   type LobbyPlayer,
 } from "@kwadrans/games";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
 import { KampusSummary } from "./KampusSummary.tsx";
 
 interface Props {
@@ -62,6 +62,8 @@ interface Props {
   me: string;
   players: LobbyPlayer[];
   dropped: boolean;
+  scores: Record<string, number>;
+  seated: boolean;
   canMove: boolean;
   /** Wynik partii (także walkower bez rankingu); null w trakcie gry. */
   result: GameResult | null;
@@ -342,7 +344,7 @@ function cell(i: number): [number, number] {
   return [0, 32 - i];
 }
 
-export function KampusTour({ view, me, players, dropped, canMove, result, onMove, timer, actions }: Props) {
+export function KampusTour({ view, me, players, dropped, scores, seated, canMove, result, onMove, timer, actions }: Props) {
   const [selected, setSelected] = useState<number | null>(null);
   const stage = useStage();
   const rolling = useRolling(view.positions);
@@ -368,7 +370,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
   const cash = settledCash.current;
   const floats = useFloats(view.players, cash);
   const warning = useMonopolyWarning(view.players, owners, view.monopoly);
-  const recent = settledEvents.current.slice(-3);
+  const recent = settledEvents.current.slice(-1);
   // Świeżo zebrany komplet: jego pola chwilę pulsują w kolorze gracza.
   const lastEvent = settledEvents.current.at(-1);
   const fresh = lastEvent?.type === "set" ? setOf(lastEvent.tile!) : [];
@@ -647,16 +649,18 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
 
     return (
       <div
+        role="dialog"
+        aria-label={`Szczegóły: ${tile.name}`}
         className="absolute inset-x-0 top-1/2 z-10 flex max-h-[calc(100cqh-1rem)] -translate-y-1/2 flex-col gap-2 overflow-auto rounded-inset border border-line bg-surface p-3 shadow-[0_12px_32px_rgb(0_0_0/0.6)]"
         style={{ borderTop: `6px solid ${accent}` }}
       >
-        <div className="flex items-start justify-between gap-2">
+        <div className="sticky -top-3 z-10 flex items-start justify-between gap-2 bg-surface py-1">
           <div>
             <h2 className="font-semibold">{tile.name}</h2>
             {tile.kind === "property" && <p className="text-xs text-fg-muted">{groupChip(tile.group)}</p>}
             {SPECIAL_KINDS[tile.kind] && <p className="text-xs text-fg-muted">{SPECIAL_KINDS[tile.kind]}</p>}
           </div>
-          <button type="button" className="-m-1 p-1 text-fg-muted" aria-label="Zamknij" onClick={() => setSelected(null)}>
+          <button type="button" className="btn btn-ghost shrink-0 px-2 text-fg-muted" aria-label="Zamknij" onClick={() => setSelected(null)}>
             <X size={18} />
           </button>
         </div>
@@ -672,6 +676,16 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
             <dt className="text-fg-muted">Właściciel</dt>
             <dd>{owner ? `${nick(owner)}${owner === me ? " (ty)" : ""}` : "wolne"}</dd>
           </dl>
+        )}
+        {canMove && settled && view.phase === "build" && i === here && (
+          <div className="grid grid-cols-2 gap-2">
+            {buildChoices().map((l) => (
+              <button key={l} type="button" className="btn flex-col gap-0 px-2 text-sm" style={mine} onClick={() => { onMove({ type: "build", level: l }); setSelected(null); }}>
+                {l === LANDMARK ? "Landmark" : `Poziom ${l}`}
+                <span className="text-xs">{buildCost(here, level(here), l)} zł · czynsz {levelRent(here, l)}</span>
+              </button>
+            ))}
+          </div>
         )}
         {sellable && (
           <button
@@ -716,8 +730,8 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
   return (
     <main className="landscape grid place-items-center overflow-hidden">
       <div
-        className="relative flex items-center justify-center p-2 px-21"
-        style={{ width: stage.width, height: STAGE_H, zoom: stage.scale }}
+        className="relative flex items-center justify-center p-2 px-21 [&_.btn]:min-h-[var(--kampus-touch)] [&_.btn]:min-w-[var(--kampus-touch)]"
+        style={{ width: stage.width, height: STAGE_H, zoom: stage.scale, "--kampus-touch": `${Math.ceil(48 / stage.scale) + 1}px` } as CSSProperties}
       >
         {view.players.map((id, i) => {
           const Pawn = CHARACTER_ICONS[character(id)];
@@ -737,6 +751,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                 {nick(id)}
                 {id === me && " (ty)"}
               </span>
+              <span className="font-mono text-[10px] tabular-nums">wygrane {scores[id] ?? 0}</span>
               <span className="text-sm">{out ? "bankrut" : zl(cash[id])}</span>
               {!out && (
                 <span className="text-fg-muted" title="Majątek: gotówka + ceny pól + koszt budynków">
@@ -846,17 +861,18 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
 
           <div className="pointer-events-none absolute inset-0 grid place-items-center">
             <div className="pointer-events-auto relative" style={{ width: CENTER_WIDTH, height: CENTER_HEIGHT }}>
-              <div className="flex h-full flex-col items-center justify-center gap-1.5 overflow-hidden p-2">
-                <div className="flex w-full max-w-sm items-center gap-3">
+              <div className="flex h-full min-h-0 flex-col items-center gap-1 p-1">
+                <div className="flex w-full shrink-0 items-center gap-2">
                   <span className="label shrink-0">
                     Runda {view.round}/{ROUNDS}
                   </span>
                   {timer && <div className="flex-1">{timer}</div>}
                 </div>
                 {/* Kto jest na turze: duży nagłówek w jego kolorze. */}
-                <h1 className="flex items-center gap-2 text-xl font-semibold" style={over ? undefined : { color: color(view.turn!) }}>
-                  {!over && token(view.turn!, 28, true)}
-                  {status}
+                <h1 className="flex w-full shrink-0 items-center justify-center gap-2 text-base leading-tight font-semibold" style={over ? undefined : { color: color(view.turn!) }}>
+                  {!over && token(view.turn!, 20, true)}
+                  <span className="min-w-0 truncate" title={status}>{status}</span>
+                  {!seated && <span className="text-xs font-normal text-fg-muted">Oglądasz</span>}
                 </h1>
                 {dropped && (
                   <p role="status" className="flex items-center gap-2 rounded-inset bg-accent-soft px-3 py-1.5 text-sm">
@@ -865,7 +881,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                   </p>
                 )}
 
-                <div className="flex items-center gap-3">
+                <div className={`shrink-0 items-center gap-2 ${selected !== null ? "hidden" : "flex"}`}>
                   {/* Przy budowie kostki ustępują miejsca przyciskom poziomów. */}
                   {view.dice && !over && !(settled && canMove && view.phase === "build") && <Dice values={view.dice} rolling={rolling} />}
                   {settled && canMove && view.phase === "roll" && (
@@ -890,19 +906,9 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                   {settled && !over && !canMove && view.phase === "roll" && <p className="text-sm text-fg-muted">{nick(view.turn!)} rzuca kośćmi…</p>}
                   {settled && canMove && view.phase === "build" && (
                     <>
-                      {buildChoices().map((l) => (
-                        <button
-                          key={l}
-                          type="button"
-                          style={mine} className="btn min-h-11 flex-col gap-0 px-3 text-sm leading-tight"
-                          onClick={() => onMove({ type: "build", level: l })}
-                        >
-                          {l === LANDMARK ? "Landmark" : `Poziom ${l}`}
-                          <span className="text-[11px] font-normal">
-                            {buildCost(here, level(here), l)} zł · czynsz {levelRent(here, l)}
-                          </span>
-                        </button>
-                      ))}
+                      <button type="button" style={mine} className="btn px-3" onClick={() => setSelected(here)}>
+                        Rozbuduj pole
+                      </button>
                       <button type="button" className="btn btn-ghost min-h-11 px-4" onClick={() => onMove({ type: "skip" })}>
                         Pomiń
                       </button>
@@ -929,35 +935,37 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                   )}
                   {settled && !over && !canMove && view.phase === "build" && <p className="text-sm text-fg-muted">{nick(view.turn!)} decyduje o budowie</p>}
                 </div>
-                {settled && canMove && view.phase === "buy" && <p className="text-center text-sm font-medium">{buyInfo(here)}</p>}
-                {settled && canMove && view.phase === "buyout" && (
-                  <p className="text-center text-sm font-medium">
-                    2× wartość pola · pieniądze dostaje {nick(owners[here])}
-                  </p>
-                )}
-                {traveling && <p className="text-center text-sm font-medium">Masz Bilet MPK: dotknij dowolne pole i jedź albo rzuć kośćmi</p>}
-                {settled && canMove && view.phase === "build" && (
-                  <p className="text-center text-sm font-medium">
-                    Budujesz: {BOARD[here].name}
-                    {maxLevel(owners, here) < LANDMARK && " · wyższe poziomy po zebraniu kompletu"}
-                  </p>
-                )}
+                <div className="min-h-0 w-full flex-1 overflow-y-auto">
+                  {settled && canMove && view.phase === "buy" && <p className="text-center text-sm font-medium">{buyInfo(here)}</p>}
+                  {settled && canMove && view.phase === "buyout" && (
+                    <p className="text-center text-sm font-medium">
+                      2× wartość pola · pieniądze dostaje {nick(owners[here])}
+                    </p>
+                  )}
+                  {traveling && <p className="text-center text-sm font-medium">MPK: dotknij pole i jedź albo rzuć kośćmi</p>}
+                  {settled && canMove && view.phase === "build" && (
+                    <p className="text-center text-sm font-medium">
+                      Budujesz: {BOARD[here].name}
+                      {maxLevel(owners, here) < LANDMARK && " · wyższe poziomy po zebraniu kompletu"}
+                    </p>
+                  )}
 
-                {!over && view.phase === "sell" && view.debt && (
-                  <p className="text-center text-sm">
-                    {selling
-                      ? `Brakuje ${view.debt.amount - view.cash[me]} zł. Dotknij swoje pole i sprzedaj je za pół ceny.`
-                      : `${nick(view.turn!)} sprzedaje pola, żeby spłacić ${view.debt.amount} zł`}
-                  </p>
-                )}
-                {/* Log: najnowszy wpis na dole, starsze coraz bledsze. */}
+                  {!over && view.phase === "sell" && view.debt && (
+                    <p className="text-center text-sm">
+                      {selling
+                        ? `Brakuje ${view.debt.amount - view.cash[me]} zł. Dotknij swoje pole i sprzedaj je za pół ceny.`
+                        : `${nick(view.turn!)} sprzedaje pola, żeby spłacić ${view.debt.amount} zł`}
+                    </p>
+                  )}
+                </div>
+                {/* Ostatnie zdarzenie pozostaje widoczne poza przewijanym opisem. */}
                 {recent.length > 0 && (
-                  <ul className="flex flex-col items-center text-xs">
+                  <ul className="flex w-full shrink-0 flex-col items-center text-xs" aria-label="Ostatnie zdarzenia">
                     {recent.map((e, i) => (
                       <li
                         key={i}
                         className={`flex items-center gap-1.5 ${e.type === "set" ? "font-semibold" : ""}`}
-                        style={{ opacity: [0.4, 0.65, 1][i + 3 - recent.length], color: e.type === "set" ? color(e.player) : undefined }}
+                        style={{ color: e.type === "set" ? color(e.player) : undefined }}
                       >
                         <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: color(e.player) }} aria-hidden />
                         {describe(e)}
@@ -965,11 +973,15 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                     ))}
                   </ul>
                 )}
-                {actions && <div className="flex w-full max-w-xs flex-wrap gap-2">{actions}</div>}
-                {over && summaryHidden && view.stats && (
-                  <button type="button" className="btn btn-ghost min-h-11 px-4 text-sm" onClick={() => setSummaryHidden(false)}>
-                    Podsumowanie
-                  </button>
+                {over && (summaryHidden || !view.stats) && selected === null && (
+                  <div className="flex w-full shrink-0 items-center justify-center gap-2">
+                    {actions}
+                    {over && summaryHidden && view.stats && (
+                      <button type="button" className="btn btn-ghost px-3 text-sm" onClick={() => setSummaryHidden(false)}>
+                        Podsumowanie
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -1053,7 +1065,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
 
         {over && settled && !summaryHidden && view.stats && (
           <KampusSummary
-            title={status}
+            title={seated ? status : `${status} · Oglądasz`}
             stats={view.stats}
             players={ranking.length ? ranking : view.players}
             nick={nick}

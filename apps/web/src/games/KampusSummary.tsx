@@ -38,10 +38,10 @@ export function KampusSummary({ title, stats, players, nick, color, finalWealth,
       <div
         role="dialog"
         aria-label="Podsumowanie partii"
-        className="flex w-[36rem] animate-[card-in_0.35s_ease-out] flex-col gap-2 rounded-inset border border-line bg-surface p-4 shadow-[0_16px_48px_rgb(0_0_0/0.7)]"
+        className="flex max-h-[calc(100%-1rem)] w-[36rem] animate-[card-in_0.35s_ease-out] flex-col gap-2 overflow-hidden rounded-inset border border-line bg-surface p-4 shadow-[0_16px_48px_rgb(0_0_0/0.7)]"
       >
         <h2 className="text-center text-lg font-semibold">{title}</h2>
-        <div className="flex gap-4">
+        <div className="flex min-h-0 gap-4 overflow-y-auto">
           <WealthChart series={series} nick={nick} color={color} />
           <dl className="flex w-40 shrink-0 flex-col gap-2 text-xs">
             {rent && (
@@ -70,7 +70,7 @@ export function KampusSummary({ title, stats, players, nick, color, finalWealth,
             )}
           </dl>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex shrink-0 flex-wrap gap-2">
           {actions}
           <button type="button" className="btn btn-ghost" onClick={onClose}>
             Plansza
@@ -170,7 +170,8 @@ function WealthChart({
         ))}
         {ends.map((e) => (
           <text key={e.id} x={W - PAD.right + 8} y={e.y + 3} className="fill-fg text-[10px] font-medium">
-            {nick(e.id)}
+            <title>{nick(e.id)}</title>
+            {nick(e.id).length > 8 ? `${nick(e.id).slice(0, 7)}…` : nick(e.id)}
           </text>
         ))}
 

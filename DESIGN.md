@@ -181,7 +181,7 @@ z [ZASADY.md §4](ZASADY.md#4-spójność-wyglądu); lokalne wyjątki formularzy
 - **Statki**: trafienie i zatopiony statek są w `accent`. To utrwalony znak tej gry, czerwień nie oznacza tam akcji.
 - **Państwa-miasta i Kalambury** mają własny nagłówek: gracze w jednej linii z punktami obok nicku zamiast paska `Stats`,
   bo graczy może być 6, a `Stats` mieści trzy liczby. Każdy ma jedną liczbę, więc zapis w linii zostaje czytelny.
-- **Kampus Tour** ma własny układ poziomy, cienie pod oknami i pionkami oraz przyciski budowy o wysokości 44 px (plansza nie zostawia miejsca na 48).
+- **Kampus Tour** ma własny układ poziomy oraz cienie pod oknami i pionkami. Przyciski decyzji i zamknięcia mają minimum 48 px po skalowaniu sceny; dawne 44 px budowy nie jest już wyjątkiem.
 
 W aktywnej partii wspólny nagłówek pokazuje status oraz jeden wiersz kropek graczy i limitu czasu.
 Dotknięcie kropek rozwija pełne nicki, wygrane i statystyki gry; rozłączenie pozostaje oznaczone także w zwiniętym widoku.
@@ -222,3 +222,10 @@ Rysunki, rekordy i tabela turnieju mogą przewijać się pionowo w naturalnych r
 przyciski są dostępne od razu, a na końcu przewijania ostatni wiersz leży nad paskiem.
 Solo ma Jeszcze raz/Wyjdź; między grami turnieju Dalej/Zakończ turniej (dla gospodarza),
 a finał Rewanż/Do lobby. Własny poziomy układ Kampus Tour pozostaje osobny.
+
+Kampus Tour (P4-017): środek ma stały wiersz rundy i limitu, status, akcje oraz ostatni wpis logu.
+Dłuższy opis może przewijać się w pozostałym miejscu. „Rozbuduj pole” otwiera szczegóły bieżącego pola
+z poziomami w dwóch kolumnach, żeby decyzje miały 48 px na ekranie po zoom sceny.
+Podsumowanie ma ograniczoną wysokość, przewijaną treść i stałe akcje; po jego otwarciu akcje planszy
+nie są renderowane drugi raz. Panele pokazują wygrane, obserwator ma „Oglądasz”. Pełne nicki wykresu
+pozostają w legendzie i tytułach etykiet; krótkie etykiety przy końcach linii nie nachodzą na statystyki.
