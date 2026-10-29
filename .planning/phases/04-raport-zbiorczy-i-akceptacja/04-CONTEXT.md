@@ -1,7 +1,7 @@
 # Faza 4: Raport zbiorczy i akceptacja
 
 **Data:** 2026-10-25
-**Status:** 04-01 wykonany na zlecenie użytkownika, 1/5; następny 04-02. Warianty poprawek nadal oczekują decyzji.
+**Status:** faza 4 zakończona 5/5; ZG4-v1 zatwierdzone w całości („Zatwierdzam”, 2026-10-26). FIX-01 zakończone, FIX-02 otwarte. Zakres fazy 5 w PHASE-5-SCOPE; kod bez zmian.
 **Wymaganie:** FIX-01. FIX-02 należy do fazy 5.
 
 ## Cel i granice
@@ -63,3 +63,11 @@ emulacja rozmiaru okna nie jest ich dowodem. Nie łączymy się z produkcyjną b
 
 Faza 4 kończy się, gdy wszystkie wpisy mają decyzję, zaakceptowane pakiety mają zakres i odbiór w `PHASE-5-SCOPE.md`,
 a cztery kryteria sukcesu z roadmapy mają wskazany dowód. FIX-02 pozostaje niezrealizowane.
+
+
+## Jedna końcowa akceptacja
+
+2026-10-26 użytkownik zlecił „Zrób jedną końcową zgode”. Przygotowano ZG4-v1 z kompletną listą wyborów i jawnymi uzupełnieniami zakresu. Zlecenie przygotowania nie jest zgodą na warianty. Po jednoznacznej zgodzie rejestrujemy wszystkie wybory w 04-04 i przechodzimy do 04-05; nie pytamy ponownie o małe paczki tego samego zakresu. Proponowane H są końcowym pozostawieniem z powodem na ten etap, nie odłożoną decyzją bez wyboru. Pomiary i odbiory pozostają odrębne od akceptacji planu.
+
+
+2026-10-26: końcowa zgoda otrzymana i zapisana. 04-04/04-05 zakończone; powyższy opis przygotowania zgody zachowano jako historię. [Zakres S5-v1](PHASE-5-SCOPE.md), [kontrola kryteriów](REPORT.md), [pierwszy plan wykonawczy](../05-poprawki-zaakceptowanych-rozbieznosci/05-01-PLAN.md).

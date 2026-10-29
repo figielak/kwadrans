@@ -1,8 +1,9 @@
 # Faza 4: scalony rejestr rozbieżności
 
-Data: 2026-10-25. Wykonano plan 04-01. Rejestr v1, stan decyzji: **oczekuje**.
-168 pozycji F4 to wynik scalenia 173 pozycji F1/F2/F3. To nie jest zatwierdzony zakres poprawek.
-FIX-01 i FIX-02 pozostają otwarte. Nie zmieniono kodu, testów, zasad ani danych.
+Data scalenia: 2026-10-25. Aktualizacja dowodów: 2026-10-26, plan 04-02. Rejestr v1.1; **wszystkie decyzje zamknięte w ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”).
+168 F4 / 295 części: 158 F4 w całości poprawić, 8 pozostawić z powodem, 2 mieszane z decyzją dla każdej części. 267 części poprawić, 28 pozostawić (27 H). Zero nierozstrzygniętych decyzji, bez wykonanych poprawek.
+Aktualne wybory: §13, [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md) i [zakres fazy 5](PHASE-5-SCOPE.md). Wcześniejsze analizy, propozycje i pytania pomiarowe pozostają historycznymi dowodami, nie aktualną listą oczekujących zgód.
+Nowe pomiary i historia pewności w §10 oraz [EVIDENCE](04-02-EVIDENCE.md). FIX-01 zamknięte po kontroli 04-05; FIX-02 otwarte. Kod, źródłowe zasady i dane bez zmian.
 
 ## 1. Stan odniesienia i aktualność
 
@@ -17,7 +18,7 @@ FIX-01 i FIX-02 pozostają otwarte. Nie zmieniono kodu, testów, zasad ani danyc
 Skrócone `:N` po nazwanym pliku oznacza kolejną linię tego samego pliku. „Brak w pliku” oznacza lukę testu w całym wskazanym pliku, nie nieistniejący numer linii.
 Numeracja § i D-* w odziedziczonych opisach wpisów odnosi się do raportu źródłowego podanego w śladzie, chyba że wskazano nazwę dokumentu lub sekcję tego rejestru. Nazwy historycznych skryptów fuzz/cases/checks odnoszą się do scratchpadu audytu, nie do plików repo.
 
-Pewność: **S** = analiza statyczna niezmienionego kodu; **W** = wyliczenie ze stałych; **Z** = wcześniejsza symulacja, nie pomiar człowieka; **A** = założenie.
+Pewność: **S** = analiza statyczna niezmienionego kodu; **W** = wyliczenie ze stałych; **Z** = wcześniejsza symulacja, nie pomiar człowieka; **A** = założenie; **M** = nowy pomiar renderowania w Chromium (tylko wskazane wystąpienia z 04-02).
 Wymiary UI są szacunkami z klas (około ±30 px); Android, czytniki, dotyk i płynność wymagają właściwego urządzenia. Próg zapasu 20% i 10 s oraz propozycje D-01..D-14 z fazy 3 nie są jeszcze zatwierdzoną zmianą dokumentów.
 
 ## 2. Liczby i deduplikacja
@@ -49,179 +50,179 @@ Każdy wiersz to jeden wpis kanoniczny raportu źródłowego. Prefiks fazy jest 
 
 | Źródło (plik i linia) | Gra / ekran | Sekcja / rodzaj | F4 | Aktualność / decyzja |
 |---|---|---|---|---|
-| [F1:Z1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L38) | schulte, sudoku, kropki | Z1. Limit czasu nie jest najgorszym wynikiem `[zbiorcze: timeout-nie-najgorszy]` / zbiorczy | [F4-001](#f4-001) | aktualne S; oczekuje |
-| [F1:Z2](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L56) | simon, zakupy, srodek, tort, sledzenie, panstwa-miasta, rok | Z2. Limit tury krótszy od najdłuższej uczciwej partii `[zbiorcze: limit-tury-bez-zapasu]` / zbiorczy | [F4-002](#f4-002) | aktualne S; oczekuje |
-| [F1:Z3](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L127) | stoper, rytm, liczenie, kolor, kat, w-pamieci, obrot, dziesiatki, sudoku, sledzenie, stoj, zaslona, literowka, rok, kubki | Z3. Losowe wyzwanie zmienia trudność partii `[zbiorcze: trudnosc-z-losowania]` / zbiorczy | [F4-003](#f4-003) | aktualne S; oczekuje |
-| [F1:Z4](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L146) | kampus-tour, piec-w-rzedzie, statki, chinczyk, panstwa-miasta, turniej, refleks, simon, stoper, schulte, stroop, liczenie, kolo, kolor, kropki | Z4. Definicja bez testu: liczba graczy, limit tury, świeża gra `[zbiorcze: definicja-swieza-gra]` / zbiorczy | [F4-004](#f4-004) | aktualne S; oczekuje |
-| [F1:Z5](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L171) | statki, panstwa-miasta, simon, stoper, stroop, liczenie, schulte, kolo, kolor, kropki | Z5. Setup: ten sam seed daje to samo `[zbiorcze: setup-ten-sam-seed]` / zbiorczy | [F4-005](#f4-005) | aktualne S; oczekuje |
-| [F1:Z6](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L190) | panstwa-miasta, refleks, simon, stoper, stroop, liczenie, schulte, kolo, kolor, kropki, srodek | Z6. Ruch po końcu gry bez testu `[zbiorcze: po-koncu]` / zbiorczy | [F4-006](#f4-006) | aktualne S; oczekuje |
-| [F1:Z7](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L209) | kampus-tour, panstwa-miasta, simon, stroop, liczenie, inny, obrot, literowka, dziesiatki, kolo, kolor, kropki | Z7. Wartości brzegowe tylko z jednej strony `[zbiorcze: brzegi]` / zbiorczy | [F4-007](#f4-007) | aktualne S; oczekuje |
-| [F1:Z8](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L229) | kampus-tour, piec-w-rzedzie, statki, chinczyk, panstwa-miasta, refleks, simon, stoper, stroop, liczenie, schulte, kolo, kolor | Z8. Schemat ruchu nie jest testowany na śmieciach `[zbiorcze: schemat-smieci]` / zbiorczy | [F4-008](#f4-008) | aktualne S; oczekuje |
-| [F1:Z9](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L251) | panstwa-miasta, refleks, simon, stoper, stroop, liczenie, schulte, kolo, kolor, kropki, rok, srodek, tort, nozyczki | Z9. Wygrana tylko jednego gracza `[zbiorcze: wygrana-kazdego]` / zbiorczy | [F4-009](#f4-009) | aktualne S; oczekuje |
-| [F1:Z10](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L273) | kampus-tour, panstwa-miasta, simon, stoper, stroop, liczenie, schulte, kolo, kolor, kropki | Z10. Brak testu mutacji i JSON round-trip `[zbiorcze: stan-mutacja-json]` / zbiorczy | [F4-010](#f4-010) | aktualne S; oczekuje |
-| [F1:Z11](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L293) | panstwa-miasta, kalambury | Z11. Stałość klucza `turn()` bez testu `[zbiorcze: turn-key-staly]` / zbiorczy | [F4-011](#f4-011) | aktualne S; oczekuje |
-| [F1:Z12](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L299) | kampus-tour, statki | Z12. Widok obserwatora `""` nie w każdej fazie `[zbiorcze: widok-obserwatora]` / zbiorczy | [F4-012](#f4-012) | aktualne S; oczekuje |
-| [F1:Z13](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L305) | stoj, stroop, liczenie, inny, obrot, literowka, dziesiatki | Z13. Rekord rozstrzyga remis zaokrągloną średnią, miejsca nie `[zbiorcze: tie-zaokraglenie]` / zbiorczy | [F4-013](#f4-013) | aktualne S; oczekuje |
-| [F1:Z14](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L314) | stroop, liczenie, inny, obrot, literowka, dziesiatki | Z14. `quiz.ts`: czasy niecałkowite i nieograniczona liczba pomyłek przechodzą walidację `[zbiorcze: quiz-walidacja]` (Q1) / zbiorczy | [F4-014](#f4-014) | aktualne S; oczekuje |
-| [F1:Z15](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L320) | stroop, liczenie, inny, obrot, literowka, dziesiatki | Z15. Ekran quizów ucina czasy do 5 s i gubi trafienia poniżej 150 ms `[zbiorcze: quiz-ekran-czasy]` (Q2) / zbiorczy | [F4-015](#f4-015) | aktualne S; oczekuje |
-| [F1:Z16](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L325) | stoper, rytm | Z16. Ekran końcowy z kaflem ze stanu lokalnego `[zbiorcze: ekran-stan-lokalny]` (W3) / zbiorczy | [F4-016](#f4-016) | aktualne S; oczekuje |
-| [F1:Z17](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L332) | panstwa-miasta, kalambury, platforma | Z17. Ręczne zbiory `MINI_GAMES` `[zbiorcze: mini-games-zbior]` (W1, W2, W4, W5) / zbiorczy | [F4-017](#f4-017) | aktualne S; oczekuje |
-| [F1:Z18](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L341) | chinczyk, turniej | Z18. Pełny remis rozstrzyga kolejność miejsc, dokument tego nie mówi `[zbiorcze: remis-kolejnosc-miejsc]` / zbiorczy | [F4-018](#f4-018) | aktualne S; oczekuje |
-| [F1:Z19](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L347) | kampus-tour, kubki, kropki, kat, rok, kolo | Z19. Wspólne funkcje i moduły `core.ts` `[zbiorcze: wspolne-funkcje-core]` / zbiorczy | [F4-019](#f4-019) | aktualne S; oczekuje |
-| [F1:Z20](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L355) | w-pamieci | Z20. `KONCEPT.md` §2.4 pomija drugie kryterium W pamięci `[zbiorcze: koncept-drugie-kryteria]` (W7 = WP2) / zbiorczy | [F4-020](#f4-020) | aktualne S; oczekuje |
-| [F1:Z21](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L360) | schulte, kropki, kat, rok, wieza, balon, sudoku, kolo | Z21. Test `soloState` nie widzi map wypełnianych tylko w prawdziwej partii `[zbiorcze: test-solostate]` (W9) / zbiorczy | [F4-021](#f4-021) | aktualne S; oczekuje |
-| [F1:K1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L403) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-022](#f4-022) | aktualne S; oczekuje |
-| [F1:K2](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L404) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-023](#f4-023) | aktualne S; oczekuje |
-| [F1:K3](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L405) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-024](#f4-024) | aktualne S; oczekuje |
-| [F1:K4](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L406) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-025](#f4-025) | aktualne S; oczekuje |
-| [F1:K5](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L407) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-026](#f4-026) | aktualne S; oczekuje |
-| [F1:K7](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L408) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-027](#f4-027) | aktualne S; oczekuje |
-| [F1:K8](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L409) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-028](#f4-028) | aktualne S; oczekuje |
-| [F1:K9](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L410) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-029](#f4-029) | aktualne S; oczekuje |
-| [F1:K11](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L411) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-030](#f4-030) | aktualne S; oczekuje |
-| [F1:K12](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L412) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-031](#f4-031) | aktualne S; oczekuje |
-| [F1:K13](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L413) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-032](#f4-032) | aktualne S; oczekuje |
-| [F1:K14](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L414) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-033](#f4-033) | aktualne S; oczekuje |
-| [F1:K15](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L415) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-034](#f4-034) | aktualne S; oczekuje |
-| [F1:K20](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L416) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-035](#f4-035) | aktualne S; oczekuje |
-| [F1:G1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L426) | piec-w-rzedzie | 6.2 Gomoku (`piec-w-rzedzie`), szczegóły: 01-04-FINDINGS.md / pojedynczy | [F4-036](#f4-036) | aktualne S; oczekuje |
-| [F1:C4](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L442) | chinczyk | 6.4 Chińczyk (`chinczyk`), szczegóły: 01-04-FINDINGS.md / pojedynczy | [F4-037](#f4-037) | aktualne S; oczekuje |
-| [F1:M1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L452) | memory | 6.5 Memory (`memory`), szczegóły: 01-04-FINDINGS.md / pojedynczy | [F4-038](#f4-038) | aktualne S; oczekuje |
-| [F1:KL1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L462) | kalambury | 6.6 Kalambury (`kalambury`), szczegóły: 01-05-FINDINGS.md / pojedynczy | [F4-039](#f4-039) | aktualne S; oczekuje |
-| [F1:KL3](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L463) | kalambury | 6.6 Kalambury (`kalambury`), szczegóły: 01-05-FINDINGS.md / pojedynczy | [F4-040](#f4-040) | aktualne S; oczekuje |
-| [F1:L1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L473) | labirynt | 6.7 Labirynt (`labirynt`), szczegóły: 01-04-FINDINGS.md / pojedynczy | [F4-041](#f4-041) | aktualne S; oczekuje |
-| [F1:L2](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L474) | labirynt | 6.7 Labirynt (`labirynt`), szczegóły: 01-04-FINDINGS.md / pojedynczy | [F4-042](#f4-042) | aktualne S; oczekuje |
-| [F1:RF1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L488) | refleks | Refleks (`refleks`), 01-06-FINDINGS.md / pojedynczy | [F4-043](#f4-043) | aktualne S; oczekuje |
-| [F1:W6](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L496) | simon | Sekwencja (`simon`), 01-06-FINDINGS.md / pojedynczy | [F4-044](#f4-044) | aktualne S; oczekuje |
-| [F1:SC7](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L508) | schulte | Tabela Schultego (`schulte`), 01-07-FINDINGS.md / pojedynczy | [F4-045](#f4-045) | aktualne S; oczekuje |
-| [F1:LC2](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L520) | liczenie | Liczenie (`liczenie`), 01-07-FINDINGS.md / pojedynczy | [F4-046](#f4-046) | aktualne S; oczekuje |
-| [F1:KO9](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L528) | kolo | Narysuj koło (`kolo`), 01-08-FINDINGS.md / pojedynczy | [F4-047](#f4-047) | aktualne S; oczekuje |
-| [F1:W8](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L548) | sudoku | Sudoku (`sudoku`), 01-07-FINDINGS.md / pojedynczy | [F4-048](#f4-048) | aktualne S; oczekuje |
-| [F1:SJ2](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L568) | stoj | Stój! (`stoj`), 01-06-FINDINGS.md / pojedynczy | [F4-049](#f4-049) | aktualne S; oczekuje |
-| [F1:SL1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L576) | sledzenie | Śledzenie (`sledzenie`), 01-09-FINDINGS.md / pojedynczy | [F4-050](#f4-050) | aktualne S; oczekuje |
-| [F1:W10](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L577) | sledzenie | Śledzenie (`sledzenie`), 01-09-FINDINGS.md / pojedynczy | [F4-051](#f4-051) | aktualne S; oczekuje |
-| [F1:BL1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L610) | balon | Balon (`balon`), 01-06-FINDINGS.md / pojedynczy | [F4-052](#f4-052) | aktualne S; oczekuje |
-| [F1:WP1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L618) | w-pamieci | W pamięci (`w-pamieci`), 01-09-FINDINGS.md / pojedynczy | [F4-053](#f4-053) | aktualne S; oczekuje |
-| [F1:PM7](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L645) | panstwa-miasta | 6.9 Państwa-miasta (`panstwa-miasta`), szczegóły: 01-05-FINDINGS.md / pojedynczy | [F4-054](#f4-054) | aktualne S; oczekuje |
-| [F1:PM10](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L646) | panstwa-miasta | 6.9 Państwa-miasta (`panstwa-miasta`), szczegóły: 01-05-FINDINGS.md / pojedynczy | [F4-055](#f4-055) | aktualne S; oczekuje |
-| [F2:U1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L51) | piec-w-rzedzie, statki, chinczyk, labirynt, memory, panstwa-miasta, kalambury, kolo, kropki, kat, w-pamieci | U1. Ekran partii nie mieści się na 360×640 `[zbiorcze: wysokosc-640]` / zbiorczy | [F4-056](#f4-056) | aktualne S; oczekuje |
-| [F2:U2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L75) | chinczyk, kampus-tour | U2. Akcja w partii dostępna dopiero po animacji `[zbiorcze: akcja-po-animacji]` / zbiorczy | [F4-057](#f4-057) | aktualne S; oczekuje |
-| [F2:KT10](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L87) | kampus-tour | KT10. Kampus Tour: treść środka planszy wyższa niż nakładka (do potwierdzenia w przeglądarce) / pojedynczy | [F4-058](#f4-058) | aktualne S; oczekuje |
-| [F2:ZK1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L94) | zakupy | ZK1. Zakupy: „Gotowe” na `onClick` kończy pomiar drugiego kryterium / pojedynczy | [F4-059](#f4-059) | aktualne S; oczekuje |
-| [F2:B-15](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L114) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-060](#f4-060) | aktualne S; oczekuje |
-| [F2:B-18](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L115) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-061](#f4-061) | aktualne S; oczekuje |
-| [F2:B-20](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L116) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-062](#f4-062) | aktualne S; oczekuje |
-| [F2:B-29](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L117) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-063](#f4-063) | aktualne S; oczekuje |
-| [F2:B-52](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L118) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-064](#f4-064) | aktualne S; oczekuje |
-| [F2:B-53](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L119) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-065](#f4-065) | aktualne S; oczekuje |
-| [F2:HM-1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L120) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-066](#f4-066) | aktualne S; oczekuje |
-| [F2:HM-2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L121) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-067](#f4-067) | aktualne S; oczekuje |
-| [F2:HM-3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L122) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-068](#f4-068) | aktualne S; oczekuje |
-| [F2:HM-8](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L123) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-069](#f4-069) | aktualne S; oczekuje |
-| [F2:SU-3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L124) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-070](#f4-070) | aktualne S; oczekuje |
-| [F2:RC-2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L125) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-071](#f4-071) | aktualne S; oczekuje |
-| [F2:RC-3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L126) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-072](#f4-072) | aktualne S; oczekuje |
-| [F2:RC-6](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L127) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-073](#f4-073) | aktualne S; oczekuje |
-| [F2:AP-2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L128) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-074](#f4-074) | aktualne S; oczekuje |
-| [F2:A1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L287) | chinczyk | 4.10 Wpisy z macierzy / macierz | [F4-075](#f4-075) | aktualne S; oczekuje |
-| [F2:A2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L288) | labirynt | 4.10 Wpisy z macierzy / macierz | [F4-076](#f4-076) | aktualne S; oczekuje |
-| [F2:A3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L289) | piec-w-rzedzie, statki, memory | 4.10 Wpisy z macierzy / macierz | [F4-077](#f4-077) | aktualne S; oczekuje |
-| [F2:A4](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L290) | mapa, kolor, kropki, kat, rok, srodek, tort, nozyczki | 4.10 Wpisy z macierzy / macierz | [F4-078](#f4-078) | aktualne S; oczekuje |
-| [F2:A5](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L291) | kolo, zaslona, srodek, nozyczki | 4.10 Wpisy z macierzy / macierz | [F4-079](#f4-079) | aktualne S; oczekuje |
-| [F2:A6](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L292) | refleks, simon, memory, statki | 4.10 Wpisy z macierzy / macierz | [F4-080](#f4-080) | aktualne S; oczekuje |
-| [F2:A7](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L293) | statki, kampus-tour, panstwa-miasta | 4.10 Wpisy z macierzy / macierz | [F4-081](#f4-081) | aktualne S; oczekuje |
-| [F2:A8](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L294) | kampus-tour | 4.10 Wpisy z macierzy / macierz | [F4-082](#f4-082) | aktualne S; oczekuje |
-| [F2:A9](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L295) | w-pamieci | 4.10 Wpisy z macierzy / macierz | [F4-083](#f4-083) | aktualne S; oczekuje |
-| [F2:A10](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L296) | panstwa-miasta, kalambury | 4.10 Wpisy z macierzy / macierz | [F4-084](#f4-084) | aktualne S; oczekuje |
-| [F2:A11](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L297) | panstwa-miasta, kalambury, turniej | 4.10 Wpisy z macierzy / macierz | [F4-085](#f4-085) | aktualne S; oczekuje |
-| [F2:A12](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L298) | rok | 4.10 Wpisy z macierzy / macierz | [F4-086](#f4-086) | aktualne S; oczekuje |
-| [F2:A13](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L299) | w-pamieci | 4.10 Wpisy z macierzy / macierz | [F4-087](#f4-087) | aktualne S; oczekuje |
-| [F2:A14](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L300) | memory | 4.10 Wpisy z macierzy / macierz | [F4-088](#f4-088) | aktualne S; oczekuje |
-| [F2:A15](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L301) | dziesiatki, sudoku, zakupy | 4.10 Wpisy z macierzy / macierz | [F4-089](#f4-089) | aktualne S; oczekuje |
-| [F2:A16](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L302) | kampus-tour | 4.10 Wpisy z macierzy / macierz | [F4-090](#f4-090) | aktualne S; oczekuje |
-| [F2:A17](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L303) | statki, panstwa-miasta, zakupy | 4.10 Wpisy z macierzy / macierz | [F4-091](#f4-091) | aktualne S; oczekuje |
-| [F2:U3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L328) | platforma, kalambury, panstwa-miasta, turniej | U3. Ekran podsumowania wyższy niż 640 px `[zbiorcze: wysokosc-640]` (podsumowanie) / zbiorczy | [F4-092](#f4-092) | aktualne S; oczekuje |
-| [F2:U4](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L339) | platforma, kolor, rok, kampus-tour, piec-w-rzedzie, statki, chinczyk, labirynt, panstwa-miasta, tort, sledzenie | U4. Pola dotykowe poniżej 48 px `[zbiorcze: dotyk-48]` / zbiorczy | [F4-093](#f4-093) | aktualne S; oczekuje |
-| [F2:U5](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L363) | platforma, kolor, rok, kampus-tour, piec-w-rzedzie, kolo | U5. Kolory spoza tokenów `[zbiorcze: kolor-spoza-tokenow]` / zbiorczy | [F4-094](#f4-094) | aktualne S; oczekuje |
-| [F2:U6](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L377) | platforma, piec-w-rzedzie, chinczyk, labirynt, memory, kampus-tour, panstwa-miasta, sledzenie, zakupy | U6. Kolor jako jedyny sygnał `[zbiorcze: kolor-jedyny-sygnal]` / zbiorczy | [F4-095](#f4-095) | aktualne S; oczekuje |
-| [F2:U7](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L395) | platforma, statki, chinczyk, panstwa-miasta | U7. Token w cudzej roli `[zbiorcze: rola-tokenu]` / zbiorczy | [F4-096](#f4-096) | aktualne S; oczekuje |
-| [F2:U8](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L410) | kampus-tour, panstwa-miasta | U8. Pasek limitu i tytuł tury bez koloru gracza `[zbiorcze: pasek-tury-kolor-gracza]` / zbiorczy | [F4-097](#f4-097) | aktualne S; oczekuje |
-| [F2:U9](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L420) | kampus-tour, kolor, kropki, kat, w-pamieci, kolo | U9. Inne słowo w roli słowa wspólnego `[zbiorcze: slowa]` / zbiorczy | [F4-098](#f4-098) | aktualne S; oczekuje |
-| [F2:U10](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L434) | stroop, liczenie, inny, obrot, literowka, dziesiatki, stoj, refleks | U10. Własna lista wyników zamiast `Scores` `[zbiorcze: wlasna-lista-wynikow]` / zbiorczy | [F4-099](#f4-099) | aktualne S; oczekuje |
-| [F2:U11](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L444) | przytrzymaj, balon, kropki, kat, rok, kolor | U11. Własna tabela rund zamiast `RoundTable` `[zbiorcze: wlasna-tabela-rund]` / zbiorczy | [F4-100](#f4-100) | aktualne S; oczekuje |
-| [F2:U12](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L458) | platforma, memory, kampus-tour, chinczyk, labirynt, refleks, stoper, rytm, przytrzymaj, liczenie, kropki, kat, turniej | U12. Liczby bez Geist Mono albo bez `tabular-nums` `[zbiorcze: liczby-mono]` / zbiorczy | [F4-101](#f4-101) | aktualne S; oczekuje |
-| [F2:U13](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L482) | platforma, kampus-tour, statki, balon, zakupy | U13. Podpis bloku poza `.label` `[zbiorcze: podpis-label]` / zbiorczy | [F4-102](#f4-102) | aktualne S; oczekuje |
-| [F2:U14](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L488) | platforma, kampus-tour, kalambury | U14. Waga ikony w małej akcji `[zbiorcze: waga-ikon]` / zbiorczy | [F4-103](#f4-103) | aktualne S; oczekuje |
-| [F2:U15](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L494) | platforma, kampus-tour, kalambury, turniej, kubki | U15. Przejście z domyślnym czasem Tailwinda 150 ms `[zbiorcze: transition-domyslny]` / zbiorczy | [F4-104](#f4-104) | aktualne S; oczekuje |
-| [F2:U16](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L500) | platforma, piec-w-rzedzie, statki, labirynt, memory | U16. Animacje Tailwinda spoza `index.css` `[zbiorcze: animate-tailwind]` / zbiorczy | [F4-105](#f4-105) | aktualne S; oczekuje |
-| [F2:U17](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L506) | platforma, piec-w-rzedzie, kolo, stroop, liczenie, inny, obrot, literowka, dziesiatki, sudoku, schulte, wieza, stoj, srodek, nozyczki | U17. Keyframes spoza listy §5 `[zbiorcze: keyframes-poza-5]` / zbiorczy | [F4-106](#f4-106) | aktualne S; oczekuje |
-| [F2:U18](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L512) | platforma, kampus-tour, rytm, zakupy, kubki, sledzenie, wieza | U18. Animacja bez kategorii w tabeli czasów §5 `[zbiorcze: brak-w-tabeli-5]` / zbiorczy | [F4-107](#f4-107) | aktualne S; oczekuje |
-| [F2:U19](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L528) | platforma, turniej, w-pamieci | U19. Czas pojawienia inny niż 350 ms `[zbiorcze: czas-pojawienia]` / zbiorczy | [F4-108](#f4-108) | aktualne S; oczekuje |
-| [F2:U20](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L533) | platforma | U20. Komentarz w `index.css` węższy niż użycie `[zbiorcze: komentarz-nieaktualny]` / zbiorczy | [F4-109](#f4-109) | aktualne S; oczekuje |
-| [F2:U21](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L539) | platforma, kolor, rok, kampus-tour, piec-w-rzedzie, statki, memory | U21. Cień poza miejscami z `DESIGN.md` §2 `[zbiorcze: cien]` / zbiorczy | [F4-110](#f4-110) | aktualne S; oczekuje |
-| [F2:U22](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L545) | platforma, kolor, rok, turniej, kampus-tour, statki, chinczyk, obrot, wieza | U22. Zaokrąglenie spoza 20 / 10 / 999 px `[zbiorcze: promien]` / zbiorczy | [F4-111](#f4-111) | aktualne S; oczekuje |
-| [F2:U23](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L551) | platforma, kampus-tour, kalambury, zaslona, balon, inny, sudoku, statki, labirynt | U23. Dostępność: `aria-hidden`, `aria-label`, role `[zbiorcze: aria]` / zbiorczy | [F4-112](#f4-112) | aktualne S; oczekuje |
-| [F2:U24](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L570) | platforma | U24. Rozłączony gracz `[zbiorcze: stan-rozlaczony]` / zbiorczy | [F4-113](#f4-113) | aktualne S; oczekuje |
-| [F2:U25](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L575) | platforma, panstwa-miasta, turniej, memory | U25. Krycie stanu spoza tabeli `DESIGN.md` §4 `[zbiorcze: stan-krycie]` / zbiorczy | [F4-114](#f4-114) | aktualne S; oczekuje |
-| [F2:U26](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L581) | platforma | U26. Stan ładowania niezgodny z `DESIGN.md` §4 `[zbiorcze: stan-ladowania]` / zbiorczy | [F4-115](#f4-115) | aktualne S; oczekuje |
-| [F2:U27](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L587) | platforma, kampus-tour, wieza, balon | U27. `float-up` niewidoczne przy reduced motion `[zbiorcze: float-up-reduced]` / zbiorczy | [F4-116](#f4-116) | aktualne S; oczekuje |
-| [F2:U28](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L592) | refleks, stoper, stoj, wieza | U28. Pomiar z obsługi zdarzenia zamiast `e.timeStamp` `[zbiorcze: pomiar-timestamp]` / zbiorczy | [F4-117](#f4-117) | aktualne S; oczekuje |
-| [F2:U29](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L597) | simon, stoj | U29. `accent-fg` poza akcentem `[zbiorcze: accent-fg-poza-akcentem]` / zbiorczy | [F4-118](#f4-118) | aktualne S; oczekuje |
-| [F2:U30](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L602) | platforma, panstwa-miasta, kalambury, kropki, kat, rok, obrot, wieza, zaslona, przytrzymaj | U30. Drobne różnice słów `[zbiorcze: slowa-drobne]` / zbiorczy | [F4-119](#f4-119) | aktualne S; oczekuje |
-| [F2:U31](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L609) | platforma, schulte, sudoku | U31. Zapis ułamka bez wspólnej funkcji `[zbiorcze: przecinek]` / zbiorczy | [F4-120](#f4-120) | aktualne S; oczekuje |
-| [F2:U32](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L614) | piec-w-rzedzie, statki, labirynt, memory | U32. Animacja pojawienia gra ponownie po odświeżeniu `[zbiorcze: animacja-po-odswiezeniu]` (02-05 Z3) / zbiorczy | [F4-121](#f4-121) | aktualne S; oczekuje |
-| [F2:U33](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L619) | kolo, balon | U33. Zapis braku wartości `[zbiorcze: brak-wartosci]` / zbiorczy | [F4-122](#f4-122) | aktualne S; oczekuje |
-| [F2:U34](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L624) | inny, literowka, dziesiatki, sudoku | U34. Szerokość bez skalowania `[zbiorcze: szerokosc-bez-skalowania]` / zbiorczy | [F4-123](#f4-123) | aktualne S; oczekuje |
-| [F2:U35](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L629) | przytrzymaj, stoper | U35. Własne progi zamiast `grade` `[zbiorcze: wlasny-grade]` / zbiorczy | [F4-124](#f4-124) | aktualne S; oczekuje |
-| [F2:U36](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L634) | kolo, srodek, mapa, tort, nozyczki | U36. Punkt `time` w `Intro` bez czasu `[zbiorcze: intro-time]` / zbiorczy | [F4-125](#f4-125) | aktualne S; oczekuje |
-| [F2:U37](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L639) | rok, kropki, kat | U37. Kolor znacznika prawdy w odsłonie `[zbiorcze: znacznik-prawdy]` / zbiorczy | [F4-126](#f4-126) | aktualne S; oczekuje |
-| [F2:QZ3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L772) | platforma | `Quiz.tsx` (wspólny, D-02), szczegóły: 02-08-FINDINGS.md sekcja Kolor liter / pojedynczy | [F4-127](#f4-127) | aktualne S; oczekuje |
-| [F2:SZ2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L781) | platforma | `Szacowanie.tsx` (wspólny), szczegóły: 02-09-FINDINGS.md sekcja Policz kropki / pojedynczy | [F4-128](#f4-128) | aktualne S; oczekuje |
-| [F2:KT1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L795) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-129](#f4-129) | aktualne S; oczekuje |
-| [F2:KT14](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L796) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-130](#f4-130) | aktualne S; oczekuje |
-| [F2:KA2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L797) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-131](#f4-131) | aktualne S; oczekuje |
-| [F2:KA3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L798) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-132](#f4-132) | aktualne S; oczekuje |
-| [F2:KT11](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L799) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-133](#f4-133) | aktualne S; oczekuje |
-| [F2:KS1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L800) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-134](#f4-134) | aktualne S; oczekuje |
-| [F2:KS2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L801) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-135](#f4-135) | aktualne S; oczekuje |
-| [F2:KS3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L802) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-136](#f4-136) | aktualne S; oczekuje |
-| [F2:KS6](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L803) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-137](#f4-137) | aktualne S; oczekuje |
-| [F2:C7](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L822) | chinczyk | 8.5 Chińczyk (`chinczyk`), szczegóły: 02-05-FINDINGS.md / pojedynczy | [F4-138](#f4-138) | aktualne S; oczekuje |
-| [F2:KL4](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L836) | kalambury | 8.7 Kalambury (`kalambury`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-139](#f4-139) | aktualne S; oczekuje |
-| [F2:KL8](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L837) | kalambury | 8.7 Kalambury (`kalambury`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-140](#f4-140) | aktualne S; oczekuje |
-| [F2:SC2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L871) | schulte | Tabela Schultego (`schulte`), 02-08-FINDINGS.md / pojedynczy | [F4-141](#f4-141) | aktualne S; oczekuje |
-| [F2:ST1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L880) | stroop | Kolor liter (`stroop`), 02-08-FINDINGS.md / pojedynczy | [F4-142](#f4-142) | aktualne S; oczekuje |
-| [F2:ST2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L881) | stroop | Kolor liter (`stroop`), 02-08-FINDINGS.md / pojedynczy | [F4-143](#f4-143) | aktualne S; oczekuje |
-| [F2:KO4](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L895) | kolo | Narysuj koło (`kolo`), 02-09-FINDINGS.md / pojedynczy | [F4-144](#f4-144) | aktualne S; oczekuje |
-| [F2:OD1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L904) | kolor | Odcień (`kolor`), 02-09-FINDINGS.md / pojedynczy | [F4-145](#f4-145) | aktualne S; oczekuje |
-| [F2:SU2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L923) | sudoku | Sudoku (`sudoku`), 02-08-FINDINGS.md / pojedynczy | [F4-146](#f4-146) | aktualne S; oczekuje |
-| [F2:RY3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L962) | rytm | Rytm (`rytm`), 02-07-FINDINGS.md / pojedynczy | [F4-147](#f4-147) | aktualne S; oczekuje |
-| [F2:IN2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L971) | inny | Inny element (`inny`), 02-08-FINDINGS.md / pojedynczy | [F4-148](#f4-148) | aktualne S; oczekuje |
-| [F2:MP1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L990) | mapa | Mapa (`mapa`), 02-09-FINDINGS.md / pojedynczy | [F4-149](#f4-149) | aktualne S; oczekuje |
-| [F2:BL5](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1004) | balon | Balon (`balon`), 02-07-FINDINGS.md / pojedynczy | [F4-150](#f4-150) | aktualne S; oczekuje |
-| [F2:ZK5](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1033) | zakupy | Zakupy (`zakupy`), 02-08-FINDINGS.md / pojedynczy | [F4-151](#f4-151) | aktualne S; oczekuje |
-| [F2:PM2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1048) | panstwa-miasta | 8.10 Państwa-miasta (`panstwa-miasta`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-152](#f4-152) | aktualne S; oczekuje |
-| [F2:TU1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1058) | turniej | 8.11 Turniej (`turniej`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-153](#f4-153) | aktualne S; oczekuje |
-| [F2:TU2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1059) | turniej | 8.11 Turniej (`turniej`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-154](#f4-154) | aktualne S; oczekuje |
-| [F2:TU5](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1060) | turniej | 8.11 Turniej (`turniej`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-155](#f4-155) | aktualne S; oczekuje |
-| [F2:TU6](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1061) | turniej | 8.11 Turniej (`turniej`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-156](#f4-156) | aktualne S; oczekuje |
-| [F2:TU8](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1062) | turniej | 8.11 Turniej (`turniej`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-157](#f4-157) | aktualne S; oczekuje |
-| [F3:R1](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L243) | simon, zakupy, srodek, tort, sledzenie, panstwa-miasta, rok | R1. Limit tury bez zapasu `[zbiorcze: limit-tury-bez-zapasu]` (= F1:Z2, liczby fazy 3) / zbiorczy | [F4-002](#f4-002) | scalone, aktualne S; oczekuje |
-| [F3:R2](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L260) | stoper, rytm, liczenie, kolor, kat, w-pamieci, obrot, dziesiatki, sudoku, sledzenie, stoj, zaslona, literowka, rok, kubki | R2. Trudność partii zależy od losowania `[zbiorcze: trudnosc-z-losowania]` (= F1:Z3, liczby fazy 3) / zbiorczy | [F4-003](#f4-003) | scalone, aktualne S; oczekuje |
-| [F3:R3](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L285) | w-pamieci, kubki, simon | R3. Sufit osiągalny bez rozstrzygnięcia remisu `[zbiorcze: sufit-bez-tie]` / zbiorczy | [F4-158](#f4-158) | aktualne S; oczekuje |
-| [F3:R4](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L297) | wieza, zakupy | R4. Sufit w zasięgu najlepszych, `tie` mierzy co innego `[zbiorcze: sufit-osiagalny]` / zbiorczy | [F4-159](#f4-159) | aktualne S; oczekuje |
-| [F3:R5](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L306) | kampus-tour, piec-w-rzedzie, labirynt, statki, memory | R5. Przewaga kolejności w grach głównych `[zbiorcze: przewaga-pierwszego]` / zbiorczy | [F4-160](#f4-160) | aktualne S; oczekuje |
-| [F3:R6](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L318) | refleks, stoper, stoj, wieza | R6. Pomiar czasu od zmiany stanu, nie od klatki `[zbiorcze: pomiar-od-klatki]` (styk z F2:U28 `pomiar-timestamp`) / zbiorczy | [F4-117](#f4-117) | scalone, aktualne S; oczekuje |
-| [F3:R7](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L329) | balon | R7. `withSum` wyrównuje sumę, ale nie szanse `[zbiorcze: withsum-rozklad]` / zbiorczy | [F4-161](#f4-161) | aktualne S; oczekuje |
-| [F3:R8](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L340) | platforma | R8. Limit mini-gry odnawiany wynikiem rywala `[zbiorcze: limit-odnawiany-wynikiem]` / zbiorczy | [F4-162](#f4-162) | aktualne S; oczekuje |
-| [F3:B-KT3](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L351) | kampus-tour | 8. Wpisy pojedyncze / pojedynczy | [F4-163](#f4-163) | aktualne S; oczekuje |
-| [F3:B-KT2](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L352) | kampus-tour | 8. Wpisy pojedyncze / pojedynczy | [F4-164](#f4-164) | aktualne S; oczekuje |
-| [F3:B-KT4](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L353) | kampus-tour | 8. Wpisy pojedyncze / pojedynczy | [F4-023](#f4-023) | scalone, aktualne S; oczekuje |
-| [F3:B-KT5](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L354) | kampus-tour | 8. Wpisy pojedyncze / pojedynczy | [F4-030](#f4-030) | scalone, aktualne S; oczekuje |
-| [F3:B-KT6](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L355) | kampus-tour | 8. Wpisy pojedyncze / pojedynczy | [F4-165](#f4-165) | aktualne S; oczekuje |
-| [F3:B-PM2](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L356) | panstwa-miasta | 8. Wpisy pojedyncze / pojedynczy | [F4-166](#f4-166) | aktualne S; oczekuje |
-| [F3:B-KA1](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L357) | kalambury | 8. Wpisy pojedyncze / pojedynczy | [F4-167](#f4-167) | aktualne S; oczekuje |
-| [F3:B-TU1](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L358) | turniej | 8. Wpisy pojedyncze / pojedynczy | [F4-168](#f4-168) | aktualne S; oczekuje |
+| [F1:Z1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L38) | schulte, sudoku, kropki | Z1. Limit czasu nie jest najgorszym wynikiem `[zbiorcze: timeout-nie-najgorszy]` / zbiorczy | [F4-001](#f4-001) | ZG4-v1: poprawić |
+| [F1:Z2](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L56) | simon, zakupy, srodek, tort, sledzenie, panstwa-miasta, rok | Z2. Limit tury krótszy od najdłuższej uczciwej partii `[zbiorcze: limit-tury-bez-zapasu]` / zbiorczy | [F4-002](#f4-002) | ZG4-v1: decyzja mieszana, zamknięta |
+| [F1:Z3](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L127) | stoper, rytm, liczenie, kolor, kat, w-pamieci, obrot, dziesiatki, sudoku, sledzenie, stoj, zaslona, literowka, rok, kubki | Z3. Losowe wyzwanie zmienia trudność partii `[zbiorcze: trudnosc-z-losowania]` / zbiorczy | [F4-003](#f4-003) | ZG4-v1: decyzja mieszana, zamknięta |
+| [F1:Z4](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L146) | kampus-tour, piec-w-rzedzie, statki, chinczyk, panstwa-miasta, turniej, refleks, simon, stoper, schulte, stroop, liczenie, kolo, kolor, kropki | Z4. Definicja bez testu: liczba graczy, limit tury, świeża gra `[zbiorcze: definicja-swieza-gra]` / zbiorczy | [F4-004](#f4-004) | ZG4-v1: poprawić |
+| [F1:Z5](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L171) | statki, panstwa-miasta, simon, stoper, stroop, liczenie, schulte, kolo, kolor, kropki | Z5. Setup: ten sam seed daje to samo `[zbiorcze: setup-ten-sam-seed]` / zbiorczy | [F4-005](#f4-005) | ZG4-v1: poprawić |
+| [F1:Z6](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L190) | panstwa-miasta, refleks, simon, stoper, stroop, liczenie, schulte, kolo, kolor, kropki, srodek | Z6. Ruch po końcu gry bez testu `[zbiorcze: po-koncu]` / zbiorczy | [F4-006](#f4-006) | ZG4-v1: poprawić |
+| [F1:Z7](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L209) | kampus-tour, panstwa-miasta, simon, stroop, liczenie, inny, obrot, literowka, dziesiatki, kolo, kolor, kropki | Z7. Wartości brzegowe tylko z jednej strony `[zbiorcze: brzegi]` / zbiorczy | [F4-007](#f4-007) | ZG4-v1: poprawić |
+| [F1:Z8](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L229) | kampus-tour, piec-w-rzedzie, statki, chinczyk, panstwa-miasta, refleks, simon, stoper, stroop, liczenie, schulte, kolo, kolor | Z8. Schemat ruchu nie jest testowany na śmieciach `[zbiorcze: schemat-smieci]` / zbiorczy | [F4-008](#f4-008) | ZG4-v1: poprawić |
+| [F1:Z9](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L251) | panstwa-miasta, refleks, simon, stoper, stroop, liczenie, schulte, kolo, kolor, kropki, rok, srodek, tort, nozyczki | Z9. Wygrana tylko jednego gracza `[zbiorcze: wygrana-kazdego]` / zbiorczy | [F4-009](#f4-009) | ZG4-v1: poprawić |
+| [F1:Z10](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L273) | kampus-tour, panstwa-miasta, simon, stoper, stroop, liczenie, schulte, kolo, kolor, kropki | Z10. Brak testu mutacji i JSON round-trip `[zbiorcze: stan-mutacja-json]` / zbiorczy | [F4-010](#f4-010) | ZG4-v1: poprawić |
+| [F1:Z11](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L293) | panstwa-miasta, kalambury | Z11. Stałość klucza `turn()` bez testu `[zbiorcze: turn-key-staly]` / zbiorczy | [F4-011](#f4-011) | ZG4-v1: poprawić |
+| [F1:Z12](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L299) | kampus-tour, statki | Z12. Widok obserwatora `""` nie w każdej fazie `[zbiorcze: widok-obserwatora]` / zbiorczy | [F4-012](#f4-012) | ZG4-v1: poprawić |
+| [F1:Z13](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L305) | stoj, stroop, liczenie, inny, obrot, literowka, dziesiatki | Z13. Rekord rozstrzyga remis zaokrągloną średnią, miejsca nie `[zbiorcze: tie-zaokraglenie]` / zbiorczy | [F4-013](#f4-013) | ZG4-v1: poprawić |
+| [F1:Z14](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L314) | stroop, liczenie, inny, obrot, literowka, dziesiatki | Z14. `quiz.ts`: czasy niecałkowite i nieograniczona liczba pomyłek przechodzą walidację `[zbiorcze: quiz-walidacja]` (Q1) / zbiorczy | [F4-014](#f4-014) | ZG4-v1: poprawić |
+| [F1:Z15](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L320) | stroop, liczenie, inny, obrot, literowka, dziesiatki | Z15. Ekran quizów ucina czasy do 5 s i gubi trafienia poniżej 150 ms `[zbiorcze: quiz-ekran-czasy]` (Q2) / zbiorczy | [F4-015](#f4-015) | ZG4-v1: poprawić |
+| [F1:Z16](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L325) | stoper, rytm | Z16. Ekran końcowy z kaflem ze stanu lokalnego `[zbiorcze: ekran-stan-lokalny]` (W3) / zbiorczy | [F4-016](#f4-016) | ZG4-v1: poprawić |
+| [F1:Z17](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L332) | panstwa-miasta, kalambury, platforma | Z17. Ręczne zbiory `MINI_GAMES` `[zbiorcze: mini-games-zbior]` (W1, W2, W4, W5) / zbiorczy | [F4-017](#f4-017) | ZG4-v1: poprawić |
+| [F1:Z18](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L341) | chinczyk, turniej | Z18. Pełny remis rozstrzyga kolejność miejsc, dokument tego nie mówi `[zbiorcze: remis-kolejnosc-miejsc]` / zbiorczy | [F4-018](#f4-018) | ZG4-v1: poprawić |
+| [F1:Z19](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L347) | kampus-tour, kubki, kropki, kat, rok, kolo | Z19. Wspólne funkcje i moduły `core.ts` `[zbiorcze: wspolne-funkcje-core]` / zbiorczy | [F4-019](#f4-019) | ZG4-v1: poprawić |
+| [F1:Z20](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L355) | w-pamieci | Z20. `KONCEPT.md` §2.4 pomija drugie kryterium W pamięci `[zbiorcze: koncept-drugie-kryteria]` (W7 = WP2) / zbiorczy | [F4-020](#f4-020) | ZG4-v1: poprawić |
+| [F1:Z21](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L360) | schulte, kropki, kat, rok, wieza, balon, sudoku, kolo | Z21. Test `soloState` nie widzi map wypełnianych tylko w prawdziwej partii `[zbiorcze: test-solostate]` (W9) / zbiorczy | [F4-021](#f4-021) | ZG4-v1: poprawić |
+| [F1:K1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L403) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-022](#f4-022) | ZG4-v1: poprawić |
+| [F1:K2](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L404) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-023](#f4-023) | ZG4-v1: poprawić |
+| [F1:K3](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L405) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-024](#f4-024) | ZG4-v1: poprawić |
+| [F1:K4](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L406) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-025](#f4-025) | ZG4-v1: poprawić |
+| [F1:K5](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L407) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-026](#f4-026) | ZG4-v1: poprawić |
+| [F1:K7](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L408) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-027](#f4-027) | ZG4-v1: poprawić |
+| [F1:K8](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L409) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-028](#f4-028) | ZG4-v1: poprawić |
+| [F1:K9](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L410) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-029](#f4-029) | ZG4-v1: poprawić |
+| [F1:K11](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L411) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-030](#f4-030) | ZG4-v1: poprawić |
+| [F1:K12](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L412) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-031](#f4-031) | ZG4-v1: poprawić |
+| [F1:K13](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L413) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-032](#f4-032) | ZG4-v1: poprawić |
+| [F1:K14](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L414) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-033](#f4-033) | ZG4-v1: poprawić |
+| [F1:K15](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L415) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-034](#f4-034) | ZG4-v1: poprawić |
+| [F1:K20](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L416) | kampus-tour | 6.1 Kampus Tour (`kampus-tour`), szczegóły: 01-03-FINDINGS.md / pojedynczy | [F4-035](#f4-035) | ZG4-v1: poprawić |
+| [F1:G1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L426) | piec-w-rzedzie | 6.2 Gomoku (`piec-w-rzedzie`), szczegóły: 01-04-FINDINGS.md / pojedynczy | [F4-036](#f4-036) | ZG4-v1: poprawić |
+| [F1:C4](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L442) | chinczyk | 6.4 Chińczyk (`chinczyk`), szczegóły: 01-04-FINDINGS.md / pojedynczy | [F4-037](#f4-037) | ZG4-v1: poprawić |
+| [F1:M1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L452) | memory | 6.5 Memory (`memory`), szczegóły: 01-04-FINDINGS.md / pojedynczy | [F4-038](#f4-038) | ZG4-v1: poprawić |
+| [F1:KL1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L462) | kalambury | 6.6 Kalambury (`kalambury`), szczegóły: 01-05-FINDINGS.md / pojedynczy | [F4-039](#f4-039) | ZG4-v1: poprawić |
+| [F1:KL3](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L463) | kalambury | 6.6 Kalambury (`kalambury`), szczegóły: 01-05-FINDINGS.md / pojedynczy | [F4-040](#f4-040) | ZG4-v1: poprawić |
+| [F1:L1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L473) | labirynt | 6.7 Labirynt (`labirynt`), szczegóły: 01-04-FINDINGS.md / pojedynczy | [F4-041](#f4-041) | ZG4-v1: poprawić |
+| [F1:L2](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L474) | labirynt | 6.7 Labirynt (`labirynt`), szczegóły: 01-04-FINDINGS.md / pojedynczy | [F4-042](#f4-042) | ZG4-v1: poprawić |
+| [F1:RF1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L488) | refleks | Refleks (`refleks`), 01-06-FINDINGS.md / pojedynczy | [F4-043](#f4-043) | ZG4-v1: poprawić |
+| [F1:W6](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L496) | simon | Sekwencja (`simon`), 01-06-FINDINGS.md / pojedynczy | [F4-044](#f4-044) | ZG4-v1: poprawić |
+| [F1:SC7](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L508) | schulte | Tabela Schultego (`schulte`), 01-07-FINDINGS.md / pojedynczy | [F4-045](#f4-045) | ZG4-v1: poprawić |
+| [F1:LC2](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L520) | liczenie | Liczenie (`liczenie`), 01-07-FINDINGS.md / pojedynczy | [F4-046](#f4-046) | ZG4-v1: poprawić |
+| [F1:KO9](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L528) | kolo | Narysuj koło (`kolo`), 01-08-FINDINGS.md / pojedynczy | [F4-047](#f4-047) | ZG4-v1: poprawić |
+| [F1:W8](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L548) | sudoku | Sudoku (`sudoku`), 01-07-FINDINGS.md / pojedynczy | [F4-048](#f4-048) | ZG4-v1: poprawić |
+| [F1:SJ2](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L568) | stoj | Stój! (`stoj`), 01-06-FINDINGS.md / pojedynczy | [F4-049](#f4-049) | ZG4-v1: poprawić |
+| [F1:SL1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L576) | sledzenie | Śledzenie (`sledzenie`), 01-09-FINDINGS.md / pojedynczy | [F4-050](#f4-050) | ZG4-v1: poprawić |
+| [F1:W10](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L577) | sledzenie | Śledzenie (`sledzenie`), 01-09-FINDINGS.md / pojedynczy | [F4-051](#f4-051) | ZG4-v1: poprawić |
+| [F1:BL1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L610) | balon | Balon (`balon`), 01-06-FINDINGS.md / pojedynczy | [F4-052](#f4-052) | ZG4-v1: poprawić |
+| [F1:WP1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L618) | w-pamieci | W pamięci (`w-pamieci`), 01-09-FINDINGS.md / pojedynczy | [F4-053](#f4-053) | ZG4-v1: poprawić |
+| [F1:PM7](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L645) | panstwa-miasta | 6.9 Państwa-miasta (`panstwa-miasta`), szczegóły: 01-05-FINDINGS.md / pojedynczy | [F4-054](#f4-054) | ZG4-v1: poprawić |
+| [F1:PM10](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L646) | panstwa-miasta | 6.9 Państwa-miasta (`panstwa-miasta`), szczegóły: 01-05-FINDINGS.md / pojedynczy | [F4-055](#f4-055) | ZG4-v1: poprawić |
+| [F2:U1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L51) | piec-w-rzedzie, statki, chinczyk, labirynt, memory, panstwa-miasta, kalambury, kolo, kropki, kat, w-pamieci | U1. Ekran partii nie mieści się na 360×640 `[zbiorcze: wysokosc-640]` / zbiorczy | [F4-056](#f4-056) | ZG4-v1: poprawić |
+| [F2:U2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L75) | chinczyk, kampus-tour | U2. Akcja w partii dostępna dopiero po animacji `[zbiorcze: akcja-po-animacji]` / zbiorczy | [F4-057](#f4-057) | ZG4-v1: poprawić |
+| [F2:KT10](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L87) | kampus-tour | KT10. Kampus Tour: treść środka planszy wyższa niż nakładka (do potwierdzenia w przeglądarce) / pojedynczy | [F4-058](#f4-058) | ZG4-v1: poprawić |
+| [F2:ZK1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L94) | zakupy | ZK1. Zakupy: „Gotowe” na `onClick` kończy pomiar drugiego kryterium / pojedynczy | [F4-059](#f4-059) | ZG4-v1: poprawić |
+| [F2:B-15](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L114) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-060](#f4-060) | ZG4-v1: poprawić |
+| [F2:B-18](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L115) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-061](#f4-061) | ZG4-v1: poprawić |
+| [F2:B-20](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L116) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-062](#f4-062) | ZG4-v1: poprawić |
+| [F2:B-29](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L117) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-063](#f4-063) | ZG4-v1: poprawić |
+| [F2:B-52](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L118) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-064](#f4-064) | ZG4-v1: poprawić |
+| [F2:B-53](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L119) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-065](#f4-065) | ZG4-v1: poprawić |
+| [F2:HM-1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L120) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-066](#f4-066) | ZG4-v1: poprawić |
+| [F2:HM-2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L121) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-067](#f4-067) | ZG4-v1: poprawić |
+| [F2:HM-3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L122) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-068](#f4-068) | ZG4-v1: poprawić |
+| [F2:HM-8](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L123) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-069](#f4-069) | ZG4-v1: poprawić |
+| [F2:SU-3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L124) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-070](#f4-070) | ZG4-v1: poprawić |
+| [F2:RC-2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L125) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-071](#f4-071) | ZG4-v1: poprawić |
+| [F2:RC-3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L126) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-072](#f4-072) | ZG4-v1: poprawić |
+| [F2:RC-6](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L127) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-073](#f4-073) | ZG4-v1: poprawić |
+| [F2:AP-2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L128) | platforma | 3. Rozbieżności platformy (02-02, 02-03) / pojedynczy | [F4-074](#f4-074) | ZG4-v1: poprawić |
+| [F2:A1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L287) | chinczyk | 4.10 Wpisy z macierzy / macierz | [F4-075](#f4-075) | ZG4-v1: poprawić |
+| [F2:A2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L288) | labirynt | 4.10 Wpisy z macierzy / macierz | [F4-076](#f4-076) | ZG4-v1: poprawić |
+| [F2:A3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L289) | piec-w-rzedzie, statki, memory | 4.10 Wpisy z macierzy / macierz | [F4-077](#f4-077) | ZG4-v1: poprawić |
+| [F2:A4](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L290) | mapa, kolor, kropki, kat, rok, srodek, tort, nozyczki | 4.10 Wpisy z macierzy / macierz | [F4-078](#f4-078) | ZG4-v1: poprawić |
+| [F2:A5](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L291) | kolo, zaslona, srodek, nozyczki | 4.10 Wpisy z macierzy / macierz | [F4-079](#f4-079) | ZG4-v1: poprawić |
+| [F2:A6](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L292) | refleks, simon, memory, statki | 4.10 Wpisy z macierzy / macierz | [F4-080](#f4-080) | ZG4-v1: poprawić |
+| [F2:A7](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L293) | statki, kampus-tour, panstwa-miasta | 4.10 Wpisy z macierzy / macierz | [F4-081](#f4-081) | ZG4-v1: poprawić |
+| [F2:A8](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L294) | kampus-tour | 4.10 Wpisy z macierzy / macierz | [F4-082](#f4-082) | ZG4-v1: poprawić |
+| [F2:A9](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L295) | w-pamieci | 4.10 Wpisy z macierzy / macierz | [F4-083](#f4-083) | ZG4-v1: poprawić |
+| [F2:A10](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L296) | panstwa-miasta, kalambury | 4.10 Wpisy z macierzy / macierz | [F4-084](#f4-084) | ZG4-v1: poprawić |
+| [F2:A11](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L297) | panstwa-miasta, kalambury, turniej | 4.10 Wpisy z macierzy / macierz | [F4-085](#f4-085) | ZG4-v1: poprawić |
+| [F2:A12](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L298) | rok | 4.10 Wpisy z macierzy / macierz | [F4-086](#f4-086) | ZG4-v1: poprawić |
+| [F2:A13](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L299) | w-pamieci | 4.10 Wpisy z macierzy / macierz | [F4-087](#f4-087) | ZG4-v1: poprawić |
+| [F2:A14](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L300) | memory | 4.10 Wpisy z macierzy / macierz | [F4-088](#f4-088) | ZG4-v1: poprawić |
+| [F2:A15](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L301) | dziesiatki, sudoku, zakupy | 4.10 Wpisy z macierzy / macierz | [F4-089](#f4-089) | ZG4-v1: poprawić |
+| [F2:A16](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L302) | kampus-tour | 4.10 Wpisy z macierzy / macierz | [F4-090](#f4-090) | ZG4-v1: poprawić |
+| [F2:A17](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L303) | statki, panstwa-miasta, zakupy | 4.10 Wpisy z macierzy / macierz | [F4-091](#f4-091) | ZG4-v1: poprawić |
+| [F2:U3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L328) | platforma, kalambury, panstwa-miasta, turniej | U3. Ekran podsumowania wyższy niż 640 px `[zbiorcze: wysokosc-640]` (podsumowanie) / zbiorczy | [F4-092](#f4-092) | ZG4-v1: poprawić |
+| [F2:U4](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L339) | platforma, kolor, rok, kampus-tour, piec-w-rzedzie, statki, chinczyk, labirynt, panstwa-miasta, tort, sledzenie | U4. Pola dotykowe poniżej 48 px `[zbiorcze: dotyk-48]` / zbiorczy | [F4-093](#f4-093) | ZG4-v1: poprawić |
+| [F2:U5](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L363) | platforma, kolor, rok, kampus-tour, piec-w-rzedzie, kolo | U5. Kolory spoza tokenów `[zbiorcze: kolor-spoza-tokenow]` / zbiorczy | [F4-094](#f4-094) | ZG4-v1: poprawić |
+| [F2:U6](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L377) | platforma, piec-w-rzedzie, chinczyk, labirynt, memory, kampus-tour, panstwa-miasta, sledzenie, zakupy | U6. Kolor jako jedyny sygnał `[zbiorcze: kolor-jedyny-sygnal]` / zbiorczy | [F4-095](#f4-095) | ZG4-v1: poprawić |
+| [F2:U7](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L395) | platforma, statki, chinczyk, panstwa-miasta | U7. Token w cudzej roli `[zbiorcze: rola-tokenu]` / zbiorczy | [F4-096](#f4-096) | ZG4-v1: poprawić |
+| [F2:U8](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L410) | kampus-tour, panstwa-miasta | U8. Pasek limitu i tytuł tury bez koloru gracza `[zbiorcze: pasek-tury-kolor-gracza]` / zbiorczy | [F4-097](#f4-097) | ZG4-v1: poprawić |
+| [F2:U9](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L420) | kampus-tour, kolor, kropki, kat, w-pamieci, kolo | U9. Inne słowo w roli słowa wspólnego `[zbiorcze: slowa]` / zbiorczy | [F4-098](#f4-098) | ZG4-v1: poprawić |
+| [F2:U10](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L434) | stroop, liczenie, inny, obrot, literowka, dziesiatki, stoj, refleks | U10. Własna lista wyników zamiast `Scores` `[zbiorcze: wlasna-lista-wynikow]` / zbiorczy | [F4-099](#f4-099) | ZG4-v1: poprawić |
+| [F2:U11](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L444) | przytrzymaj, balon, kropki, kat, rok, kolor | U11. Własna tabela rund zamiast `RoundTable` `[zbiorcze: wlasna-tabela-rund]` / zbiorczy | [F4-100](#f4-100) | ZG4-v1: poprawić |
+| [F2:U12](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L458) | platforma, memory, kampus-tour, chinczyk, labirynt, refleks, stoper, rytm, przytrzymaj, liczenie, kropki, kat, turniej | U12. Liczby bez Geist Mono albo bez `tabular-nums` `[zbiorcze: liczby-mono]` / zbiorczy | [F4-101](#f4-101) | ZG4-v1: poprawić |
+| [F2:U13](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L482) | platforma, kampus-tour, statki, balon, zakupy | U13. Podpis bloku poza `.label` `[zbiorcze: podpis-label]` / zbiorczy | [F4-102](#f4-102) | ZG4-v1: poprawić |
+| [F2:U14](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L488) | platforma, kampus-tour, kalambury | U14. Waga ikony w małej akcji `[zbiorcze: waga-ikon]` / zbiorczy | [F4-103](#f4-103) | ZG4-v1: poprawić |
+| [F2:U15](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L494) | platforma, kampus-tour, kalambury, turniej, kubki | U15. Przejście z domyślnym czasem Tailwinda 150 ms `[zbiorcze: transition-domyslny]` / zbiorczy | [F4-104](#f4-104) | ZG4-v1: poprawić |
+| [F2:U16](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L500) | platforma, piec-w-rzedzie, statki, labirynt, memory | U16. Animacje Tailwinda spoza `index.css` `[zbiorcze: animate-tailwind]` / zbiorczy | [F4-105](#f4-105) | ZG4-v1: poprawić |
+| [F2:U17](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L506) | platforma, piec-w-rzedzie, kolo, stroop, liczenie, inny, obrot, literowka, dziesiatki, sudoku, schulte, wieza, stoj, srodek, nozyczki | U17. Keyframes spoza listy §5 `[zbiorcze: keyframes-poza-5]` / zbiorczy | [F4-106](#f4-106) | ZG4-v1: poprawić |
+| [F2:U18](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L512) | platforma, kampus-tour, rytm, zakupy, kubki, sledzenie, wieza | U18. Animacja bez kategorii w tabeli czasów §5 `[zbiorcze: brak-w-tabeli-5]` / zbiorczy | [F4-107](#f4-107) | ZG4-v1: poprawić |
+| [F2:U19](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L528) | platforma, turniej, w-pamieci | U19. Czas pojawienia inny niż 350 ms `[zbiorcze: czas-pojawienia]` / zbiorczy | [F4-108](#f4-108) | ZG4-v1: poprawić |
+| [F2:U20](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L533) | platforma | U20. Komentarz w `index.css` węższy niż użycie `[zbiorcze: komentarz-nieaktualny]` / zbiorczy | [F4-109](#f4-109) | ZG4-v1: poprawić |
+| [F2:U21](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L539) | platforma, kolor, rok, kampus-tour, piec-w-rzedzie, statki, memory | U21. Cień poza miejscami z `DESIGN.md` §2 `[zbiorcze: cien]` / zbiorczy | [F4-110](#f4-110) | ZG4-v1: poprawić |
+| [F2:U22](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L545) | platforma, kolor, rok, turniej, kampus-tour, statki, chinczyk, obrot, wieza | U22. Zaokrąglenie spoza 20 / 10 / 999 px `[zbiorcze: promien]` / zbiorczy | [F4-111](#f4-111) | ZG4-v1: poprawić |
+| [F2:U23](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L551) | platforma, kampus-tour, kalambury, zaslona, balon, inny, sudoku, statki, labirynt | U23. Dostępność: `aria-hidden`, `aria-label`, role `[zbiorcze: aria]` / zbiorczy | [F4-112](#f4-112) | ZG4-v1: poprawić |
+| [F2:U24](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L570) | platforma | U24. Rozłączony gracz `[zbiorcze: stan-rozlaczony]` / zbiorczy | [F4-113](#f4-113) | ZG4-v1: poprawić |
+| [F2:U25](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L575) | platforma, panstwa-miasta, turniej, memory | U25. Krycie stanu spoza tabeli `DESIGN.md` §4 `[zbiorcze: stan-krycie]` / zbiorczy | [F4-114](#f4-114) | ZG4-v1: poprawić |
+| [F2:U26](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L581) | platforma | U26. Stan ładowania niezgodny z `DESIGN.md` §4 `[zbiorcze: stan-ladowania]` / zbiorczy | [F4-115](#f4-115) | ZG4-v1: poprawić |
+| [F2:U27](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L587) | platforma, kampus-tour, wieza, balon | U27. `float-up` niewidoczne przy reduced motion `[zbiorcze: float-up-reduced]` / zbiorczy | [F4-116](#f4-116) | ZG4-v1: poprawić |
+| [F2:U28](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L592) | refleks, stoper, stoj, wieza | U28. Pomiar z obsługi zdarzenia zamiast `e.timeStamp` `[zbiorcze: pomiar-timestamp]` / zbiorczy | [F4-117](#f4-117) | ZG4-v1: poprawić |
+| [F2:U29](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L597) | simon, stoj | U29. `accent-fg` poza akcentem `[zbiorcze: accent-fg-poza-akcentem]` / zbiorczy | [F4-118](#f4-118) | ZG4-v1: poprawić |
+| [F2:U30](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L602) | platforma, panstwa-miasta, kalambury, kropki, kat, rok, obrot, wieza, zaslona, przytrzymaj | U30. Drobne różnice słów `[zbiorcze: slowa-drobne]` / zbiorczy | [F4-119](#f4-119) | ZG4-v1: poprawić |
+| [F2:U31](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L609) | platforma, schulte, sudoku | U31. Zapis ułamka bez wspólnej funkcji `[zbiorcze: przecinek]` / zbiorczy | [F4-120](#f4-120) | ZG4-v1: poprawić |
+| [F2:U32](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L614) | piec-w-rzedzie, statki, labirynt, memory | U32. Animacja pojawienia gra ponownie po odświeżeniu `[zbiorcze: animacja-po-odswiezeniu]` (02-05 Z3) / zbiorczy | [F4-121](#f4-121) | ZG4-v1: poprawić |
+| [F2:U33](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L619) | kolo, balon | U33. Zapis braku wartości `[zbiorcze: brak-wartosci]` / zbiorczy | [F4-122](#f4-122) | ZG4-v1: poprawić |
+| [F2:U34](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L624) | inny, literowka, dziesiatki, sudoku | U34. Szerokość bez skalowania `[zbiorcze: szerokosc-bez-skalowania]` / zbiorczy | [F4-123](#f4-123) | ZG4-v1: poprawić |
+| [F2:U35](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L629) | przytrzymaj, stoper | U35. Własne progi zamiast `grade` `[zbiorcze: wlasny-grade]` / zbiorczy | [F4-124](#f4-124) | ZG4-v1: poprawić |
+| [F2:U36](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L634) | kolo, srodek, mapa, tort, nozyczki | U36. Punkt `time` w `Intro` bez czasu `[zbiorcze: intro-time]` / zbiorczy | [F4-125](#f4-125) | ZG4-v1: poprawić |
+| [F2:U37](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L639) | rok, kropki, kat | U37. Kolor znacznika prawdy w odsłonie `[zbiorcze: znacznik-prawdy]` / zbiorczy | [F4-126](#f4-126) | ZG4-v1: poprawić |
+| [F2:QZ3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L772) | platforma | `Quiz.tsx` (wspólny, D-02), szczegóły: 02-08-FINDINGS.md sekcja Kolor liter / pojedynczy | [F4-127](#f4-127) | ZG4-v1: poprawić |
+| [F2:SZ2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L781) | platforma | `Szacowanie.tsx` (wspólny), szczegóły: 02-09-FINDINGS.md sekcja Policz kropki / pojedynczy | [F4-128](#f4-128) | ZG4-v1: poprawić |
+| [F2:KT1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L795) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-129](#f4-129) | ZG4-v1: poprawić |
+| [F2:KT14](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L796) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-130](#f4-130) | ZG4-v1: poprawić |
+| [F2:KA2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L797) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-131](#f4-131) | ZG4-v1: poprawić |
+| [F2:KA3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L798) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-132](#f4-132) | ZG4-v1: poprawić |
+| [F2:KT11](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L799) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-133](#f4-133) | ZG4-v1: poprawić |
+| [F2:KS1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L800) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-134](#f4-134) | ZG4-v1: poprawić |
+| [F2:KS2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L801) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-135](#f4-135) | ZG4-v1: poprawić |
+| [F2:KS3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L802) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-136](#f4-136) | ZG4-v1: poprawić |
+| [F2:KS6](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L803) | kampus-tour | 8.2 Kampus Tour (`kampus-tour`) i `KampusSummary`, szczegóły: 02-04-FINDINGS.md / pojedynczy | [F4-137](#f4-137) | ZG4-v1: poprawić |
+| [F2:C7](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L822) | chinczyk | 8.5 Chińczyk (`chinczyk`), szczegóły: 02-05-FINDINGS.md / pojedynczy | [F4-138](#f4-138) | ZG4-v1: poprawić |
+| [F2:KL4](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L836) | kalambury | 8.7 Kalambury (`kalambury`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-139](#f4-139) | ZG4-v1: poprawić |
+| [F2:KL8](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L837) | kalambury | 8.7 Kalambury (`kalambury`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-140](#f4-140) | ZG4-v1: poprawić |
+| [F2:SC2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L871) | schulte | Tabela Schultego (`schulte`), 02-08-FINDINGS.md / pojedynczy | [F4-141](#f4-141) | ZG4-v1: poprawić |
+| [F2:ST1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L880) | stroop | Kolor liter (`stroop`), 02-08-FINDINGS.md / pojedynczy | [F4-142](#f4-142) | ZG4-v1: poprawić |
+| [F2:ST2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L881) | stroop | Kolor liter (`stroop`), 02-08-FINDINGS.md / pojedynczy | [F4-143](#f4-143) | ZG4-v1: poprawić |
+| [F2:KO4](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L895) | kolo | Narysuj koło (`kolo`), 02-09-FINDINGS.md / pojedynczy | [F4-144](#f4-144) | ZG4-v1: poprawić |
+| [F2:OD1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L904) | kolor | Odcień (`kolor`), 02-09-FINDINGS.md / pojedynczy | [F4-145](#f4-145) | ZG4-v1: poprawić |
+| [F2:SU2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L923) | sudoku | Sudoku (`sudoku`), 02-08-FINDINGS.md / pojedynczy | [F4-146](#f4-146) | ZG4-v1: poprawić |
+| [F2:RY3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L962) | rytm | Rytm (`rytm`), 02-07-FINDINGS.md / pojedynczy | [F4-147](#f4-147) | ZG4-v1: poprawić |
+| [F2:IN2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L971) | inny | Inny element (`inny`), 02-08-FINDINGS.md / pojedynczy | [F4-148](#f4-148) | ZG4-v1: poprawić |
+| [F2:MP1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L990) | mapa | Mapa (`mapa`), 02-09-FINDINGS.md / pojedynczy | [F4-149](#f4-149) | ZG4-v1: poprawić |
+| [F2:BL5](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1004) | balon | Balon (`balon`), 02-07-FINDINGS.md / pojedynczy | [F4-150](#f4-150) | ZG4-v1: poprawić |
+| [F2:ZK5](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1033) | zakupy | Zakupy (`zakupy`), 02-08-FINDINGS.md / pojedynczy | [F4-151](#f4-151) | ZG4-v1: poprawić |
+| [F2:PM2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1048) | panstwa-miasta | 8.10 Państwa-miasta (`panstwa-miasta`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-152](#f4-152) | ZG4-v1: poprawić |
+| [F2:TU1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1058) | turniej | 8.11 Turniej (`turniej`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-153](#f4-153) | ZG4-v1: poprawić |
+| [F2:TU2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1059) | turniej | 8.11 Turniej (`turniej`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-154](#f4-154) | ZG4-v1: poprawić |
+| [F2:TU5](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1060) | turniej | 8.11 Turniej (`turniej`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-155](#f4-155) | ZG4-v1: poprawić |
+| [F2:TU6](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1061) | turniej | 8.11 Turniej (`turniej`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-156](#f4-156) | ZG4-v1: poprawić |
+| [F2:TU8](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1062) | turniej | 8.11 Turniej (`turniej`), szczegóły: 02-06-FINDINGS.md / pojedynczy | [F4-157](#f4-157) | ZG4-v1: poprawić |
+| [F3:R1](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L243) | simon, zakupy, srodek, tort, sledzenie, panstwa-miasta, rok | R1. Limit tury bez zapasu `[zbiorcze: limit-tury-bez-zapasu]` (= F1:Z2, liczby fazy 3) / zbiorczy | [F4-002](#f4-002) | ZG4-v1: decyzja mieszana, zamknięta |
+| [F3:R2](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L260) | stoper, rytm, liczenie, kolor, kat, w-pamieci, obrot, dziesiatki, sudoku, sledzenie, stoj, zaslona, literowka, rok, kubki | R2. Trudność partii zależy od losowania `[zbiorcze: trudnosc-z-losowania]` (= F1:Z3, liczby fazy 3) / zbiorczy | [F4-003](#f4-003) | ZG4-v1: decyzja mieszana, zamknięta |
+| [F3:R3](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L285) | w-pamieci, kubki, simon | R3. Sufit osiągalny bez rozstrzygnięcia remisu `[zbiorcze: sufit-bez-tie]` / zbiorczy | [F4-158](#f4-158) | ZG4-v1: zostawić jako odstępstwo z powodem |
+| [F3:R4](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L297) | wieza, zakupy | R4. Sufit w zasięgu najlepszych, `tie` mierzy co innego `[zbiorcze: sufit-osiagalny]` / zbiorczy | [F4-159](#f4-159) | ZG4-v1: zostawić jako odstępstwo z powodem |
+| [F3:R5](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L306) | kampus-tour, piec-w-rzedzie, labirynt, statki, memory | R5. Przewaga kolejności w grach głównych `[zbiorcze: przewaga-pierwszego]` / zbiorczy | [F4-160](#f4-160) | ZG4-v1: zostawić jako odstępstwo z powodem |
+| [F3:R6](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L318) | refleks, stoper, stoj, wieza | R6. Pomiar czasu od zmiany stanu, nie od klatki `[zbiorcze: pomiar-od-klatki]` (styk z F2:U28 `pomiar-timestamp`) / zbiorczy | [F4-117](#f4-117) | ZG4-v1: poprawić |
+| [F3:R7](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L329) | balon | R7. `withSum` wyrównuje sumę, ale nie szanse `[zbiorcze: withsum-rozklad]` / zbiorczy | [F4-161](#f4-161) | ZG4-v1: poprawić |
+| [F3:R8](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L340) | platforma | R8. Limit mini-gry odnawiany wynikiem rywala `[zbiorcze: limit-odnawiany-wynikiem]` / zbiorczy | [F4-162](#f4-162) | ZG4-v1: poprawić |
+| [F3:B-KT3](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L351) | kampus-tour | 8. Wpisy pojedyncze / pojedynczy | [F4-163](#f4-163) | ZG4-v1: zostawić jako odstępstwo z powodem |
+| [F3:B-KT2](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L352) | kampus-tour | 8. Wpisy pojedyncze / pojedynczy | [F4-164](#f4-164) | ZG4-v1: zostawić jako odstępstwo z powodem |
+| [F3:B-KT4](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L353) | kampus-tour | 8. Wpisy pojedyncze / pojedynczy | [F4-023](#f4-023) | ZG4-v1: poprawić |
+| [F3:B-KT5](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L354) | kampus-tour | 8. Wpisy pojedyncze / pojedynczy | [F4-030](#f4-030) | ZG4-v1: poprawić |
+| [F3:B-KT6](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L355) | kampus-tour | 8. Wpisy pojedyncze / pojedynczy | [F4-165](#f4-165) | ZG4-v1: zostawić jako odstępstwo z powodem |
+| [F3:B-PM2](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L356) | panstwa-miasta | 8. Wpisy pojedyncze / pojedynczy | [F4-166](#f4-166) | ZG4-v1: poprawić |
+| [F3:B-KA1](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L357) | kalambury | 8. Wpisy pojedyncze / pojedynczy | [F4-167](#f4-167) | ZG4-v1: zostawić jako odstępstwo z powodem |
+| [F3:B-TU1](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L358) | turniej | 8. Wpisy pojedyncze / pojedynczy | [F4-168](#f4-168) | ZG4-v1: zostawić jako odstępstwo z powodem |
 
 ## 4. Rejestr F4
 
@@ -233,7 +234,7 @@ Każdy wpis ma wariant zmiany wskazany w propozycji oraz wariant zachowania z ud
 
 - Zakres: `schulte`, `sudoku`, `kropki`.
 - Ślad źródłowy: [F1:Z1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L38).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-002. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **wysoka**; wynik po limicie może wyprzedzić oddany uczciwie wynik, również w turnieju.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -263,7 +264,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `simon`, `zakupy`, `srodek`, `tort`, `sledzenie`, `panstwa-miasta`, `rok`.
 - Ślad źródłowy: [F1:Z2](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L56), [F3:R1](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L243).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **decyzja mieszana, zamknięta, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: panstwa-miasta: H-003; regula-zapasu: P4-001; rok: P4-021; simon: P4-004; sledzenie: P4-020; srodek: H-001; tort: H-002; zakupy: P4-003. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **wysoka**; limit może odebrać wynik uczciwej partii; Środek i Tort mają wagę wysoką według modelu, do pomiaru.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -294,7 +295,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `stoper`, `rytm`, `liczenie`, `kolor`, `kat`, `w-pamieci`, `obrot`, `dziesiatki`, `sudoku`, `sledzenie`, `stoj`, `zaslona`, `literowka`, `rok`, `kubki`.
 - Ślad źródłowy: [F1:Z3](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L127), [F3:R2](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L260).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **decyzja mieszana, zamknięta, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: dziesiatki: H-005; kat: H-007; kolor: H-004; kubki: H-013; liczenie: P4-057; literowka: H-011; obrot: P4-058; rok: H-012; rytm: P4-056; sledzenie: H-008; stoj: H-009; stoper: P4-055; sudoku: H-006; w-pamieci: P4-059; zaslona: H-010. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -333,7 +334,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`, `piec-w-rzedzie`, `statki`, `chinczyk`, `panstwa-miasta`, `turniej`, `refleks`, `simon`, `stoper`, `schulte`, `stroop`, `liczenie`, `kolo`, `kolor`, `kropki`.
 - Ślad źródłowy: [F1:Z4](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L146).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: chinczyk: P4-030; kampus-tour: P4-029; kolo: P4-032; kolor: P4-032; kropki: P4-032; liczenie: P4-031; panstwa-miasta: P4-030; piec-w-rzedzie: P4-030; refleks: P4-032; schulte: P4-032; simon: P4-032; statki: P4-030; stoper: P4-032; stroop: P4-031; turniej: P4-030. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -370,7 +371,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `statki`, `panstwa-miasta`, `simon`, `stoper`, `stroop`, `liczenie`, `schulte`, `kolo`, `kolor`, `kropki`.
 - Ślad źródłowy: [F1:Z5](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L171).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: kolo: P4-032; kolor: P4-032; kropki: P4-032; liczenie: P4-031; panstwa-miasta: P4-030; schulte: P4-032; simon: P4-032; statki: P4-030; stoper: P4-032; stroop: P4-031. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -401,7 +402,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `panstwa-miasta`, `refleks`, `simon`, `stoper`, `stroop`, `liczenie`, `schulte`, `kolo`, `kolor`, `kropki`, `srodek`.
 - Ślad źródłowy: [F1:Z6](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L190).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: kolo: P4-032; kolor: P4-032; kropki: P4-032; liczenie: P4-031; panstwa-miasta: P4-030; refleks: P4-032; schulte: P4-032; simon: P4-032; srodek: P4-032; stoper: P4-032; stroop: P4-031. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -432,7 +433,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`, `panstwa-miasta`, `simon`, `stroop`, `liczenie`, `inny`, `obrot`, `literowka`, `dziesiatki`, `kolo`, `kolor`, `kropki`.
 - Ślad źródłowy: [F1:Z7](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L209).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: dziesiatki: P4-031; inny: P4-031; kampus-tour: P4-029; kolo: P4-032; kolor: P4-032; kropki: P4-032; liczenie: P4-031; literowka: P4-031; obrot: P4-031; panstwa-miasta: P4-030; simon: P4-032; stroop: P4-031. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -464,7 +465,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`, `piec-w-rzedzie`, `statki`, `chinczyk`, `panstwa-miasta`, `refleks`, `simon`, `stoper`, `stroop`, `liczenie`, `schulte`, `kolo`, `kolor`.
 - Ślad źródłowy: [F1:Z8](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L229).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: chinczyk: P4-030; kampus-tour: P4-029; kolo: P4-032; kolor: P4-032; liczenie: P4-031; panstwa-miasta: P4-030; piec-w-rzedzie: P4-030; refleks: P4-032; schulte: P4-032; simon: P4-032; statki: P4-030; stoper: P4-032; stroop: P4-031. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -498,7 +499,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `panstwa-miasta`, `refleks`, `simon`, `stoper`, `stroop`, `liczenie`, `schulte`, `kolo`, `kolor`, `kropki`, `rok`, `srodek`, `tort`, `nozyczki`.
 - Ślad źródłowy: [F1:Z9](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L251).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: kolo: P4-032; kolor: P4-032; kropki: P4-032; liczenie: P4-031; nozyczki: P4-032; panstwa-miasta: P4-030; refleks: P4-032; rok: P4-032; schulte: P4-032; simon: P4-032; srodek: P4-032; stoper: P4-032; stroop: P4-031; tort: P4-032. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -532,7 +533,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`, `panstwa-miasta`, `simon`, `stoper`, `stroop`, `liczenie`, `schulte`, `kolo`, `kolor`, `kropki`.
 - Ślad źródłowy: [F1:Z10](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L273).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: kampus-tour: P4-029; kolo: P4-032; kolor: P4-032; kropki: P4-032; liczenie: P4-031; panstwa-miasta: P4-030; schulte: P4-032; simon: P4-032; stoper: P4-032; stroop: P4-031. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -564,7 +565,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `panstwa-miasta`, `kalambury`.
 - Ślad źródłowy: [F1:Z11](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L293).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: kalambury: P4-030; panstwa-miasta: P4-030. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -582,7 +583,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`, `statki`.
 - Ślad źródłowy: [F1:Z12](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L299).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: kampus-tour: P4-029; statki: P4-030. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -600,7 +601,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `stoj`, `stroop`, `liczenie`, `inny`, `obrot`, `literowka`, `dziesiatki`.
 - Ślad źródłowy: [F1:Z13](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L305).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-024. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -621,7 +622,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `stroop`, `liczenie`, `inny`, `obrot`, `literowka`, `dziesiatki`.
 - Ślad źródłowy: [F1:Z14](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L314).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-023. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -639,7 +640,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `stroop`, `liczenie`, `inny`, `obrot`, `literowka`, `dziesiatki`.
 - Ślad źródłowy: [F1:Z15](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L320).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-023. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: zależnie od wariantu; doprecyzowanie dokumentu bez zmiany zachowania lub zmiana reguły/czasu/kontraktu.
@@ -656,7 +657,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `stoper`, `rytm`.
 - Ślad źródłowy: [F1:Z16](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L325).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-033. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: zależnie od wariantu; doprecyzowanie dokumentu bez zmiany zachowania lub zmiana reguły/czasu/kontraktu.
@@ -675,7 +676,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `panstwa-miasta`, `kalambury`, `platforma`.
 - Ślad źródłowy: [F1:Z17](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L332).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-034. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -696,7 +697,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `chinczyk`, `turniej`.
 - Ślad źródłowy: [F1:Z18](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L341).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-025. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: zależnie od wariantu; doprecyzowanie dokumentu bez zmiany zachowania lub zmiana reguły/czasu/kontraktu.
@@ -714,7 +715,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`, `kubki`, `kropki`, `kat`, `rok`, `kolo`.
 - Ślad źródłowy: [F1:Z19](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L347).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-035. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -734,7 +735,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `w-pamieci`.
 - Ślad źródłowy: [F1:Z20](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L355).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-054. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -751,7 +752,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `schulte`, `kropki`, `kat`, `rok`, `wieza`, `balon`, `sudoku`, `kolo`.
 - Ślad źródłowy: [F1:Z21](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L360).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-033. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -768,7 +769,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F1:K1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L403).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-026. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -785,7 +786,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F1:K2](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L404), [F3:B-KT4](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L353).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-026. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: zależnie od wariantu; doprecyzowanie dokumentu bez zmiany zachowania lub zmiana reguły/czasu/kontraktu.
@@ -804,7 +805,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F1:K3](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L405).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-054. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -821,7 +822,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F1:K4](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L406).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-054. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -838,7 +839,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F1:K5](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L407).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-054. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -855,7 +856,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F1:K7](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L408).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-029. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -872,7 +873,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F1:K8](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L409).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-029. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -889,7 +890,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F1:K9](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L410).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-029. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -906,7 +907,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F1:K11](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L411), [F3:B-KT5](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L354).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-026. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: zależnie od wariantu; doprecyzowanie dokumentu bez zmiany zachowania lub zmiana reguły/czasu/kontraktu.
@@ -925,7 +926,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F1:K12](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L412).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-026. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -942,7 +943,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F1:K13](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L413).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-029. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -959,7 +960,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F1:K14](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L414).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-029. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -976,7 +977,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F1:K15](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L415).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-029. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -993,7 +994,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F1:K20](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L416).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-054. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -1010,7 +1011,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `piec-w-rzedzie`.
 - Ślad źródłowy: [F1:G1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L426).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-025. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -1027,7 +1028,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `chinczyk`.
 - Ślad źródłowy: [F1:C4](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L442).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-030. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -1044,7 +1045,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `memory`.
 - Ślad źródłowy: [F1:M1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L452).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-030. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -1061,9 +1062,9 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kalambury`.
 - Ślad źródłowy: [F1:KL1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L462).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-027. Wykonane 2026-10-26 w 05-02; dowody w [05-02-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-02-SUMMARY.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
-- Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
+- Pewność: S; ponowiona regresja RED → GREEN, testy handlerów serwera i /dev 2/6 z odświeżeniem w obu połowach. Hint wymaga teraz zaufanego timeoutu w walidacji.
 - Zmiana zasad: zależnie od wariantu; doprecyzowanie dokumentu bez zmiany zachowania lub zmiana reguły/czasu/kontraktu.
 
 - Lokalizacja: `packages/games/src/kalambury.ts:146`
@@ -1078,7 +1079,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kalambury`.
 - Ślad źródłowy: [F1:KL3](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L463).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-030. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -1095,7 +1096,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `labirynt`.
 - Ślad źródłowy: [F1:L1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L473).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-030. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -1112,7 +1113,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `labirynt`.
 - Ślad źródłowy: [F1:L2](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L474).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-030. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -1129,7 +1130,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `refleks`.
 - Ślad źródłowy: [F1:RF1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L488).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-054. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1146,7 +1147,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `simon`.
 - Ślad źródłowy: [F1:W6](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L496).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-054. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1163,7 +1164,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `schulte`.
 - Ślad źródłowy: [F1:SC7](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L508).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-032. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -1180,7 +1181,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `liczenie`.
 - Ślad źródłowy: [F1:LC2](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L520).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-031. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -1197,7 +1198,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kolo`.
 - Ślad źródłowy: [F1:KO9](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L528).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-032. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -1214,7 +1215,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `sudoku`.
 - Ślad źródłowy: [F1:W8](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L548).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-034. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -1231,7 +1232,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `stoj`.
 - Ślad źródłowy: [F1:SJ2](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L568).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-031. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -1248,7 +1249,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `sledzenie`.
 - Ślad źródłowy: [F1:SL1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L576).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-032. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1265,7 +1266,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `sledzenie`.
 - Ślad źródłowy: [F1:W10](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L577).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-034. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1282,7 +1283,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `balon`.
 - Ślad źródłowy: [F1:BL1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L610).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-054. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1299,7 +1300,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `w-pamieci`.
 - Ślad źródłowy: [F1:WP1](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L618).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-032. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -1316,7 +1317,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `panstwa-miasta`.
 - Ślad źródłowy: [F1:PM7](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L645).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-030. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla uzupełnienia testu istniejącej reguły.
@@ -1333,7 +1334,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `panstwa-miasta`.
 - Ślad źródłowy: [F1:PM10](../01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md#L646).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-054. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dowody testowe/fuzz dziedziczone z F1, brak ponownej symulacji.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1350,9 +1351,10 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `piec-w-rzedzie`, `statki`, `chinczyk`, `labirynt`, `memory`, `panstwa-miasta`, `kalambury`, `kolo`, `kropki`, `kat`, `w-pamieci`.
 - Ślad źródłowy: [F2:U1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L51).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: chinczyk: P4-009; kalambury: P4-012; kat: P4-015; kolo: P4-013; kropki: P4-015; labirynt: P4-010; memory: P4-011; naglowek-Game: P4-006; panstwa-miasta: P4-014; piec-w-rzedzie: P4-007; statki: P4-008; w-pamieci: P4-015. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **wysoka**; układ może zasłonić pole gry lub akcję podczas partii; statyczny szacunek, część wystąpień wymaga urządzenia.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
+- Aktualizacja 04-02 (2026-10-26): E01-E07, E09 i E11: Memory 651/695 px (2/4 os.), Labirynt 830, Chińczyk 750, Gomoku 686, Statki rozstawianie 781, Kalambury zgadujący 723, Koło solo 707, Państwa-miasta pisanie 846. S+M dla tych stanów, Android i pozostałe konfiguracje nadal otwarte U01/U02. Dowód: [EVIDENCE](04-02-EVIDENCE.md), historia §5.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
 
 - Źródło: `ZASADY.md` §4 Reguły („Ekran mieści się na 360×640”), `AGENTS.md` (UI: 360×640); D-07 („ekran gry nie mieści się”).
@@ -1386,7 +1388,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `chinczyk`, `kampus-tour`.
 - Ślad źródłowy: [F2:U2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L75).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: chinczyk: P4-019; kampus-tour: P4-018. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **wysoka**; decyzja w partii czeka na zakończenie animacji wbrew regule platformy.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1412,9 +1414,10 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F2:KT10](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L87).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-017. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **wysoka**; overflow może obciąć treść i przyciski planszy; szacunek wymaga potwierdzenia.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
+- Aktualizacja 04-02 (2026-10-26): E13-E15: obcięcie potwierdzone w oknie 640×360 i obróconym 360×640. Scena 800×390, skala 0,8; środek 171 px sceny/136,52 px ekranu, treść 188/187/200 zamiast szacowanych 224/204/250. Licznik i log ucięte przy buy/MPK, po partii Runda i Podsumowanie; Rewanż w E15 mieści się. S+M, waga wysoka bez zmiany. Dowód: [EVIDENCE](04-02-EVIDENCE.md), historia §5.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
 
 - Gra: `kampus-tour`. Miejsce: `apps/web/src/games/KampusTour.tsx:848-849` (nakładka `CENTER_HEIGHT`, `overflow-hidden`, `justify-center`), treść `:850-973`, stałe `:201-202`.
@@ -1431,7 +1434,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `zakupy`.
 - Ślad źródłowy: [F2:ZK1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L94).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-003. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **wysoka**; długość trzymania przycisku dolicza się do drugiego kryterium wyniku.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1440,7 +1443,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 - Źródło: `ZASADY.md` §4 („pola gry na czas … reagują na `onPointerDown`”), D-07. Waga: **wysoka** (czas zaznaczania to `record.tie`; czas trzymania palca, 50-150 ms, dolicza się nierówno; w praktyce rozstrzyga tylko remisy punktowe).
 - Propozycja: `onPointerDown={done}` i `onClick` tylko dla klawiatury (`e.detail === 0`), jak na półce (`apps/web/src/games/Zakupy.tsx:166-168`); poprawić razem z F1:ZK1.
 
-Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wariantów i ocena konsekwencji: 04-02.
+Decyzja: poprawić według B4-002; wykonanie i odbiór pozostają przed nami.
 
 <a id="f4-060"></a>
 
@@ -1448,7 +1451,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:B-15](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L114).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-001. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1466,7 +1469,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:B-18](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L115).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-001. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1484,7 +1487,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:B-20](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L116).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-051. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1502,7 +1505,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:B-29](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L117).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-050. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1520,7 +1523,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:B-52](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L118).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-040. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1538,7 +1541,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:B-53](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L119).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-040. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1556,7 +1559,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:HM-1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L120).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-053. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1574,7 +1577,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:HM-2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L121).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-001. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1592,7 +1595,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:HM-3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L122).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-053. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1610,7 +1613,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:HM-8](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L123).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-001. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1628,7 +1631,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:SU-3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L124).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-053. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1646,7 +1649,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:RC-2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L125).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-053. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1664,7 +1667,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:RC-3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L126).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-053. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1682,7 +1685,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:RC-6](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L127).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-052. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1700,7 +1703,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:AP-2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L128).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-052. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1718,7 +1721,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `chinczyk`.
 - Ślad źródłowy: [F2:A1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L287).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-042. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1737,7 +1740,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `labirynt`.
 - Ślad źródłowy: [F2:A2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L288).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-042. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1756,7 +1759,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `piec-w-rzedzie`, `statki`, `memory`.
 - Ślad źródłowy: [F2:A3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L289).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-042. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1775,7 +1778,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `mapa`, `kolor`, `kropki`, `kat`, `rok`, `srodek`, `tort`, `nozyczki`.
 - Ślad źródłowy: [F2:A4](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L290).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-044. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1794,7 +1797,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kolo`, `zaslona`, `srodek`, `nozyczki`.
 - Ślad źródłowy: [F2:A5](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L291).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-043. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1813,7 +1816,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `refleks`, `simon`, `memory`, `statki`.
 - Ślad źródłowy: [F2:A6](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L292).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-043. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1832,7 +1835,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `statki`, `kampus-tour`, `panstwa-miasta`.
 - Ślad źródłowy: [F2:A7](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L293).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-043. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1851,7 +1854,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F2:A8](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L294).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-046. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1870,7 +1873,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `w-pamieci`.
 - Ślad źródłowy: [F2:A9](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L295).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-005. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1883,7 +1886,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 Uzgodnienie faz: F3 §10: po pomyłce w rundzie 8 pozostaje około 170 s na „Wyniki”; zero grozi przy porzuceniu partii. To zawężenie skutku, a nie dowód rozwiązania UX.
 
-Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wariantów i ocena konsekwencji: 04-02.
+Decyzja: poprawić według B4-001; wykonanie i odbiór pozostają przed nami.
 
 <a id="f4-084"></a>
 
@@ -1891,7 +1894,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `panstwa-miasta`, `kalambury`.
 - Ślad źródłowy: [F2:A10](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L296).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-043. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1910,7 +1913,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `panstwa-miasta`, `kalambury`, `turniej`.
 - Ślad źródłowy: [F2:A11](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L297).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-047. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1929,7 +1932,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `rok`.
 - Ślad źródłowy: [F2:A12](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L298).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-042. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: zależnie od wariantu; doprecyzowanie dokumentu bez zmiany zachowania lub zmiana reguły/czasu/kontraktu.
@@ -1948,7 +1951,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `w-pamieci`.
 - Ślad źródłowy: [F2:A13](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L299).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-046. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1967,7 +1970,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `memory`.
 - Ślad źródłowy: [F2:A14](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L300).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-046. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -1986,7 +1989,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `dziesiatki`, `sudoku`, `zakupy`.
 - Ślad źródłowy: [F2:A15](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L301).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-045. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2005,7 +2008,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F2:A16](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L302).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-045. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2024,7 +2027,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `statki`, `panstwa-miasta`, `zakupy`.
 - Ślad źródłowy: [F2:A17](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L303).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-047. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2043,9 +2046,10 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `kalambury`, `panstwa-miasta`, `turniej`.
 - Ślad źródłowy: [F2:U3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L328).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-016. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
+- Aktualizacja 04-02 (2026-10-26): E08/E10/E12: podsumowanie Kalamburów 894 px i Państw-miast 946 px, Dalej dostępne w StickyBar. Koło 4 os. 1345 px z pustym RecordPanel; Rewanż na y=1216,5 i Do lobby y=1272,5, poza ekranem. S+M w tych stanach; U07 pełny panel i solo nadal otwarte. Dowód: [EVIDENCE](04-02-EVIDENCE.md), historia §5.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
 
 - Źródło: `ZASADY.md` §4 (360×640; „przy długiej treści `StickyBar`”), `DESIGN.md` §2 (akcje przy dolnej krawędzi). Waga: **średnia** (treść do przejrzenia, ale akcja musi być pod kciukiem).
@@ -2058,7 +2062,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Propozycja: `OverActions` w `StickyBar` (to samo rozwiązuje `NextActions` turnieju, `apps/web/src/screens/Game.tsx:540-566`); w Kalamburach mniejsze płótno w odsłonie albo punkty rundy w `Scores` (razem z F1:W2).
 
-Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wariantów i ocena konsekwencji: 04-02.
+Decyzja: poprawić według B4-001; wykonanie i odbiór pozostają przed nami.
 
 <a id="f4-093"></a>
 
@@ -2066,9 +2070,10 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `kolor`, `rok`, `kampus-tour`, `piec-w-rzedzie`, `statki`, `chinczyk`, `labirynt`, `panstwa-miasta`, `tort`, `sledzenie`.
 - Ślad źródłowy: [F2:U4](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L339).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: geste-plansze: P4-036; kampus-tour: P4-017; kontrolki-platformy: P4-037; panstwa-miasta: P4-014; sledzenie: P4-039; tort: P4-038. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
+- Aktualizacja 04-02 (2026-10-26): E13-E15: przyciski Kampus Tour po skali 0,8 mają rzeczywistą wysokość 38,39 px, Podsumowanie 35,19 px. Uzupełnienie wystąpienia Kampus Tour w istniejącym agregacie, S+M; nie nowy błąd. Waga średnia bez zmiany. Dowód: [EVIDENCE](04-02-EVIDENCE.md), historia §5.
 - Zmiana zasad: zależnie od wariantu; doprecyzowanie dokumentu bez zmiany zachowania lub zmiana reguły/czasu/kontraktu.
 
 - Źródło: `ZASADY.md` §4 Reguły („Pola dotykowe co najmniej 48 px”), `AGENTS.md`. Wyjątek `DESIGN.md` §6 obejmuje tylko przyciski budowy 44 px w Kampus Tour (z „Pomiń” w tym rzędzie, §6). Waga: **średnia**.
@@ -2102,7 +2107,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `kolor`, `rok`, `kampus-tour`, `piec-w-rzedzie`, `kolo`.
 - Ślad źródłowy: [F2:U5](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L363).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-050. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2128,7 +2133,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `piec-w-rzedzie`, `chinczyk`, `labirynt`, `memory`, `kampus-tour`, `panstwa-miasta`, `sledzenie`, `zakupy`.
 - Ślad źródłowy: [F2:U6](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L377).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-050. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2158,7 +2163,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `statki`, `chinczyk`, `panstwa-miasta`.
 - Ślad źródłowy: [F2:U7](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L395).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-050. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2185,7 +2190,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`, `panstwa-miasta`.
 - Ślad źródłowy: [F2:U8](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L410).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-050. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2207,7 +2212,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`, `kolor`, `kropki`, `kat`, `w-pamieci`, `kolo`.
 - Ślad źródłowy: [F2:U9](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L420).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-047. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2233,7 +2238,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `stroop`, `liczenie`, `inny`, `obrot`, `literowka`, `dziesiatki`, `stoj`, `refleks`.
 - Ślad źródłowy: [F2:U10](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L434).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-048. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2255,7 +2260,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `przytrzymaj`, `balon`, `kropki`, `kat`, `rok`, `kolor`.
 - Ślad źródłowy: [F2:U11](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L444).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-048. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: zależnie od wariantu; doprecyzowanie dokumentu bez zmiany zachowania lub zmiana reguły/czasu/kontraktu.
@@ -2281,7 +2286,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `memory`, `kampus-tour`, `chinczyk`, `labirynt`, `refleks`, `stoper`, `rytm`, `przytrzymaj`, `liczenie`, `kropki`, `kat`, `turniej`.
 - Ślad źródłowy: [F2:U12](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L458).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-049. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2317,7 +2322,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `kampus-tour`, `statki`, `balon`, `zakupy`.
 - Ślad źródłowy: [F2:U13](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L482).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-049. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2335,7 +2340,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `kampus-tour`, `kalambury`.
 - Ślad źródłowy: [F2:U14](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L488).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-049. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2353,7 +2358,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `kampus-tour`, `kalambury`, `turniej`, `kubki`.
 - Ślad źródłowy: [F2:U15](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L494).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-042. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2371,7 +2376,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `piec-w-rzedzie`, `statki`, `labirynt`, `memory`.
 - Ślad źródłowy: [F2:U16](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L500).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-042. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2389,7 +2394,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `piec-w-rzedzie`, `kolo`, `stroop`, `liczenie`, `inny`, `obrot`, `literowka`, `dziesiatki`, `sudoku`, `schulte`, `wieza`, `stoj`, `srodek`, `nozyczki`.
 - Ślad źródłowy: [F2:U17](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L506).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-041. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2407,7 +2412,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `kampus-tour`, `rytm`, `zakupy`, `kubki`, `sledzenie`, `wieza`.
 - Ślad źródłowy: [F2:U18](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L512).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: paski: P4-042; ruch-zadanie: P4-040; set-glow: P4-041. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2435,7 +2440,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `turniej`, `w-pamieci`.
 - Ślad źródłowy: [F2:U19](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L528).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-042. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2452,7 +2457,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:U20](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L533).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-041. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2470,7 +2475,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `kolor`, `rok`, `kampus-tour`, `piec-w-rzedzie`, `statki`, `memory`.
 - Ślad źródłowy: [F2:U21](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L539).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-050. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2488,7 +2493,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `kolor`, `rok`, `turniej`, `kampus-tour`, `statki`, `chinczyk`, `obrot`, `wieza`.
 - Ślad źródłowy: [F2:U22](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L545).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-050. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2506,7 +2511,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `kampus-tour`, `kalambury`, `zaslona`, `balon`, `inny`, `sudoku`, `statki`, `labirynt`.
 - Ślad źródłowy: [F2:U23](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L551).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-051. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2537,7 +2542,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:U24](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L570).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-052. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2554,7 +2559,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `panstwa-miasta`, `turniej`, `memory`.
 - Ślad źródłowy: [F2:U25](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L575).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-052. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2572,7 +2577,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:U26](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L581).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-052. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2590,7 +2595,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `kampus-tour`, `wieza`, `balon`.
 - Ślad źródłowy: [F2:U27](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L587).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-040. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2607,7 +2612,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `refleks`, `stoper`, `stoj`, `wieza`.
 - Ślad źródłowy: [F2:U28](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L592), [F3:R6](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L318).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-061. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2626,7 +2631,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `simon`, `stoj`.
 - Ślad źródłowy: [F2:U29](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L597).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-050. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2643,7 +2648,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `panstwa-miasta`, `kalambury`, `kropki`, `kat`, `rok`, `obrot`, `wieza`, `zaslona`, `przytrzymaj`.
 - Ślad źródłowy: [F2:U30](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L602).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-047. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2662,7 +2667,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`, `schulte`, `sudoku`.
 - Ślad źródłowy: [F2:U31](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L609).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-049. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2681,7 +2686,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `piec-w-rzedzie`, `statki`, `labirynt`, `memory`.
 - Ślad źródłowy: [F2:U32](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L614).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-046. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2698,7 +2703,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kolo`, `balon`.
 - Ślad źródłowy: [F2:U33](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L619).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-049. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2715,7 +2720,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `inny`, `literowka`, `dziesiatki`, `sudoku`.
 - Ślad źródłowy: [F2:U34](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L624).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-053. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2732,7 +2737,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `przytrzymaj`, `stoper`.
 - Ślad źródłowy: [F2:U35](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L629).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-049. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2749,7 +2754,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kolo`, `srodek`, `mapa`, `tort`, `nozyczki`.
 - Ślad źródłowy: [F2:U36](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L634).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-054. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2766,7 +2771,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `rok`, `kropki`, `kat`.
 - Ślad źródłowy: [F2:U37](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L639).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-044. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2783,7 +2788,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:QZ3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L772).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-045. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2800,7 +2805,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F2:SZ2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L781).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-052. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2817,7 +2822,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F2:KT1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L795).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-050. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2834,7 +2839,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F2:KT14](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L796).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-017. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2851,7 +2856,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F2:KA2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L797).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-018. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2868,7 +2873,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F2:KA3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L798).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-018. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2885,7 +2890,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F2:KT11](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L799).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-053. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2902,7 +2907,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F2:KS1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L800).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-051. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2919,7 +2924,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F2:KS2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L801).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-017. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2936,7 +2941,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F2:KS3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L802).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-053. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2953,7 +2958,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F2:KS6](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L803).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-052. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2970,7 +2975,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `chinczyk`.
 - Ślad źródłowy: [F2:C7](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L822).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-052. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -2987,7 +2992,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kalambury`.
 - Ślad źródłowy: [F2:KL4](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L836).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-047. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3004,7 +3009,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kalambury`.
 - Ślad źródłowy: [F2:KL8](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L837).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-044. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3021,7 +3026,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `schulte`.
 - Ślad źródłowy: [F2:SC2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L871).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-049. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3038,7 +3043,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `stroop`.
 - Ślad źródłowy: [F2:ST1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L880).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-053. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3055,7 +3060,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `stroop`.
 - Ślad źródłowy: [F2:ST2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L881).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-053. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3072,7 +3077,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kolo`.
 - Ślad źródłowy: [F2:KO4](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L895).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-053. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3089,7 +3094,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kolor`.
 - Ślad źródłowy: [F2:OD1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L904).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-049. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3106,7 +3111,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `sudoku`.
 - Ślad źródłowy: [F2:SU2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L923).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-052. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3123,7 +3128,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `rytm`.
 - Ślad źródłowy: [F2:RY3](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L962).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-043. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3140,7 +3145,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `inny`.
 - Ślad źródłowy: [F2:IN2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L971).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-047. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3157,7 +3162,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `mapa`.
 - Ślad źródłowy: [F2:MP1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L990).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-049. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3174,7 +3179,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `balon`.
 - Ślad źródłowy: [F2:BL5](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1004).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-046. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3191,7 +3196,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `zakupy`.
 - Ślad źródłowy: [F2:ZK5](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1033).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-049. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3208,7 +3213,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `panstwa-miasta`.
 - Ślad źródłowy: [F2:PM2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1048).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-014. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3225,7 +3230,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `turniej`.
 - Ślad źródłowy: [F2:TU1](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1058).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-049. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3242,7 +3247,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `turniej`.
 - Ślad źródłowy: [F2:TU2](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1059).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-052. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3259,7 +3264,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `turniej`.
 - Ślad źródłowy: [F2:TU5](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1060).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-052. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3276,7 +3281,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `turniej`.
 - Ślad źródłowy: [F2:TU6](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1061).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-034. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3293,7 +3298,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `turniej`.
 - Ślad źródłowy: [F2:TU8](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L1062).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-049. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S; dla wymiarów, dotyku, czytników i reduced motion ograniczenia F2 §9; potwierdzenie w 04-02.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3310,7 +3315,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `w-pamieci`, `kubki`, `simon`.
 - Ślad źródłowy: [F3:R3](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L285).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **zostawić jako odstępstwo z powodem, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: kubki: H-015; simon: H-016; w-pamieci: H-014. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **wysoka**; wysoka warunkowo dla kompletu W pamięci; pozostałe gry średnia, brak partii potwierdzających sufit.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -3336,7 +3341,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `wieza`, `zakupy`.
 - Ślad źródłowy: [F3:R4](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L297).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **zostawić jako odstępstwo z powodem, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: wieza: H-017; zakupy: H-018. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -3357,7 +3362,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`, `piec-w-rzedzie`, `labirynt`, `statki`, `memory`.
 - Ślad źródłowy: [F3:R5](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L306).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **zostawić jako odstępstwo z powodem, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: kampus-tour: H-019; labirynt: H-022; memory: H-024; piec-w-rzedzie: H-023; statki: H-025. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -3383,7 +3388,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `balon`.
 - Ślad źródłowy: [F3:R7](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L329).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-060. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -3406,7 +3411,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `platforma`.
 - Ślad źródłowy: [F3:R8](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L340).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-022. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -3425,7 +3430,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F3:B-KT3](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L351).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **zostawić jako odstępstwo z powodem, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: H-020. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **średnia**; wpływ na spójność interakcji, porównywalność albo brak obowiązkowego testu; uzasadnienie szczegółowe i wagi wystąpień poniżej.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -3444,7 +3449,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F3:B-KT2](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L352).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **zostawić jako odstępstwo z powodem, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: H-021. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3463,7 +3468,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kampus-tour`.
 - Ślad źródłowy: [F3:B-KT6](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L355).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **zostawić jako odstępstwo z powodem, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: H-021. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: nie dla wariantu zachowującego zasady punktacji i przebieg; nowe odstępstwo od reguł platformy wymaga decyzji i dokumentu.
@@ -3482,7 +3487,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `panstwa-miasta`.
 - Ślad źródłowy: [F3:B-PM2](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L356).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **poprawić, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: P4-062. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -3501,7 +3506,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `kalambury`.
 - Ślad źródłowy: [F3:B-KA1](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L357).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **zostawić jako odstępstwo z powodem, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: H-026. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -3520,7 +3525,7 @@ Wariant pozostawienia albo odrzucenia wymaga decyzji z powodem; przygotowanie wa
 
 - Zakres: `turniej`.
 - Ślad źródłowy: [F3:B-TU1](../03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md#L358).
-- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **oczekuje**.
+- Aktualność: pliki dowodowe bez zmian od audytu; status decyzji: **zostawić jako odstępstwo z powodem, ZG4-v1** (2026-10-26, użytkownik „Zatwierdzam”). Właściciele: całość: H-027. Bez deklaracji wykonania; zakres i odbiór w [PHASE-5-SCOPE](PHASE-5-SCOPE.md).
 - Waga rejestru: **niska**; ograniczony skutek: opis, czytelność, dostępność, współdzielenie albo przypadek brzegowy; szczegóły poniżej.
 - Pewność: S + W/Z/A zgodnie z tabelą lub uwagą poniżej; wpływ na ludzi i boty nie są równoważne, otwarte pomiary w §7.
 - Zmiana zasad: tak w wariancie zmiany zachowania (wynik, losowanie, limit, walidacja, ranking lub balans); wariant dokumentacyjny wymaga powodu.
@@ -3619,7 +3624,7 @@ Każdy wiersz zachowuje powód i lokalizacje. Status: istniejący zapis audytu, 
 | [F2:O03](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L652); zachowane, weryfikacja wariantu w 04-02 | własny nagłówek z punktami zamiast `Stats`; `panstwa-miasta`: `apps/web/src/games/PanstwaMiasta.tsx:28-63`; `kalambury`: `apps/web/src/games/Kalambury.tsx:47-85`; `apps/web/src/screens/Game.tsx:179`, `:232`; `DESIGN.md` §6; `ZASADY.md` §4 wymienia tylko Państwa-miasta i Kampus Tour (lista do uzupełnienia o Kalambury, §7) | [F4-097](#f4-097) |
 | [F2:O04](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L653); zachowane z powodem, bez nowego F4 | kolory grup pól; `kampus-tour`: `apps/web/src/games/KampusTour.tsx:84` (`GROUP_COLORS`, ikona grupy `:86`); `DESIGN.md` §6 | bez nowej rozbieżności; 04-02 |
 | [F2:O05](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L654); zachowane z powodem, bez nowego F4 | cień pod oknami i pionkami, cień w `set-glow`; `apps/web/src/games/KampusTour.tsx:650`, `:987`, `:1033`, `:1073`, `:519`, `:803`, `apps/web/src/games/KampusSummary.tsx:41`, `apps/web/src/index.css:200`; `DESIGN.md` §2, §6 | bez nowej rozbieżności; 04-02 |
-| [F2:O06](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L655); zachowane, weryfikacja wariantu w 04-02 | przyciski budowy 44 px (z „Pomiń” w rzędzie); `apps/web/src/games/KampusTour.tsx:897`, `:906`; `DESIGN.md` §6 | [F4-093](#f4-093) |
+| [F2:O06](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L655); zachowane, weryfikacja wariantu w 04-02 | przyciski budowy 44 px (z „Pomiń” w rzędzie); `apps/web/src/games/KampusTour.tsx:897`, `:906`; `DESIGN.md` §6 | częściowo poprawić: B4-002, geste-plansze; reszta oczekuje |
 | [F2:O07](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L656); zachowane z powodem, bez nowego F4 | obrys przez `box-shadow: inset 0 0 0 Npx` / `0 0 0 2px` (to nie cień); `apps/web/src/games/KampusTour.tsx:174`, `apps/web/src/games/Chinczyk.tsx:242`, `:248`, `apps/web/src/games/Sudoku.tsx:156`, `apps/web/src/games/Zakupy.tsx:165`; `02-01-CHECKS.md` §3 | bez nowej rozbieżności; 04-02 |
 | [F2:O08](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L657); zachowane z powodem, bez nowego F4 | mieszanki tokenów (`color-mix`) i odcienie OKLCH z koloru gracza; `apps/web/src/games/KampusTour.tsx:89-90`, `:174`, `:778`, `:788`, `:801`; `apps/web/src/games/Chinczyk.tsx:44-46`, `:151-155`; `apps/web/src/games/PiecWRzedzie.tsx:56`; pochodne tokenów i `PLAYER_COLORS`, nie nowe kolory (D-04) | bez nowej rozbieżności; 04-02 |
 | [F2:O09](../02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md#L658); zachowane, weryfikacja wariantu w 04-02 | trafienie i zatopiony statek w `accent`; `statki`: `apps/web/src/games/Statki.tsx:174`, `:390`, `:396`, `:165`; `DESIGN.md` §6 (strefa zakazana i duch nie są objęte: U7) | [F4-096](#f4-096) |
@@ -3758,7 +3763,7 @@ Nie traktujemy ich jako nowych zaakceptowanych reguł. Identyfikatory D-* są lo
 | [F3:D-04](../03-audyt-balansu-rekord-w-i-trudno-ci/03-CONTEXT.md) | Miara trudności z setup nie jest pomiarem człowieka | [F4-003](#f4-003), [F4-161](#f4-161) |
 | [F3:D-05](../03-audyt-balansu-rekord-w-i-trudno-ci/03-CONTEXT.md) | Praktyczny sufit jest założeniem do partii | [F4-158](#f4-158), [F4-159](#f4-159) |
 | [F3:D-06](../03-audyt-balansu-rekord-w-i-trudno-ci/03-CONTEXT.md) | Progi ludzkie i krzywe nie są wynikami partii | [F4-158](#f4-158), [F4-159](#f4-159), [F4-003](#f4-003) |
-| [F3:D-07](../03-audyt-balansu-rekord-w-i-trudno-ci/03-CONTEXT.md) | Zapas 20% i 10 s: proponowany próg, a nie obecny zapis ZASADY.md | [F4-002](#f4-002) |
+| [F3:D-07](../03-audyt-balansu-rekord-w-i-trudno-ci/03-CONTEXT.md) | Zapas 20% i 10 s: proponowany próg, a nie obecny zapis ZASADY.md | częściowo poprawić: B4-002, zakupy/simon; reszta oczekuje |
 | [F3:D-08](../03-audyt-balansu-rekord-w-i-trudno-ci/03-CONTEXT.md) | Boty dają sygnał balansu, nie dowód u ludzi | [F4-160](#f4-160), [F4-163](#f4-163), [F4-164](#f4-164) |
 | [F3:D-09](../03-audyt-balansu-rekord-w-i-trudno-ci/03-CONTEXT.md) | Waga osobna od pewności i priorytetu | §2; warunkowość R3 i modeli R1 zachowana |
 | [F3:D-10](../03-audyt-balansu-rekord-w-i-trudno-ci/03-CONTEXT.md) | Symulacje w /tmp, bez zależności | Metoda zachowana, brak ponawiania symulacji w 04-01 |
@@ -3767,7 +3772,9 @@ Nie traktujemy ich jako nowych zaakceptowanych reguł. Identyfikatory D-* są lo
 | [F3:D-13](../03-audyt-balansu-rekord-w-i-trudno-ci/03-CONTEXT.md) | Wspólne wpisy, aliasy, osobna rekomendacja | §3-§5; rekomendacja nigdy nie zastępuje decyzji |
 | [F3:D-14](../03-audyt-balansu-rekord-w-i-trudno-ci/03-CONTEXT.md) | Grupy audytu nie są jeszcze pakietami wdrożenia | 04-03 ustali zakresy i priorytety |
 
-## 7. Otwarte dowody i przekazanie do 04-02
+## 7. Otwarte dowody i przekazanie do 04-02 (stan 04-01)
+
+Aktualne statusy wszystkich pytań i pomiarów: [EVIDENCE §3-4](04-02-EVIDENCE.md). Poniższa lista zachowuje historię przekazania.
 
 ### 7.1. Wszystkie 22 pytania F3 §11
 
@@ -3911,3 +3918,50 @@ Każdy wiersz jest objęty wszystkimi trzema audytami (F1 §6, F2 §8, F3 §9). 
 - Odstępstwa F1/F2, osiem grup propozycji F2 §7 (w tym komplet tabeli czasów), wszystkie punkty F3 §12, 14 założeń D-* i wszystkie 22 pytania są jawnie rozliczone.
 - 39 pozycji i 13 powierzchni platformy/komponentów mają status pokrycia. Brak „już rozwiązane”; brak decyzji poprawić/zostawić/odrzucić bez udziału użytkownika.
 - Następny jest 04-02: uzupełnić wskazane dowody, przygotować warianty i konsekwencje (rekordy, detail, turniej, dokumenty). Pakiety i priorytety należą do 04-03, decyzje do 04-04; nie wykonano ich w tym planie.
+
+## 10. Aktualizacja po 04-02 (2026-10-26)
+
+- Wykonano 15 kontrolowanych pomiarów układu oraz rzeczywistą partię Memory w istniejącym `/dev`; [EVIDENCE](04-02-EVIDENCE.md) rozróżnia partię sieciową, render ze stanu osiągniętego legalnymi ruchami, model i brakujące dane.
+- Pewność uzupełniono tylko w F4-056, F4-058, F4-092, F4-093. Dawnych opisów i liczb nie usunięto; historia i ograniczenia w EVIDENCE §5. Wszystkie wagi bez zmian: 7/55/106. M nie oznacza potwierdzenia zachowania Androida ani balansu.
+- [DECISIONS](DECISIONS.md) zawiera 106 kart D4, mapę wszystkich 168 F4, 27 mapowań składników ośmiu grup P2, 15 P3, 14 założeń D-*, przegląd wszystkich 47 odstępstw. Pytanie Mapy pozostaje MP-01 bez nowego błędu F4.
+- U01-U14 i P01-P22 mają status, właściciela, miarę i warunek powrotu. Wyniki botów i pomiar UI nie zastępują partii ludzi. Kopia bazy nie ma wszystkich czasów i przebiegów; nie łączono się z Pi.
+- Każda karta D4 oczekuje użytkownika. Próg zapasu 20%/10 s, warianty losowania i migracje danych nie są zatwierdzone. Wdrożenia zmieniające jednostkę lub tie wymagają osobnego rozstrzygnięcia zgodności danych, bez zmiany id gry.
+- Następny plan: 04-03, pakiety i raport do akceptacji. Faza 4: 2/5; FIX-01 i FIX-02 pozostają otwarte. Kod, testy, dokumenty źródłowe i istniejące dane bez zmian.
+
+
+## 11. Decyzje 04-04: B4-001
+
+Data: 2026-10-26. Źródło: użytkownik „Zatweirdzam” w odpowiedzi na pytanie o dokładnie pięć pakietów PK4-v1 w B4-001. To akceptacja poprawek, nie dowód wykonania. Historyczne statusy w opisach audytu i macierzach należy czytać z poniższą aktualizacją.
+
+| F4 / wystąpienie | Decyzja / właściciel |
+|---|---|
+| F4-083 całość | poprawić, D4-071:A / P4-005 |
+| F4-056:naglowek-Game | poprawić, D4-055:A tylko ta część / P4-006 |
+| F4-056:kalambury | poprawić, D4-055:A tylko ta część / P4-012 |
+| F4-056:kolo | poprawić, D4-055:A tylko ta część / P4-013 |
+| F4-092 całość | poprawić, D4-057:A / P4-016 |
+
+Zamknięte decyzją 2 pełne F4; 1 F4 częściowo zaakceptowany; 165 F4 w całości nadal oczekuje. W mapie 295 części zaakceptowano 5, pozostało 290. Wagi i pewność dowodów bez zmian, żadnego wpisu nie oznaczono jako naprawiony. Pozostałe 9 części F4-056 i inne F4 nie dziedziczą zgody z B4-001.
+
+
+## 12. Decyzje 04-04: B4-002
+
+Data: 2026-10-26. Źródło: użytkownik „Tak” na pytanie o B4-002 i zachowanie dotychczasowych rekordów. Przyjęto R4-v1 / PK4-v1, bez wyjątków.
+
+| F4 / wystąpienie | Decyzja / właściciel |
+|---|---|
+| F4-002:zakupy | poprawić, D4-006:A / P4-003 |
+| F4-059 całość | poprawić, D4-050:A / P4-003 |
+| F4-002:simon | poprawić, D4-004:A / P4-004 |
+| F4-093:geste-plansze | poprawić, D4-059:A dla czterech gier i potwierdzenia Labiryntu / P4-036 |
+
+G-DANE dla P4-003/004: stare rekordy i detail bez przeliczania, kasowania i nowej wersji bazy. Dawne czasy Zakupów pozostają z dawną metodą click; nie odzyskiwać nieprzesłanego postępu Sekwencji. Decyzja nie dotyczy innych gier.
+
+Łącznie po B4-001/B4-002: 8 zaakceptowanych pakietów, 9/295 jednostek zakresu; 286 nadal oczekuje. Pełne decyzje mają 3 F4 (059/083/092), częściowe 3 (002/056/093), pozostałe 162 F4 w całości oczekuje. Nadal brak wykonanych poprawek. §11 zachowuje historyczny stan po pierwszej paczce.
+
+
+## 13. Końcowe decyzje ZG4-v1 i przekazanie
+
+2026-10-26: użytkownik „Zatwierdzam” zaakceptował cały ZG4-v1, bez wyjątków. Karty §4 i mapa §3 pokazują końcowe decyzje. §11-12 zachowują historyczny stan po częściowych zgodach. Mapa źródeł nadal obejmuje 173 pozycje → 168 F4; pięć scaleń, wagi i dowody bez zmian.
+
+62 pakiety do wykonania, 27 H pozostawionych z uzasadnieniem (28 części), wszystkie 47 odstępstw rozstrzygnięte według ZG4-v1 §6, MP-01:B zamknięte. G-DANE/G-LIMITY/G-KONTRAKT wybrane; testy, urządzenia i inne wymagane dowody odbioru nie zostały wykonane przez samo zatwierdzenie. Aktualna mapa 295 części i warunki wykonania w [PHASE-5-SCOPE.md](PHASE-5-SCOPE.md). Żadnego wyniku „naprawione” nie przypisano przed implementacją. Kontrola 04-05 zamyka FIX-01, nie FIX-02.

@@ -46,20 +46,22 @@ Kryteria pochodzą z `ZASADY.md` (§2–6), `ZASADY-GIER.md` i `KONCEPT.md`. Ka�
 
 ### Raport i poprawki
 
-- [ ] **FIX-01**: Zbiorczy raport rozbieżności z priorytetami, zaakceptowany przez użytkownika (które poprawiać)
+- [x] **FIX-01**: Zbiorczy raport rozbieżności z priorytetami, zaakceptowany przez użytkownika (które poprawiać)
 - [ ] **FIX-02**: Zaakceptowane rozbieżności poprawione zgodnie z procesem (test i dokument przed kodem); `pnpm typecheck && pnpm test` bez błędów
 
-Pokrycie FIX-01 w planach fazy 4 (1/5 wykonany: 04-01 na zlecenie użytkownika; decyzje oczekują):
+Pokrycie FIX-01 w planach fazy 4: **5/5 zakończone**, wszystkie cztery kryteria sprawdzone w REPORT §5 po zgodzie ZG4-v1:
 
 | Plan | Dowód spełnienia wymagania po wykonaniu |
 |---|---|
 | 04-01 ✓ | `FINDINGS.md` v1: 173 źródła → 168 wpisów, 47 odstępstw, 44 aliasy F3, 22 pytania; aktualność, 39 pozycji i ekrany pokryte |
-| 04-02 | `04-02-EVIDENCE.md` i `DECISIONS.md`: pewność dowodów, warianty, konsekwencje i otwarte pomiary |
-| 04-03 | `PACKAGES.md` i `REPORT.md`: priorytety, zamknięte zakresy, zależności i odbiór |
-| 04-04 | decyzja użytkownika dla każdego wpisu i konkretnej wersji pakietu |
-| 04-05 | `PHASE-5-SCOPE.md`: zaakceptowany zakres oraz kontrola czterech kryteriów fazy 4 |
+| 04-02 ✓ | `04-02-EVIDENCE.md`: 15 pomiarów, U01-U14 i P01-P22; `DECISIONS.md`: 106 oczekujących kart, skutki rekordów/detail/turnieju, 168 F4, 47 odstępstw, pełne propozycje F2/F3 |
+| 04-03 ✓ | `PACKAGES.md` PK4-v1 i `REPORT.md` R4-v1: 62 propozycje, 27 H, pełna mapa 168 F4 / 295 części, priorytety, acykliczne zależności i odbiór; decyzje oczekują |
+| 04-04 ✓ | ZG4-v1 zatwierdzone: 62 pakiety, 106 D4, 27 H, 47 odstępstw i MP-01; zero otwartych decyzji, 295/295 części rozstrzygnięte |
+| 04-05 ✓ | PHASE-5-SCOPE S5-v1: 62 pełne karty, 267 części P4, 28 części H, routing odstępstw, kolejność i odbiór; kontrola czterech kryteriów pozytywna |
 
 Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-02 pozostaje zakresem fazy 5.
+
+2026-10-26: 05-01/P4-001 wykonany, 5/5 części odebranych w [05-01-SUMMARY](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-01-SUMMARY.md). Faza 5: 1/62 pakietów. Kontrola typów i 1834 testy poprawne; wymaganie FIX-02 nadal otwarte.
 
 ## v2 Requirements
 
@@ -103,8 +105,8 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-01 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
-| FIX-01 | Phase 4 | In progress (04-01 complete), 1/5; warianty, pakiety i decyzje użytkownika jeszcze otwarte |
-| FIX-02 | Phase 5 | Pending |
+| FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
+| FIX-02 | Phase 5 | In progress; 05-01..06 wykonane, 6/62 pakietów, 11/267 części; typy, 1947 testów, build i UI PASS; następny P4-006 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -113,4 +115,36 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-25 po wykonaniu 04-01 (faza 4: 1/5, FIX-01 i FIX-02 nadal otwarte)*
+*Last updated: 2026-10-26 po zakończeniu 05-02 (faza 5: 2/62 pakietów, 6/267 części, 05-03 przygotowany, FIX-02 otwarte)*
+
+2026-10-26, 05-02/P4-027: testy regresji i dokumentacja przed kodem przygotowane. Oczekiwany RED potwierdza błąd, nie jest spełnieniem FIX-02. Wdrożenie oczekuje osobnego commitu testów na prośbę użytkownika; dowody w [05-02-TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-TDD.md).
+
+2026-10-26, 05-02/P4-027 zakończony po osobnym commicie TDD 50172d5 na prośbę użytkownika. 1/1 części odebrana; pełny typecheck i 1889 testów, build oraz /dev2/6 z refresh obu połówek poprawne. Powyższy zapis RED jest historyczny; [dowody wykonania](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-SUMMARY.md). Łącznie 2/62 pakietów i 6/267 części; FIX-02 nadal otwarte.
+
+
+2026-10-29, 05-03/P4-002 w toku: dokumentacja i testy RED przygotowane, typecheck PASS.
+Games: 1864 PASS / 25 oczekiwanych FAIL; serwer LobbyRoom: 6 PASS / 8 oczekiwanych FAIL.
+Implementacja po osobnym commicie testów na prośbę użytkownika (AGENTS.md).
+[Dowody TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-03-TDD.md).
+Liczba odebranych pakietów bez zmian: 2/62 i 6/267 części; FIX-02 nadal otwarte.
+
+
+2026-10-29, 05-03/P4-002 zakończony po osobnym commicie testów e635dc9 na prośbę użytkownika.
+Dokumentacja i testy przed kodem, testy bez zmian po commicie; typecheck, 1918 testów i build poprawne.
+UI starego detail, timeoutów 2/6 osób i refresh oraz remis i seria punktacji/ekran turnieju sprawdzone.
+[Podsumowanie](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-03-SUMMARY.md).
+Faza 5: 3/62 pakietów, 7/267 części; FIX-02 otwarte. Następny P4-003 (Zakupy). Wpis RED powyżej jest historyczny.
+
+
+2026-10-29, 05-04/P4-003 rozpoczęty na „Rób kolejne”: dokumentacja i testy RED gotowe.
+Typecheck PASS; Zakupy 37 PASS / 2 FAIL, handlery 14 PASS / 4 FAIL. UI potwierdza brak autozapisu i pointerdown.
+Przed implementacją wymagany osobny commit dwóch plików testów; pytanie wysłane asynchronicznie.
+[Dowody TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-04-TDD.md).
+Nadal 3/62 odebrane pakiety, 7/267 części; FIX-02 otwarte.
+
+
+2026-10-29, 05-04..06 zakończone: Zakupy (P4-003), Sekwencja (P4-004), W pamięci (P4-005).
+Osobne commity testów 7045659/76455c9, f3e7958 i 28196b5; dokumentacja przed kodem.
+Typy, 1947 testów, build i UI PASS. Dowody w 05-04-SUMMARY.md, 05-05-SUMMARY.md i 05-06-SUMMARY.md.
+6/62 pakietów i 11/267 części; FIX-02 otwarte, następny P4-006. Wcześniejsze wpisy RED są historią.
+Stała zgoda użytkownika na obowiązkowe kolejne commity testów obowiązuje, bez ponownych pytań.

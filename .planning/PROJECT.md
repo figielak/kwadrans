@@ -31,14 +31,14 @@ Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumen
 - [x] Raport rozbieżności: podpięcie i testy wg `ZASADY.md` §2 i §6 (faza 1, `FINDINGS.md`)
 - [x] Raport balansu rekordów: równe szanse partii, sufit wyniku, remisy i drugie kryterium (faza 3, `FINDINGS.md`)
 - [x] Raport balansu trudności: krzywa w grze, limity czasu, gry główne (faza 3, `FINDINGS.md`)
-- [ ] Raport zbiorczy z priorytetami i decyzją użytkownika, co poprawiać (faza 4)
-- [ ] Poprawki zaakceptowanych rozbieżności (osobne fazy, po akceptacji raportu)
+- [x] Raport zbiorczy z priorytetami i decyzją użytkownika, co poprawiać (faza 4, ZG4-v1 zatwierdzone 2026-10-26)
+- [ ] Poprawki 62 zaakceptowanych pakietów według PHASE-5-SCOPE S5-v1; 05-01/P4-001 zakończony, wykonano 1/62; następny 05-02/P4-027 przygotowany
 
 ### Out of Scope
 
 - Nowe gry (w tym Poprawka) — ten etap tylko porządkuje istniejące
 - Zapis stanu pokoi w SQLite — osobny etap z planu prac
-- Walidacja nierealnych wyników i czyszczenie bazy rekordów — użytkownik nie wybrał tego obszaru
+- Pełny audyt oszustw i czyszczenie bazy rekordów — poza zakresem; zaakceptowane P4-023 poprawia tylko wskazane granice istniejącej walidacji quizów
 - Porównanie trudności mini-gier między sobą — użytkownik nie wybrał tego obszaru
 - Zmiana `id` gier — klucz rankingu w SQLite, nigdy się nie zmienia
 
@@ -67,7 +67,9 @@ Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumen
 | Najpierw raport, poprawki w osobnych fazach | Użytkownik akceptuje rozbieżności przed zmianami | ✓ Fazy 1-3 bez zmian w kodzie, akceptacja w fazie 4 |
 | Kryteria spójności z `ZASADY.md` §2–6 | Istniejące, spisane reguły; bez wymyślania nowych | ✓ Fazy 1-2; w fazie 2 także `DESIGN.md`, przy sprzeczności wygrywa `ZASADY.md` |
 | Balans rekordów: równe szanse, sufit, remisy | Wybór użytkownika; walidacja oszustw poza zakresem | ✓ Faza 3 (symulacja `setup` na 1000 seedów, wpisy R1-R8) |
-| Balans trudności: krzywa, limity, gry główne | Wybór użytkownika; porównanie mini-gier poza zakresem | ✓ Faza 3 (limit = najdłuższa uczciwa partia + zapas ≥ 20% i ≥ 10 s) |
+| Balans trudności: krzywa, limity, gry główne | Wybór użytkownika; porównanie mini-gier poza zakresem | ✓ Faza 3; nowa norma 20%/10 s zatwierdzona dopiero ZG4-v1, z nazwanymi wyjątkami Środka/Tortu/Roku |
+| Jedna końcowa zgoda ZG4-v1 | Użytkownik „Zatwierdzam”, 2026-10-26; bez kolejnych zgód na paczki tego samego zakresu | ✓ 62 pakiety, 27 H, 106 D4 i 47 odstępstw; FIX-01 zakończone, zakres S5-v1 |
+| Zachowanie historii rekordów | Świadoma zgoda na wspólną historię różnych metod/trudności, brak pewnego statusu starych timeoutów | ✓ Bez migracji/kasowania; nowe timeouty Schulte/Sudoku bez rekordu, źródło ZG4-v1 §3 |
 
 ## Evolution
 
@@ -87,4 +89,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-25 po fazie 3 (fazy 1-3 zamknięte, następna faza 4)*
+*Last updated: 2026-10-26 po 05-01 (faza 5: 1/62 pakietów; następny 05-02 przygotowany)*

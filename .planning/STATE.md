@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 4
-current_phase_name: Raport zbiorczy i akceptacja
+current_phase: 5
+current_phase_name: Poprawki zaakceptowanych rozbieżności
 status: in_progress
-stopped_at: 04-01 wykonany; następny 04-02 (dowody i warianty)
-last_updated: "2026-10-25"
-last_activity: 2026-10-25
-last_activity_desc: "Wykonano 04-01: 173 źródła scalone w 168 wpisów F4, mapa pokrycia i otwarte dowody"
-state_head: e5ac65a40a918f38c2cfac785a66639641cd5d89
+stopped_at: 05-04..06 zakończone; następny P4-006, wspólny nagłówek aktywnej partii
+last_updated: "2026-10-29"
+last_activity: 2026-10-29
+last_activity_desc: "Zakupy, Sekwencja i W pamięci wykonane; typy, 1947 testów, build i UI PASS; 6/62 pakietów, 11/267 części"
+state_head: 28196b51b38fb21b53c0992a2777b5a397f57777
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 35
-  completed_plans: 31
-  percent: 89
+  completed_phases: 4
+  total_plans: 41
+  completed_plans: 41
+  percent: 100
 ---
 
 # Project State
@@ -23,25 +23,32 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Phase 4: Raport zbiorczy i akceptacja (04-01 wykonany, 1/5; następny 04-02)
+**Current focus:** Faza 5: 05-01..06 zakończone; następny P4-006, wspólny nagłówek aktywnej partii.
 
 ## Current Position
 
-Phase: 4 of 5 (Raport zbiorczy i akceptacja), w toku
-Plan: 1 of 5 completed; następny 04-02 (dowody i warianty)
-Status: In progress. Użytkownik zlecił wykonanie 04-01. Rejestr F4 v1 gotowy, wszystkie decyzje oczekują; propozycje D-01..D-14 i otwarte dowody przekazano do 04-02, decyzje użytkownika zbiera 04-04.
-Last activity: 2026-10-25: wykonano 04-01. FINDINGS.md v1: 173 źródła → 168 wpisów (7 wysokich, 55 średnich, 106 niskich), 47 odstępstw, 44 aliasy F3, 22 pytania, pokrycie 39 pozycji i ekranów. Kod i dokumenty zasad bez zmian od baz audytów. FIX-01 i FIX-02 pozostają otwarte.
+Phase: 5 of 5 (Poprawki zaakceptowanych rozbieżności), zakres ZG4-v1/S5-v1 zatwierdzony.
+Plan: 6 of 6 currently planned completed; następne plany według S5-v1.
+Status: In progress. Fazy 1-4 zakończone, FIX-01 zakończone. FIX-02 otwarte.
+Wykonano 6/62 pakietów (P4-001, P4-027, P4-002..005), 11/267 części poprawek.
+Last activity: 2026-10-29: zakończono Zakupy, Sekwencję i W pamięci. Osobne commity testów
+7045659, 76455c9 (odświeżenie snapshotu), f3e7958 i 28196b5; kod pozostaje lokalny.
+Typy, 1947 testów i build poprawne; odbiór UI solo/2/6, refresh, klawiatura/dotyk i autozapis Zakupów,
+postęp Sekwencji i wynik W pamięci przed Wyniki opisano w 05-04..06-SUMMARY.md.
+Użytkownik „Zapisz ten i kolejne commity testów” dał stałą zgodę na obowiązkowe osobne commity testów
+w kolejnych zatwierdzonych pakietach. Nie pytać o nie ponownie. Zgoda nie obejmuje commitów implementacji ani push.
 
 Previous activity: 2026-10-24: 03-09 zamknął fazę 3: 16 wpisów z 44 częściowych, macierz 39 gier × 6 kryteriów, 14 przekazań D-02 i 22 pytania do partii. Faza 2 zakończona raportem 102 wpisów (300 wystąpień), faza 1 raportem 55 wpisów.
 
-Progress: [█████████░] 89% zaplanowanych planów, 31/35 (faza 1: 10/10, faza 2: 11/11, faza 3: 9/9, faza 4: 1/5; faza 5 bez planów). To postęp wykonania planów, nie procent ukończenia całego projektu.
+Progress: [██████████] 100% obecnie rozpisanych planów, 41/41 (fazy 1-4: 35/35; faza 5: 6/6).
+To nie jest procent ukończenia wdrożenia: wykonano 6/62 pakietów, dalsze plany będą dopisywane.
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 31
-- Average duration (pierwsze 30 planów; 04-01 bez pomiaru): ok. 38 min (01-01: 25 min, 01-02: 30 min, 01-03: 40 min, 01-04: 45 min, 01-05: 35 min, 01-06: 40 min, 01-07: 45 min, 01-08: 50 min, 01-09: 35 min, 01-10: 40 min, 02-01: 11 min, 02-02: 8 min, 02-03: 45 min, 02-04: 55 min, 02-05: 60 min, 02-06: 45 min, 02-07: 45 min, 02-08: 45 min, 02-09: 50 min, 02-10: 50 min, 02-11: 70 min, 03-01: 35 min, 03-02: 25 min, 03-03: 45 min, 03-04: 60 min, 03-05: 50 min, 03-06: 45 min, 03-07: 40 min, 03-08: 45 min, 03-09: 40 min)
-- Total execution time (pierwsze 30 planów; 04-01 bez pomiaru): ok. 15,2 h (fala 2 równolegle, ok. 1 h zegarowo bez przerwy na limit API)
+- Total plans completed: 41
+- Average duration (pierwsze 30 planów; 04-01..04-03 bez pomiaru): ok. 38 min (01-01: 25 min, 01-02: 30 min, 01-03: 40 min, 01-04: 45 min, 01-05: 35 min, 01-06: 40 min, 01-07: 45 min, 01-08: 50 min, 01-09: 35 min, 01-10: 40 min, 02-01: 11 min, 02-02: 8 min, 02-03: 45 min, 02-04: 55 min, 02-05: 60 min, 02-06: 45 min, 02-07: 45 min, 02-08: 45 min, 02-09: 50 min, 02-10: 50 min, 02-11: 70 min, 03-01: 35 min, 03-02: 25 min, 03-03: 45 min, 03-04: 60 min, 03-05: 50 min, 03-06: 45 min, 03-07: 40 min, 03-08: 45 min, 03-09: 40 min)
+- Total execution time (pierwsze 30 planów; 04-01..04-03 bez pomiaru): ok. 15,2 h (fala 2 równolegle, ok. 1 h zegarowo bez przerwy na limit API)
 
 **By Phase:**
 
@@ -68,12 +75,14 @@ Recent decisions affecting current work:
 - [Roadmap]: Fazy 1-3 są od siebie niezależne; faza 4 (raport i akceptacja) czeka na wszystkie trzy
 - [Faza 2]: Źródła reguł UI to `ZASADY.md` §4/§5, `DESIGN.md` i `AGENTS.md`; przy sprzeczności wygrywa `ZASADY.md` (D-13); wyjątki z `DESIGN.md` §6 idą na listę odstępstw z powodem
 - [Roadmap]: Zakres fazy 5 ustala zaakceptowany raport; przy dużym zakresie rozbić ją na kolejne fazy
-- [Faza 3]: Podział jak w fazach 1-2 (Kampus Tour osobno, gry główne, 4 grupy mini-gier); limit = najdłuższa uczciwa partia + zapas ≥ 20% i ≥ 10 s (D-07); symulacje `setup` i botów w scratchpadzie, lokalna `games.db` tylko do odczytu, bez łączenia z Pi (D-10, D-11); każdy wpis z rekomendacją zostawić / zmienić / sprawdzić w partii
+- [Faza 3, metoda, nie zatwierdzona nowa reguła]: Podział jak w fazach 1-2 (Kampus Tour osobno, gry główne, 4 grupy mini-gier); proponowany próg zapasu ≥ 20% i ≥ 10 s (D-07) oczekuje w D4-005; symulacje `setup` i botów w scratchpadzie, lokalna `games.db` tylko do odczytu, bez łączenia z Pi (D-10, D-11); każdy wpis z rekomendacją zostawić / zmienić / sprawdzić w partii
 
 ### Pending Todos
 
-- Faza 4 w toku (2026-10-25), 04-01 ukończony na zlecenie użytkownika: `phases/04-raport-zbiorczy-i-akceptacja/FINDINGS.md` (168 wpisów, mapa 173 źródeł). Następny 04-02: pomiary UI, 22 pytania do partii, istniejące odstępstwa (w tym timeout Labiryntu) oraz warianty i niezatwierdzone założenia fazy 3. 04-04 wymaga decyzji użytkownika; FIX-01 pozostaje otwarte do 04-05. Rekomendacja „zostawić” nie jest akceptacją.
-- Faza 3 zamknięta (2026-10-24): wejście do fazy 4 to `phases/03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md` (R1-R8 i wpisy pojedyncze B-*, cytowane z prefiksem F3:); styki z fazami 1-2: R1 = F1:Z2 (+ F2:ZK1), R2 = F1:Z3, R6 = F2:U28, B-KT4 = F1:K2, B-KT5 = F1:K11, B-KT6 z F2:U2; wysokie: R1 (Sekwencja, Zakupy, Środek, Tort), R3 (W pamięci, warunkowo); 22 pytania „sprawdzić w partii” w §11 (pozycje 9-13 da kopia bazy produkcyjnej), propozycje do dokumentów w §12
+- Faza 5: następny P4-006 według S5-v1, bez ponownej zgody na zakres. 6/62 pakietów, 11/267 części.
+  Stała zgoda użytkownika z 2026-10-29: „Zapisz ten i kolejne commity testów”. Obowiązkowe commity testów
+  przed kodem są już autoryzowane; pozostałych commitów ani push ta zgoda nie obejmuje.
+- Faza 3 zamknięta (2026-10-24): wejście do fazy 4 to `phases/03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md` (R1-R8 i wpisy pojedyncze B-*, cytowane z prefiksem F3:); styki z fazami 1-2: R1 = F1:Z2 (+ F2:ZK1), R2 = F1:Z3, R6 = F2:U28, B-KT4 = F1:K2, B-KT5 = F1:K11, B-KT6 z F2:U2; wysokie: R1 (Sekwencja, Zakupy, Środek, Tort), R3 (W pamięci, warunkowo); 22 pytania „sprawdzić w partii” w §11 (pozycje 9-13 może częściowo uzupełnić udostępniona kopia bazy; brak pełnych czasów/przebiegów), propozycje do dokumentów w §12
 - Do fali 2 fazy 3 z 03-01/03-02: liczby brać z `03-01-CHECKS.md` (§1 stałe, §2 symulacja, §2.1 krzywa Kubków), limit i progi z `03-02-BASELINE.md`; baza dev ma tylko 9 wyników Za zasłoną, więc remisy na szczycie ocenia się ze stałych; nowe do oceny: limit mini-gier bez `turn()` odnawia się po wyniku rywala (`LobbyRoom.ts:375-376`), a w 7 grach ze stałym `key` nie (różny czas wolnego gracza w grze wieloosobowej)
 - Faza 3 zaplanowana (2026-10-24): wpisy z faz 1-2 do zamknięcia wymienia D-02 w `03-CONTEXT.md`; poniższe listy „Do fazy 3” są w nim zebrane
 - Faza 2 zamknięta (2026-10-24): wejście do fazy 4 to `phases/02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md` (U1-U37, A1-A17 i wpisy pojedyncze, cytowane z prefiksem F2:); poniższe listy „Do 02-11” i „Do fazy 4 z fali 2” są w nim scalone (§5.0 ujednolicenia, §7 propozycje do dokumentów, §9 do potwierdzenia w przeglądarce)
@@ -111,6 +120,24 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-25
-Stopped at: 04-01 ukończony; następny 04-02, bez decyzji o poprawkach
-Resume file: .planning/phases/04-raport-zbiorczy-i-akceptacja/04-02-PLAN.md
+Last session: 2026-10-29
+Stopped at: 05-04..06 zakończone; następny P4-006; FIX-02 otwarte
+Resume file: .planning/phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md#scope-p4-006
+
+
+2026-10-29, 05-03/P4-002: dokumentacja i testy regresji przygotowane przed kodem. Typecheck PASS;
+pełny games 1864 PASS / 25 FAIL (oczekiwany RED), serwer 6 PASS / 8 FAIL, dotychczasowe Kalambury PASS.
+Przed implementacją wymagany osobny commit pięciu plików testów na prośbę użytkownika.
+Dowody: [05-03-TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-03-TDD.md).
+Nadal 2/62 pakietów i 6/267 części; FIX-02 otwarte. Starsze wpisy „05-03 gotowy, nie rozpoczęty” są historyczne.
+
+
+2026-10-29, 05-03/P4-002 zakończony po osobnym commicie testów e635dc9 na prośbę użytkownika.
+Typecheck, 1918 testów, build i odbiór UI 2/6+refresh/stare detail/remis/turniej poprawne.
+3/62 pakietów i 7/267 części; FIX-02 otwarte. Starszy wpis RED powyżej jest historyczny.
+
+
+2026-10-29, 05-04..06 zakończone. Wcześniejsze wpisy RED i pytania o commity są historyczne.
+Zakupy: 80 s, autozapis i pointerdown. Sekwencja: zaliczona seria po limicie i refresh.
+W pamięci: wynik natychmiast, niezależna odsłona. Typy, 1947 testów, build i UI PASS.
+6/62 pakietów, 11/267 części; FIX-02 otwarte. Stała zgoda na obowiązkowe commity testów obowiązuje.

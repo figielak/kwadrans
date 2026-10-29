@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Audyt zasad, testów i podpięcia** - kod zasad, testy i podpięcie każdej gry kontra `KONCEPT.md`, `ZASADY-GIER.md` i `ZASADY.md` §2, §3, §6
 - [x] **Phase 2: Audyt wyglądu, animacji i wibracji** - ekrany gier kontra `ZASADY.md` §4 i §5 oraz `DESIGN.md`
 - [x] **Phase 3: Audyt balansu rekordów i trudności** - równe szanse partii, sufit, remisy, krzywa trudności, limity tury, gry główne
-- [ ] **Phase 4: Raport zbiorczy i akceptacja** - jedna lista rozbieżności z priorytetami i decyzją użytkownika
+- [x] **Phase 4: Raport zbiorczy i akceptacja** - jedna lista rozbieżności z priorytetami i decyzją użytkownika
 - [ ] **Phase 5: Poprawki zaakceptowanych rozbieżności** - kod, testy i dokumenty znowu mówią to samo
 
 ## Phase Details
@@ -98,19 +98,23 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Wpisy są zgrupowane w pakiety poprawek z priorytetem (per gra albo per reguła), z których każdy da się zrobić i sprawdzić osobno; pakiety zmieniające zasady gry są oznaczone
   3. Każdy wpis ma decyzję użytkownika: poprawić, zostawić jako odstępstwo z powodem w `ZASADY-GIER.md` albo odrzucić
   4. Lista zaakceptowanych pakietów jest zapisana jako zakres fazy 5 (przy dużym zakresie rozbita na kolejne fazy przez `/gsd-phase`)
-**Plans**: 5 plans (1/5 wykonany 2026-10-25: 04-01 na zlecenie użytkownika; następny 04-02)
+**Plans**: 5/5 zakończone; ZG4-v1 zatwierdzone w całości 2026-10-26, FIX-01 zakończone
 
 Kontekst i kolejność: [04-CONTEXT.md](phases/04-raport-zbiorczy-i-akceptacja/04-CONTEXT.md).
 
 - [x] [04-01-PLAN.md](phases/04-raport-zbiorczy-i-akceptacja/04-01-PLAN.md) - scalenie i aktualność ustaleń F1/F2/F3, mapa źródeł i wpisy F4 → `FINDINGS.md` (fala 1)
-- [ ] [04-02-PLAN.md](phases/04-raport-zbiorczy-i-akceptacja/04-02-PLAN.md) - wybrane pomiary, niepewne dowody i warianty decyzji → `04-02-EVIDENCE.md`, `DECISIONS.md` (fala 2)
-- [ ] [04-03-PLAN.md](phases/04-raport-zbiorczy-i-akceptacja/04-03-PLAN.md) - pakiety, priorytety, zależności i odbiór → `PACKAGES.md`, `REPORT.md` (fala 3)
-- [ ] [04-04-PLAN.md](phases/04-raport-zbiorczy-i-akceptacja/04-04-PLAN.md) - decyzje użytkownika o konkretnej wersji wpisów i pakietów, z obsługą częściowej akceptacji (fala 4, wymaga udziału użytkownika)
-- [ ] [04-05-PLAN.md](phases/04-raport-zbiorczy-i-akceptacja/04-05-PLAN.md) - zaakceptowany zakres fazy 5 i kontrola czterech kryteriów FIX-01 → `PHASE-5-SCOPE.md` (fala 5)
+- [x] [04-02-PLAN.md](phases/04-raport-zbiorczy-i-akceptacja/04-02-PLAN.md) - wybrane pomiary, niepewne dowody i warianty decyzji → `04-02-EVIDENCE.md`, `DECISIONS.md` (fala 2)
+- [x] [04-03-PLAN.md](phases/04-raport-zbiorczy-i-akceptacja/04-03-PLAN.md) - pakiety, priorytety, zależności i odbiór → `PACKAGES.md`, `REPORT.md` (fala 3)
+- [x] [04-04-PLAN.md](phases/04-raport-zbiorczy-i-akceptacja/04-04-PLAN.md) - decyzje użytkownika o konkretnej wersji wpisów i pakietów, z obsługą częściowej akceptacji (fala 4, wymaga udziału użytkownika)
+- [x] [04-05-PLAN.md](phases/04-raport-zbiorczy-i-akceptacja/04-05-PLAN.md) - zaakceptowany zakres fazy 5 i kontrola czterech kryteriów FIX-01 → `PHASE-5-SCOPE.md` (fala 5)
 
 04-01: `FINDINGS.md` v1 scala 173 źródła w 168 wpisów F4 (7 wysokich, 55 średnich, 106 niskich); zachowano 47 odstępstw i 22 pytania. Wszystkie decyzje oczekują.
 
-Planowanie ani scalenie nie zamykają FIX-01. Faza 4 kończy się po decyzji dla każdego wpisu i przekazaniu zaakceptowanego zakresu;
+04-02: `04-02-EVIDENCE.md` i `DECISIONS.md` v1 gotowe (15 pomiarów układu, U01-U14, P01-P22, 106 oczekujących kart i pełne mapowania). FINDINGS v1.1 aktualizuje pewność czterech agregatów, bez zmiany wag; brak zmian kodu/zasad. Następny 04-03: pakiety i raport.
+
+04-03: `PACKAGES.md` PK4-v1 i `REPORT.md` R4-v1 gotowe: 62 propozycje (19 P1 / 36 P2 / 7 P3), 27 pozycji H, mapa 168 F4 i 295 rozłącznych części, zależności bez cykli, wymagane decyzje i odbiór. Następny 04-04 wymaga udziału użytkownika; nic nie zaakceptowano za niego.
+
+Planowanie, scalenie, warianty ani przygotowanie pakietów nie zamykają FIX-01. Faza 4 kończy się po decyzji dla każdego wpisu i przekazaniu zaakceptowanego zakresu;
 otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumentów źródłowych należą do fazy 5.
 
 ### Phase 5: Poprawki zaakceptowanych rozbieżności
@@ -123,7 +127,14 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
   3. `pnpm typecheck && pnpm test` przechodzi bez błędów po każdym pakiecie
   4. Ponowne sprawdzenie poprawionych wpisów tą samą metodą co w audycie nie znajduje ich w kodzie
   5. Żadne `id` gry się nie zmieniło, nie doszła żadna zależność bez zgody, `apps/server` dalej nie ma bezpośredniego `zod`
-**Plans**: TBD
+**Plans**: 6 obecnie rozpisane (6/6 wykonane); pełny zakres 62 pakietów w [S5-v1](phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md). Kolejne plany zgodnie z zatwierdzonym grafem, bez ponownej akceptacji zakresu.
+
+- [x] [05-01-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-01-PLAN.md) - P4-001, wspólne normy i granice wyjątków, już zatwierdzone ZG4-v1
+- [x] [05-02-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-PLAN.md) - P4-027, Kalambury i zaufane źródło walidacji; TDD 50172d5, wdrożenie i odbiór zakończone
+- [x] [05-03-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-03-PLAN.md) - P4-002, najgorszy wynik po limicie; TDD e635dc9, implementacja i odbiór zakończone
+- [x] [05-04-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-04-PLAN.md) - P4-003, Zakupy: 80 s, autozapis i pointerdown; wykonano po TDD 7045659/76455c9
+- [x] [05-05-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-05-PLAN.md) - P4-004, Sekwencja: zaliczona seria po limicie; wykonano po TDD f3e7958
+- [x] [05-06-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-06-PLAN.md) - P4-005, W pamięci: wynik natychmiast; wykonano po regresji 28196b5
 **UI hint**: yes
 
 ## Progress
@@ -136,5 +147,50 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 | 1. Audyt zasad, testów i podpięcia | 10/10 | Complete | 2026-10-23 |
 | 2. Audyt wyglądu, animacji i wibracji | 11/11 | Complete | 2026-10-24 |
 | 3. Audyt balansu rekordów i trudności | 9/9 | Complete | 2026-10-24 |
-| 4. Raport zbiorczy i akceptacja | 1/5 | In progress (04-01 complete; następny 04-02) | - |
-| 5. Poprawki zaakceptowanych rozbieżności | 0/TBD | Not started | - |
+| 4. Raport zbiorczy i akceptacja | 5/5 | Complete; ZG4-v1, S5-v1, FIX-01 | 2026-10-26 |
+| 5. Poprawki zaakceptowanych rozbieżności | 6/6 obecnie rozpisane | In progress; wykonano 6/62 pakietów, 11/267 części poprawek | - |
+
+04-04 rozpoczęty 2026-10-26: przygotowano B4-001 (P4-005/006/012/013/016, warianty w DECISIONS §10). Użytkownik zatwierdził B4-001 („Zatweirdzam”): pięć pakietów i ich warianty. B4-002 (P4-003/004/036) oczekuje; liczba ukończonych planów nadal 3/5, FIX-01 otwarte.
+
+2026-10-26, 04-04: zapisano B4-002 („Tak”), łącznie 8 pakietów zaakceptowane i 9/295 części. B4-003 (8 nowych pakietów) oczekuje. Nadal 3/5 planów fazy 4 ukończone, FIX-01 otwarte.
+
+
+2026-10-26, 04-04: na prośbę „Zrób jedną końcową zgode” przygotowano [FINAL-APPROVAL.md, ZG4-v1](phases/04-raport-zbiorczy-i-akceptacja/FINAL-APPROVAL.md). Zastępuje dalsze pytania o paczki, w tym B4-003; obejmuje 54 pozostałe pakiety, 27 H, dane i odstępstwa, z kompletnymi wariantami. To propozycja, nie nowa akceptacja. Nadal 8 pakietów zatwierdzonych, 3/5 planów fazy 4, FIX-01 otwarte. Po zgodzie następne są zapis decyzji i przekazanie 04-05, bez ponownej zgody na identyczny zakres.
+
+
+**Końcowy stan 2026-10-26:** użytkownik „Zatwierdzam” zaakceptował ZG4-v1 w całości. 04-04/04-05 i faza 4 zakończone; cztery kryteria z dowodami w REPORT §5. FIX-01 zakończone, FIX-02 otwarte. Wcześniejsze datowane wpisy o częściowej akceptacji są historią. Punkt wykonania: 05-01/P4-001, [S5-v1](phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md). Brak zmian kodu i danych.
+
+
+2026-10-26, 05-01: P4-001 zakończony (5/5 części); ZASADY/DESIGN ujednolicone, typecheck i 1834 testy poprawne. Faza 5: 1/62 pakietów, FIX-02 otwarte. Następny 05-02/P4-027 przygotowany, wykonania nie rozpoczęto. Dowody: [05-01-SUMMARY](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-01-SUMMARY.md).
+
+2026-10-26, 05-02: przygotowano testy Kalamburów, kontraktu i handlerów pokoju oraz KONCEPT/ZASADY-GIER przed kodem. Potwierdzono wcześniejszy hint klienta i brak zaufanego kontekstu. Stan RED jest celowy; kod produkcyjny bez zmian. Przed implementacją wymagany osobny commit testów na prośbę użytkownika (AGENTS, ZASADY §2, S5-v1 §3). Nadal 1/62 pakietów i 1/2 planów; [dowody TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-TDD.md).
+
+2026-10-26, 05-02 zakończony: na odpowiedź „Tak” zapisano commit testów 50172d5, następnie wdrożono zaufane source client/timeout i ograniczono hint. Typecheck, 1889 testów, build i /dev2/6 z odświeżeniem w obu połowach poprawne. Stan RED powyżej jest historią. Faza 5: 2/62 pakietów, 6/267 części; FIX-02 otwarte. Następny 05-03/P4-002 przygotowany. [Dowody](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-SUMMARY.md).
+
+
+2026-10-29, 05-03/P4-002 w toku: dokumentacja i testy RED przygotowane, typecheck PASS.
+Games: 1864 PASS / 25 oczekiwanych FAIL; serwer LobbyRoom: 6 PASS / 8 oczekiwanych FAIL.
+Implementacja po osobnym commicie testów na prośbę użytkownika (AGENTS.md).
+[Dowody TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-03-TDD.md).
+Liczba odebranych pakietów bez zmian: 2/62 i 6/267 części; FIX-02 nadal otwarte.
+
+
+2026-10-29, 05-03/P4-002 zakończony po osobnym commicie testów e635dc9 na prośbę użytkownika.
+Dokumentacja i testy przed kodem, testy bez zmian po commicie; typecheck, 1918 testów i build poprawne.
+UI starego detail, timeoutów 2/6 osób i refresh oraz remis i seria punktacji/ekran turnieju sprawdzone.
+[Podsumowanie](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-03-SUMMARY.md).
+Faza 5: 3/62 pakietów, 7/267 części; FIX-02 otwarte. Następny P4-003 (Zakupy). Wpis RED powyżej jest historyczny.
+
+
+2026-10-29, 05-04/P4-003 rozpoczęty na „Rób kolejne”: dokumentacja i testy RED gotowe.
+Typecheck PASS; Zakupy 37 PASS / 2 FAIL, handlery 14 PASS / 4 FAIL. UI potwierdza brak autozapisu i pointerdown.
+Przed implementacją wymagany osobny commit dwóch plików testów; pytanie wysłane asynchronicznie.
+[Dowody TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-04-TDD.md).
+Nadal 3/62 odebrane pakiety, 7/267 części; FIX-02 otwarte.
+
+
+2026-10-29, 05-04..06 zakończone: Zakupy (P4-003), Sekwencja (P4-004), W pamięci (P4-005).
+Osobne commity testów 7045659/76455c9, f3e7958 i 28196b5; dokumentacja przed kodem.
+Typy, 1947 testów, build i UI PASS. Dowody w 05-04-SUMMARY.md, 05-05-SUMMARY.md i 05-06-SUMMARY.md.
+6/62 pakietów i 11/267 części; FIX-02 otwarte, następny P4-006. Wcześniejsze wpisy RED są historią.
+Stała zgoda użytkownika na obowiązkowe kolejne commity testów obowiązuje, bez ponownych pytań.
