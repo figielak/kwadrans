@@ -2,8 +2,8 @@
 
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
-**Stan wykonania: 9/62 pakietów, 14/267 części poprawek.** Zakończono P4-001, P4-027, P4-002..006 i P4-011..012.
-Dowody: 05-01..09-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
+**Stan wykonania: 10/62 pakietów, 15/267 części poprawek.** Zakończono P4-001, P4-027, P4-002..006 i P4-011..013.
+Dowody: 05-01..10-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
 ## 1. Pełne pokrycie i granice
 
@@ -41,7 +41,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 7 | [P4-006: Wspólny nagłówek aktywnej partii](#scope-p4-006) | P1 | 1 | wykonano 2026-10-29, 05-07 |
 | 8 | [P4-011: Memory: wszystkie rzędy kart](#scope-p4-011) | P1 | 1 | wykonano 2026-10-29, 05-08 |
 | 9 | [P4-012: Kalambury: zgadywanie i Pasuję](#scope-p4-012) | P1 | 1 | wykonano 2026-10-29, 05-09; U02 fizyczne otwarte |
-| 10 | [P4-013: Koło: zakończenie prób widoczne](#scope-p4-013) | P1 | 1 | nie rozpoczęto |
+| 10 | [P4-013: Koło: zakończenie prób widoczne](#scope-p4-013) | P1 | 1 | wykonano 2026-10-29, 05-10 |
 | 11 | [P4-014: Państwa-miasta: formularz i tabela głosowania](#scope-p4-014) | P1 | 3 | nie rozpoczęto |
 | 12 | [P4-015: Kropki, Kąt, W pamięci: pole przy klawiaturze](#scope-p4-015) | P1 | 3 | nie rozpoczęto |
 | 13 | [P4-016: Wyniki: dostępne Rewanż i Do lobby](#scope-p4-016) | P1 | 1 | nie rozpoczęto |
@@ -248,10 +248,10 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zachowanie: Płótno dopasowuje się do wolnej wysokości, a Zostaw najlepszą… pozostaje widoczne po pierwszej próbie.
 - Pliki: apps/web/src/games/Kolo.tsx:187-221.
 - Zasady/dokumenty: **nie: układ**. Dokumenty: DESIGN §6.
-- Zależności i rozpoczęcie: [P4-006](PACKAGES.md#p4-006). Dodatkowy warunek: B4-001 zaakceptowana; pozostałe warunki odbioru karty obowiązują, wykonania jeszcze nie rozpoczęto.
+- Zależności i rozpoczęcie: [P4-006](PACKAGES.md#p4-006). Dodatkowy warunek: B4-001 zaakceptowana; pozostałe warunki odbioru karty obowiązują, warunek spełniony.
 - Odbiór: T + UI. Powtórzyć E09 solo i pokój 2/6 osób przed/po próbie; przycisk ma pełne 48 px w oknie, pole rysowania zachowuje proporcje, niedokończona próba nie jest wynikiem. Refresh, timeout, me="" i rewanż.
 - Granice: Zmniejszenie płótna może wpływać na wygodę; współrzędne wyniku nadal 0-1, punktacja bez zmian.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-29**. [05-10-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-10-SUMMARY.md). Solo/2/6, refresh/timeout/me=""/rewanż, typy, 1947 testów i build PASS.
 
 <a id="scope-p4-014"></a>
 

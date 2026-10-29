@@ -203,3 +203,9 @@ pod własnym nagłówkiem i listą graczy, z zachowaniem miejsca na kontrolki da
 Zmiany wysokości nagłówka, czatu i widocznego obszaru aktualizują pomiar. Przy otwartej klawiaturze
 zgadujący może przewinąć do pola i przycisków; minimalny bok płótna to 48 px. Czat i potwierdzenie
 „Pasuję” pozostają obecne. Odsłona i wyniki zachowują dotychczasowy układ.
+
+Narysuj koło (P4-013): aktywne płótno pozostaje kwadratowe i mieści się w wysokości pozostałej
+po nagłówku, statystykach, komunikacie i dolnym marginesie. Miejsce na zakończenie prób jest
+zarezerwowane od startu, dzięki czemu pierwsza oceniona próba nie zmienia rozmiaru pola.
+Na 360×640 przycisk ma 48 px i kończy się na 616 px; bok płótna wynosi 261 px solo lub 293 px
+w pokoju 2/6 osób ze zwiniętym nagłówkiem. Współrzędne i ocena rysunku pozostają niezależne od rozmiaru.

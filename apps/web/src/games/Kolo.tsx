@@ -1,5 +1,5 @@
 import { KOLO_ATTEMPTS, KOLO_MAX_POINTS, koloJudge, type KoloPoint, type KoloView, type LobbyPlayer } from "@kwadrans/games";
-import { type PointerEvent, useRef, useState } from "react";
+import { type PointerEvent, useLayoutEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
 
 interface Props {
@@ -93,6 +93,35 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
   const finger = useRef<number | null>(null);
   const color = (id: string) => players.find((p) => p.id === id)?.color;
 
+  const canvas = useRef<HTMLDivElement>(null);
+  const controls = useRef<HTMLDivElement>(null);
+  const [canvasSize, setCanvasSize] = useState<number>();
+  useLayoutEffect(() => {
+    const field = canvas.current;
+    const footer = controls.current;
+    if (!field || !footer) return;
+    const main = field.closest("main")!;
+    const viewport = window.visualViewport;
+    const measure = () => {
+      const y = field.getBoundingClientRect().top + window.scrollY;
+      const gap = parseFloat(getComputedStyle(field.parentElement!).rowGap) || 0;
+      const padding = parseFloat(getComputedStyle(main).paddingBottom);
+      const height = viewport?.height ?? window.innerHeight;
+      setCanvasSize(Math.max(48, Math.floor(height - y - footer.getBoundingClientRect().height - gap - padding)));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    // Nagłówek, statystyki i komunikaty mogą zmienić wysokość niezależnie od płótna.
+    for (const element of [...main.children, ...field.parentElement!.children]) observer.observe(element);
+    viewport?.addEventListener("resize", measure);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      viewport?.removeEventListener("resize", measure);
+      window.removeEventListener("resize", measure);
+    };
+  }, [playing, started]);
+
   function at(e: { clientX: number; clientY: number }, r: DOMRect): KoloPoint {
     return [clamp((e.clientX - r.left) / r.width), clamp((e.clientY - r.top) / r.height)];
   }
@@ -184,7 +213,7 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
             { label: "Najlepsza", value: best ? percent(best.score) : "-" },
           ]}
         />
-        <div className="relative">
+        <div ref={canvas} className="relative mx-auto w-full" style={{ maxWidth: canvasSize }}>
           <svg
             viewBox="0 0 1 1"
             className="block aspect-square w-full touch-none select-none rounded-tile border border-line bg-surface [-webkit-touch-callout:none]"
@@ -213,15 +242,19 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
             best && <span className="pointer-events-none absolute left-3 top-2 text-xs text-fg-muted">Przygaszony ślad: najlepsza próba</span>
           )}
         </div>
-        {/* Stała wysokość (dwie linijki), żeby przycisk pod spodem nie skakał. */}
-        <p className={`min-h-10 text-center text-sm ${hint ? "text-warning" : "text-fg-muted"}`}>
-          {hint ?? (last && "Przerywana linia to idealne koło. Zielony: blisko niego, czerwony: daleko.")}
-        </p>
-        {best && (
-          <button type="button" className="btn btn-ghost w-full" onClick={() => onMove({ type: "result", points: [] })}>
-            Zostaw najlepszą i zakończ
-          </button>
-        )}
+        <div ref={controls} className="flex flex-col gap-3">
+          {/* Stała wysokość (dwie linijki), żeby przycisk pod spodem nie skakał. */}
+          <p className={`min-h-10 text-center text-sm ${hint ? "text-warning" : "text-fg-muted"}`}>
+            {hint ?? (last && "Przerywana linia to idealne koło. Zielony: blisko niego, czerwony: daleko.")}
+          </p>
+          <div className="min-h-12">
+            {best && (
+              <button type="button" className="btn btn-ghost w-full" onClick={() => onMove({ type: "result", points: [] })}>
+                Zostaw najlepszą i zakończ
+              </button>
+            )}
+          </div>
+        </div>
       </section>
     );
   }

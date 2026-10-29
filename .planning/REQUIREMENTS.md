@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 05-01..09 wykonane, 9/62 pakietów, 14/267 części; typy, 1947 testów, build i UI PASS; U02 fizyczne otwarte; następny P4-013 |
+| FIX-02 | Phase 5 | In progress; 05-01..10 wykonane, 10/62 pakietów, 15/267 części; typy, 1947 testów, build i UI PASS; U02 fizyczne otwarte; następny P4-014 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -169,3 +169,10 @@ Zgadnij i Pasuję w 640 px, 2/6 osób, pełne partie obu trybów i /dev z WebSoc
 Typy, 1947 testów i build PASS. U02 fizyczny Android otwarty, symulacja viewportu PASS.
 9/62 pakietów, 14/267 części, FIX-02 otwarte; następny P4-013. Dowody: 05-09-SUMMARY.md.
 Stała zgoda użytkownika na commity po każdym zadaniu obowiązuje; push nadal wymaga prośby.
+
+
+2026-10-29, 05-10/P4-013 zakończony: Narysuj koło, płótno dopasowane do wolnej wysokości,
+48 px przycisku w oknie, bez skoku rozmiaru po pierwszej próbie. Solo/2/6, refresh, timeout,
+me="" i rewanż PASS; rzeczywisty pokój solo z reload i rekordem PASS.
+Typy, 1947 testów i build PASS. 10/62 pakietów, 15/267 części, FIX-02 otwarte.
+Następny P4-014 (Państwa-miasta). Dowody: 05-10-SUMMARY.md. Commit po zadaniu, bez push.
