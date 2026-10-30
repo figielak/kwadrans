@@ -77,6 +77,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] [05-15-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-15-PLAN.md) - P4-023, quizy: granice i zachowanie czasów; TDD f127c6c, 2/2 odebrane
 - [x] [05-16-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-16-PLAN.md) - P4-036, gęste plansze: wybór z potwierdzeniem 56 px; 1/1 odebrane
 - [x] [05-17-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-17-PLAN.md) - P4-007, Gomoku: pomiar 360×640 bez zmian kodu; 1/1 odebrane
+- [x] [05-18-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-18-PLAN.md) - P4-008, Statki: rozstawianie w ekranie, obserwator z aktywną planszą; 1/1 odebrane
 **UI hint**: yes
 
 ### Phase 3: Audyt balansu rekordów i trudności
@@ -157,6 +158,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
 - [x] [05-15-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-15-PLAN.md) - P4-023, quizy: granice i zachowanie czasów; TDD f127c6c, 2/2 odebrane
 - [x] [05-16-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-16-PLAN.md) - P4-036, gęste plansze: wybór z potwierdzeniem 56 px; 1/1 odebrane
 - [x] [05-17-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-17-PLAN.md) - P4-007, Gomoku: pomiar 360×640 bez zmian kodu; 1/1 odebrane
+- [x] [05-18-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-18-PLAN.md) - P4-008, Statki: rozstawianie w ekranie, obserwator z aktywną planszą; 1/1 odebrane
 **UI hint**: yes
 
 ## Progress
@@ -293,3 +295,9 @@ Następny P4-007; P4-014/015 oczekują pomiarów. Dowody: 05-16-SUMMARY.md. Comm
 (plansza 150-487 px, „Postaw na O15” 514-570 px, dokument 640; obserwator, koniec, rewanż i odświeżenie PASS).
 Pomiar w DESIGN §6 zamiast „około 670 px”. 16/62 pakietów, 29/267 części; FIX-02 otwarte.
 Następny P4-008; P4-014/015 oczekują pomiarów. Dowody: 05-17-SUMMARY.md. Commit bez push.
+
+
+2026-10-30, 05-18/P4-008 zakończony: Statki, rozstawianie z Obróć/Losuj/Gotowe w jednym wierszu (640 px we wszystkich trybach),
+obserwator widzi ostrzeliwaną planszę dużą u góry. Mała plansza drugiej floty jako wyjątek DESIGN §6 (zgoda użytkownika).
+Cztery tryby, obie role, obserwator, koniec, odświeżenie i rewanż PASS; typy/2049 testów/build PASS.
+17/62 pakietów, 30/267 części; FIX-02 otwarte. Następny P4-009. Dowody: 05-18-SUMMARY.md. Commit bez push.

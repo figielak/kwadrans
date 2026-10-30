@@ -197,8 +197,12 @@ Zmniejszenie nagłówka nie zastępuje osobnego odbioru geometrii plansz.
 
 Rozbieżności do decyzji (nie są wzorem dla nowych ekranów):
 
-- **Gry główne na 360×640.** Rozstawianie w Statkach (około 770 px) i Państwa-miasta wymagają przewinięcia;
-  są to rozbieżności do poprawy, a nie zgoda na przewijanie plansz.
+- **Gry główne na 360×640.** Państwa-miasta wymagają przewinięcia;
+  jest to rozbieżność do poprawy, a nie zgoda na przewijanie plansz.
+  Statki (P4-008, wszystkie tryby): rozstawianie mieści się (flota 142-482 px, „Obróć”/„Losuj”/„Gotowe” w jednym wierszu 534-590 px).
+  W bitwie aktywna plansza jest duża u góry razem z akcją (cel 142-482 px i „Wybierz pole” 502-558 px; obrońca i obserwator: ostrzeliwana plansza).
+  Wyjątek: mała plansza drugiej floty (3/5 szerokości) może leżeć poniżej 640 px i dochodzi się do niej przewinięciem,
+  bo przy obu planszach naraz miałaby pole około 6 px; pasek bitwy nie jest przyklejony, więc nic jej nie zasłania.
   Gomoku mieści się po zmniejszeniu nagłówka (P4-007): plansza 150-487 px (pole 22,5 px), akcja 514-570 px, dokument 640 px,
   u obserwatora plansza 178-515 px; po końcu cała plansza zostaje nad „Rewanż”, a wyniki przewijają się jak w ZASADY §4. Także mini-gry wymagają osobnego odbioru;
   nie zakładamy, że każda mieści się w 640 px. Przewijanie list poza partią jest dopuszczone powyżej.

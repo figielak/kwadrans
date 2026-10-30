@@ -58,7 +58,8 @@ export function Statki({ view, me, players, canMove, onMove }: Props) {
   const rules = STATKI_MODES.find((m) => m.id === view.mode) ?? STATKI_MODES[0];
 
   // W turze przeciwnika liczy się własna flota: idzie na górę, duża, z komunikatem tuż nad nią.
-  const turn = seated && view.phase === "battle" && view.shooter === enemyId;
+  // Obserwator widzi tak samo planszę, w którą właśnie się strzela (`ownId` to wtedy pierwszy gracz).
+  const turn = view.phase === "battle" && view.shooter === enemyId;
   // Układ goni stan: zamiana plansz to view transition, w którym duża i mała plansza przelatują na swoje miejsca.
   const [defending, setDefending] = useState(turn);
   // Tura przechodzi w bitwie tylko po pudle; start bitwy i koniec partii zamieniają układ od razu.
@@ -112,12 +113,12 @@ export function Statki({ view, me, players, canMove, onMove }: Props) {
         board={view.boards[ownId]}
         color={color(ownId)}
         last={incoming}
-        compact={seated && !defending}
+        compact={!defending}
       />
     </div>
   );
   const small = (node: ReactNode, key: string) => (
-    <div key={key} className={seated ? "mx-auto w-3/5" : ""}>
+    <div key={key} className="mx-auto w-3/5">
       {node}
     </div>
   );
@@ -296,43 +297,44 @@ function Placement({
         pointer={pointer}
       />
       <p className="text-center text-sm text-fg-muted">
-        {selected === null ? "Przeciągnij statek albo dotknij go, żeby przenieść." : `Dotknij pola, gdzie ma zacząć się statek.${rules.touching ? "" : " Czerwone pola są za blisko innych."}`}
+        {selected === null ? "Przeciągnij statek albo dotknij go, żeby przenieść." : `Dotknij nowego miejsca.${rules.touching ? "" : " Czerwone są za blisko."}`}
       </p>
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          className="btn btn-ghost"
-          disabled={selected === null}
-          onClick={() => selected !== null && commit(replaced(selected, { ...ships[selected], vertical: !ships[selected].vertical }), selected)}
-        >
-          <ArrowsClockwise size={18} aria-hidden />
-          Obróć
-        </button>
-        <button
-          type="button"
-          className="btn btn-ghost"
-          onClick={() => {
-            setSelected(null);
-            commit(randomFleet(Math.random, rules));
-          }}
-        >
-          <Shuffle size={18} aria-hidden />
-          Losuj
-        </button>
-      </div>
+      {/* Wszystkie akcje w jednym wierszu paska: dwa rzędy nie mieściły się pod flotą na 360×640. */}
       <StickyBar>
-        <button
-          type="button"
-          className="btn h-14 w-full text-lg font-semibold text-bg"
-          style={{ backgroundColor: color }}
-          onClick={() => {
-            setSelected(null);
-            onMove({ type: "ready" });
-          }}
-        >
-          <Check size={20} weight="bold" aria-hidden />
-          Gotowe
-        </button>
+        <div className="flex w-full gap-2">
+          <button
+            type="button"
+            className="btn btn-ghost h-14 gap-1 px-3 text-sm"
+            disabled={selected === null}
+            onClick={() => selected !== null && commit(replaced(selected, { ...ships[selected], vertical: !ships[selected].vertical }), selected)}
+          >
+            <ArrowsClockwise size={18} aria-hidden />
+            Obróć
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost h-14 gap-1 px-3 text-sm"
+            onClick={() => {
+              setSelected(null);
+              commit(randomFleet(Math.random, rules));
+            }}
+          >
+            <Shuffle size={18} aria-hidden />
+            Losuj
+          </button>
+          <button
+            type="button"
+            className="btn h-14 min-w-0 flex-1 px-4 text-lg font-semibold text-bg"
+            style={{ backgroundColor: color }}
+            onClick={() => {
+              setSelected(null);
+              onMove({ type: "ready" });
+            }}
+          >
+            <Check size={20} weight="bold" aria-hidden />
+            Gotowe
+          </button>
+        </div>
       </StickyBar>
     </div>
   );
