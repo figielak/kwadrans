@@ -52,7 +52,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 18 | [P4-007: Gomoku: plansza nad dolną akcją](#scope-p4-007) | P1 | 1 | wykonano 2026-10-30 bez zmian kodu, 05-17 |
 | 19 | [P4-008: Statki: rozstawianie i bitwa w ekranie](#scope-p4-008) | P1 | 1 | wykonano 2026-10-30, 05-18 |
 | 20 | [P4-009: Chińczyk: domki i kostka w ekranie](#scope-p4-009) | P1 | 1 | wykonano 2026-10-30, 05-19 |
-| 21 | [P4-010: Labirynt: własny pionek i wybór ruchu](#scope-p4-010) | P1 | 1 | nie rozpoczęto |
+| 21 | [P4-010: Labirynt: własny pionek i wybór ruchu](#scope-p4-010) | P1 | 1 | wykonano 2026-10-30, 05-20 |
 | 22 | [P4-019: Chińczyk: ruch dostępny w animacji](#scope-p4-019) | P1 | 1 | nie rozpoczęto |
 | 23 | [P4-020: Śledzenie: 360 s na pełną partię](#scope-p4-020) | P2 | 1 | nie rozpoczęto |
 | 24 | [P4-021: Który rok?: 270 s z zapasem sieciowym](#scope-p4-021) | P2 | 1 | nie rozpoczęto |
@@ -405,7 +405,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-006](PACKAGES.md#p4-006), [P4-036](PACKAGES.md#p4-036). Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Startowy pionek, cel, wybór Pionek/Ściana i potwierdzenie widoczne; Klasyczny 9×9 i Szybki 7×7. Porównać E03 przy 360×640. Minimalna/maksymalna liczba miejsc + obserwator, wszystkie tryby, własny/cudzy ruch, odświeżenie i rewanż. Brak zmiany reguł ruchu.
 - Granice: Nie zmniejszać hitboxów poniżej wybranego wyjątku. Zmieniony nagłówek może usunąć potrzebę części korekt; wówczas zapisać pomiar i nie dodawać zbędnego CSS.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-30**, 1/1 części. [05-20-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-20-SUMMARY.md). Plansza równo z nagłówkiem (662→640 px w turze), Klasyczny 4+obs, Szybki 2+obs, koniec, odświeżenie i rewanż na 360×640.
 
 <a id="scope-p4-019"></a>
 

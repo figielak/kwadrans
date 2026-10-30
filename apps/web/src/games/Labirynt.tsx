@@ -13,8 +13,8 @@ interface Props {
 /** Bok pola w jednostkach SVG; ściany leżą w szczelinach między polami. */
 const CELL = 10;
 const GAP = 1.6;
-/** Margines viewBoxa na paski mety. */
-const PAD = 3;
+/** Margines viewBoxa na paski mety (sięgają 1,4 poza pola). */
+const PAD = 2;
 
 /** Obrót planszy, po którym własny start jest na dole, a meta u góry. */
 const TURN: Record<LabiryntView["sides"][number], number> = { bottom: 0, left: -90, top: 180, right: 90 };
@@ -149,7 +149,8 @@ export function Labirynt({ view, me, players, canMove, onMove }: Props) {
 
   return (
     <div className="flex flex-1 flex-col gap-3">
-      <div className="-mx-3 rounded-inset border border-line bg-surface-inset p-1">
+      {/* Szerokość jak kafelek nagłówka: z dwurzędowym paskiem akcji plansza mieści się w 640 px. */}
+      <div className="rounded-inset border border-line bg-surface-inset p-1">
         <svg
           viewBox={`${-PAD} ${-PAD} ${full + 2 * PAD} ${full + 2 * PAD}`}
           className="block w-full touch-none select-none"

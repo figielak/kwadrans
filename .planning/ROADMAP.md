@@ -79,6 +79,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] [05-17-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-17-PLAN.md) - P4-007, Gomoku: pomiar 360×640 bez zmian kodu; 1/1 odebrane
 - [x] [05-18-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-18-PLAN.md) - P4-008, Statki: rozstawianie w ekranie, obserwator z aktywną planszą; 1/1 odebrane
 - [x] [05-19-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-19-PLAN.md) - P4-009, Chińczyk: domki i kostka w 640 px; 1/1 odebrane
+- [x] [05-20-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-20-PLAN.md) - P4-010, Labirynt: plansza równo z nagłówkiem, tura w 640 px; 1/1 odebrane
 **UI hint**: yes
 
 ### Phase 3: Audyt balansu rekordów i trudności
@@ -161,6 +162,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
 - [x] [05-17-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-17-PLAN.md) - P4-007, Gomoku: pomiar 360×640 bez zmian kodu; 1/1 odebrane
 - [x] [05-18-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-18-PLAN.md) - P4-008, Statki: rozstawianie w ekranie, obserwator z aktywną planszą; 1/1 odebrane
 - [x] [05-19-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-19-PLAN.md) - P4-009, Chińczyk: domki i kostka w 640 px; 1/1 odebrane
+- [x] [05-20-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-20-PLAN.md) - P4-010, Labirynt: plansza równo z nagłówkiem, tura w 640 px; 1/1 odebrane
 **UI hint**: yes
 
 ## Progress
@@ -309,3 +311,8 @@ Cztery tryby, obie role, obserwator, koniec, odświeżenie i rewanż PASS; typy/
 usunięte (podpowiedź „X rzuca kostką…” tylko bez komunikatu o rzucie). Klasyczny 4+obs, Szybki 2+obs do końca,
 długie nicki, odświeżenie i rewanż: 640 px. Typy/2049 testów/build PASS. 18/62 pakietów, 31/267 części; FIX-02 otwarte.
 Następny P4-010. Dowody: 05-19-SUMMARY.md. Commit bez push.
+
+2026-10-30, 05-20/P4-010 zakończony: Labirynt, gracz w turze 662→640 px (plansza równo z kafelkiem nagłówka, PAD 3→2,
+pole 9×9 ~34 px). Klasyczny 4+obs, ściana, partia do końca, rewanż, Szybki 2+obs i odświeżenie: 640 px w grze.
+Typy/2049 testów/build PASS. 19/62 pakietów, 32/267 części; FIX-02 otwarte.
+Następny P4-019. Dowody: 05-20-SUMMARY.md. Commit bez push.

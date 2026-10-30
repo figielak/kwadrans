@@ -237,3 +237,8 @@ Cztery tryby, obie role, obserwator, koniec, odświeżenie i rewanż PASS; typy/
 usunięte (podpowiedź „X rzuca kostką…” tylko bez komunikatu o rzucie). Klasyczny 4+obs, Szybki 2+obs do końca,
 długie nicki, odświeżenie i rewanż: 640 px. Typy/2049 testów/build PASS. 18/62 pakietów, 31/267 części; FIX-02 otwarte.
 Następny P4-010. Dowody: 05-19-SUMMARY.md. Commit bez push.
+
+2026-10-30, 05-20/P4-010 zakończony: Labirynt, gracz w turze 662→640 px (plansza równo z kafelkiem nagłówka, PAD 3→2,
+pole 9×9 ~34 px). Klasyczny 4+obs, ściana, partia do końca, rewanż, Szybki 2+obs i odświeżenie: 640 px w grze.
+Typy/2049 testów/build PASS. 19/62 pakietów, 32/267 części; FIX-02 otwarte.
+Następny P4-019. Dowody: 05-20-SUMMARY.md. Commit bez push.

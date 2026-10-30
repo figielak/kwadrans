@@ -180,7 +180,8 @@ z [ZASADY.md §4](ZASADY.md#4-spójność-wyglądu); lokalne wyjątki formularzy
   przycisk min. 48 px w kolorze gracza nazywa wybór i wysyła ruch, drugie dotknięcie tego samego pola też wysyła.
   Gomoku (15×15, pole ~22 px): „Postaw na H8”. Statki (do 12×12, ~23 px): „Strzel w G3”.
   Chińczyk (11×11, ~29 px): kostka obok „Wyjdź na start” / „Rusz o 4 pola” / „Wejdź do domku”, przy biciu „… i zbij”.
-  Labirynt (do 9×9, ~34 px): duch pionka i „Idź w górę” / „Przeskocz w lewo”; ścianka: podgląd i „Postaw”.
+  Labirynt (do 9×9, ~34 px, plansza równo z kafelkiem nagłówka, żeby dwurzędowy pasek akcji zmieścił się w 640 px):
+  duch pionka i „Idź w górę” / „Przeskocz w lewo”; ścianka: podgląd i „Postaw”.
   Pomiar 360×640 (P4-036): każdy przycisk potwierdzenia ma 56 px, obserwator nie ma aktywnych pól.
   Memory, pola Kampus Tour i gry na czas tego wyjątku nie dostają.
 - **Kolory będące treścią gry** nie są interfejsem i nie muszą pochodzić z tokenów: pola Sekwencji, napisy Koloru liter,
