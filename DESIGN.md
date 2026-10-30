@@ -203,6 +203,9 @@ Rozbieżności do decyzji (nie są wzorem dla nowych ekranów):
   W bitwie aktywna plansza jest duża u góry razem z akcją (cel 142-482 px i „Wybierz pole” 502-558 px; obrońca i obserwator: ostrzeliwana plansza).
   Wyjątek: mała plansza drugiej floty (3/5 szerokości) może leżeć poniżej 640 px i dochodzi się do niej przewinięciem,
   bo przy obu planszach naraz miałaby pole około 6 px; pasek bitwy nie jest przyklejony, więc nic jej nie zasłania.
+  Chińczyk (P4-009, Klasyczny i Szybki, 2 i 4 graczy, obserwator): plansza 142-470 px (u obserwatora do 498 px),
+  „Rzuć” albo kostka z „Rusz…” pod nią, dokument 640 px; dolne domki co najmniej 26 px nad paskiem, także z 16-znakowymi nickami.
+  Kafelek pokazuje najwyżej linię rzutu i komunikat; „X rzuca kostką…” tylko bez komunikatu, bo kto ma ruch, mówi nagłówek.
   Gomoku mieści się po zmniejszeniu nagłówka (P4-007): plansza 150-487 px (pole 22,5 px), akcja 514-570 px, dokument 640 px,
   u obserwatora plansza 178-515 px; po końcu cała plansza zostaje nad „Rewanż”, a wyniki przewijają się jak w ZASADY §4. Także mini-gry wymagają osobnego odbioru;
   nie zakładamy, że każda mieści się w 640 px. Przewijanie list poza partią jest dopuszczone powyżej.

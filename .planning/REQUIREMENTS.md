@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 05-01..10 wykonane, 17/62 pakietów, 30/267 części; P4-014 (2/3) i P4-015 oczekują U02; P4-023, P4-036, P4-007 i P4-008 odebrane; typy/2049 testów/build PASS; następny P4-009 |
+| FIX-02 | Phase 5 | In progress; 05-01..10 wykonane, 18/62 pakietów, 31/267 części; P4-014 (2/3) i P4-015 oczekują U02; P4-023, P4-036, P4-007..009 odebrane; typy/2049 testów/build PASS; następny P4-010 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -231,3 +231,9 @@ Następny P4-008; P4-014/015 oczekują pomiarów. Dowody: 05-17-SUMMARY.md. Comm
 obserwator widzi ostrzeliwaną planszę dużą u góry. Mała plansza drugiej floty jako wyjątek DESIGN §6 (zgoda użytkownika).
 Cztery tryby, obie role, obserwator, koniec, odświeżenie i rewanż PASS; typy/2049 testów/build PASS.
 17/62 pakietów, 30/267 części; FIX-02 otwarte. Następny P4-009. Dowody: 05-18-SUMMARY.md. Commit bez push.
+
+
+2026-10-30, 05-19/P4-009 zakończony: Chińczyk po P4-006/P4-036 nie przykrywa domków; jedyne 641 px u obserwatora
+usunięte (podpowiedź „X rzuca kostką…” tylko bez komunikatu o rzucie). Klasyczny 4+obs, Szybki 2+obs do końca,
+długie nicki, odświeżenie i rewanż: 640 px. Typy/2049 testów/build PASS. 18/62 pakietów, 31/267 części; FIX-02 otwarte.
+Następny P4-010. Dowody: 05-19-SUMMARY.md. Commit bez push.

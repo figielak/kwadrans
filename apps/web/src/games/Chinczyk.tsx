@@ -307,7 +307,8 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
                   </p>
                 )}
                 {status && <p className="text-sm font-semibold">{status}</p>}
-                {prompt && <p className="text-sm text-fg-muted">{prompt}</p>}
+                {/* Komunikat o rzucie wypiera „X rzuca kostką…”: kto ma ruch, mówi już nagłówek, a czwarta linia wypychała ekran. */}
+                {!status && prompt && <p className="text-sm text-fg-muted">{prompt}</p>}
               </div>
             </div>
           )}
