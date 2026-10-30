@@ -112,6 +112,13 @@ function Die({ value, rolling, color }: { value: number; rolling: boolean; color
   );
 }
 
+/** Nazwa wybranego ruchu na przycisku: „Wyjdź na start”, „Wejdź do domku”, „Rusz o 4 pola”, przy biciu „… i zbij”. */
+function moveName(from: number, to: number, capture: boolean) {
+  const n = to - from;
+  const name = from < 0 ? "Wyjdź na start" : from < TRACK && to >= TRACK ? "Wejdź do domku" : `Rusz o ${n} ${n === 1 ? "pole" : n < 5 ? "pola" : "pól"}`;
+  return capture ? `${name} i zbij` : name;
+}
+
 export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
   const color = (id: string) => players.find((p) => p.id === id)?.color ?? "var(--color-fg-muted)";
   const nick = (id: string) => players.find((p) => p.id === id)?.nick ?? "?";
@@ -122,7 +129,7 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
   const settled = !rolling && view.players.every((p) => shown[p]?.every((pos, i) => pos === view.pawns[p][i]));
   const myMove = canMove && settled && view.phase === "move";
 
-  // Wybrany pionek pokazuje cel; drugie dotknięcie (pionka albo celu) wykonuje ruch.
+  // Wybrany pionek pokazuje cel; „Rusz pionek” albo drugie dotknięcie (pionka albo celu) wykonuje ruch.
   const [selected, setSelected] = useState<number | null>(null);
   useEffect(() => setSelected(null), [last?.roll, view.phase]);
   const pick = selected !== null && myMove && view.movable.includes(selected) ? selected : null;
@@ -190,10 +197,6 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
   const prompt = (() => {
     if (view.phase === "over" || !view.turn) return null;
     if (!settled) return null;
-    if (myMove) {
-      if (pick === null) return "Wybierz pionek.";
-      return capture ? `Zbijesz pionek: ${nick(capture)}. Dotknij celu, żeby ruszyć.` : "Dotknij celu albo pionka jeszcze raz, żeby ruszyć.";
-    }
     if (canMove) return null;
     return view.phase === "move" ? `${nick(view.turn)} wybiera pionek…` : `${nick(view.turn)} rzuca kostką…`;
   })();
@@ -255,7 +258,7 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
       {/* Odstęp spycha dolny obszar na dół ekranu; sticky trzyma go pod kciukiem, gdy plansza się nie mieści. */}
       <span className="-mt-3 flex-1" aria-hidden />
 
-      {/* Jeden obszar na dole: przy rzucie duży przycisk w kolorze gracza, poza tym ostatni rzut i podpowiedź. */}
+      {/* Jeden obszar na dole: przy rzucie i wyborze ruchu duży przycisk w kolorze gracza, poza tym ostatni rzut i podpowiedź. */}
       <StickyBar>
         <div className="flex w-full flex-col gap-2" aria-live="polite">
           {rollNow ? (
@@ -273,6 +276,20 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
                 {!view.pawns[me].some((p) => p >= 0 && p < TRACK) && <span className="font-normal">(próba {4 - view.tries} z 3)</span>}
               </button>
             </>
+          ) : myMove && last ? (
+            // Pole ma ~29 px, więc wybrany ruch potwierdza duży przycisk (albo drugie dotknięcie pionka lub celu).
+            <div className="flex items-center gap-3">
+              <Die value={last.dice} rolling={false} color={color(me)} />
+              <button
+                type="button"
+                className="btn h-14 flex-1 text-lg font-semibold text-bg disabled:opacity-40"
+                style={{ backgroundColor: color(me) }}
+                disabled={pick === null}
+                onClick={() => pick !== null && move(pick)}
+              >
+                {pick === null ? "Dotknij pionka" : moveName(view.pawns[me][pick], to!, !!capture)}
+              </button>
+            </div>
           ) : (
             <div className="tile flex min-h-14 items-center gap-3 px-4 py-2">
               {last ? (

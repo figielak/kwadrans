@@ -901,3 +901,5 @@ Seria mini-gier puszczana po kolei w jednym pokoju. To nie jest gra z rejestru `
 - Koniec: pierwszy, kto stanie na polu celu, wygrywa (także przy 3-4 osobach, bez pełnego rankingu). Remisu nie ma.
 - Limit czasu: krok w stronę celu (pole najbliższe celowi po ściankach), a gdy kroku nie ma, `pass`. Losowości w grze nie ma.
 - Nic nie jest ukryte: widok to cały stan.
+- Ekran: dotknięcie pola z kropką tylko wybiera krok (duch pionka); ruch wysyła „Idź w górę” / „Przeskocz w lewo” / „Idź w prawo i w dół”
+  (kierunek tak, jak widzi go gracz) albo drugie dotknięcie tego samego pola. Ścianka jak dotąd: podgląd, „Obróć”, „Postaw”.

@@ -2,7 +2,7 @@
 
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
-**Stan wykonania: 14/62 pakietów, 27/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..018 oraz P4-023.
+**Stan wykonania: 15/62 pakietów, 28/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..018 oraz P4-023 i P4-036.
 Dowody: 05-01..15-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
 ## 1. Pełne pokrycie i granice
@@ -48,7 +48,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 14 | [P4-017: Kampus Tour: środek i akcje po skalowaniu](#scope-p4-017) | P1 | 4 | wykonano 2026-10-29, 05-13 |
 | 15 | [P4-018: Kampus Tour: decyzja bez czekania na marsz](#scope-p4-018) | P1 | 3 | wykonano 2026-10-29, 05-14 |
 | 16 | [P4-023: Quizy: walidacja i wierne czasy trafień](#scope-p4-023) | P1 | 2 | wykonano 2026-10-29, TDD f127c6c, 05-15 |
-| 17 | [P4-036: Gęste plansze: wybór z potwierdzeniem](#scope-p4-036) | P2 | 1 | nie rozpoczęto |
+| 17 | [P4-036: Gęste plansze: wybór z potwierdzeniem](#scope-p4-036) | P2 | 1 | wykonano 2026-10-30, 05-16 |
 | 18 | [P4-007: Gomoku: plansza nad dolną akcją](#scope-p4-007) | P1 | 1 | nie rozpoczęto |
 | 19 | [P4-008: Statki: rozstawianie i bitwa w ekranie](#scope-p4-008) | P1 | 1 | nie rozpoczęto |
 | 20 | [P4-009: Chińczyk: domki i kostka w ekranie](#scope-p4-009) | P1 | 1 | nie rozpoczęto |
@@ -346,10 +346,10 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zachowanie: Wyjątek <48 px tylko dla pola z podglądem i osobnym potwierdzeniem 48 px. Gomoku/Statki/Chińczyk zachowują takie potwierdzenie; Labirynt wymaga dodania jawnego potwierdzenia lub osobnej decyzji o odmiennej obsłudze.
 - Pliki: PiecWRzedzie.tsx,Statki.tsx,Chinczyk.tsx,Labirynt.tsx; ZASADY §4/DESIGN §6.
 - Zasady/dokumenty: **tak: reguła UI i ewentualne potwierdzenie Labiryntu; nie zasady ruchu**. Dokumenty: ZASADY §4; DESIGN §6.
-- Zależności i rozpoczęcie: brak. Dodatkowy warunek: B4-002 zatwierdza D4-059:A dla czterech gier, także dodanie osobnego potwierdzenia w Labiryncie. Odbiór nadal wymagany; wykonania nie rozpoczęto.
+- Zależności i rozpoczęcie: brak. Dodatkowy warunek: B4-002 zatwierdza D4-059:A dla czterech gier, także dodanie osobnego potwierdzenia w Labiryncie. Odbiór wykonany w 05-16.
 - Odbiór: T + UI. Dotknięcie wskazuje dokładnie jedno pole/pionek, tekst/znak pokazuje wybór, dopiero potwierdzenie wysyła ruch. 360×640, minimalny wariant i obserwator; przycisk zmierzony po transformacji. Każdy wyjątek ma nazwę gry i powód.
 - Granice: Labirynt obecnie wykonuje krok bez potwierdzenia; nie wolno uznać go za już objęty wyjątkiem.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-30**, 1/1 części. [05-16-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-16-SUMMARY.md). Typy/2049 testów/build i /dev 360×640 PASS.
 
 <a id="scope-p4-007"></a>
 

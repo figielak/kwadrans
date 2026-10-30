@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 05-01..10 wykonane, 14/62 pakietów, 27/267 części; P4-014 (2/3) i P4-015 oczekują U02; P4-023 odebrany; typy/2049 testów/build PASS; następny P4-036 |
+| FIX-02 | Phase 5 | In progress; 05-01..10 wykonane, 15/62 pakietów, 28/267 części; P4-014 (2/3) i P4-015 oczekują U02; P4-023 i P4-036 odebrane; typy/2049 testów/build PASS; następny P4-007 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -212,3 +212,10 @@ ZASADY-GIER i testy przed kodem, commit TDD f127c6c. Typy/2049 testów/build PAS
 UI Quiz/retry/Dziesiątki, 201 trafień i rzeczywisty rekord/turniej przez WebSocket PASS.
 14/62 pakietów, 27/267 części; FIX-02 otwarte. Następny P4-036; P4-014/015 oczekują pomiarów.
 Dowody: 05-15-SUMMARY.md. Historia bez przeliczania; commit implementacji bez push.
+
+
+2026-10-30, 05-16/P4-036 zakończony: gęste plansze z wyborem i potwierdzeniem 56 px z nazwą wyboru.
+Labirynt: krok przez wybór (duch pionka) i „Idź w górę”/„Przeskocz…”; Chińczyk: kostka obok „Rusz o 4 pola”;
+Gomoku: „Postaw na H8”; Statki bez zmian. ZASADY §4, DESIGN §6, ZASADY-GIER §10. Typy/2049 testów/build PASS.
+/dev 360×640: 9×9 i 7×7, obroty 0/90/180°, obserwator, przeskok PASS. 15/62 pakietów, 28/267 części; FIX-02 otwarte.
+Następny P4-007; P4-014/015 oczekują pomiarów. Dowody: 05-16-SUMMARY.md. Commit bez push.

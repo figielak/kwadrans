@@ -14,7 +14,7 @@ const STARS = new Set([3 * 15 + 3, 3 * 15 + 11, 7 * 15 + 7, 11 * 15 + 3, 11 * 15
 
 /**
  * Pole ma ~25px na telefonie, więc ruch idzie w dwóch krokach: pierwsze dotknięcie pokazuje kamień,
- * drugie (albo „Postaw”) go stawia. Pod ławką łatwo trafić w sąsiednie pole.
+ * drugie (albo „Postaw na H8”) go stawia. Pod ławką łatwo trafić w sąsiednie pole.
  * Przycisk leży tuż pod planszą; czekający widzi w tym samym miejscu, kto się zastanawia.
  */
 export function PiecWRzedzie({ view, players, canMove, onMove }: Props) {
@@ -30,6 +30,9 @@ export function PiecWRzedzie({ view, players, canMove, onMove }: Props) {
   const pickedFree = picked !== null && canMove && view.board[picked] === null ? picked : null;
   const px = pickedFree === null ? null : pickedFree % view.size;
   const py = pickedFree === null ? null : Math.floor(pickedFree / view.size);
+
+  /** Nazwa pola jak w Statkach: litera kolumny i numer wiersza („H8”). */
+  const name = (i: number) => `${String.fromCharCode(65 + (i % view.size))}${Math.floor(i / view.size) + 1}`;
 
   function place(i: number) {
     setPicked(null);
@@ -59,7 +62,7 @@ export function PiecWRzedzie({ view, players, canMove, onMove }: Props) {
                 key={i}
                 type="button"
                 disabled={!canMove || cell !== null}
-                aria-label={`Pole ${x + 1}, ${y + 1}${cell === null ? "" : ", zajęte"}`}
+                aria-label={`Pole ${name(i)}${cell === null ? "" : ", zajęte"}`}
                 className={`relative grid place-items-center border-r border-b border-line bg-surface-inset ${win.has(i) ? "z-10" : ""}`}
                 style={{ background }}
                 onClick={() => (preview ? place(i) : setPicked(i))}
@@ -113,7 +116,7 @@ export function PiecWRzedzie({ view, players, canMove, onMove }: Props) {
             disabled={pickedFree === null}
             onClick={() => pickedFree !== null && place(pickedFree)}
           >
-            {pickedFree === null ? "Wybierz pole" : "Postaw"}
+            {pickedFree === null ? "Wybierz pole" : `Postaw na ${name(pickedFree)}`}
           </button>
         </StickyBar>
       ) : (

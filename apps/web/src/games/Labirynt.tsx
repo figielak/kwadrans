@@ -1,5 +1,5 @@
-import { labiryntPawnMoves, labiryntWallError, type LabiryntView, type LabiryntWall, type LobbyPlayer } from "@kwadrans/games";
-import { type PointerEvent, useState } from "react";
+import { type LabiryntCell, labiryntPawnMoves, labiryntWallError, type LabiryntView, type LabiryntWall, type LobbyPlayer } from "@kwadrans/games";
+import { type PointerEvent, useEffect, useState } from "react";
 import { StickyBar } from "../screens/ui.tsx";
 
 interface Props {
@@ -53,12 +53,31 @@ function wallAt(px: number, py: number, size: number): LabiryntWall {
 }
 
 /**
- * Dwa tryby w przełączniku: „Pionek” (kropki dozwolonych pól, dotknięcie od razu robi krok) i „Ściana”
- * (podgląd półprzezroczysty z przerywanym obrysem, „Obróć”, „Postaw”). Plansza jest obrócona tak, żeby własny pionek stał na dole.
+ * Nazwa kroku tak, jak widzi go gracz na obróconej planszy: „Idź w górę”, „Przeskocz w lewo”, „Idź w prawo i w dół”.
+ * Pole ma ~30 px, więc krok też idzie przez wybór i potwierdzenie.
+ */
+function stepName(from: LabiryntCell, to: LabiryntCell, angle: number) {
+  const r = (angle * Math.PI) / 180;
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const sx = Math.round(dx * Math.cos(r) - dy * Math.sin(r));
+  const sy = Math.round(dx * Math.sin(r) + dy * Math.cos(r));
+  const h = sx < 0 ? "w lewo" : sx > 0 ? "w prawo" : "";
+  const v = sy < 0 ? "w górę" : sy > 0 ? "w dół" : "";
+  if (h && v) return `Idź ${h} i ${v}`;
+  return `${Math.abs(sx) + Math.abs(sy) > 1 ? "Przeskocz" : "Idź"} ${h || v}`;
+}
+
+/**
+ * Dwa tryby w przełączniku: „Pionek” (kropki dozwolonych pól; dotknięcie wybiera pole, „Idź…” albo drugie dotknięcie robi krok)
+ * i „Ściana” (podgląd półprzezroczysty z przerywanym obrysem, „Obróć”, „Postaw”). Plansza jest obrócona tak, żeby własny pionek stał na dole.
  */
 export function Labirynt({ view, me, players, canMove, onMove }: Props) {
   const [mode, setMode] = useState<"step" | "wall">("step");
   const [picked, setPicked] = useState<LabiryntWall | null>(null);
+  const [aim, setAim] = useState<LabiryntCell | null>(null);
+  // Po ruchu za gracza (limit) stary wybór nie może czekać na następną turę.
+  useEffect(() => setAim(null), [view.turn]);
   const [dragging, setDragging] = useState(false);
   const { size } = view;
   const full = size * CELL;
@@ -73,6 +92,7 @@ export function Labirynt({ view, me, players, canMove, onMove }: Props) {
   const walling = canMove && mode === "wall";
   const error = walling && picked ? labiryntWallError(view, picked) : null;
   const last = view.last?.type === "wall" ? view.walls.length - 1 : -1;
+  const aimed = aim && targets.some((c) => c.x === aim.x && c.y === aim.y) ? aim : null;
 
   /** Punkt dotknięcia w układzie planszy (przed obrotem). */
   function point(e: PointerEvent<SVGSVGElement>) {
@@ -103,12 +123,20 @@ export function Labirynt({ view, me, players, canMove, onMove }: Props) {
     if (!canMove || mode !== "step") return;
     const { px, py } = point(e);
     const cell = { x: Math.floor(px / CELL), y: Math.floor(py / CELL) };
-    if (targets.some((c) => c.x === cell.x && c.y === cell.y)) onMove({ type: "step", ...cell });
+    if (!targets.some((c) => c.x === cell.x && c.y === cell.y)) return;
+    if (aimed && aimed.x === cell.x && aimed.y === cell.y) step(aimed);
+    else setAim(cell);
+  }
+
+  function step(cell: LabiryntCell) {
+    setAim(null);
+    onMove({ type: "step", ...cell });
   }
 
   function switchMode(next: "step" | "wall") {
     setMode(next);
     setPicked(null);
+    setAim(null);
   }
 
   function place() {
@@ -139,9 +167,24 @@ export function Labirynt({ view, me, players, canMove, onMove }: Props) {
             {Array.from({ length: size * size }, (_, i) => (
               <rect key={i} x={(i % size) * CELL + GAP / 2} y={Math.floor(i / size) * CELL + GAP / 2} width={CELL - GAP} height={CELL - GAP} rx={1.2} fill="var(--color-surface)" />
             ))}
-            {targets.map((c) => (
-              <circle key={`${c.x},${c.y}`} cx={(c.x + 0.5) * CELL} cy={(c.y + 0.5) * CELL} r={1.6} fill={myColor} className="animate-pulse" />
-            ))}
+            {targets.map((c) =>
+              aimed && aimed.x === c.x && aimed.y === c.y ? (
+                // Wybrane pole: duch pionka z przerywanym obrysem, jak podgląd ściany.
+                <circle
+                  key={`${c.x},${c.y}`}
+                  cx={(c.x + 0.5) * CELL}
+                  cy={(c.y + 0.5) * CELL}
+                  r={3.3}
+                  fill={myColor}
+                  fillOpacity={0.3}
+                  stroke={myColor}
+                  strokeWidth={0.5}
+                  strokeDasharray="1 0.7"
+                />
+              ) : (
+                <circle key={`${c.x},${c.y}`} cx={(c.x + 0.5) * CELL} cy={(c.y + 0.5) * CELL} r={1.6} fill={myColor} className="animate-pulse" />
+              ),
+            )}
             {view.walls.map((w, i) => (
               <rect
                 key={`${w.dir}${w.x},${w.y}`}
@@ -208,7 +251,15 @@ export function Labirynt({ view, me, players, canMove, onMove }: Props) {
                   Nie masz kroku, czekam
                 </button>
               ) : (
-                <p className="flex h-14 items-center justify-center text-fg-muted">Dotknij pola z kropką</p>
+                <button
+                  type="button"
+                  className="btn h-14 w-full text-lg font-semibold text-bg disabled:opacity-40"
+                  style={{ backgroundColor: myColor }}
+                  disabled={!aimed}
+                  onClick={() => aimed && step(aimed)}
+                >
+                  {aimed ? stepName(view.pawns[view.turn], aimed, angle) : "Dotknij pola z kropką"}
+                </button>
               )
             ) : (
               <div className="flex gap-2">

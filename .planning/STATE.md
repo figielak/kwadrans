@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 5
 current_phase_name: Poprawki zaakceptowanych rozbieżności
 status: in_progress
-stopped_at: 05-15 zakończony; P4-014/015 oczekują U02; następny P4-036
-last_updated: "2026-10-29"
-last_activity: 2026-10-29
-last_activity_desc: "Quizy P4-023 odebrane; 14/62 pakietów, 27/267 części; typy/2049 testów/build PASS; P4-014/015 oczekują U02"
+stopped_at: 05-16 zakończony; P4-014/015 oczekują U02; następny P4-007
+last_updated: "2026-10-30"
+last_activity: 2026-10-30
+last_activity_desc: "Gęste plansze P4-036 odebrane; 15/62 pakietów, 28/267 części; typy/2049 testów/build PASS; P4-014/015 oczekują U02"
 state_head: 28196b51b38fb21b53c0992a2777b5a397f57777
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 50
-  completed_plans: 49
+  total_plans: 51
+  completed_plans: 50
   percent: 98
 ---
 
@@ -23,15 +23,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Faza 5: 05-15/P4-023 odebrany. P4-014/015 oczekują U02. Następny P4-036.
+**Current focus:** Faza 5: 05-16/P4-036 odebrany. P4-014/015 oczekują U02. Następny P4-007.
 
 ## Current Position
 
 Phase: 5 of 5 (Poprawki zaakceptowanych rozbieżności), zakres ZG4-v1/S5-v1 zatwierdzony.
-Plan: 14 of 15 currently planned completed; 05-11 wdrożony, oczekuje fizycznego U02.
+Plan: 15 of 16 currently planned completed; 05-11 wdrożony, oczekuje fizycznego U02.
 Status: In progress. Fazy 1-4 zakończone, FIX-01 zakończone. FIX-02 otwarte.
-Wykonano 14/62 pakietów (P4-001, P4-027, P4-002..006, P4-011..013, P4-016..018, P4-023), 27/267 części poprawek; P4-014 wdrożony, 2/3 części odebrane.
-Last activity: 2026-10-29: zakończono 05-15/P4-023. Quizy: legalne szybkie/wolne trafienia,
+Wykonano 15/62 pakietów (P4-001, P4-027, P4-002..006, P4-011..013, P4-016..018, P4-023, P4-036), 28/267 części poprawek; P4-014 wdrożony, 2/3 części odebrane.
+Last activity: 2026-10-30: zakończono 05-16/P4-036. Gęste plansze: wybór i potwierdzenie 56 px
+z nazwą wyboru w Labiryncie, Chińczyku, Gomoku i Statkach; reguła w ZASADY §4/DESIGN §6.
+Typy/2049 testów/build i /dev 360×640 PASS. Dowody w 05-16-SUMMARY.md.
+
+Poprzednio zakończono 05-15/P4-023. Quizy: legalne szybkie/wolne trafienia,
 int czasu i limit 30 błędów, bez limitu 200 trafień. TDD f127c6c, typy/2049 testów/build PASS.
 UI oraz rzeczywisty rekord i turniej zgodne. Dowody w 05-15-SUMMARY.md.
 
@@ -117,7 +121,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- Faza 5: P4-014 wdrożony, pełny odbiór oczekuje U02; P4-015 wymaga pomiaru telefonu przed poprawką. Następny P4-036; 14/62 pakietów, 27/267 części.
+- Faza 5: P4-014 wdrożony, pełny odbiór oczekuje U02; P4-015 wymaga pomiaru telefonu przed poprawką. Następny P4-007; 15/62 pakietów, 28/267 części.
   Stała zgoda użytkownika z 2026-10-29: „Zapisz ten i kolejne commity testów”. Obowiązkowe commity testów
   przed kodem są już autoryzowane; nowsza stała zgoda obejmuje też commity implementacji po każdym zadaniu; push wymaga osobnej prośby.
 - Faza 3 zamknięta (2026-10-24): wejście do fazy 4 to `phases/03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md` (R1-R8 i wpisy pojedyncze B-*, cytowane z prefiksem F3:); styki z fazami 1-2: R1 = F1:Z2 (+ F2:ZK1), R2 = F1:Z3, R6 = F2:U28, B-KT4 = F1:K2, B-KT5 = F1:K11, B-KT6 z F2:U2; wysokie: R1 (Sekwencja, Zakupy, Środek, Tort), R3 (W pamięci, warunkowo); 22 pytania „sprawdzić w partii” w §11 (pozycje 9-13 może częściowo uzupełnić udostępniona kopia bazy; brak pełnych czasów/przebiegów), propozycje do dokumentów w §12
@@ -158,9 +162,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-29
-Stopped at: 05-15 zakończony; P4-014/015 oczekują U02; następny P4-036; FIX-02 otwarte
-Resume file: .planning/phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md#scope-p4-036
+Last session: 2026-10-30
+Stopped at: 05-16 zakończony; P4-014/015 oczekują U02; następny P4-007; FIX-02 otwarte
+Resume file: .planning/phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md#scope-p4-007
 
 
 2026-10-29, 05-03/P4-002: dokumentacja i testy regresji przygotowane przed kodem. Typecheck PASS;
@@ -243,3 +247,10 @@ ZASADY-GIER i testy przed kodem, commit TDD f127c6c. Typy/2049 testów/build PAS
 UI Quiz/retry/Dziesiątki, 201 trafień i rzeczywisty rekord/turniej przez WebSocket PASS.
 14/62 pakietów, 27/267 części; FIX-02 otwarte. Następny P4-036; P4-014/015 oczekują pomiarów.
 Dowody: 05-15-SUMMARY.md. Historia bez przeliczania; commit implementacji bez push.
+
+
+2026-10-30, 05-16/P4-036 zakończony: gęste plansze z wyborem i potwierdzeniem 56 px z nazwą wyboru.
+Labirynt: krok przez wybór (duch pionka) i „Idź w górę”/„Przeskocz…”; Chińczyk: kostka obok „Rusz o 4 pola”;
+Gomoku: „Postaw na H8”; Statki bez zmian. ZASADY §4, DESIGN §6, ZASADY-GIER §10. Typy/2049 testów/build PASS.
+/dev 360×640: 9×9 i 7×7, obroty 0/90/180°, obserwator, przeskok PASS. 15/62 pakietów, 28/267 części; FIX-02 otwarte.
+Następny P4-007; P4-014/015 oczekują pomiarów. Dowody: 05-16-SUMMARY.md. Commit bez push.

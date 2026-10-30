@@ -171,6 +171,9 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
   sama animacja CSS w pętli), trzema krótkimi punktami (`time`: czas, `task`: co zrobić, `score`: jak liczone są punkty) i przyciskiem „Start”.
   Limit gry jeszcze wtedy nie tyka; po `INTRO_SECONDS` (15 s) gra rusza sama. Pod przyciskiem widać, kto już gra, a kto czyta zasady.
 - Pola dotykowe co najmniej 48 px (tyle ma `.btn`), a pola gry na czas mają `touch-none select-none` i reagują na `onPointerDown`.
+  Wyjątek mają tylko gęste plansze gier turowych (DESIGN §6): pole mniejsze niż 48 px wolno dotknąć, jeśli dotknięcie
+  jedynie wybiera pole lub pionek, wybór jest widoczny na planszy, a ruch wysyła osobny przycisk co najmniej 48 px
+  z nazwą wyboru (drugie dotknięcie tego samego pola może go zastąpić). Dotknięcie, które od razu wykonuje akcję, nie dostaje wyjątku.
 - Ekran partii mieści się na 360×640 bez poziomego przewijania; plansza skaluje się do szerokości, nie ma stałych pikseli.
   Listy poza partią mogą przewijać się pionowo; dolna akcja pozostaje dostępna w `StickyBar`, a edytowane pole
   nie znika pod klawiaturą. Nie jest to ogólny wyjątek dla plansz ani formularzy w trakcie partii.
