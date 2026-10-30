@@ -197,8 +197,10 @@ Zmniejszenie nagłówka nie zastępuje osobnego odbioru geometrii plansz.
 
 Rozbieżności do decyzji (nie są wzorem dla nowych ekranów):
 
-- **Gry główne na 360×640.** Rozstawianie w Statkach (około 770 px), Gomoku (około 670 px) i Państwa-miasta wymagają przewinięcia;
-  są to rozbieżności do poprawy, a nie zgoda na przewijanie plansz. Także mini-gry wymagają osobnego odbioru;
+- **Gry główne na 360×640.** Rozstawianie w Statkach (około 770 px) i Państwa-miasta wymagają przewinięcia;
+  są to rozbieżności do poprawy, a nie zgoda na przewijanie plansz.
+  Gomoku mieści się po zmniejszeniu nagłówka (P4-007): plansza 150-487 px (pole 22,5 px), akcja 514-570 px, dokument 640 px,
+  u obserwatora plansza 178-515 px; po końcu cała plansza zostaje nad „Rewanż”, a wyniki przewijają się jak w ZASADY §4. Także mini-gry wymagają osobnego odbioru;
   nie zakładamy, że każda mieści się w 640 px. Przewijanie list poza partią jest dopuszczone powyżej.
 
 Odbiór Memory po P4-006/P4-011: Mała, Średnia i Duża mieszczą planszę oraz instrukcję na 360×640

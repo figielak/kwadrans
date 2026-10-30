@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 05-01..10 wykonane, 15/62 pakietów, 28/267 części; P4-014 (2/3) i P4-015 oczekują U02; P4-023 i P4-036 odebrane; typy/2049 testów/build PASS; następny P4-007 |
+| FIX-02 | Phase 5 | In progress; 05-01..10 wykonane, 16/62 pakietów, 29/267 części; P4-014 (2/3) i P4-015 oczekują U02; P4-023, P4-036 i P4-007 odebrane; typy/2049 testów/build PASS; następny P4-008 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -219,3 +219,9 @@ Labirynt: krok przez wybór (duch pionka) i „Idź w górę”/„Przeskocz…�
 Gomoku: „Postaw na H8”; Statki bez zmian. ZASADY §4, DESIGN §6, ZASADY-GIER §10. Typy/2049 testów/build PASS.
 /dev 360×640: 9×9 i 7×7, obroty 0/90/180°, obserwator, przeskok PASS. 15/62 pakietów, 28/267 części; FIX-02 otwarte.
 Następny P4-007; P4-014/015 oczekują pomiarów. Dowody: 05-16-SUMMARY.md. Commit bez push.
+
+
+2026-10-30, 05-17/P4-007 zakończony bez zmian kodu: Gomoku po P4-006 mieści się na 360×640
+(plansza 150-487 px, „Postaw na O15” 514-570 px, dokument 640; obserwator, koniec, rewanż i odświeżenie PASS).
+Pomiar w DESIGN §6 zamiast „około 670 px”. 16/62 pakietów, 29/267 części; FIX-02 otwarte.
+Następny P4-008; P4-014/015 oczekują pomiarów. Dowody: 05-17-SUMMARY.md. Commit bez push.

@@ -76,6 +76,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] [05-14-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-14-PLAN.md) - P4-018, Kampus Tour: przerywalny pokaz, prawdziwe rzuty i teleporty; 3/3 odebrane
 - [x] [05-15-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-15-PLAN.md) - P4-023, quizy: granice i zachowanie czasów; TDD f127c6c, 2/2 odebrane
 - [x] [05-16-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-16-PLAN.md) - P4-036, gęste plansze: wybór z potwierdzeniem 56 px; 1/1 odebrane
+- [x] [05-17-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-17-PLAN.md) - P4-007, Gomoku: pomiar 360×640 bez zmian kodu; 1/1 odebrane
 **UI hint**: yes
 
 ### Phase 3: Audyt balansu rekordów i trudności
@@ -155,6 +156,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
 - [x] [05-14-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-14-PLAN.md) - P4-018, Kampus Tour: przerywalny pokaz, prawdziwe rzuty i teleporty; 3/3 odebrane
 - [x] [05-15-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-15-PLAN.md) - P4-023, quizy: granice i zachowanie czasów; TDD f127c6c, 2/2 odebrane
 - [x] [05-16-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-16-PLAN.md) - P4-036, gęste plansze: wybór z potwierdzeniem 56 px; 1/1 odebrane
+- [x] [05-17-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-17-PLAN.md) - P4-007, Gomoku: pomiar 360×640 bez zmian kodu; 1/1 odebrane
 **UI hint**: yes
 
 ## Progress
@@ -285,3 +287,9 @@ Labirynt: krok przez wybór (duch pionka) i „Idź w górę”/„Przeskocz…�
 Gomoku: „Postaw na H8”; Statki bez zmian. ZASADY §4, DESIGN §6, ZASADY-GIER §10. Typy/2049 testów/build PASS.
 /dev 360×640: 9×9 i 7×7, obroty 0/90/180°, obserwator, przeskok PASS. 15/62 pakietów, 28/267 części; FIX-02 otwarte.
 Następny P4-007; P4-014/015 oczekują pomiarów. Dowody: 05-16-SUMMARY.md. Commit bez push.
+
+
+2026-10-30, 05-17/P4-007 zakończony bez zmian kodu: Gomoku po P4-006 mieści się na 360×640
+(plansza 150-487 px, „Postaw na O15” 514-570 px, dokument 640; obserwator, koniec, rewanż i odświeżenie PASS).
+Pomiar w DESIGN §6 zamiast „około 670 px”. 16/62 pakietów, 29/267 części; FIX-02 otwarte.
+Następny P4-008; P4-014/015 oczekują pomiarów. Dowody: 05-17-SUMMARY.md. Commit bez push.
