@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { createRng, GAMES } from "./index.ts";
-import { advance, begin, cleanConfig, create, DEFAULT_LENGTH, draw, gamePoints, isDone, mark, MIN_LENGTH, standings, TOURNAMENT_ID, type Tournament, winner } from "./turniej.ts";
+import { advance, begin, cleanConfig, create, DEFAULT_LENGTH, draw, gamePoints, isDone, mark, MIN_LENGTH, standings, tablePlaces, TOURNAMENT_ID, type Tournament, winner } from "./turniej.ts";
 
 // Testy napisane przed implementacją. Ustalają zasady:
 // - turniej to seria mini-gier, nie gra z rejestru; `id` "turniej" służy tylko rankingowi,
@@ -290,6 +290,23 @@ describe("koniec i dogrywka", () => {
     const t = play(started(["g1", "g2", "g3"], cfg), [A, B], win, lose, draw2);
     expect(t.games).toHaveLength(4);
     expect(["g1", "g2", "g3"]).toContain(t.games[3]);
+  });
+
+  // P4-025: tabela pokazuje wspólne miejsce przy identycznej parze punkty/wygrane, bez zmiany punktów.
+  test("remis po dogrywce: wspólne 1. miejsce w tabeli, punkty bez zmian", () => {
+    const t = play(started(["g1", "g2", "g3"]), [A, B], win, lose, draw2, draw2);
+    const rows = standings(t, [A, B]);
+    expect(tablePlaces(rows)).toEqual([1, 1]);
+    expect(rows.map((r) => [r.total, r.wins])).toEqual([[1, 1], [1, 1]]);
+    expect(winner(t, [A, B])).toBeUndefined();
+  });
+
+  test("dalsze miejsca: równa para punkty/wygrane remisuje, inna liczba wygranych nie", () => {
+    const t = play(started(["g1", "g2", "g3"]), [A, B, C], { [A]: 1, [B]: 2, [C]: 2 }, { [A]: 1, [B]: 3, [C]: 3 });
+    expect(standings(t, [A, B, C]).map((r) => [r.id, r.total, r.wins])).toEqual([[A, 4, 2], [B, 0, 0], [C, 0, 0]]);
+    expect(tablePlaces(standings(t, [A, B, C]))).toEqual([1, 2, 2]);
+    const tied = play(started(["g1", "g2", "g3"]), [A, B, C], { [A]: 1, [B]: 3, [C]: 2 }, { [A]: 3, [B]: 1, [C]: 1 }, { [A]: 3, [B]: 1, [C]: 1 });
+    expect(tablePlaces(standings(tied, [B, A, C]))).toEqual([1, 2, 3]);
   });
 
   test("turniej solo: bez dogrywki i bez zwycięzcy", () => {

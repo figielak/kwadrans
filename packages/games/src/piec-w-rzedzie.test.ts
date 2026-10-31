@@ -6,7 +6,7 @@ import { type Move, piecWRzedzie as game } from "./piec-w-rzedzie.ts";
 // - plansza 15×15, ruch to { x, y } w zakresie 0-14,
 // - zaczyna players[0] (kolejność przy rewanżu ustala platforma),
 // - wygrywa 5 lub więcej w linii: poziomo, pionowo albo po skosie,
-// - pełna plansza bez wygranej to remis: isOver zwraca obiekt bez `winner`.
+// - pełna plansza bez wygranej to remis: isOver zwraca ranking obu graczy bez `winner` (P4-025).
 
 const A = "ania";
 const B = "bartek";
@@ -173,7 +173,7 @@ describe("remis", () => {
     expect(game.isOver(beforeLast)).toBeNull();
 
     const full = play(interleave(a, b));
-    expect(game.isOver(full)).toEqual({});
+    expect(game.isOver(full)).toEqual({ ranking: [A, B] });
   });
 });
 

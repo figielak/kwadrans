@@ -497,6 +497,24 @@ describe("tryb Szybki", () => {
     expect(game.waitingFor(s)).toEqual([B]);
   });
 
+  // P4-025: równe dalsze miejsca w GameResult.places, ranking w stabilnej kolejności graczy.
+  test("równe pionki w domku i suma pozycji dają to samo dalsze miejsce", () => {
+    let s = quick([A, B, C, D]);
+    s = put(s, { [A]: [43, 20, 6, -1], [B]: [5, -1, -1, -1], [C]: [43, 42, 39, -1], [D]: [43, 20, 6, -1] }, C);
+    s = roll(s, C, 2);
+    const result = game.isOver(s)!;
+    expect(result).toEqual({ winner: C, ranking: [C, A, D, B], places: { [C]: 1, [A]: 2, [D]: 2, [B]: 4 } });
+    expect(JSON.parse(JSON.stringify(result))).toEqual(result);
+  });
+
+  test("Klasyczny nie dodaje places: wynik bez tego pola jak dotąd", () => {
+    let s = put(two(), { [A]: [43, 42, 41, 39], [B]: [5, -1, -1, -1] }, A);
+    s = roll(s, A, 1);
+    const result = game.isOver(s)!;
+    expect(result).toEqual({ winner: A, ranking: [A, B] });
+    expect("places" in result).toBe(false);
+  });
+
   test("dwa pionki w domku jeszcze nie kończą gry", () => {
     const s = roll(put(quick(), { [A]: [43, 39, 5, -1] }, A), A, 2);
     expect(game.isOver(s)).toBeNull();
@@ -506,7 +524,7 @@ describe("tryb Szybki", () => {
     let s = quick([A, B, C, D]);
     s = put(s, { [A]: [5, -1, -1, -1], [B]: [43, 5, 6, -1], [C]: [43, 42, 39, -1], [D]: [43, 20, 6, -1] }, C);
     s = roll(s, C, 2);
-    expect(game.isOver(s)).toEqual({ winner: C, ranking: [C, D, B, A] });
+    expect(game.isOver(s)).toEqual({ winner: C, ranking: [C, D, B, A], places: { [C]: 1, [D]: 2, [B]: 3, [A]: 4 } });
     expect(game.waitingFor(s)).toEqual([]);
     expect(view(s).turn).toBeNull();
     expect(game.validateMove(s, D, { type: "roll" })).toBe(false);
