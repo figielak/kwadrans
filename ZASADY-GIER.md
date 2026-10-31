@@ -26,7 +26,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Który rok? | `rok` | 1-6 | 240 s | mini-gra |
 | Środek | `srodek` | 1-6 | 60 s | mini-gra |
 | Stój! | `stoj` | 1-6 | 60 s | mini-gra |
-| Śledzenie | `sledzenie` | 1-6 | 300 s | mini-gra |
+| Śledzenie | `sledzenie` | 1-6 | 360 s | mini-gra |
 | Wieża | `wieza` | 1-6 | 180 s | mini-gra |
 | Rytm | `rytm` | 1-6 | 60 s | mini-gra |
 | Inny element | `inny` | 1-6 | 90 s | mini-gra |
@@ -264,6 +264,13 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 ### Śledzenie (`sledzenie`)
 - Do 20 rund. W każdej 8 identycznych kulek na kwadratowym polu, 3 z nich (cele) są podświetlone przez 1,5 s, potem wszystkie
   ruszają się przez 5 s i stają; gracz wskazuje 3 kulki.
+- Limit serwera: 360 s. Model pełnej partii: 20 × (0,7 s oczekiwania + 1,5 s podświetlenia + 5 s ruchu
+  + 3 × 2 s wskazywania + 1 s odsłony) + 3 s na dostarczenie wyniku = 287 s. Zapas wynosi 73 s (około 25,4%),
+  co spełnia co najmniej 20% i 10 s. Czas wskazywania i budżet sieci są założeniami, nie pomiarem człowieka;
+  instrukcja poprzedza start limitu, a trzecie wskazanie zatwierdza bez dodatkowego kliknięcia.
+- Limit zwiększono z 300 do 360 s; liczba rund i punktacja pozostają takie same. Stare rekordy, `tie` i zapisane partie
+  pozostają bez przeliczania i kasowania. Nowe wyniki trafiają do tego samego rankingu, który obejmuje partie
+  o różnych limitach czasu; nie gwarantuje to pełnej porównywalności historii.
 - Pierwsza pomyłka kończy partię (jak w Sekwencji): runda jest zaliczona tylko z kompletem 3 celów.
 - Tempo rośnie: prędkość kulek to 0,3 boku pola na sekundę w pierwszej rundzie i o 0,06 więcej w każdej następnej (w dwudziestej ok. 1,45).
   Wszystkie kulki w rundzie mają tę samą prędkość.
