@@ -920,7 +920,8 @@ Seria mini-gier puszczana po kolei w jednym pokoju. To nie jest gra z rejestru `
   i nie może odciąć żadnemu graczowi drogi do celu (pionki nie zasłaniają drogi). Ścianki z puli się kończą.
 - `pass` tylko wtedy, gdy pionek nie ma żadnego kroku (możliwe przy 3-4 osobach).
 - Koniec: pierwszy, kto stanie na polu celu, wygrywa (także przy 3-4 osobach, bez pełnego rankingu). Remisu nie ma.
-- Limit czasu: krok w stronę celu (pole najbliższe celowi po ściankach), a gdy kroku nie ma, `pass`. Losowości w grze nie ma.
+- Limit czasu: przekazany `rng` losuje jeden z legalnych kroków pionka, w tym przeskok lub krok skośny.
+  Nie musi to być najkrótsza droga do celu. Po czasie nie stawia się ścianek; `pass` tylko wtedy, gdy nie ma żadnego kroku.
 - Nic nie jest ukryte: widok to cały stan.
 - Ekran: dotknięcie pola z kropką tylko wybiera krok (duch pionka); ruch wysyła „Idź w górę” / „Przeskocz w lewo” / „Idź w prawo i w dół”
   (kierunek tak, jak widzi go gracz) albo drugie dotknięcie tego samego pola. Ścianka jak dotąd: podgląd, „Obróć”, „Postaw”.

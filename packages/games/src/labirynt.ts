@@ -183,10 +183,10 @@ export const labirynt: GameDefinition<State, Move> = {
 
   waitingFor: (state) => (state.winner === null ? [state.players[state.turn]] : []),
 
-  timeoutMove(state) {
-    const seat = state.turn;
-    const dist = distances(state.size, wallSet(state.walls), state.sides[seat]);
-    const best = pawnMoves(state, seat).sort((a, b) => dist[a.y * state.size + a.x] - dist[b.y * state.size + b.x])[0];
-    return best ? { type: "step", ...best } : { type: "pass" };
+  timeoutMove(state, _player, rng) {
+    const moves = pawnMoves(state, state.turn);
+    if (moves.length === 0) return { type: "pass" };
+    const chosen = moves[Math.floor(rng() * moves.length)];
+    return { type: "step", ...chosen };
   },
 };
