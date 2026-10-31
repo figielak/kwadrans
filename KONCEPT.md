@@ -175,7 +175,7 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
   zwykłym `startMatch` i sumuje punkty (zasady w `turniej.ts`, czyste funkcje).
 - Gospodarz ustawia liczbę gier (3 do liczby niewykluczonych, domyślnie 8). Każdą mini-grę można oznaczyć jako pewną albo wykluczoną;
   lista jest wspólna i zaznacza ją każdy w pokoju (spory rozstrzygają gracze, nie aplikacja). Resztę losuje serwer.
-- Punkty za grę: liczba graczy ze ściśle gorszym miejscem (remisujący dostają tyle samo). Tabela: suma punktów, potem wygrane gry.
+- Punkty za grę: liczba graczy ze ściśle gorszym miejscem (remisujący dostają tyle samo). Tabela: suma punktów, potem wygrane gry; równa para to wspólne miejsce.
 - Po każdej grze widać jej wyniki i tabelę; następna rusza po „Dalej” od wszystkich albo sama po 15 s.
 - Remis na szczycie po ostatniej grze daje jedną dogrywkę (dolosowana gra); po niej remis zostaje bez zwycięzcy.
 - Wyjście gracza przerywa tylko bieżącą grę (bez punktów), turniej trwa. Przed czasem kończy go tylko gospodarz.
@@ -212,7 +212,7 @@ interface GameDefinition<State, Move> {
   validateMove(state: State, player: PlayerId, move: Move, context?: MoveContext): boolean;
   applyMove(state: State, player: PlayerId, move: Move, rng: Rng): State;
   playerView(state: State, player: PlayerId): unknown; // ukrywanie informacji; obserwator dostaje ""
-  isOver(state: State): { winner?: PlayerId; ranking?: PlayerId[] } | null;
+  isOver(state: State): { winner?: PlayerId; ranking?: PlayerId[]; places?: Record<PlayerId, number> } | null; // places: równe dalsze miejsca (Szybki Chińczyk)
   places?(state: State): Record<PlayerId, number>; // mini-gry: miejsca po końcu (od 1, remis = to samo), dla turnieju
   waitingFor(state: State): PlayerId[]; // jedna osoba albo kilka w fazie równoczesnej; [] po końcu
   turnSeconds?: number;                 // limit tury

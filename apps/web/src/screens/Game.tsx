@@ -1,5 +1,5 @@
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
@@ -421,7 +421,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           <ol className="tile flex flex-col gap-1 p-4">
             {game.result.ranking.map((id, i) => (
               <li key={id} className="flex items-center gap-3">
-                <span className="w-5 font-mono text-fg-muted tabular-nums">{i + 1}.</span>
+                <span className="w-5 font-mono text-fg-muted tabular-nums">{game.result?.places?.[id] ?? i + 1}.</span>
                 <span className="size-2.5 rounded-full" style={{ backgroundColor: view.players.find((p) => p.id === id)?.color }} aria-hidden />
                 {nick(id)}
                 {id === me && <span className="text-fg-muted"> (ty)</span>}
@@ -447,7 +447,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
             <ol className="flex flex-col gap-1">
               {table.map((r, i) => (
                 <li key={r.id} className="flex items-center gap-3">
-                  <span className="w-5 font-mono text-fg-muted tabular-nums">{i + 1}.</span>
+                  <span className="w-5 font-mono text-fg-muted tabular-nums">{tablePlaces(table)[i]}.</span>
                   <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: view.players.find((p) => p.id === r.id)?.color }} aria-hidden />
                   <span className="min-w-0 flex-1 truncate">
                     {nick(r.id)}

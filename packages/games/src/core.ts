@@ -5,7 +5,8 @@ export type PlayerId = string;
 /** Zwraca liczbę z przedziału [0, 1). */
 export type Rng = () => number;
 
-export type GameResult = { winner?: PlayerId; ranking?: PlayerId[] };
+/** `places` (opcjonalne): miejsca z remisami, gdy `ranking` ma równe dalsze miejsca; bez pola miejsce to pozycja w `ranking`. */
+export type GameResult = { winner?: PlayerId; ranking?: PlayerId[]; places?: Record<PlayerId, number> };
 
 /** Zaufane źródło z miejsca wywołania w serwerze, nigdy z treści ruchu klienta. */
 export type MoveContext = { source: "client" | "timeout" };

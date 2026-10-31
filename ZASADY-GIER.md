@@ -640,7 +640,7 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 
 - Plansza 15×15, dwóch graczy stawia na zmianę; zaczyna `players[0]`.
 - Wygrywa 5 lub więcej w linii (poziomo, pionowo, po skosie); dłuższa linia też wygrywa.
-- Pełna plansza bez linii = remis (`isOver` zwraca `{}` bez zwycięzcy).
+- Pełna plansza bez linii = jawny remis: `isOver` zwraca `{ ranking: [oba] }` bez zwycięzcy (wcześniej `{}`, jak gra przerwana).
 - Limit czasu: losowe wolne pole.
 
 ## 3. Statki (`statki`)
@@ -695,7 +695,8 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
   dalsze niż jego pozycja (gdy takiego nie ma, ruchu nie ma). Własne pionki w domku wolno przeskakiwać.
 - Zbicie daje dodatkowy rzut. Wejście pionka z toru do domku końcowego też (zawsze jeden dodatkowy rzut, także po szóstce).
 - Koniec: pierwszy gracz z 3 pionkami w domku końcowym wygrywa i partia kończy się od razu. Reszta rankingu:
-  więcej pionków w domku końcowym, potem większa suma pozycji.
+  więcej pionków w domku końcowym, potem większa suma pozycji. Równa para daje to samo miejsce: `isOver` zwraca wtedy
+  `places` (np. 1, 2, 2, 4), a `ranking` trzyma stabilną kolejność graczy. Klasyczny nie ma `places`, bo kończy się pełnym rankingiem.
 
 ## 5. Państwa-miasta (`panstwa-miasta`)
 
@@ -851,6 +852,7 @@ Seria mini-gier puszczana po kolei w jednym pokoju. To nie jest gra z rejestru `
 - Punkty za grę (`gamePoints`): liczba graczy ze ściśle gorszym miejscem. Przy 4 graczach bez remisów 3/2/1/0, remisujący dostają tyle samo.
   Miejsca z remisami podaje `places` mini-gry (`rankPlaces` w core.ts). Gra przerwana (ktoś wyszedł, błąd) daje wszystkim 0.
 - Tabela (`standings`): suma punktów malejąco, potem liczba wygranych gier. Wygrana gra to samodzielne 1. miejsce przy 2+ graczach.
+  Numer miejsca (`tablePlaces`): identyczna para punkty/wygrane to to samo miejsce (np. remis po dogrywce: 1., 1.); punktów to nie zmienia.
 - Między grami: wyniki gry i tabela; następna gra rusza, gdy wszyscy grający klikną „Dalej”, najpóźniej po `NEXT_SECONDS` (15 s).
 - Koniec po ostatniej grze. Zwycięzcą jest samodzielny lider tabeli (punkty, potem wygrane gry). Przy remisie na szczycie dolosowywana jest
   jedna gra dogrywki: spoza rozegranych i wykluczonych, a gdy takich nie ma, dowolna niewykluczona. Po dogrywce remis zostaje bez zwycięzcy.

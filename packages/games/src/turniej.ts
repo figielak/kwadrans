@@ -86,6 +86,9 @@ export function standings(t: Tournament, players: PlayerId[]): Standing[] {
 
 const byStanding = (a: Standing, b: Standing) => b.total - a.total || b.wins - a.wins;
 
+/** Miejsca w tabeli (kolejność jak `standings`): identyczna para punkty/wygrane to to samo miejsce. Same numery, punkty bez zmian. */
+export const tablePlaces = (rows: Standing[]) => rows.map((r) => 1 + rows.filter((q) => byStanding(q, r) < 0).length);
+
 export const isDone = (t: Tournament) => t.games.length > 0 && t.index >= t.games.length;
 
 /** Zwycięzca skończonego turnieju: samodzielny lider tabeli. Solo i remis na szczycie nie dają zwycięzcy. */
