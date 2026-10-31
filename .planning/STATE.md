@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 current_phase: 5
 current_phase_name: Poprawki zaakceptowanych rozbieżności
 status: in_progress
-stopped_at: 05-53/P4-060 zakończony; następny P4-062
+stopped_at: 05-54/P4-062 zakończony; następny P4-034 (P4-061 czeka na U14)
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
-last_activity_desc: "P4-060 odebrany; TDD 51e3625, Balon: stały komplet 11-20; 54/62 pakietów, 221/267 części"
+last_activity_desc: "P4-062 odebrany; TDD cd9d00d, Państwa-miasta: bez Ł; 55/62 pakietów, 222/267 części"
 state_head: f06def5505a8da7b1481ef76ea778ccd8fbc12a6
 progress:
   total_phases: 5
@@ -23,16 +23,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Faza 5: 05-53/P4-060 odebrany. Następny P4-062.
+**Current focus:** Faza 5: 05-54/P4-062 odebrany. Następny P4-034 (P4-061 czeka na U14).
 
 ## Current Position
 
 Phase: 5 of 5 (Poprawki zaakceptowanych rozbieżności), zakres ZG4-v1/S5-v1 zatwierdzony.
-Plan: 53 of 53 currently planned completed.
+Plan: 54 of 54 currently planned completed.
 Status: In progress. Fazy 1-4 zakończone, FIX-01 zakończone. FIX-02 otwarte.
-Wykonano 54/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048, P4-050, P4-051, P4-052, P4-055, P4-056, P4-057, P4-058, P4-059, P4-060), 221/267 części poprawek.
-Last activity: 2026-10-31: zakończono 05-53/P4-060, Balon: stały komplet 11-20.
-Dowody w 05-53-SUMMARY.md.
+Wykonano 55/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048, P4-050, P4-051, P4-052, P4-055, P4-056, P4-057, P4-058, P4-059, P4-060, P4-062), 222/267 części poprawek.
+Last activity: 2026-10-31: zakończono 05-54/P4-062, Państwa-miasta: bez Ł.
+Dowody w 05-54-SUMMARY.md.
+
+Poprzednio zakończono 05-53. Dowody w 05-53-SUMMARY.md.
 
 Poprzednio zakończono 05-52. Dowody w 05-52-SUMMARY.md.
 
@@ -419,3 +421,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-52/P4-059 zakończony: W pamięci ma w rundzie z n działaniami zawsze floor(n/3) mnożeń na potasowanych miejscach, wartości 1-99; generator średnio 2 podejścia na ciąg, bez zawieszenia na 10 000 seedów; rekordy bez przeliczania. Odbiór wpływu na ludzi czeka na P11. 53/62 pakietów, 220/267 części; FIX-02 otwarte. Następny P4-060. Dowody: 05-52-SUMMARY.md. Commity bez push.
 
 2026-10-31, 05-53/P4-060 zakończony: Balon ma w każdej partii komplet wytrzymałości 11-20 w potasowanej kolejności (suma 155), ta sama strategia stop daje ten sam wynik; walidacja 0-21, rekordy bez przeliczania. 54/62 pakietów, 221/267 części; FIX-02 otwarte. Następny P4-062 (P4-061 czeka na U14). Dowody: 05-53-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-54/P4-062 zakończony: Państwa-miasta nie losują Ł (pula 22 liter), punktacja i głosowanie bez zmian. 55/62 pakietów, 222/267 części; FIX-02 otwarte. Następny P4-034; P4-061 czeka na U14. Dowody: 05-54-SUMMARY.md. Commity bez push.

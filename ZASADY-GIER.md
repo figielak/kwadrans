@@ -722,7 +722,8 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 
 ## 5. Państwa-miasta (`panstwa-miasta`)
 
-- 2-6 graczy, 5 rund. Każda runda na inną literę z `ABCDEFGHIJKLŁMNOPRSTUWZ` (bez powtórek w partii).
+- 2-6 graczy, 5 rund. Każda runda na inną literę z `ABCDEFGHIJKLMNOPRSTUWZ` (bez powtórek w partii). Ł nie losuje się:
+  z państw jest na nią tylko Łotwa, więc kategoria Państwo byłaby w tej rundzie systemowo słabsza. Dawne partie z Ł zostają bez zmian.
   `playerView` wysyła litery przyszłych rund jako puste; `nonce` w stanie służy tylko do montowania komponentu od nowa przy rewanżu.
 - Kategorie: Państwo, Miasto, Zwierzę, Roślina, Rzecz, Imię. Odpowiedź do 30 znaków.
 - **Pisanie (`write`, 90 s)**: wszyscy naraz. Ruch `write` z `done: false` to szkic zapisywany w tle; `done: true` oddaje kartkę.

@@ -2,8 +2,8 @@ import { z } from "zod";
 import { type GameDefinition, normalize, type PlayerId, rankResults } from "./core.ts";
 
 export const CATEGORIES = ["Państwo", "Miasto", "Zwierzę", "Roślina", "Rzecz", "Imię"] as const;
-/** Bez Ą Ę Ń Ó Ś Ź Ż Q V X Y: na nie prawie nic nie ma. */
-export const LETTERS = "ABCDEFGHIJKLŁMNOPRSTUWZ";
+/** Bez Ą Ę Ń Ó Ś Ź Ż Q V X Y: na nie prawie nic nie ma. Bez Ł: z państw jest tylko Łotwa, więc ta runda byłaby słabsza od innych. */
+export const LETTERS = "ABCDEFGHIJKLMNOPRSTUWZ";
 export const ROUNDS = 5;
 export const ANSWER_MAX = 30;
 

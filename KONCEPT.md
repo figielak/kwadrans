@@ -162,7 +162,7 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
 
 ### 2.5 Państwa-miasta
 
-- 2-6 graczy, 5 rund, każda na inną literę (bez Ą Ć Ę Ń Ó Ś Ź Ż Q V X Y), kategorie: Państwo, Miasto, Zwierzę, Roślina, Rzecz, Imię.
+- 2-6 graczy, 5 rund, każda na inną literę (bez Ą Ć Ę Ł Ń Ó Ś Ź Ż Q V X Y), kategorie: Państwo, Miasto, Zwierzę, Roślina, Rzecz, Imię.
 - Wszyscy piszą naraz (90 s). Kto pierwszy odda kartkę (z kompletem albo bez), daje STOP i reszta ma jeszcze 7 s. Szkic leci na serwer w tle, więc po czasie albo odświeżeniu nic nie przepada.
 - Głosowanie (45 s): odpowiedź odpada, gdy odrzuci ją ponad połowa pozostałych; zła pierwsza litera odpada sama.
 - Punkty: 15 jedyna ważna w kategorii, 10 unikalna, 5 powtórzona (bez wielkości liter i polskich znaków), 0 brak lub odrzucona.
