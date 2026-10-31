@@ -5,7 +5,7 @@ import { type GameDefinition, type PlayerId, ranked } from "./core.ts";
 export const VISIBLE_MS = 3000;
 
 /** Odchyłka od celu w ms; brak dotknięcia liczy się jak najgorszy wynik. */
-export type Move = { type: "result"; deviation: number };
+export type Move = { type: "result"; deviation: number; stopped?: number };
 
 export interface State {
   players: PlayerId[];
@@ -14,6 +14,8 @@ export interface State {
   /** Nic nie losuje, tylko odróżnia partie (rewanż montuje grę na kliencie od nowa). */
   nonce: number;
   results: Record<PlayerId, number>;
+  /** Czas zatrzymania; brak mapy lub wpisu w dawnych zapisach i po timeoucie. */
+  stops?: Record<PlayerId, number>;
 }
 
 export type View = State;
@@ -25,14 +27,19 @@ export const stoper: GameDefinition<State, Move> = {
   minPlayers: 1,
   maxPlayers: 6,
   turnSeconds: 60,
-  moveSchema: z.object({ type: z.literal("result"), deviation: z.number() }),
+  moveSchema: z.object({ type: z.literal("result"), deviation: z.number(), stopped: z.number().int().min(0).optional() }),
 
-  setup: (players, rng) => ({ players, target: 6000 + Math.floor(rng() * 9) * 1000, nonce: Math.floor(rng() * 2 ** 32), results: {} }),
+  setup: (players, rng) => ({ players, target: 6000 + Math.floor(rng() * 9) * 1000, nonce: Math.floor(rng() * 2 ** 32), results: {}, stops: {} }),
 
-  validateMove: (state, player, { deviation }) =>
-    state.players.includes(player) && !(player in state.results) && Number.isInteger(deviation) && deviation >= 0 && deviation <= state.target,
+  validateMove: (state, player, { deviation, stopped }) =>
+    state.players.includes(player) && !(player in state.results) && Number.isInteger(deviation) && deviation >= 0 && deviation <= state.target &&
+    (stopped === undefined || (Number.isInteger(stopped) && stopped >= 0 && stopped <= 2 * state.target && Math.abs(stopped - state.target) === deviation)),
 
-  applyMove: (state, player, { deviation }) => ({ ...state, results: { ...state.results, [player]: deviation } }),
+  applyMove: (state, player, { deviation, stopped }) => ({
+    ...state,
+    results: { ...state.results, [player]: deviation },
+    ...(stopped === undefined ? {} : { stops: { ...state.stops, [player]: stopped } }),
+  }),
 
   playerView: (state): View => state,
 

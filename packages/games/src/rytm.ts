@@ -21,6 +21,8 @@ export interface State {
   nonce: number;
   /** Średnia odchyłka odstępów w ms. */
   results: Record<PlayerId, number>;
+  /** Surowe stuknięcia do kafla tempa; brak mapy w dawnych zapisach. */
+  taps?: Record<PlayerId, number[]>;
 }
 
 export type View = State;
@@ -50,6 +52,7 @@ export const rytm: GameDefinition<State, Move> = {
     interval: Math.round(60_000 / (BPM_MIN + BPM_STEP * Math.floor(rng() * ((BPM_MAX - BPM_MIN) / BPM_STEP + 1)))),
     nonce: Math.floor(rng() * 2 ** 32),
     results: {},
+    taps: {},
   }),
 
   validateMove: (state, player, { taps }) =>
@@ -58,7 +61,7 @@ export const rytm: GameDefinition<State, Move> = {
     taps.length <= MAX_TAPS &&
     taps.every((t, i) => Number.isInteger(t) && t > (taps[i - 1] ?? 0) && t <= TAP_MS),
 
-  applyMove: (state, player, { taps }) => ({ ...state, results: { ...state.results, [player]: deviation(state.interval, taps) } }),
+  applyMove: (state, player, { taps }) => ({ ...state, results: { ...state.results, [player]: deviation(state.interval, taps) }, taps: { ...state.taps, [player]: [...taps] } }),
 
   playerView: (state): View => state,
 

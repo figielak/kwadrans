@@ -84,7 +84,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] [05-30-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-30-PLAN.md) - P4-030, Testy: gry główne i Turniej; 24/24 części, typy/testy PASS
 - [x] [05-31-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-31-PLAN.md) - P4-031, Testy: quizy i Stój!; 19/20 części odebranych; F4-046 częściowo, udział rodzajów SKIP → P4-057; typy/testy PASS
 - [x] [05-32-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-32-PLAN.md) - P4-032, Testy: pozostałe mini-gry; 52/52 części, typy/testy PASS
-- [ ] [05-33-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-33-PLAN.md) - P4-033, wynik i rekordowa partia ze stanu; testy przed kodem
+- [x] [05-33-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-33-PLAN.md) - P4-033, wynik i rekordowa partia ze stanu; typy/testy/build/UI PASS
 **UI hint**: yes
 
 ### Phase 3: Audyt balansu rekordów i trudności
@@ -146,7 +146,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
   3. `pnpm typecheck && pnpm test` przechodzi bez błędów po każdym pakiecie
   4. Ponowne sprawdzenie poprawionych wpisów tą samą metodą co w audycie nie znajduje ich w kodzie
   5. Żadne `id` gry się nie zmieniło, nie doszła żadna zależność bez zgody, `apps/server` dalej nie ma bezpośredniego `zod`
-**Plans**: 32 obecnie rozpisane (27/28 odebranych; 05-11 oczekuje fizycznego U02); pełny zakres 62 pakietów w [S5-v1](phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md). Kolejne plany zgodnie z zatwierdzonym grafem.
+**Plans**: 33 obecnie rozpisane (32/33 odebranych; 05-11 oczekuje fizycznego U02); pełny zakres 62 pakietów w [S5-v1](phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md).
 
 - [x] [05-01-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-01-PLAN.md) - P4-001, wspólne normy i granice wyjątków, już zatwierdzone ZG4-v1
 - [x] [05-02-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-PLAN.md) - P4-027, Kalambury i zaufane źródło walidacji; TDD 50172d5, wdrożenie i odbiór zakończone
@@ -180,7 +180,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
 - [x] [05-30-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-30-PLAN.md) - P4-030, Testy: gry główne i Turniej; 24/24 części, typy/testy PASS
 - [x] [05-31-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-31-PLAN.md) - P4-031, Testy: quizy i Stój!; 19/20 części odebranych; F4-046 częściowo, udział rodzajów SKIP → P4-057; typy/testy PASS
 - [x] [05-32-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-32-PLAN.md) - P4-032, Testy: pozostałe mini-gry; 52/52 części, typy/testy PASS
-- [ ] [05-33-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-33-PLAN.md) - P4-033, wynik i rekordowa partia ze stanu; testy przed kodem
+- [x] [05-33-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-33-PLAN.md) - P4-033, wynik i rekordowa partia ze stanu; typy/testy/build/UI PASS
 **UI hint**: yes
 
 ## Progress
@@ -194,7 +194,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 | 2. Audyt wyglądu, animacji i wibracji | 11/11 | Complete | 2026-10-24 |
 | 3. Audyt balansu rekordów i trudności | 9/9 | Complete | 2026-10-24 |
 | 4. Raport zbiorczy i akceptacja | 5/5 | Complete; ZG4-v1, S5-v1, FIX-01 | 2026-10-26 |
-| 5. Poprawki zaakceptowanych rozbieżności | 31/33 obecnie rozpisanych | In progress; 31/62 pakietów, 149/267 części; P4-014/015 oczekują U02 | - |
+| 5. Poprawki zaakceptowanych rozbieżności | 32/33 obecnie rozpisanych | In progress; 32/62 pakietów, 151/267 części; F4-046 częściowo SKIP → P4-057; P4-014/015 oczekują U02 | - |
 
 04-04 rozpoczęty 2026-10-26: przygotowano B4-001 (P4-005/006/012/013/016, warianty w DECISIONS §10). Użytkownik zatwierdził B4-001 („Zatweirdzam”): pięć pakietów i ich warianty. B4-002 (P4-003/004/036) oczekuje; liczba ukończonych planów nadal 3/5, FIX-01 otwarte.
 
@@ -376,3 +376,5 @@ Następny P4-029; P4-014/015 nadal oczekują U02. Dowody: 05-28-SUMMARY.md. Comm
 2026-10-31, 05-31/P4-031: Testy: quizy i Stój!; 20/20 części sprawdzone, 19 odebranych; F4-046 częściowo, udział rodzajów SKIP → P4-057. Typy i pełne testy PASS. 30/62 pakietów, 97/267 części; FIX-02 otwarte. Następny P4-032; P4-014/015 oczekują U02. Dowody: 05-31-SUMMARY.md. Jeden commit, bez push.
 
 2026-10-31, 05-32/P4-032: Testy: pozostałe mini-gry; 52/52 części sprawdzone. Typy i pełne testy PASS. 31/62 pakietów, 149/267 części; FIX-02 otwarte. Następny P4-033; P4-014/015 oczekują U02. Dowody: 05-32-SUMMARY.md. Jeden commit, bez push.
+
+2026-10-31, 05-33/P4-033 zakończony: wynik i rekordowa partia ze stanu; typy/testy/build i odbiór UI PASS. 32/62 pakietów, 151/267 części. Następny P4-037; F4-046 częściowo SKIP → P4-057; P4-014/015 oczekują U02; FIX-02 otwarte. Dowody: 05-33-SUMMARY.md. Commity bez push.

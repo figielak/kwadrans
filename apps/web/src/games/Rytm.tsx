@@ -101,7 +101,8 @@ export function Rytm({ view, me, players, ranking, onMove }: Props) {
   );
 
   if (!playing || phase === "sent") {
-    const { taps } = run.current;
+    const id = view.players.includes(me) ? me : view.players.length === 1 ? view.players[0] : undefined;
+    const taps = id === undefined ? [] : view.taps?.[id] ?? [];
     const rows = (ranking ?? view.players).map((id) => {
       const p = players.find((pl) => pl.id === id);
       return { id, nick: p?.nick ?? "Gracz", color: p?.color, me: id === me, score: id in view.results ? `${view.results[id]} ms` : null };
@@ -110,7 +111,7 @@ export function Rytm({ view, me, players, ranking, onMove }: Props) {
       <>
         {taps.length > 0 && (
           <section className="tile flex flex-col items-center gap-1 p-6">
-            <span className="label">Twoje tempo</span>
+            <span className="label">{id === me ? "Twoje tempo" : "Tempo gracza"}</span>
             {/* Średni odstęp to czas ostatniego stuknięcia podzielony przez ich liczbę. */}
             <span className="text-7xl font-semibold tabular-nums">{bpm(taps[taps.length - 1] / taps.length)}</span>
             <span className="text-2xl font-semibold tabular-nums text-fg-muted">cel {bpm(view.interval)} BPM</span>
