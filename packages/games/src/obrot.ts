@@ -1,4 +1,4 @@
-import { averageMs, byScoreThenAverage, type GameDefinition, type PlayerId, ranked } from "./core.ts";
+import { averageMs, byScoreThenAverage, type GameDefinition, type PlayerId, ranked, shuffle } from "./core.ts";
 import { netScore, QUESTIONS, type QuizMove, quizMoveSchema, type QuizResult, validQuiz } from "./quiz.ts";
 
 /** Klocków w figurze: od MIN na pierwszych parach, o jeden więcej co STEP par, do MAX. */
@@ -31,11 +31,16 @@ function norm(cells: Cells): Cells {
 /** Obrót o `times` × 90°. */
 const turn = (cells: Cells, times: number): Cells => (times ? turn(norm(cells.map(([x, y]) => [-y, x])), times - 1) : cells);
 const flip = (cells: Cells) => norm(cells.map(([x, y]) => [-x, y]));
+/** Figura po obrocie o 0, 90, 180 i 270°. */
+const rotations = (cells: Cells) => [0, 1, 2].reduce((all, k) => [...all, turn(all[k], 1)], [cells]);
 const same = (a: Cells, b: Cells) => String(a) === String(b);
 
 const SIDES = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 
-/** Losowa figura z `n` klocków, zawsze chiralna: jej odbicie nie jest żadnym z jej obrotów, więc pytanie ma jedną odpowiedź. */
+/**
+ * Losowa figura z `n` klocków, zawsze chiralna: jej odbicie nie jest żadnym z jej obrotów, więc pytanie ma jedną odpowiedź.
+ * Do tego bez symetrii obrotowej: po 180° wyglądałaby jak przed obrotem, a po 90° jak po 270°, więc rodzaj planszy by się zlewał.
+ */
 function figure(n: number, int: (n: number) => number): Cells {
   for (;;) {
     const cells: Cells = [[0, 0]];
@@ -45,7 +50,9 @@ function figure(n: number, int: (n: number) => number): Cells {
       if (!cells.some(([cx, cy]) => cx === x + dx && cy === y + dy)) cells.push([x + dx, y + dy]);
     }
     const a = norm(cells);
-    if (![0, 1, 2, 3].some((k) => same(turn(a, k), flip(a)))) return a;
+    const all = rotations(a);
+    const mirror = flip(a);
+    if (!all.some((r) => same(r, mirror)) && !same(all[2], a)) return a;
   }
 }
 
@@ -60,20 +67,20 @@ export const obrot: GameDefinition<State, Move> = {
   turnSeconds: 90,
   moveSchema: quizMoveSchema,
 
-  setup: (players, rng) => ({
-    players,
-    trials: Array.from({ length: QUESTIONS }, (_, i) => {
-      const int = (n: number) => Math.floor(rng() * n);
-      const a = figure(Math.min(MIN_CELLS + Math.floor(i / STEP), MAX_CELLS), int);
-      const mirror = rng() < 0.5;
-      const from = mirror ? flip(a) : a;
-      // Figura, która po 180° wygląda tak samo, losuje kąt jeszcze raz: druga ma zawsze wyglądać inaczej niż przed obrotem.
-      let b = from;
-      while (same(b, from)) b = turn(from, 1 + int(3));
-      return { a, b, mirror };
-    }),
-    results: {},
-  }),
+  // Rodzaj planszy (90/180/270° × ta sama/lustro) idzie potasowanymi szóstkami: w każdej partii każdego tyle samo.
+  setup: (players, rng) => {
+    const int = (n: number) => Math.floor(rng() * n);
+    const kinds = Array.from({ length: Math.ceil(QUESTIONS / 6) }, () => shuffle([0, 1, 2, 3, 4, 5], rng)).flat();
+    return {
+      players,
+      trials: Array.from({ length: QUESTIONS }, (_, i) => {
+        const a = figure(Math.min(MIN_CELLS + Math.floor(i / STEP), MAX_CELLS), int);
+        const mirror = kinds[i] % 2 === 1;
+        return { a, b: turn(mirror ? flip(a) : a, 1 + Math.floor(kinds[i] / 2)), mirror };
+      }),
+      results: {},
+    };
+  },
 
   validateMove: (state, player, move) => validQuiz(state, player, move),
 

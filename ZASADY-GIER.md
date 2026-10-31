@@ -410,10 +410,12 @@ Przebieg, walidacja i ekran końcowy jak w Kolorze liter (`quiz.ts`, `Quiz.tsx`)
   ekran niczego nie liczy, tylko rysuje.
 - Figura `a` to losowo rosnące poliomino (każdy klocek styka się bokiem z innym) z `min(4 + floor(i / 3), 7)` klocków:
   4 w parach 0-2, potem o jeden więcej co 3 pary, od pary 9 zawsze 7 (`MIN_CELLS`, `MAX_CELLS`).
-- Figura jest zawsze chiralna (jej odbicie nie jest żadnym z jej czterech obrotów), inaczej pytanie nie miałoby odpowiedzi;
-  niechiralna jest losowana od nowa.
-- `b` to `a` (albo odbicie `a`, gdy `mirror`) obrócone o losowe 90, 180 albo 270°, zawsze tak, żeby wyglądało inaczej niż przed obrotem
-  (figura, która po 180° wygląda tak samo, dostaje 90 albo 270°). `mirror` losowane po równo.
+- Figura jest zawsze chiralna (jej odbicie nie jest żadnym z jej czterech obrotów), inaczej pytanie nie miałoby odpowiedzi,
+  i nie ma symetrii obrotowej (po 180° nie wygląda tak samo), inaczej obrót o 180° nic by nie zmieniał, a 90° i 270° wyglądałyby tak samo;
+  taka figura jest losowana od nowa.
+- `b` to `a` (albo odbicie `a`, gdy `mirror`) obrócone o 90, 180 albo 270°. Sześć rodzajów planszy (3 kąty × ta sama/lustro)
+  idzie potasowanymi szóstkami: w każdej kolejnej szóstce par każdy rodzaj raz, więc każda partia ma ich tyle samo.
+  Dawne partie miały kąt i `mirror` losowane osobno; ich rekordy zostają bez przeliczania.
 - Pomyłka blokuje na 1 s i zabiera punkt, potem przychodzi następna para (druga próba przy dwóch odpowiedziach byłaby darmowa).
   Sama kara punktowa nie wystarcza: klepanie na oślep daje średnio 0, ale z dużym rozrzutem, blokada go zmniejsza.
 - Wynik = trafienia − pomyłki, nie mniej niż 0, więcej lepiej. Przy remisie niższa średnia czasu trafień; dwa wyniki bez trafień to remis.

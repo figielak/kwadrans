@@ -84,7 +84,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 49 | [P4-055: Stoper: stały cel](#scope-p4-055) | P2 | 1 | wykonano 2026-10-31, 05-48; TDD b2bd364 |
 | 50 | [P4-056: Rytm: stałe tempo](#scope-p4-056) | P2 | 1 | wykonano 2026-10-31, 05-49; TDD 1a4d7b8 |
 | 51 | [P4-057: Liczenie: komplet rodzajów](#scope-p4-057) | P2 | 1 | wykonano 2026-10-31, 05-50; TDD 7205b92 |
-| 52 | [P4-058: Obrót: sześć rodzajów planszy](#scope-p4-058) | P2 | 1 | nie rozpoczęto |
+| 52 | [P4-058: Obrót: sześć rodzajów planszy](#scope-p4-058) | P2 | 1 | wykonano 2026-10-31, 05-51; TDD 22cd529 |
 | 53 | [P4-059: W pamięci: stała liczba mnożeń](#scope-p4-059) | P2 | 1 | nie rozpoczęto |
 | 54 | [P4-060: Balon: ten sam komplet ryzyka](#scope-p4-060) | P2 | 1 | nie rozpoczęto |
 | 55 | [P4-061: Zegar bodźca i dotyku](#scope-p4-061) | P2 | 1 | nie rozpoczęto |
@@ -840,7 +840,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-001](PACKAGES.md#p4-001). Dodatkowy warunek: G-DANE rozstrzygnięte w ZG4-v1 §3.2, z zachowaniem starej historii; pozostałe testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. 1000 seedów: pełne szóstki bez duplikatu typu, prawidłowe lustro i kąty, zakres wyników i kara identyczne. /dev solo/6 os., rekord/turniej, refresh/rewanż i me="". Test przed implementacją.
 - Granice: Stała jednostka nie dowodzi porównywalności dawnych rekordów. Nie regenerować starego detail nowym setup.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 1/1 części. TDD `22cd529`; typy, testy i build PASS. [05-51-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-51-SUMMARY.md).
 
 <a id="scope-p4-059"></a>
 

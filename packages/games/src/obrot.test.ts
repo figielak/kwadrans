@@ -230,7 +230,8 @@ describe("P4-058: komplet sześciu rodzajów planszy", () => {
         expect(turns(t.a).includes(key(flip(t.a))), `seed ${seed}: figura chiralna`).toBe(false);
       }
     }
-  });
+    // 1000 partii po 200 figur to około 10 s losowania.
+  }, 60_000);
 
   test("kolejność rodzajów w szóstkach jest tasowana, nie stała", () => {
     const trials = trialsOf(1);

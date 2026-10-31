@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 51/62 pakietów, 218/267 części; 05-50/P4-057: Liczenie: potasowane czwórki rodzajów, typy/testy/build PASS; następny P4-058 |
+| FIX-02 | Phase 5 | In progress; 52/62 pakietów, 219/267 części; 05-51/P4-058: Obrót: komplet sześciu rodzajów planszy, typy/testy/build PASS; następny P4-059 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -336,3 +336,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-49/P4-056 zakończony: Rytm ma stałe tempo 100 BPM (`interval` 600 ms), 8 uderzeń i wynik w ms bez zmian; dawne partie 70-130 BPM liczą się po swoim odstępie ze stanu, rekordy bez przeliczania. 50/62 pakietów, 216/267 części; FIX-02 otwarte. Następny P4-057. Dowody: 05-49-SUMMARY.md. Commit bez push.
 
 2026-10-31, 05-50/P4-057 zakończony: Liczenie losuje rodzaje działań potasowanymi czwórkami (po 50 każdego w puli), zakresy liczb bez zmian; F4-046 domknięte (test z P4-031 bez skip, P4-031 20/20). 51/62 pakietów, 218/267 części; FIX-02 otwarte. Następny P4-058. Dowody: 05-50-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-51/P4-058 zakończony: Obrót losuje rodzaj planszy (90/180/270° × ta sama/lustro) potasowanymi szóstkami, figury bez symetrii obrotowej; stan i ekran bez zmian kształtu, rekordy bez przeliczania. 52/62 pakietów, 219/267 części; FIX-02 otwarte. Następny P4-059. Dowody: 05-51-SUMMARY.md. Commity bez push.
