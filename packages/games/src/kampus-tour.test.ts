@@ -1118,3 +1118,9 @@ describe("statystyki do podsumowania partii", () => {
     expect(view(s).stats.wealth[A]).toHaveLength(2);
   });
 });
+
+test("P4-035/F4-019: talia z ustalonego seedu taka sama jak przed przejściem na shuffle z core", () => {
+  expect(game.setup([A, "bartek"], createRng(1)).deck).toEqual([1, 9, 6, 5, 2, 16, 10, 12, 15, 4, 17, 7, 3, 13, 14, 8, 0, 11]);
+  expect(game.setup([A, "bartek"], createRng(2)).deck).toEqual([10, 9, 0, 11, 15, 2, 17, 6, 1, 7, 3, 16, 14, 12, 8, 4, 5, 13]);
+  expect(game.setup([A, "bartek"], createRng(3)).deck).toEqual([15, 17, 11, 3, 9, 8, 16, 13, 4, 2, 14, 5, 6, 10, 1, 7, 0, 12]);
+});

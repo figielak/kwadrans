@@ -250,3 +250,14 @@ test("P4-032/F4-047: przerwa 2% nie kosztuje punktów", () => {
 test("P4-032/F4-047: judge przy 19 punktach zwraca unfinished", () => {
   expect(judge(circle({ n: 19 }))).toMatchObject({ status: "unfinished", score: 0 });
 });
+
+test("P4-035/F4-019: koniec dopiero po próbach wszystkich, nie po pierwszym wyniku (Koło bez ranked)", () => {
+  let s = game.setup([A, B], createRng(1));
+  s = send(s, A, result(circle()));
+  s = send(s, A, result([]));
+  expect(game.waitingFor(s)).toEqual([B]);
+  expect(game.isOver(s)).toBeNull();
+  s = send(s, B, result([]));
+  expect(game.waitingFor(s)).toEqual([]);
+  expect(game.isOver(s)).toEqual({ winner: A, ranking: [A, B] });
+});
