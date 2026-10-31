@@ -353,3 +353,19 @@ describe("ukończenie i timeout", () => {
     expect(JSON.stringify(legacy)).toBe(before);
   });
 });
+
+describe("P4-034/F4-048: nonce odróżnia partie z tą samą planszą", () => {
+  test("seedy 557 i 566 dają tę samą planszę, ale inny nonce (rewanż montuje nową partię)", () => {
+    const a = game.setup(["ania"], createRng(557));
+    const b = game.setup(["ania"], createRng(566));
+    expect(a.puzzle).toEqual(b.puzzle);
+    expect(Number.isInteger(a.nonce)).toBe(true);
+    expect(a.nonce).not.toBe(b.nonce);
+  });
+
+  test("ten sam seed: ta sama plansza i ten sam nonce; plansza z seedu bez zmian względem dawnego losowania", () => {
+    expect(game.setup(["ania"], createRng(7))).toEqual(game.setup(["ania"], createRng(7)));
+    // Nonce losowany po planszy: seedy 557 i 566 wciąż dają tę samą planszę co przed zmianą.
+    expect(game.setup(["ania"], createRng(557)).puzzle).toEqual(game.setup(["ania"], createRng(566)).puzzle);
+  });
+});

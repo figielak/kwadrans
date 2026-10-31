@@ -266,3 +266,19 @@ test.each(["schulte", "kropki", "kat", "rok", "wieza", "balon", "sudoku", "kolo"
   }
   expect(state).toEqual(before);
 });
+
+describe("P4-034: jedna lista mini-gier i stałe z przedrostkiem gry", () => {
+  test("F4-017: MINI_GAME_IDS to te same 30 gier co dawny ręczny zbiór w Game.tsx (bez Państw-miast)", () => {
+    expect([...MINI_GAME_IDS].sort()).toEqual(
+      ["tort", "zakupy", "zaslona", "nozyczki", "refleks", "simon", "stoper", "schulte", "sudoku", "stroop", "liczenie", "kolo", "kolor", "kropki", "rok", "srodek", "stoj", "sledzenie", "kubki", "wieza", "rytm", "inny", "obrot", "literowka", "mapa", "kat", "przytrzymaj", "balon", "w-pamieci", "dziesiatki"].sort(),
+    );
+  });
+
+  test("F4-051: stałe Śledzenia mają przedrostek SLEDZENIE_", async () => {
+    const all: Record<string, unknown> = await import("./index.ts");
+    for (const name of ["BALLS", "MOVE_MS", "RADIUS", "ROUNDS", "SHOW_MS", "SPEED_START", "SPEED_STEP", "TARGETS"]) {
+      expect(name in all, name).toBe(false);
+      expect(all[`SLEDZENIE_${name}`], name).toBeTypeOf("number");
+    }
+  });
+});
