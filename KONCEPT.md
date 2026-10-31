@@ -110,7 +110,7 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
 
 - **Refleks**: dotknij pola, gdy zmieni kolor; 12 zmian po losowym opóźnieniu 1-3 s, wynik = średnia reakcja w ms (mniej lepiej), falstart albo reakcja ponad 1 s liczy się jak 1000 ms.
 - **Sekwencja** (`simon`): powtarzanie rosnącej sekwencji 4 kolorów, wynik = najdłuższa seria. Po ukończeniu serii klient zgłasza rosnący `progress`; limit 300 s nie odnawia się i zachowuje ostatnią zaliczoną serię. Odświeżenie wznawia po niej; stare rekordy pozostają bez przeliczania.
-- **Stoper**: licznik znika po 3 s, dotknij dokładnie przy wylosowanym celu (6-14 s); wynik = odchyłka w ms (mniej lepiej).
+- **Stoper**: licznik znika po 3 s, dotknij dokładnie po 10 s (cel stały, dawniej losowy 6-14 s); wynik = odchyłka w ms (mniej lepiej).
 - **Tabela Schultego**: siatka 5×5 z liczbami 1-25, dotykasz po kolei; wynik = czas + 3 s za każdą pomyłkę.
   Ukończeni są zawsze przed timeoutami; nieukończeni remisują i nie dostają nowego rekordu. Stare zapisy bez statusu pozostają historyczne.
   Znalezione liczby zostają widoczne; postęp rywali widać na kropkach graczy (ruch `progress`).

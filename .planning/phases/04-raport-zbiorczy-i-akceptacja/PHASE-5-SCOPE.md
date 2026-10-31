@@ -81,7 +81,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 46 | [P4-050: Role tokenów i drugi sygnał stanu](#scope-p4-050) | P2 | 9 | wykonano 2026-10-31, 05-45; TDD 6fd7a7b |
 | 47 | [P4-051: Etykiety, natywne kontrolki i wykres dotykiem](#scope-p4-051) | P2 | 3 | wykonano 2026-10-31, 05-46; TDD 070cc6e |
 | 48 | [P4-052: Czytelne stany oczekiwania, błędu i blokady](#scope-p4-052) | P2 | 11 | wykonano 2026-10-31, 05-47; TDD a9656f6 |
-| 49 | [P4-055: Stoper: stały cel](#scope-p4-055) | P2 | 1 | nie rozpoczęto |
+| 49 | [P4-055: Stoper: stały cel](#scope-p4-055) | P2 | 1 | wykonano 2026-10-31, 05-48; TDD b2bd364 |
 | 50 | [P4-056: Rytm: stałe tempo](#scope-p4-056) | P2 | 1 | nie rozpoczęto |
 | 51 | [P4-057: Liczenie: komplet rodzajów](#scope-p4-057) | P2 | 1 | nie rozpoczęto |
 | 52 | [P4-058: Obrót: sześć rodzajów planszy](#scope-p4-058) | P2 | 1 | nie rozpoczęto |
@@ -798,7 +798,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-001](PACKAGES.md#p4-001). Dodatkowy warunek: G-DANE rozstrzygnięte w ZG4-v1 §3.2, z zachowaniem starej historii; pozostałe testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Test setup zawsze target 10000 oraz deterministyczny seed; wynik graniczny 0/cel, timeout i ten sam stary detail. /dev solo/6 os., rekord/turniej, refresh/rewanż i me="". Test przed implementacją.
 - Granice: Stała jednostka nie dowodzi porównywalności dawnych rekordów. Nie regenerować starego detail nowym setup.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 1/1 części. TDD `b2bd364`; typy, testy i build PASS. [05-48-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-48-SUMMARY.md).
 
 <a id="scope-p4-056"></a>
 

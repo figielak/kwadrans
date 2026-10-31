@@ -97,7 +97,9 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
 
 ### Stoper (`stoper`)
 - Po „Start” odliczanie 3, 2, 1 (dotknięcia ignorowane), potem licznik biegnie od 0, po 3 s znika, gracz dotyka przy celu. Klient sam kończy po dwukrotności celu.
-- Cel (`target`) losuje serwer: pełne sekundy 6-14 s, ten sam dla wszystkich w partii.
+- Cel (`target`, `TARGET_MS`) jest stały: 10 s w każdej partii, żeby wyniki dało się porównać. Dawne partie miały losowy cel
+  6-14 s; ich stan i rekordy zostają bez przeliczania, a walidacja, timeout i ekran zawsze czytają cel ze stanu. Historia rekordów
+  łączy więc partie o różnych celach (ZG4-v1 §3.2).
 - Grający nie widzi limitu tury po starcie (tykający pasek zdradzałby czas); po dotknięciu: odkryty czas i odchyłka ze znakiem.
 - Wynik: `deviation` = odchyłka w ms (int, od 0 do celu), mniej lepiej. Limit czasu: odchyłka równa celowi.
 - Ruch może też zawierać `stopped`: czas zatrzymania w pełnych ms, 0 do dwukrotności celu, zgodny z `deviation = abs(stopped − target)`.

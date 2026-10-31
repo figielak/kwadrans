@@ -3,13 +3,15 @@ import { type GameDefinition, type PlayerId, ranked } from "./core.ts";
 
 /** Po tylu ms licznik znika i gracz liczy w głowie. */
 export const VISIBLE_MS = 3000;
+/** Cel w ms, ten sam w każdej partii, żeby wyniki dało się porównać (dawne partie mają w stanie swój losowy cel 6-14 s). */
+export const TARGET_MS = 10_000;
 
 /** Odchyłka od celu w ms; brak dotknięcia liczy się jak najgorszy wynik. */
 export type Move = { type: "result"; deviation: number; stopped?: number };
 
 export interface State {
   players: PlayerId[];
-  /** Cel w ms: pełne sekundy 6-14 s, ten sam dla wszystkich. */
+  /** Cel w ms: `TARGET_MS`; w dawnych zapisach pełne sekundy 6-14 s. Walidacja i ekran zawsze czytają go ze stanu. */
   target: number;
   /** Nic nie losuje, tylko odróżnia partie (rewanż montuje grę na kliencie od nowa). */
   nonce: number;
@@ -29,7 +31,7 @@ export const stoper: GameDefinition<State, Move> = {
   turnSeconds: 60,
   moveSchema: z.object({ type: z.literal("result"), deviation: z.number(), stopped: z.number().int().min(0).optional() }),
 
-  setup: (players, rng) => ({ players, target: 6000 + Math.floor(rng() * 9) * 1000, nonce: Math.floor(rng() * 2 ** 32), results: {}, stops: {} }),
+  setup: (players, rng) => ({ players, target: TARGET_MS, nonce: Math.floor(rng() * 2 ** 32), results: {}, stops: {} }),
 
   validateMove: (state, player, { deviation, stopped }) =>
     state.players.includes(player) && !(player in state.results) && Number.isInteger(deviation) && deviation >= 0 && deviation <= state.target &&

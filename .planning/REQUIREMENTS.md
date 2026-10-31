@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 48/62 pakietów, 214/267 części; 05-47/P4-052: czytelne stany oczekiwania, błędu i blokady, typy/testy/build PASS; następny P4-055; F4-046 częściowo SKIP → P4-057 |
+| FIX-02 | Phase 5 | In progress; 49/62 pakietów, 215/267 części; 05-48/P4-055: Stoper: stały cel 10 s, typy/testy/build PASS; następny P4-056; F4-046 częściowo SKIP → P4-057 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -330,3 +330,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-46/P4-051 zakończony: color-scheme dark, role i nazwy pól, ozdoby aria-hidden, podpowiedź wykresu po dotknięciu. 47/62 pakietów, 203/267 części; FIX-02 otwarte. Następny P4-052; U10/U11 do odbioru. Dowody: 05-46-SUMMARY.md. Commit bez push.
 
 2026-10-31, 05-47/P4-052 zakończony: tekst przy wznawianiu i wczytywaniu, zamknięcie pokoju jako komunikat, brak odpowiedzi serwera odróżniony od braku rekordów, rozłączony gracz z przerywaną pigułką, krycie 40/60 z podpisem, powody blokad (Szacowanie, Chińczyk, Sudoku, liczba gier Turnieju), opis pustych ciekawostek i turnieju solo. 48/62 pakietów, 214/267 części; FIX-02 otwarte. Następny P4-055. Dowody: 05-47-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-48/P4-055 zakończony: Stoper ma stały cel 10 s (`TARGET_MS`), wynik nadal w ms; dawne partie z celem 6-14 s walidują się i wyświetlają po swoim celu ze stanu, rekordy bez przeliczania. 49/62 pakietów, 215/267 części; FIX-02 otwarte. Następny P4-056. Dowody: 05-48-SUMMARY.md. Commit bez push.

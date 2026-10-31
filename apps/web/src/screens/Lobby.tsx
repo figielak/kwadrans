@@ -340,7 +340,7 @@ export const BLURBS: Record<string, string> = {
   kalambury: "Po kolei rysujecie palcem hasło wybrane z trzech, reszta zgaduje na czacie. Im szybciej trafisz, tym więcej punktów.",
   refleks: "Dotknij pola, gdy zmieni kolor. 12 zmian, liczy się średni czas reakcji, falstart to 1000 ms.",
   simon: "Powtarzasz coraz dłuższą sekwencję 4 kolorów. Liczy się najdłuższa seria.",
-  stoper: "Licznik znika po 3 s. Dotknij dokładnie w wylosowanej sekundzie, wygrywa najmniejsza odchyłka.",
+  stoper: "Licznik znika po 3 s. Dotknij dokładnie po 10 sekundach, wygrywa najmniejsza odchyłka.",
   sudoku: "Plansza 4×4 do uzupełnienia cyframi 1-4, w każdym wierszu, kolumnie i bloku raz. Liczy się czas, zła cyfra dodaje 5 s.",
   schulte: "Siatka 5×5 z liczbami 1-25, dotykasz po kolei. Liczy się czas, pomyłka dodaje 3 s.",
   stroop: "Nazwa koloru napisana innym kolorem. Wybierasz kolor liter, nie słowo. 30 s.",
