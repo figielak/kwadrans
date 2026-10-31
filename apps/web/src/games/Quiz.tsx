@@ -99,7 +99,7 @@ export function QuizPreview({ prompt, options, correct }: { prompt: ReactNode; o
   return (
     <div className="flex flex-col items-center gap-3">
       {prompt}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap justify-center gap-2">
         {options.map((option, i) => (
           <span key={i} className="relative rounded-inset border border-line bg-surface px-2 py-1 text-sm font-semibold">
             {option}
@@ -226,7 +226,7 @@ export function Quiz({ view, me, players, ranking, winner, task, preview, questi
           {phase === "wrong" ? <span className="text-2xl font-semibold text-warning">Źle!</span> : q.prompt}
         </div>
       )}
-      <div className={q.cols ? "grid gap-2" : "grid grid-cols-2 gap-3"} style={q.cols ? { gridTemplateColumns: `repeat(${q.cols}, 1fr)` } : undefined}>
+      <div className={q.cols ? "grid gap-2" : "grid grid-cols-2 gap-3"} style={q.cols ? { gridTemplateColumns: `repeat(${q.cols}, minmax(0, 1fr))` } : undefined}>
         {q.options.map((option, i) => (
           <button
             // Klucz z błysku: przycisk montuje się od nowa i animacja startuje jeszcze raz.

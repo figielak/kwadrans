@@ -142,7 +142,7 @@ export function Sudoku({ view, me, players, ranking, onMove }: Props) {
           { label: "Twój czas", value: `${seconds(now - start.current)} s` },
         ]}
       />
-      <div className="mx-auto grid w-64 grid-cols-2 gap-2">
+      <div className="mx-auto grid w-full max-w-64 grid-cols-2 gap-2">
         {[0, 1, 2, 3].map((b) => (
           <div key={b} className="grid grid-cols-2 gap-1">
             {[0, 1, 2, 3].map((k) => {

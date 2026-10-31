@@ -261,7 +261,7 @@ function GameCard({ game: { id, rows, mine }, nick, color, loaded, onOpen, onPla
         {mine && (
           <span
             role="img"
-            className={`flex shrink-0 items-center gap-1 rounded-full bg-surface-inset px-2 py-0.5 font-mono text-sm tabular-nums ${lead ? "" : "text-fg-muted"}`}
+            className={`flex shrink-0 items-center gap-1 rounded-full border border-line px-2 py-0.5 font-mono text-sm tabular-nums ${lead ? "" : "text-fg-muted"}`}
             style={lead ? { color } : undefined}
             aria-label={`${mine.place}. miejsce z ${mine.of}`}
           >
@@ -368,7 +368,7 @@ export function Records({
                 { label: "Pierwsze miejsca", value: led.length },
                 { label: "Do pobicia", value: toBeat.length },
               ].map((item) => (
-                <div key={item.label} className="flex flex-col justify-between gap-1 rounded-inset bg-surface-inset p-3">
+                <div key={item.label} className="flex flex-col justify-between gap-1 rounded-inset bg-surface p-3">
                   <dt className="label leading-tight">{item.label}</dt>
                   <dd className="font-mono text-2xl leading-tight font-semibold tabular-nums">
                     {item.value}
@@ -389,7 +389,7 @@ export function Records({
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-sm text-fg-muted">Jeszcze nie grane ({fresh.length})</h2>
                 {fresh.length > FRESH_SHOWN && (
-                  <button type="button" className="-mr-2 min-h-12 px-2 text-sm" style={{ color }} onClick={() => setAllFresh(!allFresh)}>
+                  <button type="button" className="-mr-2 min-h-12 px-2 text-sm text-fg-muted underline underline-offset-4" onClick={() => setAllFresh(!allFresh)}>
                     {allFresh ? "Zwiń" : "Pokaż wszystkie"}
                   </button>
                 )}
@@ -402,7 +402,7 @@ export function Records({
                     <li key={id}>
                       <Tile
                         {...(onPlay && { type: "button", onClick: () => onPlay(id) })}
-                        className="flex h-full min-h-16 w-full flex-col items-center justify-center gap-1 rounded-inset bg-surface-inset px-1 py-2 text-center text-xs leading-tight text-fg-muted"
+                        className="flex h-full min-h-16 w-full flex-col items-center justify-center gap-1 rounded-inset bg-surface px-1 py-2 text-center text-xs leading-tight text-fg-muted"
                       >
                         <GameIcon size={20} aria-hidden />
                         {GAMES[id].name}

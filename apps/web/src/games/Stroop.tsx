@@ -19,7 +19,7 @@ export function Stroop({ view, ...props }: Props) {
     <Quiz
       {...props}
       view={view}
-      task="Nazwa koloru jest napisana innym kolorem: wybierz kolor liter, nie znaczenie słowa"
+      task="Wybierz kolor liter, nie znaczenie słowa (zwykle się różnią)"
       preview={
         <QuizPreview
           prompt={
@@ -27,7 +27,7 @@ export function Stroop({ view, ...props }: Props) {
               {STROOP_COLORS[3]}
             </span>
           }
-          options={STROOP_COLORS.map((name) => name.toLowerCase())}
+          options={STROOP_COLORS.slice(0, 3).map((name) => name.toLowerCase())}
           correct={1}
         />
       }

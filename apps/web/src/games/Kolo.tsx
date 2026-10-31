@@ -78,6 +78,25 @@ function Judged({ points, circle: { cx, cy, r } }: { points: KoloPoint[]; circle
   );
 }
 
+function Preview({ color }: { color?: string }) {
+  return (
+    <svg viewBox="0 0 1 1" className="h-28">
+        <circle
+          cx={0.5}
+          cy={0.5}
+          r={0.4}
+          fill="none"
+          stroke={color}
+          strokeWidth={0.04}
+          strokeLinecap="round"
+          pathLength={1}
+          strokeDasharray={1}
+          className="animate-[line-draw_2.5s_ease-in-out_infinite]"
+        />
+    </svg>
+  );
+}
+
 export function Kolo({ view, me, players, ranking, onMove }: Props) {
   const attempts = view.attempts[me] ?? 0;
   const playing = view.players.includes(me) && attempts < KOLO_ATTEMPTS;
@@ -185,22 +204,7 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
   if (playing && !started) {
     return (
       <Intro
-        preview={
-          <svg viewBox="0 0 1 1" className="h-24">
-            <circle
-              cx={0.5}
-              cy={0.5}
-              r={0.4}
-              fill="none"
-              stroke={color(me)}
-              strokeWidth={0.04}
-              strokeLinecap="round"
-              pathLength={1}
-              strokeDasharray={1}
-              className="animate-[line-draw_2.5s_ease-in-out_infinite]"
-            />
-          </svg>
-        }
+        preview={<Preview color={color(me)} />}
         time={`${KOLO_ATTEMPTS} prób, razem ${upTo(GAMES.kolo.turnSeconds!)}, możesz zakończyć wcześniej`}
         task="Narysuj palcem jednym ruchem jak najdoskonalszy okrąg"
         score="Liczy się najlepsza próba, w procentach idealności"

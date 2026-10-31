@@ -146,7 +146,7 @@ export function Dziesiatki({ view, me, players, ranking, winner, onMove, onRound
           { label: "Seria", value: run.current.streak },
         ]}
       />
-      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${DZIESIATKI_SIDE}, 1fr)` }}>
+      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${DZIESIATKI_SIDE}, minmax(0, 1fr))` }}>
         {board.map((n, i) => {
           const flashed = flash?.cells.includes(i);
           return (

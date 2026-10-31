@@ -13,7 +13,7 @@ Jedna strona, kod pokoju, każdy gra na swoim telefonie.
   (sekcja „Wróć do pokoju”: tylko pokoje, w których było co najmniej 2 graczy i które jeszcze istnieją, sprawdza to `/api/rooms`).
 - **Ekran główny**: sekcja „Sam” stoi wyżej niż „Ze znajomymi” (przy wejściu z linku `/?kod=` odwrotnie). „Sam” to wyzwanie dnia, do dwóch gier
   dobranych pod rekordy (cudzy rekord, do którego graczowi najbliżej, i własny do obrony), „Losowa gra” i lista wszystkich mini-gier.
-  „Ze znajomymi” łączy pole kodu i „Utwórz pokój”. Jedyny wypełniony przycisk ekranu to „Zagraj” przy wyzwaniu; „Dołącz” dostaje akcent po wpisaniu pełnego kodu.
+  „Ze znajomymi” łączy pole kodu i „Utwórz pokój”. Wypełniony przycisk ekranu jest jeden: „Zagraj” przy wyzwaniu, a po wpisaniu pełnego kodu „Dołącz” („Zagraj” przechodzi wtedy na obrys).
   Rankingi wygranych gier głównych i turnieju są na dole ekranu „Rekordy” (puchar w nagłówku); równe wygrane i partie to to samo miejsce.
 - **Gra solo**: mini-gra z ekranu głównego to po cichu pokój na jedną osobę (`solo` w opcjach tworzenia i w `RoomView`), który od razu startuje grę:
   bez lobby, kodu, wyboru koloru i wpisu w ostatnich pokojach. Po partii „Jeszcze raz” albo „Wyjdź”; wyniki trafiają do tych samych rekordów.

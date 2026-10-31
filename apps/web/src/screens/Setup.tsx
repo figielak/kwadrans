@@ -31,7 +31,7 @@ export function Setup({ view, me, dropped, send, onLeave }: Props) {
         <div className="flex items-center gap-3">
           <GameIcon size={28} weight="fill" className="shrink-0" aria-hidden />
           <div className="min-w-0">
-            <h1 className="leading-tight">{def.name}</h1>
+            <h1 className="font-semibold leading-tight">{def.name}</h1>
             <p className="font-mono text-xs text-fg-muted tabular-nums">{seats(def)}</p>
           </div>
         </div>
@@ -127,7 +127,7 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
         <div className="flex items-center gap-3">
           <Trophy size={28} weight="fill" className="shrink-0" aria-hidden />
           <div className="min-w-0">
-            <h1 className="leading-tight">Turniej</h1>
+            <h1 className="font-semibold leading-tight">Turniej</h1>
             <p className="font-mono text-xs text-fg-muted tabular-nums">1-{MAX_PLAYERS} osób</p>
           </div>
         </div>

@@ -81,7 +81,7 @@ Te fragmenty najlepiej oddają styl. Nowy ekran powinien wyglądać jak ich rodz
 
 Najlepszy przykład hierarchii. Od góry: ikona gry w kwadracie `accent-soft`, nazwa pogrubiona i jedna linia stanu,
 potem jedyny wypełniony przycisk ekranu („Zagraj”) na pełną szerokość, pod nim dwa równe przyciski z obrysem.
-Wzrok ląduje na czerwieni bez żadnego nagłówka, a „Dołącz” w sąsiedniej karcie dostaje akcent dopiero po wpisaniu pełnego kodu.
+Wzrok ląduje na czerwieni bez żadnego nagłówka, a „Dołącz” w sąsiedniej karcie przejmuje wypełnienie dopiero po wpisaniu pełnego kodu (wtedy „Zagraj” ma obrys, D4-066).
 
 Do skopiowania: jedna akcja wypełniona, pozostałe `btn-ghost`; podpis sekcji z małą ikoną leży nad kaflem, nie w nim.
 

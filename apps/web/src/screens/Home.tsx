@@ -164,7 +164,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
                 </span>
               </p>
             </div>
-            <button type="button" className="btn btn-primary w-full" disabled={!!busy} onClick={() => play(daily.gameId)}>
+            <button type="button" className={`btn w-full ${full ? "btn-ghost" : "btn-primary"}`} disabled={!!busy} onClick={() => play(daily.gameId)}>
               {busy === "solo" ? (
                 "Uruchamianie…"
               ) : (
@@ -207,7 +207,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
           </button>
           <button type="button" className="btn btn-ghost px-2 whitespace-nowrap" disabled={!!busy} onClick={() => setScreen("all")}>
             <SquaresFour size={18} weight="bold" className="shrink-0" aria-hidden />
-            Wszystkie ({MINI_GAME_IDS.length})
+            Wszystkie
           </button>
         </div>
         <Problem>{soloError}</Problem>
@@ -250,7 +250,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
                 if (next.length === ROOM_CODE_LENGTH && next !== code && !busy) go("join", next);
               }}
             />
-            {/* Jedyny wypełniony przycisk ekranu to „Zagraj”; „Dołącz” dostaje akcent dopiero z pełnym kodem. */}
+            {/* Jeden wypełniony przycisk na ekranie: „Zagraj”, a z pełnym kodem „Dołącz” (wtedy „Zagraj” to obrys). */}
             <button type="submit" className={`btn shrink-0 ${full ? "btn-primary" : "btn-ghost"}`} disabled={!!busy || !full}>
               {busy === "join" ? "Łączenie…" : "Dołącz"}
               {busy !== "join" && <ArrowRight size={18} weight="bold" aria-hidden />}
