@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { expect, test } from "vitest";
 import { type ProbeRow, summarize } from "./clock.ts";
 
-// U14 (P4-061): pomiar obu zegarów obok siebie; wynik nadal liczy obecna metoda, dopóki U14 nie rozstrzygnie zmiany.
+// U14 (P4-061): pomiar obu zegarów obok siebie (`?zegar`).
 const src = new URL(".", import.meta.url).pathname;
 const read = (file: string) => readFileSync(join(src, file), "utf8");
 const row = (r: Partial<ProbeRow>): ProbeRow => ({ game: "refleks", stim: 1000, raf: 1008, handler: 1300, event: 1295, hidden: false, ...r });
@@ -27,9 +27,8 @@ test("summarize: wejście bez bodźca liczy tylko opóźnienie obsługi, ujemny 
   expect(s.stoj.negative).toBe(1);
 });
 
-test("pomiar nie zmienia wyniku: gry dalej liczą z performance.now()", () => {
-  expect(read("games/Refleks.tsx")).toContain("Math.round(performance.now() - r.goAt)");
-  expect(read("games/Stoj.tsx")).toContain("Math.round(performance.now() - r.shownAt)");
+// Refleks i Stój! liczą już nową metodą (stimulus.test.ts); pomiar dalej zapisuje obie obok siebie.
+test("pomiar podpięty w czterech grach, Stoper i Wieża liczą z performance.now()", () => {
   expect(read("games/Stoper.tsx")).toContain("Math.min(performance.now() - start.current, giveUp)");
   expect(read("games/Wieza.tsx")).toContain("Math.round(performance.now() - started.current)");
   for (const game of ["Refleks", "Stoj", "Stoper", "Wieza"]) expect(read(`games/${game}.tsx`)).toMatch(/clock\.input\("\w+", e\)/);
