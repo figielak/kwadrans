@@ -53,3 +53,32 @@ describe("reduced motion", () => {
     expect(rules).toMatch(/klatka bazowa/);
   });
 });
+
+// P4-042: jedna animacja na sytuację, jawne czasy przejść, paski czasu z zegara.
+describe("przejścia, pętle i paski", () => {
+  const lines = code.split("\n");
+
+  test("bez animate-pulse i animate-ping z Tailwinda: czekanie jest spokojne", () => {
+    expect(code).not.toMatch(/animate-(pulse|ping)\b/);
+  });
+
+  test("ring-pulse zawsze 1,2 s, stone-pop 0,35 s (wyjątek W pamięci 180 ms)", () => {
+    for (const { name, time } of uses) {
+      if (name === "ring-pulse") expect(time).toBe("1.2s");
+      if (name === "stone-pop") expect(["0.35s", "180ms"]).toContain(time);
+    }
+  });
+
+  test("każde przejście Tailwinda ma jawny czas", () => {
+    const bare = lines.filter((l) => /\btransition(-colors|-opacity|-transform|-\[[^\]]+\])?(?=[\s"`$])/.test(l) && !/duration-/.test(l));
+    expect(bare).toEqual([]);
+  });
+
+  test("paski Rytmu i Zakupów nie jadą jednym długim przejściem CSS", () => {
+    for (const f of ["games/Rytm.tsx", "games/Zakupy.tsx"]) {
+      const text = readFileSync(join(src, f), "utf8");
+      expect(text, f).not.toMatch(/transitionDuration|transition: `width/);
+    }
+  });
+});
+
