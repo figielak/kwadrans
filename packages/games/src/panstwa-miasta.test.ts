@@ -349,3 +349,14 @@ describe("P4-030: luki F4 Państw-miast", () => {
     for (const viewer of [A, B, ""]) expect((game.playerView(s, viewer) as View).votes).toEqual({ [A]: rejected, [B]: [] });
   });
 });
+
+test("P4-062: Ł nie losuje się w rundach (kategoria Państwo jest na nią systemowo słabsza)", () => {
+  expect(LETTERS).toBe("ABCDEFGHIJKLMNOPRSTUWZ");
+  for (let seed = 1; seed <= 1000; seed++) {
+    const { letters } = game.setup([A, B], createRng(seed));
+    expect(letters, `seed ${seed}`).toHaveLength(ROUNDS);
+    expect(new Set(letters).size, `seed ${seed}`).toBe(ROUNDS);
+    expect(letters.every((l) => LETTERS.includes(l) && l !== "Ł"), `seed ${seed}: ${letters}`).toBe(true);
+  }
+  expect(game.setup([A, B], createRng(7)).letters).toEqual(game.setup([A, B], createRng(7)).letters);
+});
