@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 5
 current_phase_name: Poprawki zaakceptowanych rozbieżności
-status: in_progress
-stopped_at: 05-61/P4-061 narzędzie U14 gotowe; czeka na pomiar telefonu (U14), potem zmiana zegara
+status: complete
+stopped_at: 05-61/P4-061 zakończony; faza 5 zakończona (62/62), zostały odbiory na urządzeniach
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
-last_activity_desc: "P4-053 odebrany; TDD f085fc4, Wąskie podpisy i hierarchia ekranów; 61/62 pakietów, 266/267 części"
-state_head: d1b582023ab649b2309320ca76288c8b6178b37b
+last_activity_desc: "P4-061 odebrany; TDD 5852378, Zegar bodźca i dotyku; 62/62 pakietów, 267/267 części"
+state_head: 8d7c00a084b906e0551c7c669197035addf94510
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 83
-  completed_plans: 83
+  completed_phases: 5
+  total_plans: 84
+  completed_plans: 84
   percent: 100
 ---
 
@@ -23,16 +23,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Faza 5: 05-61/P4-061 czeka na U14 (narzędzie `?zegar` gotowe). Ostatni pakiet.
+**Current focus:** Faza 5 zakończona (62/62 pakietów). Zostały odbiory na urządzeniach: U03/U04/U09, U14 (po fakcie), P11.
 
 ## Current Position
 
 Phase: 5 of 5 (Poprawki zaakceptowanych rozbieżności), zakres ZG4-v1/S5-v1 zatwierdzony.
-Plan: 60 of 60 currently planned completed.
-Status: In progress. Fazy 1-4 zakończone, FIX-01 zakończone. FIX-02 otwarte.
-Wykonano 61/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048, P4-050, P4-051, P4-052, P4-055, P4-056, P4-057, P4-058, P4-059, P4-060, P4-062, P4-034, P4-035, P4-047, P4-049, P4-054, P4-053), 266/267 części poprawek.
-Last activity: 2026-10-31: zakończono 05-60/P4-053, Wąskie podpisy i hierarchia ekranów.
-Dowody w 05-60-SUMMARY.md.
+Plan: 61 of 61 currently planned completed.
+Status: Complete. Fazy 1-5 zakończone, FIX-01 i FIX-02 zakończone; odbiory na urządzeniach otwarte.
+Wykonano 62/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048, P4-050, P4-051, P4-052, P4-055, P4-056, P4-057, P4-058, P4-059, P4-060, P4-062, P4-034, P4-035, P4-047, P4-049, P4-054, P4-053, P4-061), 267/267 części poprawek.
+Last activity: 2026-10-31: zakończono 05-61/P4-061, Zegar bodźca i dotyku.
+Dowody w 05-61-SUMMARY.md.
+
+Poprzednio zakończono 05-60. Dowody w 05-60-SUMMARY.md.
 
 Poprzednio zakończono 05-59. Dowody w 05-59-SUMMARY.md.
 
@@ -449,3 +451,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-60/P4-053 zakończony: jeden wypełniony akcent na Home, „Wszystkie” i trzy odpowiedzi w podglądzie Koloru liter po zmierzonych obcięciach przy 115%, tytuły Setup, tła i link Rekordów wg ról, minmax w siatkach, Preview Koła; podpisy Kampus Tour bez obcięć, czytelność do U04. 61/62 pakietów, 266/267 części; FIX-02 otwarte. Następny P4-061 (czeka na U14). Dowody: 05-60-SUMMARY.md. Commity bez push.
 
 2026-10-31, 05-61/P4-061 krok 1: narzędzie U14 `?zegar` (clock.ts) zapisuje obok obecnej metody e.timeStamp i pierwszą klatkę rAF w Refleksie, Stój!, Stoperze i Wieży; wynik bez zmian. Chromium 60 Hz: różnica 10-15 ms. Wybór użytkownika: pomiar, potem zmiana. 61/62 pakietów, 266/267 części; FIX-02 otwarte. Czeka na U14 użytkownika. Dowody: 05-61-SUMMARY.md.
+
+2026-10-31, 05-61/P4-061 zakończony: Refleks i Stój! liczą reakcję od pierwszej klatki z bodźcem (rAF) do e.timeStamp (stimulus.ts); Stoper i Wieża bez zmian z powodem; stare rekordy bez przeliczania. U14 uchylone przez użytkownika („Kontynuuj bez mojej weryfikacji”), odbiór po fakcie przez ?zegar. 62/62 pakietów, 267/267 części; FIX-02 i faza 5 zakończone, odbiory urządzeń (U03/U04/U09/U14, P11) zostają otwarte. Dowody: 05-61-SUMMARY.md. Commity bez push.

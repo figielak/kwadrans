@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Audyt wyglądu, animacji i wibracji** - ekrany gier kontra `ZASADY.md` §4 i §5 oraz `DESIGN.md`
 - [x] **Phase 3: Audyt balansu rekordów i trudności** - równe szanse partii, sufit, remisy, krzywa trudności, limity tury, gry główne
 - [x] **Phase 4: Raport zbiorczy i akceptacja** - jedna lista rozbieżności z priorytetami i decyzją użytkownika
-- [ ] **Phase 5: Poprawki zaakceptowanych rozbieżności** - kod, testy i dokumenty znowu mówią to samo
+- [x] **Phase 5: Poprawki zaakceptowanych rozbieżności** - kod, testy i dokumenty znowu mówią to samo
 
 ## Phase Details
 
@@ -209,7 +209,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
 - [x] [05-58-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-58-PLAN.md) - P4-049, Liczby, etykiety i wąskie kolumny; TDD f16aa02
 - [x] [05-59-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-59-PLAN.md) - P4-054, Nieaktualne opisy bez zmiany zasad; TDD a8080e4
 - [x] [05-60-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-60-PLAN.md) - P4-053, Wąskie podpisy i hierarchia ekranów; TDD f085fc4
-- [ ] [05-61-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-61-PLAN.md) - P4-061, Zegar bodźca i dotyku; narzędzie U14 gotowe, czeka na pomiar telefonu
+- [x] [05-61-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-61-PLAN.md) - P4-061, Zegar bodźca i dotyku; TDD 5852378, U14 po fakcie
 **UI hint**: yes
 
 ## Progress
@@ -223,7 +223,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 | 2. Audyt wyglądu, animacji i wibracji | 11/11 | Complete | 2026-10-24 |
 | 3. Audyt balansu rekordów i trudności | 9/9 | Complete | 2026-10-24 |
 | 4. Raport zbiorczy i akceptacja | 5/5 | Complete; ZG4-v1, S5-v1, FIX-01 | 2026-10-26 |
-| 5. Poprawki zaakceptowanych rozbieżności | 60/60 obecnie rozpisanych | In progress; 61/62 pakietów, 266/267 części; P4-014/015 odebrane na Androidzie | - |
+| 5. Poprawki zaakceptowanych rozbieżności | 61/61 | Complete (2026-10-31); 62/62 pakietów, 267/267 części; P4-014/015 odebrane na Androidzie | - |
 
 04-04 rozpoczęty 2026-10-26: przygotowano B4-001 (P4-005/006/012/013/016, warianty w DECISIONS §10). Użytkownik zatwierdził B4-001 („Zatweirdzam”): pięć pakietów i ich warianty. B4-002 (P4-003/004/036) oczekuje; liczba ukończonych planów nadal 3/5, FIX-01 otwarte.
 
@@ -475,3 +475,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-60/P4-053 zakończony: jeden wypełniony akcent na Home, „Wszystkie” i trzy odpowiedzi w podglądzie Koloru liter po zmierzonych obcięciach przy 115%, tytuły Setup, tła i link Rekordów wg ról, minmax w siatkach, Preview Koła; podpisy Kampus Tour bez obcięć, czytelność do U04. 61/62 pakietów, 266/267 części; FIX-02 otwarte. Następny P4-061 (czeka na U14). Dowody: 05-60-SUMMARY.md. Commity bez push.
 
 2026-10-31, 05-61/P4-061 krok 1: narzędzie U14 `?zegar` (clock.ts) zapisuje obok obecnej metody e.timeStamp i pierwszą klatkę rAF w Refleksie, Stój!, Stoperze i Wieży; wynik bez zmian. Chromium 60 Hz: różnica 10-15 ms. Wybór użytkownika: pomiar, potem zmiana. 61/62 pakietów, 266/267 części; FIX-02 otwarte. Czeka na U14 użytkownika. Dowody: 05-61-SUMMARY.md.
+
+2026-10-31, 05-61/P4-061 zakończony: Refleks i Stój! liczą reakcję od pierwszej klatki z bodźcem (rAF) do e.timeStamp (stimulus.ts); Stoper i Wieża bez zmian z powodem; stare rekordy bez przeliczania. U14 uchylone przez użytkownika („Kontynuuj bez mojej weryfikacji”), odbiór po fakcie przez ?zegar. 62/62 pakietów, 267/267 części; FIX-02 i faza 5 zakończone, odbiory urządzeń (U03/U04/U09/U14, P11) zostają otwarte. Dowody: 05-61-SUMMARY.md. Commity bez push.

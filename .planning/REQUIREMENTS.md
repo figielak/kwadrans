@@ -47,7 +47,7 @@ Kryteria pochodzą z `ZASADY.md` (§2–6), `ZASADY-GIER.md` i `KONCEPT.md`. Ka�
 ### Raport i poprawki
 
 - [x] **FIX-01**: Zbiorczy raport rozbieżności z priorytetami, zaakceptowany przez użytkownika (które poprawiać)
-- [ ] **FIX-02**: Zaakceptowane rozbieżności poprawione zgodnie z procesem (test i dokument przed kodem); `pnpm typecheck && pnpm test` bez błędów
+- [x] **FIX-02**: Zaakceptowane rozbieżności poprawione zgodnie z procesem (test i dokument przed kodem); `pnpm typecheck && pnpm test` bez błędów
 
 Pokrycie FIX-01 w planach fazy 4: **5/5 zakończone**, wszystkie cztery kryteria sprawdzone w REPORT §5 po zgodzie ZG4-v1:
 
@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 61/62 pakietów, 266/267 części; został P4-061: narzędzie U14 `?zegar` gotowe (05-61), czeka na pomiar telefonu |
+| FIX-02 | Phase 5 | Complete (2026-10-31), 62/62 pakietów, 267/267 części; odbiory na urządzeniach U03/U04/U09, U14 (uchylone przez użytkownika, po fakcie) i P11 otwarte |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -358,3 +358,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-60/P4-053 zakończony: jeden wypełniony akcent na Home, „Wszystkie” i trzy odpowiedzi w podglądzie Koloru liter po zmierzonych obcięciach przy 115%, tytuły Setup, tła i link Rekordów wg ról, minmax w siatkach, Preview Koła; podpisy Kampus Tour bez obcięć, czytelność do U04. 61/62 pakietów, 266/267 części; FIX-02 otwarte. Następny P4-061 (czeka na U14). Dowody: 05-60-SUMMARY.md. Commity bez push.
 
 2026-10-31, 05-61/P4-061 krok 1: narzędzie U14 `?zegar` (clock.ts) zapisuje obok obecnej metody e.timeStamp i pierwszą klatkę rAF w Refleksie, Stój!, Stoperze i Wieży; wynik bez zmian. Chromium 60 Hz: różnica 10-15 ms. Wybór użytkownika: pomiar, potem zmiana. 61/62 pakietów, 266/267 części; FIX-02 otwarte. Czeka na U14 użytkownika. Dowody: 05-61-SUMMARY.md.
+
+2026-10-31, 05-61/P4-061 zakończony: Refleks i Stój! liczą reakcję od pierwszej klatki z bodźcem (rAF) do e.timeStamp (stimulus.ts); Stoper i Wieża bez zmian z powodem; stare rekordy bez przeliczania. U14 uchylone przez użytkownika („Kontynuuj bez mojej weryfikacji”), odbiór po fakcie przez ?zegar. 62/62 pakietów, 267/267 części; FIX-02 i faza 5 zakończone, odbiory urządzeń (U03/U04/U09/U14, P11) zostają otwarte. Dowody: 05-61-SUMMARY.md. Commity bez push.
