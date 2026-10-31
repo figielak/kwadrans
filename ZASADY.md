@@ -209,6 +209,7 @@ animacja tylko go dogania na ekranie.
   | `dice-tumble` | rzut kośćmi, pętla na czas pokazu rzutu | `0.3s` |
   | `card-in` | karta lub okno na środku ekranu (Karta Dziekanatu, oferty, podsumowanie) | `0.35s` |
   | `float-up` | zmiana liczby (kwota, „+1”, punkty Balonu i Wieży) | `1.6s` |
+  | `float-still` | zamiennik `float-up` przy `prefers-reduced-motion`: bez ruchu, gaśnie | `1.6s` |
   | `set-glow` | świeże osiągnięcie (komplet grupy, „Nowy rekord!”), 4 powtórzenia | `0.9s` |
   | `preview-half` | podgląd na ekranie instrukcji: element widać przez pół cyklu; kolejność z ujemnego `animation-delay` | `1s`, `2s`, `2.4s`, `3s` |
   | `preview-quarter` | podgląd na ekranie instrukcji: element widać przez ćwierć cyklu (cztery kroki) | `2.4s`, `4s` |
@@ -245,7 +246,13 @@ animacja tylko go dogania na ekranie.
 - **Kroki sekwencyjne** (pionek idzie pole po polu) to stan „pokazywany” goniący stan „docelowy” w `setTimeout`,
   ze stałymi `STEP_MS` i `ROLL_MS` na górze pliku (wzór: `useShow` w `Chinczyk.tsx`).
 - **`prefers-reduced-motion`**: reguła globalna w `index.css` wyłącza animacje CSS, a każda animacja sterowana z JS
-  sprawdza `reducedMotion` i przeskakuje do stanu końcowego.
+  sprawdza `reducedMotion` i przeskakuje do stanu końcowego. Wyjątki:
+  - **ruch będący zadaniem** (Kubki, Śledzenie, Wieża, Za zasłoną) zostaje: idzie z `requestAnimationFrame` wprost w DOM,
+    z tym samym czasem i torem, bo bez niego nie ma czego śledzić ani mierzyć; dekoracje wokół niego znikają,
+  - **pływająca liczba** (`float-up`, kończy na `opacity: 0`) zamienia się w `float-still`: stoi i gaśnie w tym samym 1,6 s,
+    więc werdykt Wieży, punkty Balonu i kwoty są czytelne bez ruchu,
+  - **podgląd na ekranie instrukcji**: zostaje klatka bazowa, czyli pierwsza klatka jest bazowo widoczna, a kolejne mają
+    `opacity-0` i pojawiają się tylko przez `animation-delay`, więc bez animacji podgląd pokazuje czytelny pierwszy krok.
 - **Pomiar czasu nigdy nie zależy od animacji.** W grach na refleks bodziec pojawia się bez przejścia.
 - **Wibracje zamiast dźwięku**, zawsze `navigator.vibrate?.(...)`:
 

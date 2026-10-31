@@ -74,7 +74,8 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
     return () => clearTimeout(id);
   }, [phase]);
 
-  // Ruch ustawia pozycje wprost w DOM (bez stanu Reacta na klatkę), z tego samego wzoru co serwer.
+  // Ruch ustawia pozycje wprost w DOM (bez stanu Reacta na klatkę), z tego samego wzoru co serwer. Ruch kulek jest zadaniem,
+  // więc nie zależy od przejść CSS i działa tak samo przy prefers-reduced-motion.
   useEffect(() => {
     if (phase !== "move") return;
     const start = performance.now();

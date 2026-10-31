@@ -301,6 +301,17 @@ body::before {
   }
 }
 
+/* Pływająca liczba przy prefers-reduced-motion: stoi w miejscu i gaśnie w tym samym czasie (werdykt Wieży, punkty Balonu, kwoty). */
+@keyframes float-still {
+  0%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 /* Reakcja kafelka na odpowiedź: zielony błysk trafienia, czerwony z potrząśnięciem przy pomyłce (quizy, Dziesiątki, Sudoku, Schulte, Wieża, Stój!). */
 @keyframes tile-hit {
   from {
@@ -367,5 +378,10 @@ body::before {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  /* Klatka końcowa float-up ma opacity 0, więc skrócona animacja ukryłaby liczbę od razu. */
+  [class*="animate-[float-up"] {
+    animation: float-still 1.6s ease-out forwards !important;
   }
 }

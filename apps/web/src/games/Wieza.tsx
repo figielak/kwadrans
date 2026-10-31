@@ -70,7 +70,8 @@ export function Wieza({ view, me, players, ranking, onMove }: Props) {
     if (built.height < next.length || next.length >= WIEZA_LEVELS) setPhase("over");
   }
 
-  // Ruch ustawia pozycję wprost w DOM (bez stanu Reacta na klatkę), z tego samego wzoru co serwer.
+  // Ruch ustawia pozycję wprost w DOM (bez stanu Reacta na klatkę), z tego samego wzoru co serwer. Jazda klocka jest zadaniem,
+  // więc nie zależy od przejść CSS i działa tak samo przy prefers-reduced-motion.
   useEffect(() => {
     if (phase !== "play") return;
     started.current = performance.now();

@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 5
 current_phase_name: Poprawki zaakceptowanych rozbieżności
 status: in_progress
-stopped_at: 05-37/P4-039 zakończony; następny P4-040
+stopped_at: 05-38/P4-040 zakończony; następny P4-042
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
-last_activity_desc: "P4-039 odebrany; TDD 05a0dfe, Śledzenie: rozdzielne cele dotyku; 36/62 pakietów, 157/267 części"
+last_activity_desc: "P4-040 odebrany; TDD 4a535fb, reduced motion: zadanie działa, komunikat widoczny; 37/62 pakietów, 161/267 części"
 state_head: f06def5505a8da7b1481ef76ea778ccd8fbc12a6
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 72
-  completed_plans: 71
+  total_plans: 73
+  completed_plans: 72
   percent: 98
 ---
 
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Faza 5: 05-37/P4-039 odebrany. Następny P4-040; P4-014/015 oczekują U02.
+**Current focus:** Faza 5: 05-38/P4-040 odebrany. Następny P4-042; P4-014/015 oczekują U02.
 
 ## Current Position
 
 Phase: 5 of 5 (Poprawki zaakceptowanych rozbieżności), zakres ZG4-v1/S5-v1 zatwierdzony.
-Plan: 36 of 37 currently planned completed; 05-11 oczekuje fizycznego U02.
+Plan: 37 of 38 currently planned completed; 05-11 oczekuje fizycznego U02.
 Status: In progress. Fazy 1-4 zakończone, FIX-01 zakończone. FIX-02 otwarte.
-Wykonano 36/62 pakietów (P4-001, P4-027, P4-002..013, P4-016..022, P4-023..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039), 157/267 części poprawek; P4-014 wdrożony, 2/3 części odebrane.
+Wykonano 37/62 pakietów (P4-001, P4-027, P4-002..013, P4-016..022, P4-023..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040), 161/267 części poprawek; P4-014 wdrożony, 2/3 części odebrane.
 Last activity: 2026-10-31: zakończono 05-34/P4-037, zwykłe kontrolki 48 px.
 Dowody w 05-34-SUMMARY.md.
 
@@ -118,8 +118,8 @@ commity implementacji po każdym zadaniu. Nie pytać ponownie; push wymaga osobn
 
 Previous activity: 2026-10-24: 03-09 zamknął fazę 3: 16 wpisów z 44 częściowych, macierz 39 gier × 6 kryteriów, 14 przekazań D-02 i 22 pytania do partii. Faza 2 zakończona raportem 102 wpisów (300 wystąpień), faza 1 raportem 55 wpisów.
 
-Progress: 98% obecnie rozpisanych planów, 71/72 (fazy 1-4: 35/35; faza 5: 36/37).
-To nie jest procent ukończenia wdrożenia: wykonano 36/62 pakietów, dalsze plany będą dopisywane.
+Progress: 98% obecnie rozpisanych planów, 72/73 (fazy 1-4: 35/35; faza 5: 37/38).
+To nie jest procent ukończenia wdrożenia: wykonano 37/62 pakietów, dalsze plany będą dopisywane.
 
 ## Performance Metrics
 
@@ -201,8 +201,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-31
-Stopped at: 05-37 zakończony; następny P4-040; FIX-02 otwarte
-Resume file: .planning/phases/05-poprawki-zaakceptowanych-rozbieznosci/05-37-SUMMARY.md
+Stopped at: 05-38 zakończony; następny P4-042; FIX-02 otwarte
+Resume file: .planning/phases/05-poprawki-zaakceptowanych-rozbieznosci/05-38-SUMMARY.md
 
 
 2026-10-29, 05-03/P4-002: dokumentacja i testy regresji przygotowane przed kodem. Typecheck PASS;
@@ -375,3 +375,7 @@ Następny P4-039; P4-014/015 oczekują U02. Dowody: 05-36-SUMMARY.md. Commit bez
 2026-10-31, 05-37/P4-039 zakończony: Śledzenie wybiera kulki panelem 8 przycisków 48 px, numery według końcowej pozycji tylko po zatrzymaniu.
 TDD 05a0dfe. Typy/testy/build PASS. 36/62 pakietów, 157/267 części; FIX-02 otwarte.
 Następny P4-040; P4-014/015 oczekują U02. Dowody: 05-37-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-38/P4-040 zakończony: przy reduced motion ruch-zadanie zostaje, float-up zamienia się w nieruchome float-still, klatka bazowa podglądu opisana.
+TDD 4a535fb. Typy/testy/build PASS. 37/62 pakietów, 161/267 części; FIX-02 otwarte.
+Następny P4-042; P4-014/015 oczekują U02. Dowody: 05-38-SUMMARY.md. Commit bez push.
