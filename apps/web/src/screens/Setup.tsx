@@ -1,4 +1,4 @@
-import { Check, Minus, Play, Plus, Prohibit } from "@phosphor-icons/react";
+import { Check, Minus, Play, Plus, Prohibit, Trophy } from "@phosphor-icons/react";
 import { GAMES, MAX_PLAYERS, MIN_LENGTH, type RoomView } from "@kwadrans/games";
 import { BLURBS, ICONS, MINI_GAMES, Players, seats, StartBar } from "./Lobby.tsx";
 import { SECTIONS } from "./MiniGames.tsx";
@@ -122,14 +122,21 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
         <PlayerDots view={view} />
       </TopBar>
 
-      <div className="flex flex-col gap-1 px-1">
-        <h1 className="label">Turniej · 1-{MAX_PLAYERS} osób</h1>
-        <p className="text-sm text-fg-muted">
+      {/* Ten sam nagłówek co ekran gry: ikona z kafla w lobby, nazwa i liczba osób. */}
+      <section className="tile">
+        <div className="flex items-center gap-3">
+          <Trophy size={28} weight="fill" className="shrink-0" aria-hidden />
+          <div className="min-w-0">
+            <h1 className="leading-tight">Turniej</h1>
+            <p className="font-mono text-xs text-fg-muted tabular-nums">1-{MAX_PLAYERS} osób</p>
+          </div>
+        </div>
+        <p className="mt-3 text-sm text-fg-muted">
           {view.seats.length > 1
             ? "Seria mini-gier po kolei. Za każdą grę dostajesz punkt za każdego pokonanego rywala, wygrywa najwięcej punktów."
             : "Seria mini-gier po kolei. Grasz sam, więc punktów nie ma: liczą się twoje rekordy w każdej grze."}
         </p>
-      </div>
+      </section>
 
       <section className="tile flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">

@@ -153,7 +153,7 @@ export function RecordPanel({ gameId, before, after, nick, color, score }: Panel
 
       <div>
         <p className="flex items-baseline gap-2">
-          <span className="text-4xl font-semibold tabular-nums" style={{ color }}>
+          <span className="font-mono text-4xl font-semibold tabular-nums" style={{ color }}>
             {now.place}. miejsce
           </span>
           <span className="font-mono text-sm text-fg-muted tabular-nums">z {now.of}</span>
@@ -276,7 +276,7 @@ function GameCard({ game: { id, rows, mine }, nick, color, loaded, onOpen, onPla
         {loaded && <TopGame gameId={id} nick={rows[0].nick} color={lead ? color : undefined} />}
         {onPlay && (
           <button type="button" className="btn btn-ghost mt-3 w-full" onClick={() => onPlay(id)}>
-            <Play size={18} aria-hidden />
+            <Play size={18} weight="bold" aria-hidden />
             {lead ? "Zagraj ponownie" : "Pobij"}
           </button>
         )}
@@ -350,7 +350,7 @@ export function Records({
   return (
     <Screen dropped={dropped}>
       <button type="button" className="-ml-2 flex min-h-12 items-center gap-1.5 self-start px-2 text-sm text-fg-muted" onClick={onBack}>
-        <ArrowLeft size={16} aria-hidden />
+        <ArrowLeft size={16} weight="bold" aria-hidden />
         Wróć
       </button>
       <h1 className="text-3xl font-semibold tracking-tight">Rekordy</h1>
@@ -369,8 +369,8 @@ export function Records({
                 { label: "Do pobicia", value: toBeat.length },
               ].map((item) => (
                 <div key={item.label} className="flex flex-col justify-between gap-1 rounded-inset bg-surface-inset p-3">
-                  <dt className="text-sm leading-tight text-fg-muted">{item.label}</dt>
-                  <dd className="text-2xl leading-tight font-semibold tabular-nums">
+                  <dt className="label leading-tight">{item.label}</dt>
+                  <dd className="font-mono text-2xl leading-tight font-semibold tabular-nums">
                     {item.value}
                     {item.of && <span className="text-sm font-normal text-fg-muted"> z {item.of}</span>}
                   </dd>

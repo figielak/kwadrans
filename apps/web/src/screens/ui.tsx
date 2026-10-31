@@ -38,13 +38,13 @@ export function TopBar({ code, onBack, onLeave, children }: { code: string; onBa
   return (
     <div className="flex items-center justify-between">
       <button type="button" className="-ml-2 flex min-h-12 items-center gap-1.5 px-2 text-sm text-fg-muted" onClick={onBack ?? onLeave}>
-        {onBack ? <ArrowLeft size={16} aria-hidden /> : <SignOut size={16} aria-hidden />}
+        {onBack ? <ArrowLeft size={16} weight="bold" aria-hidden /> : <SignOut size={16} weight="bold" aria-hidden />}
         {onBack ? "Gry" : "Wyjdź"}
       </button>
       {children}
       <button type="button" className="-mr-2 flex min-h-12 items-center gap-2 px-2" onClick={share} aria-label={`Kod pokoju ${code}, udostępnij link`}>
         <span className="text-sm text-fg-muted">{copied ? "Skopiowano!" : "Kod"}</span>
-        <span className="font-mono text-lg font-medium tracking-[0.12em]">{code}</span>
+        <span className="font-mono tabular-nums text-lg font-medium tracking-[0.12em]">{code}</span>
         {copied ? <Check size={16} weight="bold" aria-hidden /> : <ShareNetwork size={16} weight="bold" aria-hidden />}
       </button>
     </div>
@@ -129,7 +129,7 @@ export function GameDots({ dots, square, open, onToggle, compact = false }: { do
             </span>
           )}
           {d.plus && (
-            <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono text-sm" style={{ color: d.color }} aria-hidden>
+            <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono tabular-nums text-sm" style={{ color: d.color }} aria-hidden>
               +1
             </span>
           )}
@@ -203,7 +203,7 @@ export function ScoreTable({
           {rows.map((r) => (
             <tr
               key={r.id}
-              className={`text-right font-mono text-sm ${r.id === winner ? "font-semibold" : ""}`}
+              className={`text-right font-mono tabular-nums text-sm ${r.id === winner ? "font-semibold" : ""}`}
               style={r.id === winner ? { backgroundColor: `color-mix(in srgb, ${r.color} 16%, transparent)` } : undefined}
             >
               <td className="max-w-0 rounded-l-inset px-2 py-1.5 text-left font-sans text-base">
@@ -211,7 +211,7 @@ export function ScoreTable({
                   {r.id === winner ? (
                     <Trophy size={16} weight="fill" color={r.color} className="w-5 shrink-0" aria-label="Zwycięzca" />
                   ) : ranked && r.place !== undefined ? (
-                    <span className="w-5 shrink-0 font-mono" style={{ color: r.color }}>
+                    <span className="w-5 shrink-0 font-mono tabular-nums" style={{ color: r.color }}>
                       {r.place}.
                     </span>
                   ) : (
@@ -286,7 +286,13 @@ export function TimeBar({ ms, fill = false, color, bar = "" }: { ms: number; fil
   );
 }
 
-export const tenth = (n: number) => n.toFixed(1).replace(".", ",");
+/** Liczba z przecinkiem dziesiętnym i typograficznym minusem; zaokrąglone do zera nie dostaje znaku („0,0”, nie „−0,0”). */
+export function decimal(n: number, digits: number): string {
+  const text = Math.abs(n).toFixed(digits).replace(".", ",");
+  return n < 0 && Number(text.replace(",", ".")) !== 0 ? `−${text}` : text;
+}
+
+export const tenth = (n: number) => decimal(n, 1);
 
 /** Kolor według celności błędu: do `perfect` zielony, powyżej `close` ostrzegawczy. */
 export const grade = (d: number, perfect: number, close: number) =>

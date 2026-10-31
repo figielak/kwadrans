@@ -90,7 +90,7 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
             perfect={0}
             close={0}
             unit=""
-            format={(n) => (n === 0 ? "–" : n)}
+            format={(n) => n}
             // Stuknięcia, nie błąd: kolor mówi, czy balon pękł, nikt nie ma „najlepszego” w rundzie.
             tone={(n, i) =>
               n > view.limits[i]
@@ -101,7 +101,7 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
                     ? { className: "text-fg-muted", label: "bez pompowania" }
                     : { className: "" }
             }
-            caption="Stuknięcia w każdym balonie. Przekreślone na czerwono: balon pękł przy tym stuknięciu (0 pkt). Zielone: zgarnięty w ostatniej chwili. Kreska: zgarnięty bez pompowania."
+            caption="Stuknięcia w każdym balonie. Przekreślone na czerwono: balon pękł przy tym stuknięciu (0 pkt). Zielone: zgarnięty w ostatniej chwili. Szare 0: zgarnięty bez pompowania."
           />
         )}
       </>

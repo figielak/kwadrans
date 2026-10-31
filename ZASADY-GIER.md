@@ -186,7 +186,7 @@ Wspólne zasady w `quiz.ts`, wspólny ekran `Quiz.tsx` (dzielą je też Inny ele
 - Jeden ruch z 5 kolorami (wszystkie składowe int). Wynik liczy serwer: suma ΔE (CIE76 w Lab), każda ucięta do 100,
   zapisana w dziesiątych częściach (int). Mniej lepiej.
 - Pusta lista = limit czasu = 5 × 100.
-- Ekran: wzór i podgląd mają ten sam rozmiar (duże pole wydaje się jaśniejsze i bardziej nasycone), suwaki startują losowo,
+- Ekran: licznik „Kolor 1/5” w pasku `Stats`, wzór i podgląd mają ten sam rozmiar (duże pole wydaje się jaśniejsze i bardziej nasycone), suwaki startują losowo,
   przycisk „Zatwierdź kolor” w kolorze gracza. Po zatwierdzeniu porównanie: wzór i odpowiedź obok siebie, zgodność w % (100 − ΔE)
   i podpowiedzi z `hints` („za ciemny”, „za mało nasycony”, „za bardzo w stronę żółci”; progi: jasność 8, nasycenie 10, barwa 10°).
   Po ostatnim kolorze nie ma porównania, od razu ekran wyników (pary wszystkich kolorów są tam).
@@ -461,6 +461,7 @@ Przebieg, walidacja, punktacja i ekran końcowy jak w Obrocie (`quiz.ts`, `Quiz.
   „Zatwierdź” kończy rundę. Potem przez 1,5 s widać prawdziwe miejsce (pierścień), linię do znacznika i odległość w km:
   do 20 km na zielono z „Idealnie!”, ponad 150 km kolorem ostrzeżenia.
 - Ekran końcowy: suma każdego gracza i tabela rund (miasto, km każdego gracza, najlepszy w rundzie na tle w swoim kolorze).
+  Ponad 999 km komórka pokazuje „999+” (cztery cyfry nie mieszczą się na 360 px); pełna odległość jest w podpowiedzi komórki i w sumie.
 
 ### Przytrzymaj (`przytrzymaj`)
 - 5 rund (`ROUNDS`). W każdej po 1 s przerwy pole świeci się przez czas celu i gaśnie, potem gracz przykłada palec i trzyma go tak długo,
@@ -494,7 +495,7 @@ Przebieg, walidacja, punktacja i ekran końcowy jak w Obrocie (`quiz.ts`, `Quiz.
   Punktów rywali w trakcie nie widać: zdradzałyby, ile balon wytrzymuje.
 - Ekran: kwadratowy kafel z balonem w kolorze gracza, dotknięcie kafla pompuje. Rozmiar balonu zależy tylko od liczby stuknięć,
   nie od wytrzymałości. Pod kaflem „Zgarnij 12 pkt”. Po zgarnięciu „+12”, po pęknięciu „Pękł!” i wibracja 60; następny balon po 0,8 s, a napis gaśnie w pełne 1,6 s.
-  Na końcu tabela: ile każdy balon wytrzymywał i ile stuknięć zrobił każdy gracz (pęknięty: przekreślona czerwona liczba, pusty: kreska).
+  Na końcu tabela: ile każdy balon wytrzymywał i ile stuknięć zrobił każdy gracz (pęknięty: przekreślona czerwona liczba, pusty: szare 0).
 
 ### W pamięci (`w-pamieci`)
 - Do 12 rund (`ROUNDS`). W każdej na ekranie pojawia się liczba startowa, a po niej kolejne działania („+7”, „−3”, „×2”), każda pozycja
@@ -580,7 +581,7 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 - Bez ruchu `progress` (jedna runda).
 - Ekran: lista w siatce 5×2 z paskiem upływającego czasu, potem półka 5×4; dotknięcie kafla zaznacza i odznacza (obwódka w kolorze gracza),
   pod spodem „Gotowe”. W pasku statystyk liczba zaznaczonych i czas.
-- Ekran końcowy: wyniki („8 pkt (9 traf., 1 błąd) · 12,3 s”) i jedna półka z odpowiedzią: przedmioty z listy podświetlone,
+- Ekran końcowy: wyniki w jednym krótkim wierszu („8 pkt · 12,3 s”; trafienia i błędy widać na półce) i jedna półka z odpowiedzią: przedmioty z listy podświetlone,
   przy każdym kropki w kolorach graczy, którzy go zaznaczyli.
 
 ### Za zasłoną (`zaslona`)

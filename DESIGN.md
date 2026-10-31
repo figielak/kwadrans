@@ -169,6 +169,7 @@ Stan pusty mówi, czemu jest pusto: „Za krótka partia na ciekawostki.”, w t
 - **Kolor znaczy.** Role tokenów określa tabela w §2; kolor gracza wskazuje właściciela lub jego akcję.
 - **Obrys przed wypełnieniem.** Karty, przyciski drugorzędne i pola mają obrys 1 px w `line`; pełne tło dostaje tylko to, co ma przyciągać.
 - **Liczby są mono.** Kod, wynik, czas, miejsce i licznik idą Geist Mono z `tabular-nums`, żeby nie skakały przy zmianie.
+  Wyjątek: liczba w zdaniu narracji może zostać Satoshi (ZASADY §4). Jednostka wspólna dla kolumny idzie do nagłówka („pkt” w tabeli turnieju).
   Liczby nad polem gry to zawsze pasek `Stats`, tabela rund po partii to `RoundTable`, wyniki z kolumnami to `ScoreTable` (wszystkie w `ui.tsx`; Odcień z parami próbek to wyjątek).
 - **Podpis to `.label`.** Nagłówek nad blokiem (kaflem, sekcją ekranu) i etykieta liczby to małe wersaliki mono, nigdy pogrubiony Satoshi.
   Wyjątek: grupy wewnątrz jednej listy (kategorie w siatce mini-gier, sekcje ekranu „Rekordy”) mają zwykły Satoshi 14 px `fg-muted`,

@@ -181,11 +181,11 @@ export function Rok({ view, me, players, ranking, onMove }: Props) {
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <button type="button" className="btn btn-ghost size-12 shrink-0 p-0 font-mono" aria-label="Rok wcześniej" onClick={() => setYear(Math.max(MIN_YEAR, year - 1))}>
+            <button type="button" className="btn btn-ghost size-12 shrink-0 p-0 font-mono tabular-nums" aria-label="Rok wcześniej" onClick={() => setYear(Math.max(MIN_YEAR, year - 1))}>
               −1
             </button>
             <input type="range" min={MIN_YEAR} max={MAX_YEAR} value={year} onChange={(e) => setYear(Number(e.target.value))} className="swatch-range bg-bg" aria-label="Rok" />
-            <button type="button" className="btn btn-ghost size-12 shrink-0 p-0 font-mono" aria-label="Rok później" onClick={() => setYear(Math.min(MAX_YEAR, year + 1))}>
+            <button type="button" className="btn btn-ghost size-12 shrink-0 p-0 font-mono tabular-nums" aria-label="Rok później" onClick={() => setYear(Math.min(MAX_YEAR, year + 1))}>
               +1
             </button>
           </div>

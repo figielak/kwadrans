@@ -76,7 +76,7 @@ export function Stoper({ view, me, players, ranking, onMove }: Props) {
         {off !== undefined && (
           <section className="tile flex flex-col items-center gap-1 p-6">
             <span className="label">{stopped === undefined ? "Odchyłka" : id === me ? "Twój czas" : "Czas gracza"}</span>
-            <span className="text-7xl font-semibold tabular-nums">{stopped === undefined ? `${seconds(off)} s` : seconds(stopped)}</span>
+            <span className="font-mono text-7xl font-semibold tabular-nums">{stopped === undefined ? `${seconds(off)} s` : seconds(stopped)}</span>
             {diff !== undefined && (
               <span className={`text-2xl font-semibold tabular-nums ${off <= 100 ? "text-success" : off <= 500 ? "text-fg" : "text-warning"}`}>
                 {diff < 0 ? "−" : "+"}
@@ -117,7 +117,7 @@ export function Stoper({ view, me, players, ranking, onMove }: Props) {
     >
       <span className="label">Cel</span>
       <span className="text-3xl font-semibold tabular-nums">{goal}</span>
-      <span className="my-4 text-7xl font-semibold tabular-nums">
+      <span className="my-4 font-mono text-7xl font-semibold tabular-nums">
         {elapsed < 0 ? Math.ceil(-elapsed / 1000) : elapsed < STOPER_VISIBLE_MS ? seconds(elapsed) : "?,??"}
       </span>
       <span className="text-fg-muted">{elapsed < 0 ? "Przygotuj się" : `Dotknij, gdy minie ${goal}`}</span>

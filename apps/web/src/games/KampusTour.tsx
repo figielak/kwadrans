@@ -151,7 +151,7 @@ const UTILITY_ICONS: Record<string, Icon> = { Ksero: Printer, Stołówka: ForkKn
 
 /** Kwota: liczba w mono, „zł” mniejsze i tuż przy niej. */
 const zl = (n: number | string) => (
-  <span className="font-mono whitespace-nowrap">
+  <span className="font-mono tabular-nums whitespace-nowrap">
     {n}
     <span className="ml-px text-[0.75em]">zł</span>
   </span>
@@ -503,7 +503,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
     if (t.kind === "utility") {
       const count = BOARD.filter((b, j) => b.kind === "utility" && owners[j] === owner).length;
       return (
-        <span className="inline-flex items-center gap-px font-mono">
+        <span className="inline-flex items-center gap-px font-mono tabular-nums">
           <DiceFive size={12} weight="fill" aria-label="oczka" />×{UTILITY_RATES[count - 1]}
         </span>
       );
@@ -691,7 +691,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
             {SPECIAL_KINDS[tile.kind] && <p className="text-xs text-fg-muted">{SPECIAL_KINDS[tile.kind]}</p>}
           </div>
           <button type="button" className="btn btn-ghost shrink-0 px-2 text-fg-muted" aria-label="Zamknij" onClick={() => setSelected(null)}>
-            <X size={18} aria-hidden />
+            <X size={18} weight="bold" aria-hidden />
           </button>
         </div>
         {text && <p className="text-sm">{text}</p>}
@@ -700,7 +700,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
             {rows.map(([k, v]) => (
               <div key={k} className="contents">
                 <dt className="text-fg-muted">{k}</dt>
-                <dd className="font-mono">{v}</dd>
+                <dd className="font-mono tabular-nums">{v}</dd>
               </div>
             ))}
             <dt className="text-fg-muted">Właściciel</dt>
@@ -792,13 +792,13 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
               {view.kolokwium.includes(id) && badge(Exam, "Kolokwium", CORNERS.kolokwium.color)}
               {(view.passes[id] ?? 0) > 0 && badge(Cards, view.passes[id] > 1 ? `Zaliczenie ×${view.passes[id]}` : "Zaliczenie", SPECIAL_COLOR)}
               {view.mpk.includes(id) && badge(Bus, "Bilet MPK", CORNERS.mpk.color)}
-              {ranking.includes(id) && <span className="font-mono">{ranking.indexOf(id) + 1}. miejsce</span>}
+              {ranking.includes(id) && <span className="font-mono tabular-nums">{ranking.indexOf(id) + 1}. miejsce</span>}
               {floats
                 .filter((f) => f.player === id)
                 .map((f) => (
                   <span
                     key={f.key}
-                    className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono text-base font-semibold whitespace-nowrap drop-shadow-[0_1px_2px_rgb(0_0_0/0.9)]"
+                    className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono tabular-nums text-base font-semibold whitespace-nowrap drop-shadow-[0_1px_2px_rgb(0_0_0/0.9)]"
                     style={{ color: f.amount > 0 ? "var(--color-success)" : "var(--color-warning)" }}
                     aria-hidden
                   >
@@ -862,7 +862,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
                   {view.juwenalia?.tile === i && (
                     <span
                       role="img"
-                      className="absolute top-0 left-0 flex items-center rounded-br-sm bg-bg/80 px-0.5 font-mono text-[10px] leading-none font-semibold"
+                      className="absolute top-0 left-0 flex items-center rounded-br-sm bg-bg/80 px-0.5 font-mono tabular-nums text-[10px] leading-none font-semibold"
                       style={{ color: CORNERS.juwenalia.color }}
                       aria-label={`Juwenalia: czynsz ×${view.juwenalia.factor}`}
                     >
@@ -1094,7 +1094,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
             >
               <div className="flex items-center gap-2 px-4 py-2.5 text-bg" style={{ backgroundColor: SPECIAL_COLOR }}>
                 <Cards size={22} weight="fill" aria-hidden />
-                <span className="text-xs font-semibold tracking-wide uppercase">Karta Dziekanatu · {nick(view.turn!)}</span>
+                <span className="label text-bg">Karta Dziekanatu · {nick(view.turn!)}</span>
               </div>
               <div className="flex flex-col gap-2 p-4 text-center">
                 <h2 className="text-lg font-semibold">{CARDS[view.card].title}</h2>
@@ -1135,7 +1135,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
             >
               <div className="flex items-center gap-2 px-4 py-2.5 text-bg" style={{ backgroundColor: color(warning.player) }}>
                 <Warning size={22} weight="fill" aria-hidden />
-                <span className="text-xs font-semibold tracking-wide uppercase">Groźba monopolu</span>
+                <span className="label text-bg">Groźba monopolu</span>
               </div>
               <div className="flex flex-col gap-2 p-4 text-center">
                 <h2 className="text-lg font-semibold">

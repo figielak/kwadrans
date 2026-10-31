@@ -54,7 +54,7 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
             ) : view.word ? (
               view.word
             ) : (
-              <span role="img" className="font-mono tracking-[0.3em]" aria-label={`Hasło, liter: ${view.hint.length}${view.revealed.length ? `, odsłonięta: ${view.hint.replace(/_/g, "")}` : ""}`}>
+              <span role="img" className="font-mono tabular-nums tracking-[0.3em]" aria-label={`Hasło, liter: ${view.hint.length}${view.revealed.length ? `, odsłonięta: ${view.hint.replace(/_/g, "")}` : ""}`}>
                 {view.hint}
               </span>
             )}
@@ -288,11 +288,11 @@ function Pad({ view, onMove }: { view: KalamburyView; onMove: Props["onMove"] })
         </div>
         <div className="flex gap-3">
           <button type="button" className="btn btn-ghost flex-1" disabled={strokes.length === 0 && cleared.length === 0} onClick={() => edit("undo")}>
-            <ArrowCounterClockwise size={18} aria-hidden />
+            <ArrowCounterClockwise size={18} weight="bold" aria-hidden />
             Cofnij
           </button>
           <button type="button" className="btn btn-ghost flex-1" disabled={strokes.length === 0} onClick={() => edit("clear")}>
-            <Trash size={18} aria-hidden />
+            <Trash size={18} weight="bold" aria-hidden />
             Wyczyść
           </button>
         </div>

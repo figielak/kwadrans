@@ -22,7 +22,7 @@ function Preview() {
   return (
     <div className="flex gap-2">
       {[3, 6, 7, 2].map((n, i) => (
-        <span key={i} className="relative flex size-12 items-center justify-center rounded-inset border border-line bg-surface font-mono text-xl font-semibold">
+        <span key={i} className="relative flex size-12 items-center justify-center rounded-inset border border-line bg-surface font-mono tabular-nums text-xl font-semibold">
           {n}
           {n !== 6 && n !== 2 && (
             <span className="absolute -inset-px animate-[preview-half_2.4s_linear_infinite] rounded-inset border-2 border-success opacity-0 [animation-delay:-1.2s]" />

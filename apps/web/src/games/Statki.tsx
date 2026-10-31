@@ -477,13 +477,13 @@ function Grid({
   compact?: boolean;
 }) {
   const at = cellAt(SIZE);
-  const text = `font-mono ${compact ? "text-[9px]" : "text-[11px]"}`;
+  const text = `font-mono tabular-nums ${compact ? "text-[9px]" : "text-[11px]"}`;
   const axis = (on: boolean) => `${text} ${on ? "font-semibold text-fg" : "text-fg-muted"}`;
   const px = cross === null ? null : at(cross).x;
   const py = cross === null ? null : at(cross).y;
   return (
     <section aria-label={label} style={{ viewTransitionName: vt }}>
-      <h2 className={`mb-2 font-semibold ${compact ? "text-xs" : "text-sm"}`} style={{ color }}>
+      <h2 className={`label mb-2`} style={{ color }}>
         {label}
       </h2>
       <div

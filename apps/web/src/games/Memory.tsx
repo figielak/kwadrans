@@ -107,7 +107,7 @@ export function Memory({ view, players, canMove, onMove }: Props) {
                   {/* Animacja na emoji, nie na ściance: transform z keyframes nadpisałby jej obrót. */}
                   <span className={`text-[50cqw] leading-none ${owner !== null && isNew(i) ? "animate-[stone-pop_0.35s_ease-out]" : ""}`}>{emoji}</span>
                   {owner !== null && (
-                    <span className="absolute top-0.5 left-1 font-mono text-[18cqw] leading-none font-semibold" style={{ color }}>
+                    <span className="absolute top-0.5 left-1 font-mono tabular-nums text-[18cqw] leading-none font-semibold" style={{ color }}>
                       {labels[view.players.indexOf(owner)]}
                     </span>
                   )}

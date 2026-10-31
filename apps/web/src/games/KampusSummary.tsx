@@ -51,7 +51,7 @@ export function KampusSummary({ title, winner, stats, players, nick, color, fina
           <dl className="flex w-40 shrink-0 flex-col gap-2 text-xs empty:hidden">
             {rent && (
               <div>
-                <dt className="text-fg-muted">Najwięcej czynszu zapłacił(a)</dt>
+                <dt className="label">Najwięcej czynszu zapłacił(a)</dt>
                 <dd>
                   {who(rent[0])} · {rent[1]} zł
                 </dd>
@@ -59,7 +59,7 @@ export function KampusSummary({ title, winner, stats, players, nick, color, fina
             )}
             {tile && (
               <div>
-                <dt className="text-fg-muted">Najbardziej dochodowe pole</dt>
+                <dt className="label">Najbardziej dochodowe pole</dt>
                 <dd>
                   <span className="font-semibold">{BOARD[Number(tile[0])].name}</span> · {tile[1]} zł
                 </dd>
@@ -67,7 +67,7 @@ export function KampusSummary({ title, winner, stats, players, nick, color, fina
             )}
             {doubles && (
               <div>
-                <dt className="text-fg-muted">Najwięcej dubletów</dt>
+                <dt className="label">Najwięcej dubletów</dt>
                 <dd>
                   {who(doubles[0])} · {doubles[1]}
                 </dd>
@@ -150,7 +150,7 @@ function WealthChart({
         {ticks.map((t) => (
           <g key={t}>
             <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} stroke="var(--color-line)" />
-            <text x={PAD.left - 4} y={y(t) + 3} textAnchor="end" className="fill-fg-muted font-mono text-[9px]">
+            <text x={PAD.left - 4} y={y(t) + 3} textAnchor="end" className="fill-fg-muted font-mono tabular-nums text-[9px]">
               {t}
             </text>
           </g>

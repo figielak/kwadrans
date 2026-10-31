@@ -244,7 +244,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
         {/* Gra solo nie ma lobby, więc z trwającej partii wychodzi się prosto na ekran główny. */}
         {view.solo && view.phase === "playing" && (
           <button type="button" className="-my-2 -ml-2 flex min-h-12 items-center gap-1.5 self-start px-2 text-sm text-fg-muted" onClick={onLeave}>
-            <ArrowLeft size={16} aria-hidden />
+            <ArrowLeft size={16} weight="bold" aria-hidden />
             Wyjdź
           </button>
         )}
@@ -309,7 +309,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                         ))}
                       </span>
                     ) : memory ? (
-                      <span role="img" className="text-base font-semibold text-fg tabular-nums" aria-label={`Pary: ${memory.owner.filter((o) => o === id).length / 2}`}>
+                      <span role="img" className="font-mono text-base font-semibold text-fg tabular-nums" aria-label={`Pary: ${memory.owner.filter((o) => o === id).length / 2}`}>
                         {memory.owner.filter((o) => o === id).length / 2}
                       </span>
                     ) : fleet ? (
@@ -333,7 +333,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                         </span>
                         {id === winner && (
                           <span
-                            className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono text-sm"
+                            className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono tabular-nums text-sm"
                             style={{ color: p?.color }}
                             aria-hidden
                           >
@@ -463,7 +463,10 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
 
         {view.phase === "over" && t && view.seats.length > 1 && table && (
           <section className="tile p-4">
-            <h2 className="label mb-2">{tournamentOver ? "Wyniki turnieju" : "Tabela turnieju"}</h2>
+            <h2 className="label mb-2 flex justify-between">
+              {tournamentOver ? "Wyniki turnieju" : "Tabela turnieju"}
+              <span className="w-14 text-right">pkt</span>
+            </h2>
             <ol className="flex flex-col gap-1">
               {table.map((r, i) => (
                 <li key={r.id} className="flex items-center gap-3">
@@ -483,7 +486,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                       +{r.last}
                     </span>
                   )}
-                  <span className="w-14 text-right font-mono font-semibold tabular-nums">{r.total} pkt</span>
+                  <span className="w-14 text-right font-mono font-semibold tabular-nums">{r.total}</span>
                 </li>
               ))}
             </ol>

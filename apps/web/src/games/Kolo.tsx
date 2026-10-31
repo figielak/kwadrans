@@ -215,7 +215,7 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
         <Stats
           items={[
             { label: "Próba", value: `${attempts + 1}/${KOLO_ATTEMPTS}` },
-            { label: "Najlepsza", value: best ? percent(best.score) : "-" },
+            { label: "Najlepsza", value: best ? percent(best.score) : "brak" },
           ]}
         />
         <div ref={canvas} className="relative mx-auto w-full" style={{ maxWidth: canvasSize }}>

@@ -108,7 +108,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
     return (
       <Screen dropped={false}>
         <button type="button" className="-ml-2 flex min-h-12 items-center gap-1.5 self-start px-2 text-sm text-fg-muted" onClick={() => setScreen(null)}>
-          <ArrowLeft size={16} aria-hidden />
+          <ArrowLeft size={16} weight="bold" aria-hidden />
           Wróć
         </button>
         <h1 className="text-3xl font-semibold tracking-tight">Mini-gry</h1>
@@ -206,7 +206,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
             Losowa gra
           </button>
           <button type="button" className="btn btn-ghost px-2 whitespace-nowrap" disabled={!!busy} onClick={() => setScreen("all")}>
-            <SquaresFour size={18} className="shrink-0" aria-hidden />
+            <SquaresFour size={18} weight="bold" className="shrink-0" aria-hidden />
             Wszystkie ({MINI_GAME_IDS.length})
           </button>
         </div>
@@ -231,7 +231,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
         >
           <div className="flex gap-2">
             <input
-              className="field font-mono text-xl tracking-[0.4em] uppercase"
+              className="field font-mono tabular-nums text-xl tracking-[0.4em] uppercase"
               value={code}
               placeholder="KOD"
               aria-label="Kod pokoju"
@@ -352,7 +352,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
             {back.map((r) => (
               <li key={r.code}>
                 <button type="button" className="flex min-h-12 w-full items-center gap-3 text-left" disabled={!!busy} onClick={() => go("join", r.code)}>
-                  <span className="font-mono font-medium tracking-[0.12em]">{r.code}</span>
+                  <span className="font-mono tabular-nums font-medium tracking-[0.12em]">{r.code}</span>
                   <span className="flex-1 truncate text-sm text-fg-muted">
                     {(r.gameId && GAMES[r.gameId]?.name) || "Lobby"} · {alive[r.code]} {alive[r.code] === 1 ? "gracz" : "graczy"}
                   </span>

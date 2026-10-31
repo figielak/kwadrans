@@ -114,7 +114,7 @@ export function Rytm({ view, me, players, ranking, onMove }: Props) {
           <section className="tile flex flex-col items-center gap-1 p-6">
             <span className="label">{id === me ? "Twoje tempo" : "Tempo gracza"}</span>
             {/* Średni odstęp to czas ostatniego stuknięcia podzielony przez ich liczbę. */}
-            <span className="text-7xl font-semibold tabular-nums">{bpm(taps[taps.length - 1] / taps.length)}</span>
+            <span className="font-mono text-7xl font-semibold tabular-nums">{bpm(taps[taps.length - 1] / taps.length)}</span>
             <span className="text-2xl font-semibold tabular-nums text-fg-muted">cel {bpm(view.interval)} BPM</span>
           </section>
         )}
@@ -157,7 +157,7 @@ export function Rytm({ view, me, players, ranking, onMove }: Props) {
         }`}
         style={{ backgroundColor: pressed ? color : undefined }}
       >
-        {tapping && !lit ? "Stukaj dalej" : beat < 0 ? "Słuchaj" : <span className="text-7xl tabular-nums">{(beat % BAR) + 1}</span>}
+        {tapping && !lit ? "Stukaj dalej" : beat < 0 ? "Słuchaj" : <span className="font-mono text-7xl tabular-nums">{(beat % BAR) + 1}</span>}
       </button>
     </div>
   );

@@ -34,7 +34,7 @@ function Preview({ color }: { color?: string }) {
         className="absolute top-1/2 left-[15%] size-5 -translate-y-1/2 animate-[preview-half_3s_linear_infinite] rounded-full"
         style={{ backgroundColor: color }}
       />
-      <span className="absolute inset-y-0 left-[45%] flex w-[35%] animate-[preview-half_3s_linear_infinite] items-center justify-center font-mono text-fg-muted opacity-0 [animation-delay:-1.5s]">
+      <span className="absolute inset-y-0 left-[45%] flex w-[35%] animate-[preview-half_3s_linear_infinite] items-center justify-center font-mono tabular-nums text-fg-muted opacity-0 [animation-delay:-1.5s]">
         ?
       </span>
     </div>

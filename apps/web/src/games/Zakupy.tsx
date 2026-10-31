@@ -13,7 +13,6 @@ interface Props {
 type Phase = "intro" | "show" | "pick" | "sent";
 
 /** „1 błąd”, „2 błędy”, „5 błędów”. */
-const wrongLabel = (n: number) => `${n} ${n === 1 ? "błąd" : n % 10 >= 2 && n % 10 <= 4 && (n < 12 || n > 14) ? "błędy" : "błędów"}`;
 
 /** Podgląd na ekranie instrukcji: kilka przedmiotów, z których część migają jako „z listy”. */
 function Preview({ color }: { color?: string }) {
@@ -88,7 +87,7 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
         nick: p?.nick ?? "Gracz",
         color: p?.color,
         me: id === me,
-        score: r ? `${r.score} pkt (${r.hits} traf., ${wrongLabel(r.wrong)}) · ${tenth(r.ms / 1000)} s` : null,
+        score: r ? `${r.score} pkt · ${tenth(r.ms / 1000)} s` : null,
       };
     });
     // Kto zaznaczył: kropka z inicjałem (sam kolor nie wystarcza do rozpoznania gracza).
@@ -99,7 +98,7 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
         <Scores rows={all} />
         <p className="text-sm text-fg-muted">Trafienia minus zaznaczenia spoza listy. Przy remisie wygrywa szybszy.</p>
         <section className="tile flex flex-col gap-2 p-3">
-          <span className="text-sm text-fg-muted">Lista zakupów</span>
+          <span className="label">Lista zakupów</span>
           <div className="grid grid-cols-5 gap-1">
             {view.items.map((item, i) => {
               const onList = view.listed.includes(i);
@@ -113,7 +112,7 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
                   {item}
                   <span className="absolute bottom-0.5 flex gap-0.5">
                     {who.filter((w) => view.picked[w.id]?.includes(i)).map((w) => (
-                      <span key={w.id} className="grid size-3.5 place-items-center rounded-full font-mono text-[8px] leading-none font-semibold text-bg" style={{ backgroundColor: w.color }} aria-hidden>
+                      <span key={w.id} className="grid size-3.5 place-items-center rounded-full font-mono tabular-nums text-[8px] leading-none font-semibold text-bg" style={{ backgroundColor: w.color }} aria-hidden>
                         {w.label}
                       </span>
                     ))}

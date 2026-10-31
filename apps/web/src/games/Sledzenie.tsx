@@ -161,7 +161,7 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
               ref={(el) => {
                 dots.current[i] = el;
               }}
-              className={`absolute grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full font-mono text-xs font-semibold text-bg ${lit ? "" : "bg-fg"}`}
+              className={`absolute grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full font-mono tabular-nums text-xs font-semibold text-bg ${lit ? "" : "bg-fg"}`}
               style={{
                 left: `${at[i].x * 100}%`,
                 top: `${at[i].y * 100}%`,

@@ -1,6 +1,6 @@
 import { type LobbyPlayer, SCHULTE_PENALTY_MS, SCHULTE_SIZE, type SchulteView, schulteTotal } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
-import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { decimal, Intro, Scores, Stats, tenth } from "../screens/ui.tsx";
 import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
@@ -12,14 +12,14 @@ interface Props {
 }
 
 const LAST = SCHULTE_SIZE * SCHULTE_SIZE;
-const seconds = (ms: number) => (ms / 1000).toFixed(1).replace(".", ",");
+const seconds = (ms: number) => tenth(ms / 1000);
 
 /** Podgląd na ekranie instrukcji: kolejne liczby podświetlają się po kolei. */
 function Preview() {
   return (
     <div className="grid grid-cols-3 gap-1">
       {[5, 2, 8, 1, 9, 3, 7, 4, 6].map((n) => (
-        <span key={n} className="relative flex size-8 items-center justify-center rounded-inset border border-line bg-surface font-mono text-sm font-semibold">
+        <span key={n} className="relative flex size-8 items-center justify-center rounded-inset border border-line bg-surface font-mono tabular-nums text-sm font-semibold">
           {n}
           {n <= 3 && (
             <span
@@ -81,7 +81,7 @@ export function Schulte({ view, me, players, ranking, onMove }: Props) {
       nick: p?.nick ?? "Gracz",
       color: p?.color,
       me: id === me,
-      score: res?.completed === false ? "Nieukończono" : res ? `${seconds(schulteTotal(res))} s${res.mistakes ? ` (+${(res.mistakes * SCHULTE_PENALTY_MS) / 1000} s kary)` : ""}` : null,
+      score: res?.completed === false ? "Nieukończono" : res ? `${seconds(schulteTotal(res))} s${res.mistakes ? ` (+${decimal((res.mistakes * SCHULTE_PENALTY_MS) / 1000, 0)} s kary)` : ""}` : null,
     };
   });
 
@@ -115,7 +115,7 @@ export function Schulte({ view, me, players, ranking, onMove }: Props) {
         preview={<Preview />}
         time="Stoper rusza po Starcie"
         task="Dotykaj liczby od 1 do 25 po kolei"
-        score={`Wygrywa najkrótszy czas, każda pomyłka to +${SCHULTE_PENALTY_MS / 1000} s`}
+        score={`Wygrywa najkrótszy czas, każda pomyłka to +${decimal(SCHULTE_PENALTY_MS / 1000, 0)} s`}
         onStart={() => {
           start.current = performance.now();
           setNow(start.current);
@@ -130,7 +130,7 @@ export function Schulte({ view, me, players, ranking, onMove }: Props) {
       <Stats
         items={[
           { label: "Szukaj", value: target },
-          { label: "Kara", value: `+${(mistakes * SCHULTE_PENALTY_MS) / 1000} s`, warn: mistakes > 0 },
+          { label: "Kara", value: `+${decimal((mistakes * SCHULTE_PENALTY_MS) / 1000, 0)} s`, warn: mistakes > 0 },
           { label: "Twój czas", value: `${seconds(now - start.current)} s` },
         ]}
       />
@@ -141,7 +141,7 @@ export function Schulte({ view, me, players, ranking, onMove }: Props) {
             key={n === flash?.n ? `${n}-${flash.id}` : n}
             type="button"
             onPointerDown={() => press(n)}
-            className={`touch-none select-none rounded-inset border border-line bg-surface font-mono text-2xl font-semibold ${n === flash?.n ? (flash.ok ? "animate-[tile-hit_0.35s_ease-out]" : "animate-[tile-miss_0.35s_ease-out]") : ""}`}
+            className={`touch-none select-none rounded-inset border border-line bg-surface font-mono tabular-nums text-2xl font-semibold ${n === flash?.n ? (flash.ok ? "animate-[tile-hit_0.35s_ease-out]" : "animate-[tile-miss_0.35s_ease-out]") : ""}`}
           >
             {n}
           </button>
@@ -153,7 +153,8 @@ export function Schulte({ view, me, players, ranking, onMove }: Props) {
 
 const W = 320;
 const H = 120;
-const PAD = { left: 22, right: 6, top: 8, bottom: 16 };
+// Podpisy osi 12 jednostek: przy szerokości ok. 300 px na telefonie to ok. 11 px (minimum z DESIGN §2).
+const PAD = { left: 34, right: 6, top: 8, bottom: 18 };
 
 /** Czas szukania kolejnych liczb: linia na gracza w jego kolorze, kropka na liczbie, której szukał najdłużej. */
 function SplitChart({ series }: { series: { id: string; nick: string; color?: string; splits: number[] }[] }) {
@@ -172,13 +173,13 @@ function SplitChart({ series }: { series: { id: string; nick: string; color?: st
         {[0, hi].map((t) => (
           <g key={t}>
             <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} stroke="var(--color-line)" />
-            <text x={PAD.left - 4} y={y(t) + 3} textAnchor="end" className="fill-fg-muted font-mono text-[9px]">
-              {t / 1000} s
+            <text x={PAD.left - 4} y={y(t) + 3} textAnchor="end" className="fill-fg-muted font-mono text-[12px] tabular-nums">
+              {decimal(t / 1000, t % 1000 ? 1 : 0)} s
             </text>
           </g>
         ))}
         {[1, 5, 10, 15, 20, 25].map((n) => (
-          <text key={n} x={x(n - 1)} y={H - 4} textAnchor="middle" className="fill-fg-muted font-mono text-[9px]">
+          <text key={n} x={x(n - 1)} y={H - 4} textAnchor="middle" className="fill-fg-muted font-mono text-[12px] tabular-nums">
             {n}
           </text>
         ))}

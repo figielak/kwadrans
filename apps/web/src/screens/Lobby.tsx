@@ -389,7 +389,7 @@ function ColorPicker({ view, me, send }: { view: RoomView; me: string; send: Sen
   const mine = view.players.find((p) => p.id === me)?.color;
   return (
     <div className="mt-4 flex flex-col gap-1">
-      <span className="text-sm text-fg-muted">Twój kolor</span>
+      <span className="label">Twój kolor</span>
       <div className="-mx-1 flex justify-between" role="radiogroup" aria-label="Twój kolor">
         {PLAYER_COLORS.map((color, i) => {
           const owner = view.players.find((p) => p.color === color);
@@ -406,7 +406,7 @@ function ColorPicker({ view, me, send }: { view: RoomView; me: string; send: Sen
               onClick={() => send("pickColor", { color })}
             >
               <span
-                className={`grid size-7 place-items-center rounded-full font-mono text-xs text-fg-muted ${color === mine ? "outline-2 outline-offset-2 outline-fg" : ""}`}
+                className={`grid size-7 place-items-center rounded-full font-mono tabular-nums text-xs text-fg-muted ${color === mine ? "outline-2 outline-offset-2 outline-fg" : ""}`}
                 style={{ backgroundColor: taken ? `color-mix(in srgb, ${color} 25%, transparent)` : color }}
               >
                 {color === mine && <Check size={14} weight="bold" className="text-bg" aria-hidden />}
@@ -446,13 +446,13 @@ function Code({ code, alone, onLeave }: { code: string; alone: boolean; onLeave:
       <div className="flex items-center justify-between">
         <h2 className="label">{copied ? "Skopiowano!" : "Kod pokoju"}</h2>
         <button type="button" className="-mt-2 -mr-2 flex min-h-12 min-w-12 items-center gap-1.5 px-2 text-sm text-fg-muted" onClick={onLeave}>
-          <SignOut size={16} aria-hidden />
+          <SignOut size={16} weight="bold" aria-hidden />
           Wyjdź
         </button>
       </div>
       <div className="mt-1 flex items-end justify-between gap-4">
         <button type="button" className="text-left" onClick={copy} aria-label={`Kod pokoju ${code}, kopiuj`}>
-          <span className="font-mono text-6xl font-medium tracking-[0.12em]">{code}</span>
+          <span className="font-mono tabular-nums text-6xl font-medium tracking-[0.12em]">{code}</span>
         </button>
         <button type="button" className="btn btn-ghost size-12 shrink-0 p-0" onClick={share} aria-label="Udostępnij link">
           {copied ? <Check size={20} weight="bold" aria-hidden /> : <ShareNetwork size={20} weight="bold" aria-hidden />}

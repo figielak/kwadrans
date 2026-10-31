@@ -112,7 +112,7 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
           </button>
         )}
         <button type="button" className="btn btn-ghost size-12 shrink-0 p-0" onClick={onRecords} aria-label="Rekordy wszystkich mini-gier">
-          <Trophy size={18} aria-hidden />
+          <Trophy size={18} weight="bold" aria-hidden />
         </button>
       </div>
 

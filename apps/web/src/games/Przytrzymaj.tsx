@@ -183,7 +183,7 @@ export function Przytrzymaj({ view, me, players, ranking, onMove }: Props) {
         {reveal ? (
           <>
             <span className="label">Twój czas</span>
-            <span className="text-7xl text-fg tabular-nums">{seconds(holds[index])}</span>
+            <span className="font-mono text-7xl text-fg tabular-nums">{seconds(holds[index])}</span>
             <span className="text-lg tabular-nums">cel {seconds(target)} s</span>
             {/* Odchyłka w ms jak w pasku i wyniku; zero bez znaku. */}
             <span className={`tabular-nums ${grade(Math.abs(diff)) || "text-fg"}`}>

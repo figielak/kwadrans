@@ -128,7 +128,7 @@ export function Szacowanie({ view, me, players, ranking, onMove, truths, draw, s
             <label className="flex flex-col gap-1">
               <span className="text-sm text-fg-muted">{question}</span>
               <input
-                className="field text-center font-mono text-3xl"
+                className="field text-center font-mono tabular-nums text-3xl"
                 inputMode="numeric"
                 enterKeyHint="done"
                 autoComplete="off"
