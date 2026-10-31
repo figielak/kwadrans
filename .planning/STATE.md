@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 current_phase: 5
 current_phase_name: Poprawki zaakceptowanych rozbieżności
 status: in_progress
-stopped_at: 05-46/P4-051 zakończony; następny P4-052
+stopped_at: 05-47/P4-052 zakończony; następny P4-055
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
-last_activity_desc: "P4-051 odebrany; TDD 070cc6e, etykiety i natywne kontrolki; 47/62 pakietów, 203/267 części"
+last_activity_desc: "P4-052 odebrany; TDD a9656f6, czytelne stany oczekiwania, błędu i blokady; 48/62 pakietów, 214/267 części"
 state_head: f06def5505a8da7b1481ef76ea778ccd8fbc12a6
 progress:
   total_phases: 5
@@ -23,16 +23,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Faza 5: 05-46/P4-051 odebrany. Następny P4-052.
+**Current focus:** Faza 5: 05-47/P4-052 odebrany. Następny P4-055.
 
 ## Current Position
 
 Phase: 5 of 5 (Poprawki zaakceptowanych rozbieżności), zakres ZG4-v1/S5-v1 zatwierdzony.
-Plan: 46 of 46 currently planned completed.
+Plan: 47 of 47 currently planned completed.
 Status: In progress. Fazy 1-4 zakończone, FIX-01 zakończone. FIX-02 otwarte.
-Wykonano 47/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048, P4-050, P4-051), 203/267 części poprawek.
-Last activity: 2026-10-31: zakończono 05-46/P4-051, etykiety, natywne kontrolki i wykres dotykiem.
-Dowody w 05-46-SUMMARY.md.
+Wykonano 48/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048, P4-050, P4-051, P4-052), 214/267 części poprawek.
+Last activity: 2026-10-31: zakończono 05-47/P4-052, czytelne stany oczekiwania, błędu i blokady.
+Dowody w 05-47-SUMMARY.md.
+
+Poprzednio zakończono 05-46. Dowody w 05-46-SUMMARY.md.
 
 Poprzednio zakończono 05-45/P4-050, role tokenów i drugi sygnał stanu. Dowody w 05-45-SUMMARY.md.
 

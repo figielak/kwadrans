@@ -84,7 +84,7 @@ export function Memory({ view, players, canMove, onMove }: Props) {
                 {/* Rewers: jaśniejszy od tła, żeby karta wyglądała na kartę; poza moją turą przygaszony („teraz nic nie klikasz”). */}
                 <span
                   className={`absolute inset-0 grid place-items-center rounded-inset border border-line-hover bg-linear-to-br from-[color-mix(in_srgb,var(--color-fg)_12%,var(--color-bg))] to-surface text-fg-subtle transition-opacity duration-180 backface-hidden ${
-                    canMove ? "" : "opacity-45"
+                    canMove ? "" : "opacity-40"
                   }`}
                   aria-hidden
                 >

@@ -131,22 +131,27 @@ Podpowiedź wykresu zostaje po dotknięciu, mysz chowa ją po zjechaniu z wykres
 | kafel nieaktywny | krycie 40%, `disabled`, podpis mówi dlaczego („max 2 os.”) | gra, do której jest za dużo osób |
 | turniej: losowo | zwykły kafel | stan domyślny każdej gry |
 | turniej: na pewno | jak kafel zaznaczony, plus znaczek i podpis „na pewno” | pierwsze dotknięcie |
-| turniej: bez | ramka `line`, krycie 50% | drugie dotknięcie |
+| turniej: bez | ramka `line`, krycie 60%, ikona i podpis „bez”, nazwa przekreślona | drugie dotknięcie |
 | wybrany kolor gracza | obrys 2 px `fg`, odsunięty o 2 px | próbki koloru w lobby |
-| ładowanie | tekst przycisku zmienia się na czasownik z wielokropkiem, wszystkie akcje ekranu nieaktywne; bez spinnera | „Łączenie…”, „Tworzenie…” |
+| ładowanie | tekst przycisku zmienia się na czasownik z wielokropkiem, wszystkie akcje ekranu nieaktywne; bez spinnera. Ekran bez przycisku pokazuje sam czasownik w `fg-muted` (`role="status"`) | „Łączenie…”, „Tworzenie…”, „Uruchamianie…”, „Wczytywanie…” |
+| brak odpowiedzi serwera | jedno zdanie `fg-muted` zamiast listy; nigdy pusta lista ani „nie grane” | „Nie udało się wczytać rekordów.” |
+| pokój zamknięty | kafel z ikoną `Info` nad sekcjami ekranu głównego (`role="status"`), nie błąd pola kodu; znika przy następnej próbie | „Połączenie z pokojem zostało zamknięte.” |
 | stan pusty | jedno zdanie `fg-muted` w miejscu treści, bez ilustracji | „Dziś nikt jeszcze nie grał”, „nie grane” |
 | błąd formularza | ikona i tekst 14 px w `warning` pod polem (`role="alert"`); ramka i obrys focusu pola też w `warning`, zamiast akcentu | zły kod pokoju (`Problem` w `Home.tsx`) |
 | lider rankingu | korona `fill`: w `fg` przy cudzym rekordzie, w kolorze gracza przy własnym | ekran „Rekordy” |
 | bodziec w grze na refleks | przed sygnałem pole `surface` z szarym napisem, sygnał to `success` z ciemnym napisem, bez przejścia | „Czekaj…” i „Teraz!” w Refleksie |
 | utrata połączenia (ja) | pasek `accent-soft` z ikoną na górze ekranu | „Łączenie ponownie…” |
-| gracz rozłączony | kropka z kryciem 40%; w partii przerywany obrys zamiast pierścienia | `PlayerDots`, `GameDots` |
+| gracz rozłączony | kropka z kryciem 40% i słowo „rozłączony”; w partii przerywany obrys zamiast pierścienia (pigułka gracza: przerywana ramka); nick zostaje w pełnym kolorze | `PlayerDots`, `GameDots`, lista graczy w lobby |
 | gracz czyta zasady | kropka z kryciem 40%, pierścień zostaje | `GameDots` na ekranie instrukcji |
 | gracz gotowy | znaczek w kropce | `PlayerDots` w górnym pasku |
 | postęp gracza | pierścień wokół kropki w jego kolorze, pełny po oddaniu wyniku | `GameDots` w partii |
 | to ja | kreska pod kropką, „(ty)” przy nicku | `GameDots`, tabele wyników |
 | koniec czasu | sekundy w `warning` przez ostatnie 10 s | pasek limitu |
 
-Każdy stan, który coś blokuje, tłumaczy się podpisem; samo przygaszenie nie wystarcza.
+Każdy stan, który coś blokuje, tłumaczy się podpisem; samo przygaszenie nie wystarcza. Przykłady: „Tryb wybiera gospodarz.” u gościa,
+„Najmniej 3 gry w turnieju.” przy granicy liczby gier, „Najwyżej 180°” pod polem odpowiedzi (`aria-invalid`), „Wybierz puste pole” nad nieaktywną
+klawiaturą Sudoku, powód braku ruchu po dotknięciu pionka w Chińczyku, „Swoich nie oceniasz.” przy własnych odpowiedziach w Państwach-miastach (krycie 60%).
+Stan pusty mówi, czemu jest pusto: „Za krótka partia na ciekawostki.”, w turnieju solo „Rozegrane gry: N/M” zamiast tabeli punktów.
 
 ## 5. Zasady, które z tego wynikają
 

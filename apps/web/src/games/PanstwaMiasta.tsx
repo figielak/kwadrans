@@ -285,7 +285,7 @@ function Voting({ view, me, player, onMove }: { view: PanstwaMiastaView; me: str
 
   return (
     <>
-      <p className="text-sm text-fg-muted">Dotknij cudzej odpowiedzi, żeby ją odrzucić.</p>
+      <p className="text-sm text-fg-muted">Dotknij cudzej odpowiedzi, żeby ją odrzucić. Swoich nie oceniasz.</p>
       <Answers view={view} player={player} me={me} rejected={rejected} onToggle={toggle} />
       <StickyBar>
         <button type="button" className="btn w-full btn-player" style={{ backgroundColor: player(me)?.color }} onClick={submit}>
@@ -342,7 +342,7 @@ function Answers({
         })}
         className={`flex min-h-12 w-full items-center gap-1.5 rounded-inset border px-2 py-1.5 text-left ${
           canToggle && !voted ? "bg-surface-inset" : ""
-        } ${canToggle ? (voted ? "" : "border-line-hover") : "border-transparent"} ${onToggle && id === me ? "opacity-50" : ""}`}
+        } ${canToggle ? (voted ? "" : "border-line-hover") : "border-transparent"} ${onToggle && id === me ? "opacity-60" : ""}`}
         // Mój głos przeciw to mój wybór: obrys w moim kolorze; odrzucenie mówią ikona X, przekreślenie i 0 pkt, bez tła.
         style={canToggle && voted ? { borderColor: myColor } : undefined}
       >

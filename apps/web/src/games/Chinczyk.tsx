@@ -152,7 +152,12 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
 
   // Wybrany pionek pokazuje cel; „Rusz pionek” albo drugie dotknięcie (pionka albo celu) wykonuje ruch.
   const [selected, setSelected] = useState<number | null>(null);
-  useEffect(() => setSelected(null), [event, view.phase, view.turn]);
+  // Dotknięty własny pionek bez ruchu: podpis mówi dlaczego (ruchy liczy serwer, tu tylko wyjaśnienie).
+  const [blocked, setBlocked] = useState<string | null>(null);
+  useEffect(() => {
+    setSelected(null);
+    setBlocked(null);
+  }, [event, view.phase, view.turn]);
   const pick = selected !== null && myMove && view.movable.includes(selected) ? selected : null;
 
   // Zbity pionek: wibracja u właściciela raz na ruch, gdy pokaz dojdzie do zbicia (albo zastąpi go kolejne zdarzenie).
@@ -230,6 +235,17 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
     return view.phase === "move" ? `${nick(view.turn)} wybiera pionek…` : `${nick(view.turn)} rzuca kostką…`;
   })();
 
+  /** Dlaczego pionek na pozycji `pos` nie ma ruchu przy tym rzucie; te same warunki co `target` i `movablePawns` w zasadach. */
+  const whyStuck = (pos: number) => {
+    const dice = view.dice ?? 0;
+    const own = view.pawns[me];
+    if (pos < 0) return (quick ? [1, 6] : [6]).includes(dice) ? "Na polu startowym stoi twój pionek." : `Z bazy wychodzi się tylko na ${quick ? "1 albo 6" : "szóstkę"}.`;
+    const next = pos + dice;
+    if (next > TRACK + 3) return quick ? "Dalej w domku nie ma wolnego pola." : "Do domku trzeba wejść dokładnym rzutem.";
+    if (!quick && own.some((p) => p >= TRACK && p > pos && p < next)) return "W domku nie wolno przeskoczyć własnego pionka.";
+    return own.includes(next) ? "Na polu docelowym stoi twój pionek." : "Pionek rywala na swoim starcie jest bezpieczny.";
+  };
+
   const rollNow = canMove && settled && view.phase === "roll";
   const move = (pawn: number) => onMove({ type: "move", pawn });
 
@@ -244,6 +260,7 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
           const pawn = cell.pawn;
           const movable = !!pawn && myMove && pawn.player === me && view.movable.includes(pawn.index);
           const isPick = movable && pawn!.index === pick;
+          const stuck = !!pawn && myMove && pawn.player === me && !movable;
           const isTarget = i === targetKey;
           const inner = pawn ? (
             <span
@@ -266,12 +283,37 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
           const className = `grid place-items-center rounded-full bg-[color-mix(in_srgb,var(--color-fg)_11%,var(--color-bg))] ${
             isTarget ? `outline-2 outline-offset-1 ${capture ? "outline-warning" : "outline-fg"}` : ""
           }`;
-          const action = isTarget ? () => move(pick!) : movable ? () => (isPick ? move(pawn!.index) : setSelected(pawn!.index)) : null;
+          const choose = (index: number) => {
+            setBlocked(null);
+            setSelected(index);
+          };
+          // Pionki w bazie są nierozróżnialne: dotknięcie dowolnego wybiera ten, który może wyjść.
+          const fromBase = stuck && view.pawns[me][pawn!.index] < 0 ? view.movable.find((i) => view.pawns[me][i] < 0) : undefined;
+          const action = isTarget
+            ? () => move(pick!)
+            : movable
+              ? () => (isPick ? move(pawn!.index) : choose(pawn!.index))
+              : fromBase !== undefined
+                ? () => choose(fromBase)
+                : stuck
+                  ? () => {
+                      setSelected(null);
+                      setBlocked(whyStuck(view.pawns[me][pawn!.index]));
+                    }
+                  : null;
           return action ? (
             <button
               key={i}
               type="button"
-              aria-label={isTarget ? `Rusz pionek ${pick! + 1} tutaj` : isPick ? `Rusz pionek ${pawn!.index + 1}` : `Wybierz pionek ${pawn!.index + 1}`}
+              aria-label={
+                isTarget
+                  ? `Rusz pionek ${pick! + 1} tutaj`
+                  : isPick
+                    ? `Rusz pionek ${pawn!.index + 1}`
+                    : stuck && fromBase === undefined
+                      ? `Pionek ${pawn!.index + 1}: brak ruchu`
+                      : `Wybierz pionek ${(fromBase ?? pawn!.index) + 1}`
+              }
               className={className}
               style={{ backgroundColor: cell.background, boxShadow: cell.ring && `inset 0 0 0 2px ${cell.ring}` }}
               onClick={action}
@@ -309,18 +351,21 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
             </>
           ) : myMove && last ? (
             // Pole ma ~29 px, więc wybrany ruch potwierdza duży przycisk (albo drugie dotknięcie pionka lub celu).
-            <div className="flex items-center gap-3">
-              <Die value={last.dice} rolling={false} color={color(me)} />
-              <button
-                type="button"
-                className="btn h-14 flex-1 text-lg font-semibold btn-player disabled:opacity-40"
-                style={{ backgroundColor: color(me) }}
-                disabled={pick === null}
-                onClick={() => pick !== null && move(pick)}
-              >
-                {pick === null ? "Dotknij pionka" : moveName(view.pawns[me][pick], to!, !!capture)}
-              </button>
-            </div>
+            <>
+              {blocked && <p className="text-center text-sm">{blocked}</p>}
+              <div className="flex items-center gap-3">
+                <Die value={last.dice} rolling={false} color={color(me)} />
+                <button
+                  type="button"
+                  className="btn h-14 flex-1 text-lg font-semibold btn-player disabled:opacity-40"
+                  style={{ backgroundColor: color(me) }}
+                  disabled={pick === null}
+                  onClick={() => pick !== null && move(pick)}
+                >
+                  {pick === null ? "Dotknij pionka" : moveName(view.pawns[me][pick], to!, !!capture)}
+                </button>
+              </div>
+            </>
           ) : (
             <div className="tile flex min-h-14 items-center gap-3 px-4 py-2">
               {last ? (

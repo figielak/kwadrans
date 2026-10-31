@@ -47,7 +47,8 @@ export function KampusSummary({ title, winner, stats, players, nick, color, fina
         </h2>
         <div className="flex min-h-0 gap-4 overflow-y-auto">
           <WealthChart series={series} nick={nick} color={color} />
-          <dl className="flex w-40 shrink-0 flex-col gap-2 text-xs">
+          {!rent && !tile && !doubles && <p className="w-40 shrink-0 text-xs text-fg-muted">Za krótka partia na ciekawostki.</p>}
+          <dl className="flex w-40 shrink-0 flex-col gap-2 text-xs empty:hidden">
             {rent && (
               <div>
                 <dt className="text-fg-muted">Najwięcej czynszu zapłacił(a)</dt>

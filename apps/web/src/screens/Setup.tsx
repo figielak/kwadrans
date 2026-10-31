@@ -1,4 +1,4 @@
-import { Check, Minus, Play, Plus } from "@phosphor-icons/react";
+import { Check, Minus, Play, Plus, Prohibit } from "@phosphor-icons/react";
 import { GAMES, MAX_PLAYERS, MIN_LENGTH, type RoomView } from "@kwadrans/games";
 import { BLURBS, ICONS, MINI_GAMES, Players, seats, StartBar } from "./Lobby.tsx";
 import { SECTIONS } from "./MiniGames.tsx";
@@ -41,6 +41,7 @@ export function Setup({ view, me, dropped, send, onLeave }: Props) {
       {def.modes && (
         <section className="flex flex-col gap-2" role="radiogroup" aria-label="Tryb">
           <h2 className="label px-1">Tryb</h2>
+          {!isHost && <p className="px-1 text-sm text-fg-muted">Tryb wybiera gospodarz.</p>}
           {def.modes.map((m) => {
             const on = view.mode === m.id;
             return (
@@ -51,7 +52,7 @@ export function Setup({ view, me, dropped, send, onLeave }: Props) {
                 aria-checked={on}
                 disabled={!isHost}
                 className={`flex min-h-12 flex-col items-start justify-center rounded-inset border px-3 py-2 text-left transition-colors duration-180 ${
-                  on ? "border-2" : "border-line enabled:hover:border-line-hover disabled:opacity-50"
+                  on ? "border-2" : "border-line enabled:hover:border-line-hover disabled:opacity-40"
                 }`}
                 style={on ? chosenStyle(hostColor) : undefined}
                 onClick={() => send("pickMode", { mode: m.id })}
@@ -103,13 +104,17 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
   const chosen = plural(must.length, "wybrana", "wybrane", "wybranych");
   const drawn = `${plural(random, "losowa", "losowe", "losowych")} z ${available - must.length}`;
   const summary = must.length === 0 ? drawn : random === 0 ? `${chosen}, bez losowania` : `${chosen} + ${drawn}`;
-  // Liczba gier sama idzie za zaznaczeniami (serwer ją przycina), więc zamiast blokady jest jedno zdanie wyjaśnienia.
+  // Liczba gier sama idzie za zaznaczeniami (serwer ją przycina); przy granicy jedno zdanie mówi, czemu dalej się nie da.
   const adjusted =
     random === 0 && must.length > MIN_LENGTH
-      ? "Liczba gier rośnie razem z wybranymi."
-      : length === available
-        ? "Grane będą wszystkie niewykluczone gry."
-        : null;
+      ? "Liczba gier rośnie razem z wybranymi, mniej się nie da."
+      : length >= available
+        ? skip.length > 0
+          ? "Więcej gier nie ma: reszta jest wykluczona."
+          : "Grane będą wszystkie gry."
+        : length <= MIN_LENGTH
+          ? `Najmniej ${plural(MIN_LENGTH, "gra", "gry", "gier")} w turnieju.`
+          : null;
 
   return (
     <Screen dropped={dropped}>
@@ -156,6 +161,7 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
             )}
           </div>
         </div>
+        {adjusted && <p className="-mt-1 text-xs text-fg-muted">{adjusted}</p>}
         {isHost && (
           <div className="grid grid-cols-3 gap-2">
             {PRESETS.map(([name, games]) => (
@@ -194,7 +200,7 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
                   type="button"
                   aria-label={`${GAMES[id].name}: ${state}${author && state !== "losowo" ? `, zaznaczył(a) ${author.nick}` : ""}`}
                   className={`flex min-h-20 flex-col items-start gap-1 rounded-inset border p-2 text-left transition-colors duration-180 ${
-                    state === "na pewno" ? "" : state === "bez" ? "border-line opacity-50" : "border-line hover:border-line-hover"
+                    state === "na pewno" ? "" : state === "bez" ? "border-line opacity-60" : "border-line hover:border-line-hover"
                   }`}
                   style={state === "na pewno" ? chosenStyle(author?.color) : undefined}
                   onClick={() => cycle(id)}
@@ -211,6 +217,12 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
                       na pewno
                     </span>
                   )}
+                  {state === "bez" && (
+                    <span className="mt-auto flex items-center gap-1 font-mono text-xs tabular-nums">
+                      <Prohibit size={12} weight="bold" aria-hidden />
+                      bez
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -223,7 +235,6 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
         <p className="pt-3 text-sm" aria-live="polite">
           {summary} <span className="text-fg-muted">· ok. {minutes(length)} min</span>
         </p>
-        {adjusted && <p className="text-xs text-fg-muted">{adjusted}</p>}
         <StartBar view={view} me={me} send={send} />
       </div>
     </Screen>

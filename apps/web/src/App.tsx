@@ -47,7 +47,15 @@ export function App() {
     return off;
   }, [room]);
 
-  if (resuming) return <main className="min-h-[100dvh]" aria-busy />;
+  if (resuming) {
+    return (
+      <main className="grid min-h-[100dvh] place-items-center" aria-busy>
+        <p role="status" className="text-fg-muted">
+          Łączenie…
+        </p>
+      </main>
+    );
+  }
   if (!room) return <Home onRoom={setRoom} notice={notice} />;
   const send = (type: string, payload?: unknown) => room.send(type, payload);
   if (view && view.phase !== "lobby") return <Game view={view} me={room.sessionId} dropped={dropped} send={send} onLeave={() => room.leave()} />;
@@ -69,7 +77,7 @@ export function App() {
         send("pickGame", { gameId });
         setRecords(false);
       };
-      return <Records nick={self?.nick ?? null} color={self?.color} onBack={() => setRecords(false)} onPlay={view.hostId === me ? play : undefined} />;
+      return <Records nick={self?.nick ?? null} color={self?.color} dropped={dropped} onBack={() => setRecords(false)} onPlay={view.hostId === me ? play : undefined} />;
     }
     return <MiniGames view={view} {...screen} onBack={back} onRecords={() => setRecords(true)} />;
   }

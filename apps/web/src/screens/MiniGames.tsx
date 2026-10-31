@@ -30,8 +30,14 @@ export const SECTIONS = [...CATEGORIES, ["Inne", MINI_GAMES.map((g) => g.id).fil
   .map(([title, ids]) => [title, ids.filter((id) => GAMES[id])] as const)
   .filter(([, ids]) => ids.length > 0);
 
+/** Rekordy z serwera: undefined do odpowiedzi, null, gdy serwer nie odpowie (wtedy miejsc nie pokazujemy, zamiast fałszywego „nie grane”). */
+type Loaded = Record<string, RecordRow[]> | null | undefined;
+
+/** Zamiast rekordów, póki ich nie ma: czasownik przy wczytywaniu, zdanie przy błędzie. */
+const notLoaded = (records: null | undefined) => (records === null ? "Nie udało się wczytać rekordów." : "Wczytywanie…");
+
 interface GridProps {
-  records: Record<string, RecordRow[]>;
+  records: Loaded;
   nick: string | null;
   color?: string;
   picked?: string | null;
@@ -47,7 +53,7 @@ export function MiniGameGrid({ records, nick, color, picked, disabled, onPick }:
       <div className="grid grid-cols-3 gap-2">
         {ids.map((id) => {
           const TileIcon = ICONS[id] ?? Play;
-          const place = nick && GAMES[id].record && standing(records[id] ?? [], nick, GAMES[id].record)?.place;
+          const place = records && nick && GAMES[id].record && standing(records[id] ?? [], nick, GAMES[id].record)?.place;
           return (
             <button
               key={id}
@@ -63,7 +69,7 @@ export function MiniGameGrid({ records, nick, color, picked, disabled, onPick }:
               <span className="text-sm leading-tight">{GAMES[id].name}</span>
               {/* Własne miejsce w rekordach zamiast liczby graczy (ta jest wszędzie taka sama); kolor gracza, gdy to on prowadzi. */}
               <span className="mt-auto font-mono text-xs text-fg-muted tabular-nums" style={place === 1 ? { color } : undefined}>
-                {place ? `${place}. miejsce` : "nie grane"}
+                {place ? `${place}. miejsce` : records ? "nie grane" : records === undefined && "Wczytywanie…"}
               </span>
             </button>
           );
@@ -79,12 +85,12 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
   const def = view.gameId ? GAMES[view.gameId] : undefined;
   const DefIcon = (def && ICONS[def.id]) || Play;
   const self = view.players.find((p) => p.id === me);
-  const [records, setRecords] = useState<Record<string, RecordRow[]>>({});
+  const [records, setRecords] = useState<Loaded>();
   useEffect(() => {
     fetchRecords().then(setRecords);
   }, []);
-  const mine = (gameId: string) => records[gameId]?.find((r) => self && nickKey(r.nick) === nickKey(self.nick));
-  const top = def && records[def.id]?.[0];
+  const mine = (gameId: string) => records?.[gameId]?.find((r) => self && nickKey(r.nick) === nickKey(self.nick));
+  const top = def && records?.[def.id]?.[0];
 
   function random() {
     const others = MINI_GAMES.filter((g) => g.id !== view.gameId);
@@ -124,7 +130,13 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
           </section>
           <section className="tile flex flex-col gap-3">
             <h2 className="label">Rekordy · {def.name}</h2>
-            <RecordList gameId={def.id} rows={records[def.id] ?? []} me={self?.nick ?? null} color={self?.color} />
+            {records ? (
+              <RecordList gameId={def.id} rows={records[def.id] ?? []} me={self?.nick ?? null} color={self?.color} />
+            ) : (
+              <p role="status" className="text-sm text-fg-muted">
+                {notLoaded(records)}
+              </p>
+            )}
           </section>
         </>
       )}
@@ -135,7 +147,11 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
           <div className="flex flex-col gap-1 pt-3">
             <p className="text-sm">{BLURBS[def.id]}</p>
             <p className="font-mono text-xs text-fg-muted tabular-nums">
-              {top ? `Rekord: ${formatRecord(def.id, top)} (${top === mine(def.id) ? "ty" : top.nick})` : "Nikt jeszcze nie grał"}
+              {top
+                ? `Rekord: ${formatRecord(def.id, top)} (${top === mine(def.id) ? "ty" : top.nick})`
+                : records
+                  ? "Nikt jeszcze nie grał"
+                  : notLoaded(records)}
               {mine(def.id) && top !== mine(def.id) && ` · twój: ${formatBest(def.id, mine(def.id)!.best)}`}
             </p>
           </div>

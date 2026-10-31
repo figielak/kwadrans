@@ -65,8 +65,9 @@ export function Lobby({ view, me, dropped, send, onLeave, onMini }: Props) {
   if (!view) {
     return (
       <Screen dropped={dropped}>
-        <div className="tile h-36" aria-label="Wczytywanie" />
-        <div className="tile h-24" />
+        <p role="status" className="py-6 text-center text-fg-muted">
+          Wczytywanie…
+        </p>
       </Screen>
     );
   }
@@ -134,7 +135,7 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
                 const seated = view.seats.includes(p.id);
                 const row = (
                   <>
-                    <span className="size-3 shrink-0 rounded-full" style={{ backgroundColor: p.color }} aria-hidden />
+                    <span className={`size-3 shrink-0 rounded-full transition-opacity duration-180 ${p.connected ? "" : "opacity-40"}`} style={{ backgroundColor: p.color }} aria-hidden />
                     <span className="truncate">
                       {p.nick}
                       {p.id === me && <span className="text-fg-muted"> (ty)</span>}
@@ -155,7 +156,8 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
                     </span>
                   </>
                 );
-                const className = `flex w-full min-h-12 items-center gap-3 rounded-inset px-3 text-left transition-opacity duration-180 ${p.connected ? "" : "opacity-50"}`;
+                // Rozłączenie mówią przygaszona kropka i słowo; nick zostaje czytelny.
+                const className = "flex w-full min-h-12 items-center gap-3 rounded-inset px-3 text-left";
                 const style = { backgroundColor: `color-mix(in srgb, ${p.color} ${seated || !def ? 10 : 4}%, transparent)` };
                 return (
                   <li key={p.id}>

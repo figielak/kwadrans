@@ -168,13 +168,16 @@ export function Sudoku({ view, me, players, ranking, onMove }: Props) {
           </div>
         ))}
       </div>
+      {/* Klawiatura bez wybranego pola nie udaje aktywnej; podpis stoi stale, żeby układ nie skakał. */}
+      <p className="-mb-1 text-center text-sm text-fg-muted">{selected === null ? "Wybierz puste pole" : "Wpisz cyfrę"}</p>
       <div className="grid grid-cols-4 gap-2">
         {[1, 2, 3, 4].map((d) => (
           <button
             key={d}
             type="button"
+            disabled={selected === null}
             onPointerDown={() => enter(d)}
-            className="h-14 touch-none select-none rounded-inset border border-line bg-surface font-mono text-2xl font-semibold"
+            className="h-14 touch-none select-none rounded-inset border border-line bg-surface font-mono text-2xl font-semibold disabled:opacity-40"
           >
             {d}
           </button>

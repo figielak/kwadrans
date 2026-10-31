@@ -73,14 +73,14 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 38 | [P4-040: Reduced motion: zadanie działa, komunikat widoczny](#scope-p4-040) | P2 | 4 | wykonano 2026-10-31, 05-38; TDD 4a535fb |
 | 39 | [P4-041: Katalog i opisy animacji](#scope-p4-041) | P3 | 3 | wykonano 2026-10-31, 05-35; TDD 4c1b835 |
 | 40 | [P4-042: Przejścia, pętle i paski czasu](#scope-p4-042) | P2 | 8 | wykonano 2026-10-31, 05-39; TDD f156052 |
-| 41 | [P4-043: Błąd, ignorowany ruch i nowa decyzja](#scope-p4-043) | P2 | 5 | nie rozpoczęto |
-| 42 | [P4-044: Odsłona wyniku i prawdy](#scope-p4-044) | P2 | 3 | nie rozpoczęto |
-| 43 | [P4-045: Zaznaczenie, okno i błysk trafienia](#scope-p4-045) | P2 | 3 | nie rozpoczęto |
-| 44 | [P4-046: Koniec, para i powrót do partii](#scope-p4-046) | P2 | 5 | nie rozpoczęto |
-| 45 | [P4-048: Wspólne wyniki i tabele rund](#scope-p4-048) | P2 | 2 | nie rozpoczęto |
-| 46 | [P4-050: Role tokenów i drugi sygnał stanu](#scope-p4-050) | P2 | 9 | nie rozpoczęto |
-| 47 | [P4-051: Etykiety, natywne kontrolki i wykres dotykiem](#scope-p4-051) | P2 | 3 | nie rozpoczęto |
-| 48 | [P4-052: Czytelne stany oczekiwania, błędu i blokady](#scope-p4-052) | P2 | 11 | nie rozpoczęto |
+| 41 | [P4-043: Błąd, ignorowany ruch i nowa decyzja](#scope-p4-043) | P2 | 5 | wykonano 2026-10-31, 05-40; TDD 19f35d5 |
+| 42 | [P4-044: Odsłona wyniku i prawdy](#scope-p4-044) | P2 | 3 | wykonano 2026-10-31, 05-41; TDD 5a1c9ad |
+| 43 | [P4-045: Zaznaczenie, okno i błysk trafienia](#scope-p4-045) | P2 | 3 | wykonano 2026-10-31, 05-42; TDD 0dd3706 |
+| 44 | [P4-046: Koniec, para i powrót do partii](#scope-p4-046) | P2 | 5 | wykonano 2026-10-31, 05-43; TDD 30688d5 |
+| 45 | [P4-048: Wspólne wyniki i tabele rund](#scope-p4-048) | P2 | 2 | wykonano 2026-10-31, 05-44; TDD 274960c |
+| 46 | [P4-050: Role tokenów i drugi sygnał stanu](#scope-p4-050) | P2 | 9 | wykonano 2026-10-31, 05-45; TDD 6fd7a7b |
+| 47 | [P4-051: Etykiety, natywne kontrolki i wykres dotykiem](#scope-p4-051) | P2 | 3 | wykonano 2026-10-31, 05-46; TDD 070cc6e |
+| 48 | [P4-052: Czytelne stany oczekiwania, błędu i blokady](#scope-p4-052) | P2 | 11 | wykonano 2026-10-31, 05-47; TDD a9656f6 |
 | 49 | [P4-055: Stoper: stały cel](#scope-p4-055) | P2 | 1 | nie rozpoczęto |
 | 50 | [P4-056: Rytm: stałe tempo](#scope-p4-056) | P2 | 1 | nie rozpoczęto |
 | 51 | [P4-057: Liczenie: komplet rodzajów](#scope-p4-057) | P2 | 1 | nie rozpoczęto |
@@ -784,7 +784,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: brak. Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. W /dev przerwanie/odnowienie połączenia, zamknięcie pokoju, opóźnione API, brak wyników; tekst zamiast fałszywego błędu kodu. Zablokowany pionek, liczba poza zakresem, min/max Turnieju, Sudoku bez pola. Każdy stan wraca po usunięciu przyczyny.
 - Granice: Nie zamieniać braku danych i ładowania w pustą tabelę; wyłączenie klawiatury nie może usuwać możliwości wybrania pola.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 11/11 części. TDD `a9656f6`; typy, testy i build PASS. [05-47-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-47-SUMMARY.md).
 
 <a id="scope-p4-055"></a>
 

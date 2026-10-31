@@ -41,7 +41,8 @@ export function Szacowanie({ view, me, players, ranking, onMove, truths, draw, s
   const [input, setInput] = useState("");
   const index = phase === "reveal" ? answers.length - 1 : answers.length;
   const color = players.find((p) => p.id === me)?.color;
-  const valid = input !== "" && Number(input) <= maxAnswer;
+  const tooBig = Number(input) > maxAnswer;
+  const valid = input !== "" && !tooBig;
 
   useEffect(() => {
     if (phase !== "wait" && phase !== "show") return;
@@ -132,9 +133,16 @@ export function Szacowanie({ view, me, players, ranking, onMove, truths, draw, s
                 enterKeyHint="done"
                 autoComplete="off"
                 autoFocus
+                aria-invalid={tooBig}
+                aria-describedby="answer-limit"
                 value={input}
                 onChange={(e) => setInput(e.target.value.replace(/\D/g, "").slice(0, String(maxAnswer).length))}
               />
+              {/* Powód nieaktywnego „Zatwierdź”; miejsce zarezerwowane, żeby przycisk nie skakał. */}
+              <span id="answer-limit" role="alert" className={`text-sm ${tooBig ? "text-warning" : "invisible"}`}>
+                Najwyżej {maxAnswer}
+                {unit}
+              </span>
             </label>
             <button type="submit" className="btn w-full btn-player" style={{ backgroundColor: color }} disabled={!valid}>
               Zatwierdź

@@ -200,11 +200,14 @@ function TopGame({ gameId, nick, color }: { gameId: string; nick: string; color?
   useEffect(() => {
     fetchTopRecord(gameId).then(setTop);
   }, [gameId]);
-  if (top === undefined) return null;
   return (
     <section className="mt-3 flex flex-col gap-2 border-t border-line pt-3">
       <h3 className="text-sm text-fg-muted">Rekordowa partia · {nick}</h3>
-      {top === null ? (
+      {top === undefined || top === false ? (
+        <p role="status" className="text-sm text-fg-muted">
+          {top === undefined ? "Wczytywanie…" : "Nie udało się wczytać partii."}
+        </p>
+      ) : top === null ? (
         <p className="text-sm text-fg-muted">Rekord sprzed zapisu partii. Szczegóły pojawią się po następnym rekordzie.</p>
       ) : (
         <MiniGame
@@ -289,8 +292,22 @@ const FRESH_SHOWN = 8;
  * Ekran „Rekordy”: gry, w których prowadzę, cudze rekordy do pobicia i gry bez żadnego wyniku.
  * `onPlay` ma tylko gospodarz w pokoju: wybiera grę i wraca na listę mini-gier.
  */
-export function Records({ nick, color, onBack, onPlay }: { nick: string | null; color?: string; onBack: () => void; onPlay?: (gameId: string) => void }) {
-  const [records, setRecords] = useState<Record<string, RecordRow[]> | null>(null);
+export function Records({
+  nick,
+  color,
+  dropped = false,
+  onBack,
+  onPlay,
+}: {
+  nick: string | null;
+  color?: string;
+  /** Otwarte z pokoju: pasek „Łączenie ponownie…” jak na innych ekranach pokoju. */
+  dropped?: boolean;
+  onBack: () => void;
+  onPlay?: (gameId: string) => void;
+}) {
+  /** undefined do odpowiedzi serwera, null, gdy nie odpowie. */
+  const [records, setRecords] = useState<Record<string, RecordRow[]> | null>();
   /** Gry rozwinięte choć raz: dopiero wtedy pobieramy ich rekordową partię. */
   const [opened, setOpened] = useState<string[]>([]);
   const [allFresh, setAllFresh] = useState(false);
@@ -331,16 +348,16 @@ export function Records({ nick, color, onBack, onPlay }: { nick: string | null; 
     );
 
   return (
-    <Screen dropped={false}>
+    <Screen dropped={dropped}>
       <button type="button" className="-ml-2 flex min-h-12 items-center gap-1.5 self-start px-2 text-sm text-fg-muted" onClick={onBack}>
         <ArrowLeft size={16} aria-hidden />
         Wróć
       </button>
       <h1 className="text-3xl font-semibold tracking-tight">Rekordy</h1>
 
-      {records === null ? (
-        <p className="text-fg-muted" aria-busy>
-          Wczytywanie…
+      {!records ? (
+        <p role="status" className="text-fg-muted" aria-busy={records === undefined}>
+          {records === undefined ? "Wczytywanie…" : "Nie udało się wczytać rekordów. Spróbuj za chwilę."}
         </p>
       ) : (
         <>

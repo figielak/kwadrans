@@ -82,7 +82,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
     const over = view.phase === "over";
     if (!over) setRecords({ before: null, after: null });
     fetchRecords().then((all) => {
-      if (stale) return;
+      // Bez odpowiedzi serwera panelu nie ma: pusta lista udawałaby pierwszy wynik.
+      if (stale || !all) return;
       const rows = all[def.id] ?? [];
       setRecords((r) => (over ? { ...r, after: rows } : { before: rows, after: null }));
     });
@@ -289,10 +290,10 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                     key={id}
                     className={`flex min-h-9 max-w-full flex-wrap items-center gap-2 rounded-full border px-3 text-sm transition-colors duration-180 ${fleet ? "w-full" : ""} ${
                       active ? "" : "border-line text-fg-muted"
-                    }`}
+                    } ${p?.connected ? "" : "border-dashed"}`}
                     style={active ? { borderColor: p?.color, backgroundColor: `color-mix(in srgb, ${p?.color} 16%, transparent)` } : undefined}
                   >
-                    <span className="size-2.5 rounded-full" style={{ backgroundColor: p?.color }} aria-hidden />
+                    <span className={`size-2.5 rounded-full ${p?.connected ? "" : "opacity-40"}`} style={{ backgroundColor: p?.color }} aria-hidden />
                     <span className="min-w-0 break-words">{nick(id)}{id === me && " (ty)"}</span>
                     {p && !p.connected && <span className="text-xs text-fg-muted">rozłączony</span>}
                     {fleet?.phase === "placing" && fleet.boards[id].ready && <Check size={14} weight="bold" aria-label="gotowy" />}
@@ -453,7 +454,14 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           />
         )}
 
-        {view.phase === "over" && t && table && (
+        {/* Solo nie ma rywali, więc i punktów: zamiast tabeli zera jedno zdanie o postępie. */}
+        {view.phase === "over" && t && view.seats.length === 1 && (
+          <p className="px-1 text-sm text-fg-muted">
+            Rozegrane gry: {gameNo}/{t.games.length}. Grasz sam, więc liczą się rekordy.
+          </p>
+        )}
+
+        {view.phase === "over" && t && view.seats.length > 1 && table && (
           <section className="tile p-4">
             <h2 className="label mb-2">{tournamentOver ? "Wyniki turnieju" : "Tabela turnieju"}</h2>
             <ol className="flex flex-col gap-1">
