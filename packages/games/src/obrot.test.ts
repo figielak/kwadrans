@@ -207,3 +207,34 @@ test("applyMove nie zmienia poprzedniego stanu, stan przeżywa JSON", () => {
   expect(JSON.stringify(s)).toBe(before);
   expect(JSON.parse(JSON.stringify(next))).toEqual(next);
 });
+
+describe("P4-058: komplet sześciu rodzajów planszy", () => {
+  /** Rodzaj planszy: kąt (1-3 × 90°) i lustro; -1, gdy kąta nie da się jednoznacznie odczytać. */
+  function kind(t: { a: Cells; b: Cells; mirror: boolean }) {
+    const all = turns(t.mirror ? flip(t.a) : t.a);
+    // Figura symetryczna względem 180° wygląda tak samo po 90 i 270°, więc kąt byłby niejednoznaczny.
+    if (new Set(all).size !== 4) return -1;
+    return all.indexOf(key(t.b)) * 2 + Number(t.mirror);
+  }
+
+  test("w każdej kolejnej szóstce par każdy rodzaj (90/180/270° × ta sama/lustro) raz, dla 1000 seedów", () => {
+    for (let seed = 1; seed <= 1000; seed++) {
+      const trials = game.setup([A], createRng(seed)).trials;
+      for (let i = 0; i < trials.length; i += 6) {
+        const kinds = trials.slice(i, i + 6).map(kind);
+        expect(kinds.every((k) => k >= 2 && k <= 7), `seed ${seed}, szóstka od ${i}: ${kinds}`).toBe(true);
+        expect(new Set(kinds).size, `seed ${seed}, szóstka od ${i}: ${kinds}`).toBe(kinds.length);
+      }
+      for (const t of trials) {
+        expect(turns(flip(t.b)).includes(key(t.a)), `seed ${seed}: lustro`).toBe(t.mirror);
+        expect(turns(t.a).includes(key(flip(t.a))), `seed ${seed}: figura chiralna`).toBe(false);
+      }
+    }
+  });
+
+  test("kolejność rodzajów w szóstkach jest tasowana, nie stała", () => {
+    const trials = trialsOf(1);
+    const orders = new Set(Array.from({ length: Math.floor(trials.length / 6) }, (_, i) => trials.slice(i * 6, i * 6 + 6).map(kind).join()));
+    expect(orders.size).toBeGreaterThan(1);
+  });
+});
