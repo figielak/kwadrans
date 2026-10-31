@@ -209,6 +209,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
 - [x] [05-58-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-58-PLAN.md) - P4-049, Liczby, etykiety i wąskie kolumny; TDD f16aa02
 - [x] [05-59-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-59-PLAN.md) - P4-054, Nieaktualne opisy bez zmiany zasad; TDD a8080e4
 - [x] [05-60-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-60-PLAN.md) - P4-053, Wąskie podpisy i hierarchia ekranów; TDD f085fc4
+- [ ] [05-61-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-61-PLAN.md) - P4-061, Zegar bodźca i dotyku; narzędzie U14 gotowe, czeka na pomiar telefonu
 **UI hint**: yes
 
 ## Progress
@@ -472,3 +473,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-59/P4-054 zakończony: tie W pamięci i karty Kampus Tour w KONCEPT, wybór postaci naraz, Refleks na serwerze, Balon na ekranie, Ć, nagłówek testów Kampus Tour, seria Sekwencji, limit partii w Intro pięciu gier (upTo). 60/62 pakietów, 255/267 części; FIX-02 otwarte. Następny P4-053 (P4-061 czeka na U14). Dowody: 05-59-SUMMARY.md. Commity bez push.
 
 2026-10-31, 05-60/P4-053 zakończony: jeden wypełniony akcent na Home, „Wszystkie” i trzy odpowiedzi w podglądzie Koloru liter po zmierzonych obcięciach przy 115%, tytuły Setup, tła i link Rekordów wg ról, minmax w siatkach, Preview Koła; podpisy Kampus Tour bez obcięć, czytelność do U04. 61/62 pakietów, 266/267 części; FIX-02 otwarte. Następny P4-061 (czeka na U14). Dowody: 05-60-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-61/P4-061 krok 1: narzędzie U14 `?zegar` (clock.ts) zapisuje obok obecnej metody e.timeStamp i pierwszą klatkę rAF w Refleksie, Stój!, Stoperze i Wieży; wynik bez zmian. Chromium 60 Hz: różnica 10-15 ms. Wybór użytkownika: pomiar, potem zmiana. 61/62 pakietów, 266/267 części; FIX-02 otwarte. Czeka na U14 użytkownika. Dowody: 05-61-SUMMARY.md.

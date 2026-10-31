@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 61/62 pakietów, 266/267 części; 05-60/P4-053: Wąskie podpisy i hierarchia ekranów, typy/testy/build PASS; następny P4-061 (czeka na U14) |
+| FIX-02 | Phase 5 | In progress; 61/62 pakietów, 266/267 części; został P4-061: narzędzie U14 `?zegar` gotowe (05-61), czeka na pomiar telefonu |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -356,3 +356,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-59/P4-054 zakończony: tie W pamięci i karty Kampus Tour w KONCEPT, wybór postaci naraz, Refleks na serwerze, Balon na ekranie, Ć, nagłówek testów Kampus Tour, seria Sekwencji, limit partii w Intro pięciu gier (upTo). 60/62 pakietów, 255/267 części; FIX-02 otwarte. Następny P4-053 (P4-061 czeka na U14). Dowody: 05-59-SUMMARY.md. Commity bez push.
 
 2026-10-31, 05-60/P4-053 zakończony: jeden wypełniony akcent na Home, „Wszystkie” i trzy odpowiedzi w podglądzie Koloru liter po zmierzonych obcięciach przy 115%, tytuły Setup, tła i link Rekordów wg ról, minmax w siatkach, Preview Koła; podpisy Kampus Tour bez obcięć, czytelność do U04. 61/62 pakietów, 266/267 części; FIX-02 otwarte. Następny P4-061 (czeka na U14). Dowody: 05-60-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-61/P4-061 krok 1: narzędzie U14 `?zegar` (clock.ts) zapisuje obok obecnej metody e.timeStamp i pierwszą klatkę rAF w Refleksie, Stój!, Stoperze i Wieży; wynik bez zmian. Chromium 60 Hz: różnica 10-15 ms. Wybór użytkownika: pomiar, potem zmiana. 61/62 pakietów, 266/267 części; FIX-02 otwarte. Czeka na U14 użytkownika. Dowody: 05-61-SUMMARY.md.

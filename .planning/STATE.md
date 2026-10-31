@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 current_phase: 5
 current_phase_name: Poprawki zaakceptowanych rozbieżności
 status: in_progress
-stopped_at: 05-60/P4-053 zakończony; następny P4-061 (czeka na U14)
+stopped_at: 05-61/P4-061 narzędzie U14 gotowe; czeka na pomiar telefonu (U14), potem zmiana zegara
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
 last_activity_desc: "P4-053 odebrany; TDD f085fc4, Wąskie podpisy i hierarchia ekranów; 61/62 pakietów, 266/267 części"
@@ -23,7 +23,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Faza 5: 05-60/P4-053 odebrany. Następny P4-061 (czeka na U14).
+**Current focus:** Faza 5: 05-61/P4-061 czeka na U14 (narzędzie `?zegar` gotowe). Ostatni pakiet.
 
 ## Current Position
 
@@ -447,3 +447,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-59/P4-054 zakończony: tie W pamięci i karty Kampus Tour w KONCEPT, wybór postaci naraz, Refleks na serwerze, Balon na ekranie, Ć, nagłówek testów Kampus Tour, seria Sekwencji, limit partii w Intro pięciu gier (upTo). 60/62 pakietów, 255/267 części; FIX-02 otwarte. Następny P4-053 (P4-061 czeka na U14). Dowody: 05-59-SUMMARY.md. Commity bez push.
 
 2026-10-31, 05-60/P4-053 zakończony: jeden wypełniony akcent na Home, „Wszystkie” i trzy odpowiedzi w podglądzie Koloru liter po zmierzonych obcięciach przy 115%, tytuły Setup, tła i link Rekordów wg ról, minmax w siatkach, Preview Koła; podpisy Kampus Tour bez obcięć, czytelność do U04. 61/62 pakietów, 266/267 części; FIX-02 otwarte. Następny P4-061 (czeka na U14). Dowody: 05-60-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-61/P4-061 krok 1: narzędzie U14 `?zegar` (clock.ts) zapisuje obok obecnej metody e.timeStamp i pierwszą klatkę rAF w Refleksie, Stój!, Stoperze i Wieży; wynik bez zmian. Chromium 60 Hz: różnica 10-15 ms. Wybór użytkownika: pomiar, potem zmiana. 61/62 pakietów, 266/267 części; FIX-02 otwarte. Czeka na U14 użytkownika. Dowody: 05-61-SUMMARY.md.
