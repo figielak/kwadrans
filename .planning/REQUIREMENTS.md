@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 34/62 pakietów, 155/267 części; 05-35/P4-041: katalog animacji i test zgodności, typy/testy/build PASS; następny P4-040; F4-046 częściowo SKIP → P4-057; P4-014 (2/3) i P4-015 oczekują U02 |
+| FIX-02 | Phase 5 | In progress; 35/62 pakietów, 156/267 części; 05-36/P4-038: Tort: uchwyt cięcia pod palcem, typy/testy/build PASS; następny P4-039; F4-046 częściowo SKIP → P4-057; P4-014 (2/3) i P4-015 oczekują U02 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -115,7 +115,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-31 po 05-35/P4-041; 34/62 pakietów, 155/267 części, FIX-02 otwarte.*
+*Last updated: 2026-10-31 po 05-36/P4-038; 35/62 pakietów, 156/267 części, FIX-02 otwarte.*
 
 2026-10-26, 05-02/P4-027: testy regresji i dokumentacja przed kodem przygotowane. Oczekiwany RED potwierdza błąd, nie jest spełnieniem FIX-02. Wdrożenie oczekuje osobnego commitu testów na prośbę użytkownika; dowody w [05-02-TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-TDD.md).
 
@@ -296,3 +296,7 @@ Następny P4-029; P4-014/015 nadal oczekują U02. Dowody: 05-28-SUMMARY.md. Comm
 2026-10-31, 05-35/P4-041 zakończony: katalog 14 keyframes z rolą i czasami w ZASADY §5, komentarze index.css zgodne z użyciem, test animations.test.ts.
 TDD 4c1b835. Typy/2324 testów (1 SKIP)/build PASS. 34/62 pakietów, 155/267 części; FIX-02 otwarte.
 Następny P4-040 (warunek P4-042); P4-014/015 oczekują U02. Dowody: 05-35-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-36/P4-038 zakończony: Tort łapie najbliższe cięcie do 24 px od odcinka zamiast 10°.
+TDD 5d05002. Typy/testy/build PASS. 35/62 pakietów, 156/267 części; FIX-02 otwarte.
+Następny P4-039; P4-014/015 oczekują U02. Dowody: 05-36-SUMMARY.md. Commit bez push.

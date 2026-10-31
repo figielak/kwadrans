@@ -15,8 +15,8 @@ const REVEAL_MS = 1500;
 /** Progi celności w % tortu: do PERFECT „Idealnie!” na zielono, powyżej CLOSE kolor ostrzeżenia. */
 const PERFECT = 2;
 const CLOSE = 8;
-/** Dotknięcie do tylu stopni od własnego cięcia łapie je, zamiast stawiać nowe. */
-const GRAB = 10;
+/** Dotknięcie do tylu px ekranu od odcinka własnego cięcia łapie je, zamiast stawiać nowe. */
+const GRAB_PX = 24;
 /** Promień tortu i martwa strefa przy środku (tam kąt palca jest przypadkowy), w jednostkach viewBox (100 = bok kafla). */
 const RADIUS = 44;
 const DEAD = 6;
@@ -24,8 +24,23 @@ const DEAD = 6;
 const percent = (n: number) => `${tenth(n)}%`;
 /** Koniec cięcia pod kątem `deg` (0° = godzina dwunasta, zgodnie z zegarem). */
 const rim = (deg: number, r = RADIUS) => ({ x: 50 + r * Math.sin((deg * Math.PI) / 180), y: 50 - r * Math.cos((deg * Math.PI) / 180) });
-/** Odległość dwóch kątów po okręgu, 0-180. */
-const apart = (a: number, b: number) => Math.abs(((a - b + 540) % 360) - 180);
+
+/**
+ * Indeks cięcia najbliższego punktowi (jednostki viewBox), jeśli jego odcinek środek → brzeg jest bliżej niż `reach`; inaczej null.
+ * Odległość od odcinka, nie kąt: przy środku kąt palca jest przypadkowy, a przy brzegu mały kąt to daleko.
+ */
+export function grab(cuts: number[], point: { x: number; y: number }, reach: number): number | null {
+  let best: number | null = null;
+  let bestDist = reach;
+  cuts.forEach((deg, i) => {
+    const end = rim(deg);
+    const [ex, ey] = [end.x - 50, end.y - 50];
+    const t = Math.max(0, Math.min(1, ((point.x - 50) * ex + (point.y - 50) * ey) / (ex * ex + ey * ey)));
+    const dist = Math.hypot(point.x - 50 - t * ex, point.y - 50 - t * ey);
+    if (dist <= bestDist) [best, bestDist] = [i, dist];
+  });
+  return best;
+}
 const ideal = ({ pieces, first }: TortCake) => Array.from({ length: pieces - 1 }, (_, i) => (first + ((i + 1) * 360) / pieces) % 360);
 
 function Cut({ deg, ...rest }: { deg: number } & SVGProps<SVGLineElement>) {
@@ -83,7 +98,9 @@ export function Tort({ view, me, players, ranking, onMove }: Props) {
   function down(e: PointerEvent<HTMLDivElement>) {
     const a = angle(e);
     if (phase !== "play" || a === null) return;
-    const near = cuts.reduce<number | null>((best, c, i) => (apart(c, a) <= GRAB && (best === null || apart(c, a) < apart(cuts[best], a)) ? i : best), null);
+    const box = e.currentTarget.getBoundingClientRect();
+    const point = { x: ((e.clientX - box.left) / box.width) * 100, y: ((e.clientY - box.top) / box.height) * 100 };
+    const near = grab(cuts, point, (GRAB_PX / box.width) * 100);
     if (near === null && cuts.length === view.cakes[index].pieces - 1) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     const at = near ?? cuts.length;

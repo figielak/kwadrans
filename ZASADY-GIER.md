@@ -527,8 +527,9 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 - Pusta lista = limit czasu = 5 × 100% (`MAX_ERROR`, więcej niż najgorsza uczciwa partia).
 - Bez ruchu `progress` (5 krótkich rund).
 - Ekran: kwadratowy kafel z tortem, nad nim liczba kawałków. Gotowe cięcie jest w kolorze tekstu, własne w kolorze gracza.
-  Dotknięcie tortu stawia cięcie pod kątem palca (dopóki brakuje) i można je od razu przeciągnąć; dotknięcie do 10° (`GRAB`) od własnego
-  cięcia łapie je i przesuwa. Gotowego cięcia nie da się ruszyć. Po komplecie cięć przycisk „Pokrój” (kolor gracza).
+  Dotknięcie tortu stawia cięcie pod kątem palca (dopóki brakuje) i można je od razu przeciągnąć; dotknięcie do 24 px ekranu (`GRAB_PX`) od odcinka
+  własnego cięcia łapie najbliższe z nich i przesuwa (odległość od odcinka, nie kąt, więc tak samo przy środku i przy brzegu);
+  dalsze dotknięcie nie rusza żadnego cięcia, tylko stawia nowe, jeśli brakuje. Gotowego cięcia nie da się ruszyć. Po komplecie cięć przycisk „Pokrój” (kolor gracza).
   Potem przez 1,5 s widać idealne cięcia (przerywane, liczone od gotowego) i błąd w %; kolor według celności: do 2% zielony z „Idealnie!”,
   do 8% zwykły, dalej ostrzegawczy. Potem sam wskakuje następny tort; po piątym wynik idzie na serwer.
 - Ekran końcowy: jedna tabela, torty 1-5 w kolumnach (z liczbą kawałków), gracze w wierszach. Najlepszy w rundzie (bez remisu) ma tło w kolorze gracza.

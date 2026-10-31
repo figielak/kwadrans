@@ -2,7 +2,7 @@
 
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
-**Stan wykonania: 34/62 pakietów, 155/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..022 oraz P4-023..026, P4-028..033, P4-036..037, P4-041 i P4-007..010.
+**Stan wykonania: 35/62 pakietów, 156/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..022 oraz P4-023..026, P4-028..033, P4-036..037, P4-041, P4-038 i P4-007..010.
 F4-046 z P4-031 częściowo otwarte: zakresy PASS, równy udział rodzajów SKIP po wykryciu błędu; naprawa w P4-057 (05-31-SUMMARY.md), bez doliczania do zamkniętych części.
 Dowody: 05-01..34-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
@@ -68,7 +68,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 33 | [P4-032: Testy: pozostałe mini-gry](#scope-p4-032) | P2 | 52 | wykonano 2026-10-31, 05-32 |
 | 34 | [P4-033: Rekordowa partia ze stanu, także me=""](#scope-p4-033) | P2 | 2 | wykonano 2026-10-31, 05-33 |
 | 35 | [P4-037: Zwykłe kontrolki 48 px](#scope-p4-037) | P2 | 1 | wykonano 2026-10-31, 05-34 |
-| 36 | [P4-038: Tort: uchwyt cięcia pod palcem](#scope-p4-038) | P2 | 1 | nie rozpoczęto |
+| 36 | [P4-038: Tort: uchwyt cięcia pod palcem](#scope-p4-038) | P2 | 1 | wykonano 2026-10-31, 05-36; TDD 5d05002 |
 | 37 | [P4-039: Śledzenie: rozdzielne cele dotyku](#scope-p4-039) | P2 | 1 | nie rozpoczęto |
 | 38 | [P4-040: Reduced motion: zadanie działa, komunikat widoczny](#scope-p4-040) | P2 | 4 | nie rozpoczęto |
 | 39 | [P4-041: Katalog i opisy animacji](#scope-p4-041) | P3 | 3 | wykonano 2026-10-31, 05-35; TDD 4c1b835 |
@@ -616,7 +616,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: brak. Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Wszystkie 3-7 części, cięcia blisko siebie i centrum: wybór najbliższego z widocznym podglądem, możliwość korekty, Pokrój aktywne po komplecie. Dotyk na prawdziwym telefonie i 360×640.
 - Granice: Przy remisie odległości zachowanie musi być deterministyczne i opisane; nie liczyć stopni jako pikseli.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **wykonano 2026-10-31**, 05-36; TDD 5d05002. Dowody: 05-36-SUMMARY.md.
 
 <a id="scope-p4-039"></a>
 
