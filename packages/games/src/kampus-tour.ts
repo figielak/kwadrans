@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { GameDefinition, PlayerId, Rng } from "./core.ts";
+import { type GameDefinition, type PlayerId, type Rng, shuffle } from "./core.ts";
 
 export const SIZE = 32;
 export const ROUNDS = 20;
@@ -479,11 +479,7 @@ export const kampusTour: GameDefinition<State, Move> = {
   moveSchema,
 
   setup(players, rng) {
-    const deck = CARDS.map((_, i) => i);
-    for (let i = deck.length - 1; i > 0; i--) {
-      const j = Math.floor(rng() * (i + 1));
-      [deck[i], deck[j]] = [deck[j], deck[i]];
-    }
+    const deck = shuffle(CARDS.map((_, i) => i), rng);
     return {
       players,
       positions: Object.fromEntries(players.map((p) => [p, 0])),

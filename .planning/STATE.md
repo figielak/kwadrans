@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 current_phase: 5
 current_phase_name: Poprawki zaakceptowanych rozbieżności
 status: in_progress
-stopped_at: 05-55/P4-034 zakończony; następny P4-035 (P4-061 czeka na U14)
+stopped_at: 05-56/P4-035 zakończony; następny P4-047 (P4-061 czeka na U14)
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
-last_activity_desc: "P4-034 odebrany; TDD e3d6157, Jedna lista mini-gier i klucz rewanżu; 56/62 pakietów, 226/267 części"
+last_activity_desc: "P4-035 odebrany; TDD 33e148a, Wspólne funkcje bez zmiany reguł; 57/62 pakietów, 227/267 części"
 state_head: f06def5505a8da7b1481ef76ea778ccd8fbc12a6
 progress:
   total_phases: 5
@@ -23,16 +23,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Faza 5: 05-55/P4-034 odebrany. Następny P4-035 (P4-061 czeka na U14).
+**Current focus:** Faza 5: 05-56/P4-035 odebrany. Następny P4-047 (P4-061 czeka na U14).
 
 ## Current Position
 
 Phase: 5 of 5 (Poprawki zaakceptowanych rozbieżności), zakres ZG4-v1/S5-v1 zatwierdzony.
-Plan: 55 of 55 currently planned completed.
+Plan: 56 of 56 currently planned completed.
 Status: In progress. Fazy 1-4 zakończone, FIX-01 zakończone. FIX-02 otwarte.
-Wykonano 56/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048, P4-050, P4-051, P4-052, P4-055, P4-056, P4-057, P4-058, P4-059, P4-060, P4-062, P4-034), 226/267 części poprawek.
-Last activity: 2026-10-31: zakończono 05-55/P4-034, Jedna lista mini-gier i klucz rewanżu.
-Dowody w 05-55-SUMMARY.md.
+Wykonano 57/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048, P4-050, P4-051, P4-052, P4-055, P4-056, P4-057, P4-058, P4-059, P4-060, P4-062, P4-034, P4-035), 227/267 części poprawek.
+Last activity: 2026-10-31: zakończono 05-56/P4-035, Wspólne funkcje bez zmiany reguł.
+Dowody w 05-56-SUMMARY.md.
+
+Poprzednio zakończono 05-55. Dowody w 05-55-SUMMARY.md.
 
 Poprzednio zakończono 05-54. Dowody w 05-54-SUMMARY.md.
 
@@ -427,3 +429,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-54/P4-062 zakończony: Państwa-miasta nie losują Ł (pula 22 liter), punktacja i głosowanie bez zmian. 55/62 pakietów, 222/267 części; FIX-02 otwarte. Następny P4-034; P4-061 czeka na U14. Dowody: 05-54-SUMMARY.md. Commity bez push.
 
 2026-10-31, 05-55/P4-034 zakończony: mini-gry z MINI_GAME_IDS w Game/Lobby (SIMULTANEOUS, OWN_RANKING z Kalamburami), nonce Sudoku z fallbackiem planszy, stałe SLEDZENIE_*, Turniej z podsumowaniem w StartBar bez drugiego sticky. 56/62 pakietów, 226/267 części; FIX-02 otwarte. Następny P4-035; P4-061 czeka na U14. Dowody: 05-55-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-56/P4-035 zakończony: talia Kampus Tour przez shuffle z core, swapsFor w Kubkach (te same talie i zamiany dla seedów 1-3), Koło bez ranked i trzy kopie szkieletu rund z powodem w ZASADY-GIER §1. 57/62 pakietów, 227/267 części; FIX-02 otwarte. Następny P4-047; P4-061 czeka na U14. Dowody: 05-56-SUMMARY.md. Commity bez push.

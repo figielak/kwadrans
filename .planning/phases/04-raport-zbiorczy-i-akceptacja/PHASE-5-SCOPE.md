@@ -90,7 +90,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 55 | [P4-061: Zegar bodźca i dotyku](#scope-p4-061) | P2 | 1 | nie rozpoczęto |
 | 56 | [P4-062: Państwa-miasta: pominąć Ł](#scope-p4-062) | P2 | 1 | wykonano 2026-10-31, 05-54; TDD cd9d00d |
 | 57 | [P4-034: Jedna lista mini-gier i klucz rewanżu](#scope-p4-034) | P3 | 4 | wykonano 2026-10-31, 05-55; TDD e3d6157 |
-| 58 | [P4-035: Wspólne funkcje bez zmiany reguł](#scope-p4-035) | P3 | 1 | nie rozpoczęto |
+| 58 | [P4-035: Wspólne funkcje bez zmiany reguł](#scope-p4-035) | P3 | 1 | wykonano 2026-10-31, 05-56; TDD 33e148a |
 | 59 | [P4-047: Słowa czynności i przejść](#scope-p4-047) | P3 | 6 | nie rozpoczęto |
 | 60 | [P4-049: Liczby, etykiety i wąskie kolumny](#scope-p4-049) | P3 | 12 | nie rozpoczęto |
 | 61 | [P4-053: Wąskie podpisy i hierarchia ekranów](#scope-p4-053) | P3 | 11 | nie rozpoczęto |
@@ -924,7 +924,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: brak. Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T/D (T obowiązkowa przy zmianie kodu lub testów). Dla ustalonych seedów te same talie/zamiany i wyniki przed/po; kontrakt Koła kończy się po próbach wszystkich; dokument wskazuje, dlaczego pozostają kopie szacowania.
 - Granice: D4-090:A nie jest zgodą na opcjonalną nową warstwę abstrakcji; to podwybór zachowania obecnych kopii wymagający jawnego zapisu w 04-04.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 1/1 części. TDD `33e148a`; typy, testy i build PASS. [05-56-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-56-SUMMARY.md).
 
 <a id="scope-p4-047"></a>
 

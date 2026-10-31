@@ -64,8 +64,13 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
 - Gry rozstrzygające remis średnim czasem (Kolor liter, Liczenie, Inny element, Obrót, Literówka, Dziesiątki, Stój!) porównują średnią
   zaokrągloną do ms (`averageMs`), tą samą w miejscach partii i w `record.tie`; różnica ułamka ms to remis.
   W rekordach brak drugiego kryterium (stare zapisy) stoi za znanym, dwa braki remisują, brak nigdy nie liczy się jak zero; SQL i `compareRecords` mają ten sam porządek.
-- Odświeżenie strony w trakcie = partia od nowa na kliencie. `nonce` w stanie (Stoper, Narysuj koło, Rytm) służy tylko do tego,
+- Odświeżenie strony w trakcie = partia od nowa na kliencie. `nonce` w stanie (Stoper, Narysuj koło, Rytm, Sudoku) służy tylko do tego,
   żeby rewanż zamontował komponent od nowa.
+- Ranking, miejsca i rekord mini-gry składa `ranked` (core.ts). Wyjątek: Narysuj koło ma własne `isOver`, bo gracz oddaje do 10 wyników
+  i partia kończy się dopiero po próbach wszystkich (`waitingFor`), a nie po pierwszym wyniku każdego; komparator jest ten sam.
+- Policz kropki, Kąt i Który rok? mają trzy świadome kopie szkieletu zasad rund (pokaz, odpowiedź, `progress`, wynik po limicie).
+  Różnią się zakresem odpowiedzi, wynikiem po limicie i odsłoną, więc wspólny moduł zasad powstanie dopiero przy czwartej takiej grze
+  albo zmianie kształtu ruchu; wspólny jest już ekran (`Szacowanie.tsx` dla Policz kropki i Kąta).
 
 ### Refleks (`refleks`)
 - 12 rund (`ROUNDS`). W każdej pole zmienia kolor po losowym opóźnieniu 1-3 s (12 opóźnień z serwera), gracz dotyka jak najszybciej.
@@ -173,7 +178,7 @@ Wspólne zasady w `quiz.ts`, wspólny ekran `Quiz.tsx` (dzielą je też Inny ele
   odchylenia od niego (zielony blisko, czerwony od 10% promienia), a na środku płótna wynik z porównaniem do najlepszej próby.
 - Wynik 0-1000 (dziesiąte części procenta), więcej lepiej. Stan trzyma `best` i `worst` każdego gracza.
 - Ekran końcowy: karta na gracza w kolejności rankingu (nick, duży najlepszy wynik), pod nią miniatury „Najlepsza” (z przerywanym idealnym okręgiem) i „Najgorsza”; bez osobnej tabeli wyników.
-- Koniec, gdy każdy ma 10 prób.
+- Koniec, gdy każdy ma 10 prób (pusta lista kończy pozostałe). Dlatego Koło nie używa `ranked`: koniec zależy od `waitingFor`, nie od pierwszego wyniku (ZASADY-GIER §1).
 
 ### Odcień (`kolor`)
 - 5 kolorów HSB; każdy widać 2 s, potem gracz odtwarza go suwakami barwy (0-359), nasycenia i jasności (0-100).

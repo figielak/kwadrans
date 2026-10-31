@@ -27,7 +27,7 @@ export const swapMs = (round: number) => Math.max(SWAP_MS_MIN, SWAP_MS_START - S
 export const ballAt = ({ ball, swaps }: Round) => swaps.reduce((at, [a, b]) => (at === a ? b : at === b ? a : at), ball);
 
 /** Para to dwa miejsca bez trzeciego; ta sama para dwa razy z rzędu cofałaby zamianę, więc trzecie miejsce musi się zmienić. */
-function shuffle(rng: () => number, count: number): number[][] {
+function swapsFor(rng: () => number, count: number): number[][] {
   const swaps: number[][] = [];
   let skipped = -1;
   for (let i = 0; i < count; i++) {
@@ -53,7 +53,7 @@ export const kubki: GameDefinition<State, Move> = {
 
   setup: (players, rng) => ({
     players,
-    rounds: Array.from({ length: ROUNDS }, (_, r) => ({ ball: Math.floor(rng() * CUPS), swaps: shuffle(rng, swapCount(r)) })),
+    rounds: Array.from({ length: ROUNDS }, (_, r) => ({ ball: Math.floor(rng() * CUPS), swaps: swapsFor(rng, swapCount(r)) })),
     results: {},
   }),
 
