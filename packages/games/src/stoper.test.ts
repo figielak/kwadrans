@@ -5,7 +5,7 @@ import { type Move, type State, stoper as game } from "./stoper.ts";
 // Testy napisane przed implementacją. Ustalają zasady:
 // - 1-6 graczy naraz, każdy zatrzymuje stoper u siebie, oddaje odchyłkę od celu w ms (0-cel),
 // - mniejsza odchyłka wyżej; zwycięzca tylko przy 2+ graczach i bez remisu,
-// - cel losuje serwer: pełne sekundy 6-14 s, ten sam dla wszystkich,
+// - cel jest stały: 10 s dla wszystkich i w każdej partii (P4-055; dawniej losowe 6-14 s, stare partie zostają ze swoim celem),
 // - po limicie czasu najgorszy wynik (odchyłka równa celowi).
 
 const A = "ania";
@@ -19,14 +19,25 @@ function send(s: State, player: string, move: Move): State {
   return game.applyMove(s, player, move, createRng(1));
 }
 
-test("cel to pełne sekundy 6-14 s i trafiają się oba końce", () => {
-  const targets = Array.from({ length: 200 }, (_, i) => game.setup([A, B], createRng(i)).target);
-  for (const t of targets) {
-    expect(t % 1000).toBe(0);
-    expect(t).toBeGreaterThanOrEqual(6000);
-    expect(t).toBeLessThanOrEqual(14_000);
-  }
-  expect(new Set(targets).size).toBe(9);
+test("P4-055: cel zawsze 10 s, w każdej partii", () => {
+  const targets = new Set(Array.from({ length: 200 }, (_, i) => game.setup([A, B], createRng(i)).target));
+  expect([...targets]).toEqual([10_000]);
+});
+
+test("P4-055: wynik graniczny 0 i równy celowi, timeout to cel", () => {
+  const s = game.setup([A], createRng(3));
+  expect(game.validateMove(s, A, { type: "result", deviation: 0, stopped: 10_000 })).toBe(true);
+  expect(game.validateMove(s, A, { type: "result", deviation: 10_000, stopped: 20_000 })).toBe(true);
+  expect(game.validateMove(s, A, result(10_001))).toBe(false);
+  expect(game.timeoutMove!(s, A, createRng(1))).toEqual(result(10_000));
+});
+
+test("P4-055: stara partia z innym celem liczy się po swoim celu", () => {
+  const old: State = { players: [A], target: 7000, nonce: 1, results: {}, stops: {} };
+  expect(game.validateMove(old, A, { type: "result", deviation: 500, stopped: 7500 })).toBe(true);
+  expect(game.validateMove(old, A, result(7001))).toBe(false);
+  expect(game.timeoutMove!(old, A, createRng(1))).toEqual(result(7000));
+  expect(game.applyMove(old, A, { type: "result", deviation: 500, stopped: 7500 }, createRng(1)).target).toBe(7000);
 });
 
 test("wszyscy grają naraz, rewanż ma inne wyzwanie", () => {
