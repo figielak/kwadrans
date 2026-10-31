@@ -180,10 +180,30 @@ test("P4-031/F4-046: zakresy operandów i całkowity iloraz zgodne z zasadami", 
   }
 });
 
-// Potwierdzony błąd: seed 1 daje 49/55/54/42. Bez poprawki produkcyjnej na zlecenie użytkownika.
-// Szczegóły: 05-31-SUMMARY.md; naprawa generatora należy do P4-057.
-test.skip("P4-031/F4-046: rodzaje działań występują po równo", () => {
+test("P4-031/F4-046: rodzaje działań występują po równo", () => {
   const { problems } = game.setup([A], createRng(1));
   const counts = ["+", "−", "×", ":"].map((op) => problems.filter((p) => p.text.split(" ")[1] === op).length);
   expect(counts).toEqual([50, 50, 50, 50]);
+});
+
+test("P4-057: każda kolejna czwórka działań ma wszystkie cztery rodzaje, dla 1000 seedów", () => {
+  for (let seed = 1; seed <= 1000; seed++) {
+    const { problems } = game.setup([A], createRng(seed));
+    expect(problems.length % 4).toBe(0);
+    for (let i = 0; i < problems.length; i += 4) {
+      const ops = problems.slice(i, i + 4).map((p) => p.text.split(" ")[1]);
+      expect(new Set(ops), `seed ${seed}, czwórka od ${i}`).toEqual(new Set(["+", "−", "×", ":"]));
+    }
+    for (const p of problems) {
+      const [a, , b] = p.text.split(" ").map(Number);
+      expect(p.options[p.answer], p.text).toBe(evaluate(p.text));
+      expect(new Set(p.options).size, p.text).toBe(4);
+      expect(p.options.every((o) => Number.isInteger(o) && o > 0 && o !== a && o !== b), p.text).toBe(true);
+    }
+  }
+});
+
+test("P4-057: kolejność rodzajów w czwórkach jest tasowana, nie stała", () => {
+  const orders = new Set(game.setup([A], createRng(1)).problems.map((p) => p.text.split(" ")[1]).join("").match(/.{4}/gu));
+  expect(orders.size).toBeGreaterThan(1);
 });
