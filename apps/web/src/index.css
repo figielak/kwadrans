@@ -110,6 +110,11 @@ body::before {
     background: var(--color-accent-hover);
   }
 
+  /* Akcja gracza: tło w jego kolorze (style backgroundColor, bo kolor to dane), tekst grafitowy jak na akcencie. */
+  .btn-player {
+    color: var(--color-bg);
+  }
+
   .btn-ghost {
     border: 1px solid var(--color-line);
     color: var(--color-fg);
@@ -155,16 +160,16 @@ body::before {
     width: 18px;
     height: 40px;
     border-radius: 6px;
-    border: 3px solid #fff;
-    box-shadow: 0 0 0 1px #000;
+    border: 3px solid var(--color-fg);
+    box-shadow: 0 0 0 1px var(--color-bg);
     background: transparent;
   }
   .swatch-range::-moz-range-thumb {
     width: 12px;
     height: 34px;
     border-radius: 6px;
-    border: 3px solid #fff;
-    box-shadow: 0 0 0 1px #000;
+    border: 3px solid var(--color-fg);
+    box-shadow: 0 0 0 1px var(--color-bg);
     background: transparent;
   }
   .swatch-range:focus-visible {

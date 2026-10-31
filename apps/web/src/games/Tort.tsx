@@ -197,7 +197,7 @@ export function Tort({ view, me, players, ranking, onMove }: Props) {
           </span>
         )}
       </p>
-      <button type="button" className="btn w-full text-bg disabled:opacity-40" style={{ backgroundColor: color }} disabled={phase !== "play" || left > 0} onClick={confirm}>
+      <button type="button" className="btn w-full btn-player disabled:opacity-40" style={{ backgroundColor: color }} disabled={phase !== "play" || left > 0} onClick={confirm}>
         Pokrój
       </button>
     </section>

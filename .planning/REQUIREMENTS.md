@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 45/62 pakietów, 191/267 części; 05-44/P4-048: wspólne tabele wyników i rund, typy/testy/build PASS; następny P4-050; F4-046 częściowo SKIP → P4-057 |
+| FIX-02 | Phase 5 | In progress; 46/62 pakietów, 200/267 części; 05-45/P4-050: role tokenów i drugi sygnał, typy/testy/build PASS; następny P4-051; F4-046 częściowo SKIP → P4-057 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -115,7 +115,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-31 po 05-44/P4-048; 45/62 pakietów, 191/267 części, FIX-02 otwarte.*
+*Last updated: 2026-10-31 po 05-45/P4-050; 46/62 pakietów, 200/267 części, FIX-02 otwarte.*
 
 2026-10-26, 05-02/P4-027: testy regresji i dokumentacja przed kodem przygotowane. Oczekiwany RED potwierdza błąd, nie jest spełnieniem FIX-02. Wdrożenie oczekuje osobnego commitu testów na prośbę użytkownika; dowody w [05-02-TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-TDD.md).
 
@@ -324,3 +324,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-43/P4-046 zakończony: koniec Kampus Tour w kolorze zwycięzcy z title-pop tylko u niego, zastany stan bez animacji (useFresh), tile-hit w W pamięci, pełny werdykt Balonu. 44/62 pakietów, 189/267 części; FIX-02 otwarte. Następny P4-048. Dowody: 05-43-SUMMARY.md. Commit bez push.
 
 2026-10-31, 05-44/P4-048 zakończony: ScoreTable jako drugi wspólny wzorzec wyników, RoundTable z wierszem celów w Przytrzymaj, Balonie, Policz kropki, Kącie i Który rok?; Odcień wyjątkiem. 45/62 pakietów, 191/267 części; FIX-02 otwarte. Następny P4-050. Dowody: 05-44-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-45/P4-050 zakończony: btn-player, tokeny w swoich rolach, wybór w kolorze wybierającego, inicjał właściciela na planszach, nazwane wyjątki treści. 46/62 pakietów, 200/267 części; FIX-02 otwarte. Następny P4-051. Dowody: 05-45-SUMMARY.md. Commit bez push.

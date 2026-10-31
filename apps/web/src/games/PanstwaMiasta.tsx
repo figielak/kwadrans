@@ -1,4 +1,4 @@
-import { Check, HandPalm, ThumbsDown, X } from "@phosphor-icons/react";
+import { Check, HandPalm, ThumbsDown, Warning, X } from "@phosphor-icons/react";
 import { type LobbyPlayer, type PanstwaMiastaMove, type PanstwaMiastaView, PM_ANSWER_MAX, PM_CATEGORIES, pmFits } from "@kwadrans/games";
 import { Fragment, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Scores, StickyBar } from "../screens/ui.tsx";
@@ -31,7 +31,7 @@ export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, o
       {timer && (
         <header className="flex items-center gap-4">
           <span
-            className="flex size-24 shrink-0 items-center justify-center rounded-tile border border-line-hover bg-surface text-7xl font-semibold"
+            className="flex size-24 shrink-0 items-center justify-center rounded-tile border border-line bg-surface text-7xl font-semibold"
             aria-label={`Litera ${letter}`}
           >
             {letter}
@@ -40,7 +40,10 @@ export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, o
             <span className="label">
               Runda {view.round + 1}/{view.letters.length}
             </span>
-            <h1 className="text-xl leading-tight font-semibold">{PHASE[view.phase]}</h1>
+            {/* Faza w moim kolorze, gdy czekamy na mnie (jak „Twój ruch” w innych grach). */}
+            <h1 className="text-xl leading-tight font-semibold" style={playing && waitingFor.includes(me) ? { color: player(me)?.color } : undefined}>
+              {PHASE[view.phase]}
+            </h1>
             {timer}
           </div>
         </header>
@@ -57,7 +60,7 @@ export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, o
                 {player(id)?.nick ?? "Gracz"}
                 {id === me && <span className="text-fg-muted">(ty)</span>}
                 <span className="font-mono text-fg-muted tabular-nums">{view.totals[id]}</span>
-                {finished && <Check size={14} weight="bold" className="text-success" aria-label="gotowe" />}
+                {finished && <Check size={14} weight="bold" className="text-fg" aria-label="gotowe" />}
               </li>
             );
           })}
@@ -104,7 +107,7 @@ export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, o
           />
           {view.phase === "summary" && playing && (
             <StickyBar>
-              <button type="button" className="btn w-full text-bg" style={{ backgroundColor: player(me)?.color }} disabled={view.ready.includes(me)} onClick={() => onMove({ type: "next" })}>
+              <button type="button" className="btn w-full btn-player" style={{ backgroundColor: player(me)?.color }} disabled={view.ready.includes(me)} onClick={() => onMove({ type: "next" })}>
                 {view.ready.includes(me) ? "Czekamy na resztę" : "Dalej"}
               </button>
             </StickyBar>
@@ -225,6 +228,13 @@ function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView;
                 />
                 {ok && <Check size={18} weight="bold" className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-success" aria-hidden />}
               </div>
+              {/* Zła pierwsza litera: nie tylko czerwona ramka, także ikona i tekst (DESIGN §4, błąd formularza). */}
+              {typed && !ok && (
+                <p role="alert" className="flex items-center gap-1.5 text-sm text-warning">
+                  <Warning size={16} weight="fill" aria-hidden />
+                  Zła litera: zacznij od {letter}
+                </p>
+              )}
             </div>
           );
         })}
@@ -234,7 +244,7 @@ function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView;
           {filled}/{PM_CATEGORIES.length}
         </span>
         {complete ? (
-          <button type="submit" className="btn flex-1 text-bg" style={{ backgroundColor: color }}>
+          <button type="submit" className="btn flex-1 btn-player" style={{ backgroundColor: color }}>
             {view.stop ? "Gotowe" : "STOP!"}
           </button>
         ) : (
@@ -243,7 +253,7 @@ function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView;
               Oddaj
             </button>
             {/* onPointerDown bez utraty fokusu: inaczej klawiatura chowa się i skacze przy każdym polu */}
-            <button type="button" className="btn flex-1 text-bg" style={{ backgroundColor: color }} onPointerDown={(e) => e.preventDefault()} onClick={nextEmpty}>
+            <button type="button" className="btn flex-1 btn-player" style={{ backgroundColor: color }} onPointerDown={(e) => e.preventDefault()} onClick={nextEmpty}>
               Dalej
             </button>
           </>
@@ -277,7 +287,7 @@ function Voting({ view, me, player, onMove }: { view: PanstwaMiastaView; me: str
       <p className="text-sm text-fg-muted">Dotknij cudzej odpowiedzi, żeby ją odrzucić.</p>
       <Answers view={view} player={player} me={me} rejected={rejected} onToggle={toggle} />
       <StickyBar>
-        <button type="button" className="btn w-full text-bg" style={{ backgroundColor: player(me)?.color }} onClick={submit}>
+        <button type="button" className="btn w-full btn-player" style={{ backgroundColor: player(me)?.color }} onClick={submit}>
           {rejected.size ? `Zatwierdź (odrzucam ${rejected.size})` : "Wszystko się zgadza"}
         </button>
       </StickyBar>
@@ -302,6 +312,7 @@ function Answers({
   scored?: boolean;
 }) {
   const letter = view.letters[view.round];
+  const myColor = me ? player(me)?.color : undefined;
   const label = (id: string) => (
     <span className="flex min-w-0 items-center gap-1.5">
       <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: player(id)?.color }} aria-hidden />
@@ -329,8 +340,10 @@ function Answers({
           "aria-label": `${player(id)?.nick ?? "Gracz"}, ${category}: ${answer}. ${voted ? "Odrzucasz" : "Uznajesz"}`,
         })}
         className={`flex min-h-12 w-full items-center gap-1.5 rounded-inset border px-2 py-1.5 text-left ${
-          voted || out ? "bg-accent-soft" : canToggle ? "bg-surface-inset" : ""
-        } ${canToggle ? (voted ? "border-accent" : "border-line-hover") : "border-transparent"} ${onToggle && id === me ? "opacity-50" : ""}`}
+          canToggle && !voted ? "bg-surface-inset" : ""
+        } ${canToggle ? (voted ? "" : "border-line-hover") : "border-transparent"} ${onToggle && id === me ? "opacity-50" : ""}`}
+        // Mój głos przeciw to mój wybór: obrys w moim kolorze; odrzucenie mówią ikona X, przekreślenie i 0 pkt, bez tła.
+        style={canToggle && voted ? { borderColor: myColor } : undefined}
       >
         {answer ? (
           <span className={`min-w-0 flex-1 break-words ${!fits || out ? "text-fg-muted line-through" : ""}`}>{answer}</span>

@@ -152,7 +152,7 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
           </span>
         )}
       </div>
-      <button type="button" className="btn text-bg" style={{ backgroundColor: color }} disabled={phase !== "play"} onClick={() => finish(current)}>
+      <button type="button" className="btn btn-player" style={{ backgroundColor: color }} disabled={phase !== "play"} onClick={() => finish(current)}>
         Zgarnij {current} pkt
       </button>
       <p className="text-center text-sm text-fg-muted">Stukaj w pole, żeby pompować. Nikt nie wie, ile balon wytrzyma.</p>

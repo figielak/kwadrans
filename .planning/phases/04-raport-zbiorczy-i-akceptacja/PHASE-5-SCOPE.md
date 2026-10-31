@@ -756,7 +756,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-001](PACKAGES.md#p4-001). Dodatkowy warunek: U12/U11 do pełnego odbioru sygnałów; część stylistyczna nie dowodzi testu czytnika.
 - Odbiór: T + UI. Kolor gracza zamiast akcentu dla wyboru, warning z ikoną/tekstem, contrast accent-fg na prawidłowym tle. U12 sześć kolorów i U11: widoczny znak nie zastąpiony aria-label. Wszystkie wskazane cienie/promienie mają albo token/skale, albo nazwany wyjątek.
 - Granice: Wyjątek treści nie legalizuje całej dekoracji; czytelność celów Śledzenia może zmieniać trudność rozpoznania, nie ruch.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 9/9 części. TDD `6fd7a7b`; typy, testy i build PASS; U12/U11 do odbioru. [05-45-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-45-SUMMARY.md).
 
 <a id="scope-p4-051"></a>
 

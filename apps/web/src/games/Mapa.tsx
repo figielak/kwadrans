@@ -188,7 +188,7 @@ export function Mapa({ view, me, players, ranking, onMove }: Props) {
             <span className={`font-mono text-3xl font-semibold tabular-nums ${grade(error).text}`}>{km(error)}</span>
           </>
         ) : (
-          <button type="button" className="btn w-full text-bg" style={{ backgroundColor: color }} disabled={!pin} onClick={confirm}>
+          <button type="button" className="btn w-full btn-player" style={{ backgroundColor: color }} disabled={!pin} onClick={confirm}>
             {pin ? "Zatwierdź" : "Dotknij mapy"}
           </button>
         )}

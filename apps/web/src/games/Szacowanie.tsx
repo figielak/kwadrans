@@ -136,7 +136,7 @@ export function Szacowanie({ view, me, players, ranking, onMove, truths, draw, s
                 onChange={(e) => setInput(e.target.value.replace(/\D/g, "").slice(0, String(maxAnswer).length))}
               />
             </label>
-            <button type="submit" className="btn w-full text-bg" style={{ backgroundColor: color }} disabled={!valid}>
+            <button type="submit" className="btn w-full btn-player" style={{ backgroundColor: color }} disabled={!valid}>
               Zatwierdź
             </button>
           </form>
@@ -161,7 +161,7 @@ export function Szacowanie({ view, me, players, ranking, onMove, truths, draw, s
               {diff === 0 ? "Idealnie" : signed(diff)}
             </span>
           </div>
-          <button type="button" className="btn w-full text-bg" style={{ backgroundColor: color }} autoFocus onClick={next}>
+          <button type="button" className="btn w-full btn-player" style={{ backgroundColor: color }} autoFocus onClick={next}>
             {answers.length < rounds ? "Następna runda" : "Wyniki"}
           </button>
         </>

@@ -1,5 +1,5 @@
 import { DiamondsFour } from "@phosphor-icons/react";
-import type { LobbyPlayer, MemoryView } from "@kwadrans/games";
+import { initials, type LobbyPlayer, type MemoryView } from "@kwadrans/games";
 import { useEffect, useState } from "react";
 import { useFresh } from "../screens/ui.tsx";
 
@@ -38,6 +38,8 @@ const EMOJI: [string, string][] = [
 
 export function Memory({ view, players, canMove, onMove }: Props) {
   const colorOf = (id: string | null) => players.find((p) => p.id === id)?.color ?? "var(--color-fg-muted)";
+  // Drugi znak oprócz koloru: inicjał właściciela na zebranej parze.
+  const labels = initials(view.players.map((id) => players.find((p) => p.id === id)?.nick ?? "?"));
   const turnId = view.players[view.turn];
   const turnColor = colorOf(turnId);
   const turnNick = players.find((p) => p.id === turnId)?.nick ?? "Przeciwnik";
@@ -74,7 +76,7 @@ export function Memory({ view, players, canMove, onMove }: Props) {
               key={i}
               type="button"
               disabled={!canMove || up}
-              aria-label={`Karta ${i + 1}, ${up ? name : "zakryta"}`}
+              aria-label={`Karta ${i + 1}, ${up ? name : "zakryta"}${owner !== null ? `, para: ${players.find((p) => p.id === owner)?.nick ?? "Gracz"}` : ""}`}
               className={`${tall ? "aspect-5/4" : "aspect-square"} min-h-12 perspective-[600px]`}
               onClick={() => onMove({ card: i })}
             >
@@ -98,13 +100,17 @@ export function Memory({ view, players, canMove, onMove }: Props) {
                       outlineColor: color,
                       color,
                       backgroundColor: `color-mix(in srgb, ${color} ${live ? 22 : 12}%, var(--color-surface-inset))`,
-                      boxShadow: live ? `0 0 14px color-mix(in srgb, ${color} 55%, transparent)` : undefined,
                     }
                   }
                   aria-hidden
                 >
                   {/* Animacja na emoji, nie na ściance: transform z keyframes nadpisałby jej obrót. */}
                   <span className={`text-[50cqw] leading-none ${owner !== null && isNew(i) ? "animate-[stone-pop_0.35s_ease-out]" : ""}`}>{emoji}</span>
+                  {owner !== null && (
+                    <span className="absolute top-0.5 left-1 font-mono text-[18cqw] leading-none font-semibold" style={{ color }}>
+                      {labels[view.players.indexOf(owner)]}
+                    </span>
+                  )}
                 </span>
               </span>
             </button>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, DiceFive, DiceFour, DiceOne, DiceSix, DiceThree, DiceTwo } from "@phosphor-icons/react";
-import { CHINCZYK_TRACK as TRACK, type ChinczykView, type LobbyPlayer } from "@kwadrans/games";
+import { CHINCZYK_TRACK as TRACK, type ChinczykView, initials, type LobbyPlayer } from "@kwadrans/games";
 import { StickyBar } from "../screens/ui.tsx";
 import { VIBRATE } from "../vibrate.ts";
 
@@ -137,6 +137,9 @@ function moveName(from: number, to: number, capture: boolean) {
 export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
   const color = (id: string) => players.find((p) => p.id === id)?.color ?? "var(--color-fg-muted)";
   const nick = (id: string) => players.find((p) => p.id === id)?.nick ?? "?";
+  // Drugi znak oprócz koloru: inicjał właściciela na pionku.
+  const labels = initials(view.players.map(nick));
+  const label = (id: string) => labels[view.players.indexOf(id)];
   const last = view.last;
   const quick = view.mode === "szybki";
   const { shown, rolling, settled, finish } = useShow(view, quick ? QUICK_ROLL_MS : ROLL_MS, quick ? QUICK_STEP_MS : STEP_MS);
@@ -244,11 +247,13 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
           const isTarget = i === targetKey;
           const inner = pawn ? (
             <span
-              className={`size-[70%] rounded-full border-2 border-bg ${
+              className={`grid size-[70%] place-items-center rounded-full border-2 border-bg text-[0.6rem] leading-none font-semibold text-bg ${
                 isPick ? "outline-2 outline-offset-1" : movable ? "animate-[ring-pulse_1.2s_ease-in-out_infinite] outline-2" : ""
               }`}
               style={{ backgroundColor: color(pawn.player), outlineColor: color(pawn.player) }}
-            />
+            >
+              {label(pawn.player)}
+            </span>
           ) : isTarget ? (
             // Duch pionka na polu docelowym.
             <span className="size-[60%] rounded-full border-2 border-dashed opacity-70" style={{ borderColor: color(me) }} />
@@ -293,7 +298,7 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
               {status && !(last?.note === "none" && last.dice !== 6) && <p className="text-center text-sm font-semibold">{status}</p>}
               <button
                 type="button"
-                className="btn h-14 w-full text-lg font-semibold text-bg"
+                className="btn h-14 w-full text-lg font-semibold btn-player"
                 style={{ backgroundColor: color(me) }}
                 onClick={() => onMove({ type: "roll" })}
               >
@@ -308,7 +313,7 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
               <Die value={last.dice} rolling={false} color={color(me)} />
               <button
                 type="button"
-                className="btn h-14 flex-1 text-lg font-semibold text-bg disabled:opacity-40"
+                className="btn h-14 flex-1 text-lg font-semibold btn-player disabled:opacity-40"
                 style={{ backgroundColor: color(me) }}
                 disabled={pick === null}
                 onClick={() => pick !== null && move(pick)}
@@ -364,7 +369,7 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
 function Finish({ colors }: { colors: string[] }) {
   const triangles = ["0,0 1,1 0,2", "0,0 2,0 1,1", "2,0 2,2 1,1", "0,2 2,2 1,1"];
   return (
-    <svg viewBox="0 0 2 2" className="size-full overflow-hidden rounded-[6px]" role="img" aria-label="Meta">
+    <svg viewBox="0 0 2 2" className="size-full overflow-hidden rounded-inset" role="img" aria-label="Meta">
       {triangles.map((points, i) => (
         <polygon key={points} points={points} fill={colors[i]} />
       ))}

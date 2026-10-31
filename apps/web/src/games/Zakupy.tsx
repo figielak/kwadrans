@@ -1,4 +1,4 @@
-import { type LobbyPlayer, ZAKUPY_LIST, ZAKUPY_MAX_MS, ZAKUPY_SHOW_MS, type ZakupyView } from "@kwadrans/games";
+import { initials, type LobbyPlayer, ZAKUPY_LIST, ZAKUPY_MAX_MS, ZAKUPY_SHOW_MS, type ZakupyView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats, tenth, TimeBar } from "../screens/ui.tsx";
 
@@ -91,7 +91,9 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
         score: r ? `${r.score} pkt (${r.hits} traf., ${wrongLabel(r.wrong)}) · ${tenth(r.ms / 1000)} s` : null,
       };
     });
-    const who = view.players.map((id) => ({ id, color: players.find((p) => p.id === id)?.color }));
+    // Kto zaznaczył: kropka z inicjałem (sam kolor nie wystarcza do rozpoznania gracza).
+    const labels = initials(view.players.map((id) => players.find((p) => p.id === id)?.nick ?? "?"));
+    const who = view.players.map((id, i) => ({ id, color: players.find((p) => p.id === id)?.color, label: labels[i] }));
     return (
       <>
         <Scores rows={all} />
@@ -110,14 +112,16 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
                   {item}
                   <span className="absolute bottom-0.5 flex gap-0.5">
                     {who.filter((w) => view.picked[w.id]?.includes(i)).map((w) => (
-                      <span key={w.id} className="size-1.5 rounded-full" style={{ backgroundColor: w.color }} aria-hidden />
+                      <span key={w.id} className="grid size-3.5 place-items-center rounded-full font-mono text-[8px] leading-none font-semibold text-bg" style={{ backgroundColor: w.color }} aria-hidden>
+                        {w.label}
+                      </span>
                     ))}
                   </span>
                 </span>
               );
             })}
           </div>
-          <p className="text-xs text-fg-muted">Zielona ramka: przedmiot był na liście. Kropki: kto go zaznaczył.</p>
+          <p className="text-xs text-fg-muted">Zielona ramka: przedmiot był na liście. Kropki z inicjałem: kto go zaznaczył.</p>
         </section>
       </>
     );
@@ -178,7 +182,7 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
           );
         })}
       </div>
-      <button type="button" className="btn text-bg" style={{ backgroundColor: color }} onPointerDown={done} onClick={(e) => e.detail === 0 && done()}>
+      <button type="button" className="btn btn-player" style={{ backgroundColor: color }} onPointerDown={done} onClick={(e) => e.detail === 0 && done()}>
         Gotowe
       </button>
       <p className="text-center text-sm text-fg-muted">Zaznacz przedmioty z listy. Każdy zły zabiera punkt.</p>

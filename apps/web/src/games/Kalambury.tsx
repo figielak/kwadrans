@@ -134,7 +134,7 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
           />
           {view.phase === "reveal" && view.players.includes(me) && (
             <StickyBar>
-              <button type="button" className="btn w-full text-bg" style={{ backgroundColor: player(me)?.color }} disabled={view.ready.includes(me)} onClick={() => onMove({ type: "next" })}>
+              <button type="button" className="btn w-full btn-player" style={{ backgroundColor: player(me)?.color }} disabled={view.ready.includes(me)} onClick={() => onMove({ type: "next" })}>
                 {view.ready.includes(me) ? "Czekamy na resztę" : "Dalej"}
               </button>
             </StickyBar>
@@ -406,7 +406,7 @@ function Guess({ view, me, color, canGuess, nick, onMove }: { view: KalamburyVie
                 onChange={(e) => setText(e.target.value)}
               />
               {/* onPointerDown bez utraty fokusu: klawiatura zostaje otwarta między strzałami */}
-              <button type="submit" className="btn text-bg" style={{ backgroundColor: color }} onPointerDown={(e) => e.preventDefault()}>
+              <button type="submit" className="btn btn-player" style={{ backgroundColor: color }} onPointerDown={(e) => e.preventDefault()}>
                 Zgadnij
               </button>
             </div>

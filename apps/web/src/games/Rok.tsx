@@ -198,7 +198,7 @@ export function Rok({ view, me, players, ranking, onMove }: Props) {
             <span className={`font-mono text-3xl font-semibold tabular-nums ${diff === 0 ? "text-success" : ""}`}>{diff === 0 ? "Idealnie" : signed(diff)}</span>
           </div>
         ) : (
-          <button type="button" className="btn w-full text-bg" style={{ backgroundColor: color }} onClick={submit}>
+          <button type="button" className="btn w-full btn-player" style={{ backgroundColor: color }} onClick={submit}>
             Zatwierdź
           </button>
         )}

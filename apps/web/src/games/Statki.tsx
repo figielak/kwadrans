@@ -167,7 +167,7 @@ export function FleetLeft({ board, color, lengths: all }: { board: Board; color:
       {fleet.map((ship, i) => (
         <span key={i} className={`relative flex gap-px ${ship.sunk ? "opacity-40" : ""}`} aria-hidden>
           {ship.hits.map((h, j) => (
-            <span key={j} className="size-1.5 rounded-[1px]" style={{ backgroundColor: h ? RED : color }} />
+            <span key={j} className="size-1.5 rounded-none" style={{ backgroundColor: h ? RED : color }} />
           ))}
           {ship.sunk && <span className="absolute inset-x-[-1px] top-1/2 h-px bg-fg" />}
         </span>
@@ -177,6 +177,8 @@ export function FleetLeft({ board, color, lengths: all }: { board: Board; color:
 }
 
 const RED = "var(--color-accent)";
+/** Niedozwolone ustawienie (strefa wokół statku, zły duch): ostrzeżenie przed skutkiem ruchu, nie trafienie. */
+const WARN = "var(--color-warning)";
 
 /** Rozstawianie: przeciągnij statek albo dotknij go, a potem pola, gdzie ma się zaczynać. */
 function Placement({
@@ -197,7 +199,7 @@ function Placement({
   const label = `Twoja flota · ${rules.name}`;
   const [ships, setShips] = useState(board.ships);
   const [selected, setSelected] = useState<number | null>(null);
-  // Niedozwolona pozycja: przez chwilę czerwony statek tam, gdzie miał stanąć.
+  // Niedozwolona pozycja: przez chwilę statek w kolorze ostrzeżenia tam, gdzie miał stanąć.
   const [ghost, setGhost] = useState<Ship | null>(null);
   // Przeciągany statek w miejscu pod palcem (jeszcze niezatwierdzony).
   const [drag, setDrag] = useState<{ index: number; ship: Ship } | null>(null);
@@ -268,10 +270,10 @@ function Placement({
 
   const shapes: Shape[] = shown.map((ship, i) => ({
     ship,
-    style: drag?.index === i && !isValidFleet(shown, rules) ? hull(RED, true) : hull(color, i === active),
+    style: drag?.index === i && !isValidFleet(shown, rules) ? hull(WARN, true) : hull(color, i === active),
     outline: i === active,
   }));
-  if (ghost) shapes.push({ ship: ghost, style: hull(RED, true) });
+  if (ghost) shapes.push({ ship: ghost, style: hull(WARN, true) });
 
   if (board.ready) {
     return (
@@ -296,7 +298,7 @@ function Placement({
         label={label}
         color={color}
         shapes={shapes}
-        cell={(i) => ({ background: blocked.has(i) ? "var(--color-accent-soft)" : undefined })}
+        cell={(i) => ({ background: blocked.has(i) ? "color-mix(in srgb, var(--color-warning) 12%, transparent)" : undefined })}
         onTap={tap}
         pointer={pointer}
       />
@@ -328,7 +330,7 @@ function Placement({
           </button>
           <button
             type="button"
-            className="btn h-14 min-w-0 flex-1 px-4 text-lg font-semibold text-bg"
+            className="btn h-14 min-w-0 flex-1 px-4 text-lg font-semibold btn-player"
             style={{ backgroundColor: color }}
             onClick={() => {
               setSelected(null);
@@ -414,7 +416,7 @@ function Battle({
         <StickyBar>
           <button
             type="button"
-            className="btn h-14 w-full text-lg font-semibold text-bg disabled:opacity-40"
+            className="btn h-14 w-full text-lg font-semibold btn-player disabled:opacity-40"
             style={{ backgroundColor: shooterColor }}
             disabled={pickedFree === null}
             onClick={() => pickedFree !== null && fire(pickedFree)}

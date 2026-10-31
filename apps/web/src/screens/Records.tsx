@@ -348,11 +348,11 @@ export function Records({ nick, color, onBack, onPlay }: { nick: string | null; 
               {[
                 { label: "Zagrane", value: played, of: games.length },
                 { label: "Pierwsze miejsca", value: led.length },
-                { label: "Do pobicia", value: toBeat.length, warn: toBeat.length > 0 },
+                { label: "Do pobicia", value: toBeat.length },
               ].map((item) => (
                 <div key={item.label} className="flex flex-col justify-between gap-1 rounded-inset bg-surface-inset p-3">
                   <dt className="text-sm leading-tight text-fg-muted">{item.label}</dt>
-                  <dd className={`text-2xl leading-tight font-semibold tabular-nums ${item.warn ? "text-warning" : ""}`}>
+                  <dd className="text-2xl leading-tight font-semibold tabular-nums">
                     {item.value}
                     {item.of && <span className="text-sm font-normal text-fg-muted"> z {item.of}</span>}
                   </dd>

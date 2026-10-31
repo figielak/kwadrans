@@ -1,4 +1,4 @@
-import { type LabiryntCell, labiryntPawnMoves, labiryntWallError, type LabiryntView, type LabiryntWall, type LobbyPlayer } from "@kwadrans/games";
+import { initials, type LabiryntCell, labiryntPawnMoves, labiryntWallError, type LabiryntView, type LabiryntWall, type LobbyPlayer } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useState } from "react";
 import { StickyBar, useFresh } from "../screens/ui.tsx";
 
@@ -83,6 +83,8 @@ export function Labirynt({ view, me, players, canMove, onMove }: Props) {
   const full = size * CELL;
   const player = (seat: number) => players.find((p) => p.id === view.players[seat]);
   const colorOf = (seat: number) => player(seat)?.color ?? "var(--color-fg-muted)";
+  // Drugi znak oprócz koloru: inicjał na pionku (przy 3-4 osobach kolory rywali bywają podobne).
+  const labels = initials(view.players.map((_, seat) => player(seat)?.nick ?? "?"));
   const mySeat = view.players.indexOf(me);
   const myColor = colorOf(mySeat);
   const myWalls = mySeat < 0 ? 0 : view.wallsLeft[mySeat];
@@ -213,6 +215,10 @@ export function Labirynt({ view, me, players, canMove, onMove }: Props) {
               <g key={i} className="transition-transform duration-200 ease-out" style={{ transform: `translate(${(p.x + 0.5) * CELL}px, ${(p.y + 0.5) * CELL}px)` }}>
                 {/* Biały pierścień: czyj ruch. */}
                 <circle r={3.3} fill={colorOf(i)} stroke={i === view.turn && view.winner === null ? "var(--color-fg)" : "none"} strokeWidth={0.5} />
+                {/* Napis kontrobrócony, żeby czytał się prosto mimo obrotu planszy. */}
+                <text transform={`rotate(${-angle})`} textAnchor="middle" dominantBaseline="central" fontSize={3} fontWeight={600} fill="var(--color-bg)">
+                  {labels[i]}
+                </text>
               </g>
             ))}
           </g>
@@ -256,7 +262,7 @@ export function Labirynt({ view, me, players, canMove, onMove }: Props) {
               ) : (
                 <button
                   type="button"
-                  className="btn h-14 w-full text-lg font-semibold text-bg disabled:opacity-40"
+                  className="btn h-14 w-full text-lg font-semibold btn-player disabled:opacity-40"
                   style={{ backgroundColor: myColor }}
                   disabled={!aimed}
                   onClick={() => aimed && step(aimed)}
@@ -276,7 +282,7 @@ export function Labirynt({ view, me, players, canMove, onMove }: Props) {
                 </button>
                 <button
                   type="button"
-                  className={`btn h-14 flex-1 font-semibold disabled:opacity-40 ${error === "blocks" ? "border border-warning text-warning" : "text-bg"}`}
+                  className={`btn h-14 flex-1 font-semibold disabled:opacity-40 ${error === "blocks" ? "border border-warning text-warning" : "btn-player"}`}
                   style={error === "blocks" ? undefined : { backgroundColor: myColor }}
                   disabled={!picked || error !== null}
                   onClick={place}

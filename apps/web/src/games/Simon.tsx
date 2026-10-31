@@ -146,7 +146,7 @@ export function Simon({ view, me, players, ranking, onMove }: Props) {
             className={`flex touch-none select-none items-center justify-center rounded-tile transition-colors duration-100 ${missed ? "animate-[tile-miss_0.35s_ease-out]" : ""}`}
             style={{
               backgroundColor: on ? color : `color-mix(in srgb, ${color} 22%, var(--color-bg))`,
-              color: on ? "var(--color-accent-fg)" : color,
+              color: on ? "var(--color-bg)" : color,
             }}
           >
             <PadIcon size={48} weight="fill" aria-hidden />

@@ -53,7 +53,17 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
   useEffect(() => setOpen(false), [view.phase, view.gameId]);
   // Poświata tła w kolorze gracza, na którego czekamy; poza turą jednej osoby zostaje akcent.
   // Kalambury: zawsze kolor rysującego, bo czekamy na zgadujących, a uwaga jest na rysunku.
-  const focus = def.id === "kalambury" ? (game.view as KalamburyView).drawer : game.waitingFor.length === 1 ? game.waitingFor[0] : undefined;
+  // Państwa-miasta: wszyscy działają naraz, więc u każdego, na kogo czekamy, jego własny kolor (pasek limitu i poświata).
+  const focus =
+    def.id === "kalambury"
+      ? (game.view as KalamburyView).drawer
+      : def.id === "panstwa-miasta"
+        ? game.waitingFor.includes(me)
+          ? me
+          : undefined
+        : game.waitingFor.length === 1
+          ? game.waitingFor[0]
+          : undefined;
   const turnColor = view.phase === "playing" && focus ? view.players.find((p) => p.id === focus)?.color : undefined;
   useEffect(() => {
     if (!turnColor) return;
@@ -94,7 +104,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
         canMove={myTurn}
         result={game.result}
         onMove={(move) => send("move", move)}
-        timer={view.phase === "playing" && <Countdown game={game} total={def.turnSeconds} />}
+        timer={view.phase === "playing" && <Countdown game={game} total={def.turnSeconds} color={turnColor} />}
         actions={view.phase === "over" && <OverActions view={view} me={me} send={send} />}
       />
     );
@@ -401,7 +411,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
             players={view.players}
             waitingFor={game.waitingFor}
             ranking={game.result?.ranking}
-            timer={ownHeader && <Countdown game={game} total={def.turn?.(game.view).seconds} tense />}
+            timer={ownHeader && <Countdown game={game} total={def.turn?.(game.view).seconds} color={turnColor} tense />}
             onMove={(move) => send("move", move)}
           />
         )}

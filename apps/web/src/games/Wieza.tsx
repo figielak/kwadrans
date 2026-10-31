@@ -27,9 +27,9 @@ const percent = (width: number) => `${Math.round(width * 100)}%`;
 function Preview({ color }: { color?: string }) {
   return (
     <>
-      <span className="absolute bottom-[18%] left-[30%] h-[18%] w-[40%] rounded-sm" style={{ backgroundColor: color }} />
-      <span className="absolute bottom-[36%] left-[34%] h-[18%] w-[36%] rounded-sm opacity-80" style={{ backgroundColor: color }} />
-      <span className="absolute bottom-[54%] left-[40%] h-[18%] w-[30%] animate-[preview-half_3s_linear_infinite] rounded-sm" style={{ backgroundColor: color }} />
+      <span className="absolute bottom-[18%] left-[30%] h-[18%] w-[40%]" style={{ backgroundColor: color }} />
+      <span className="absolute bottom-[36%] left-[34%] h-[18%] w-[36%] opacity-80" style={{ backgroundColor: color }} />
+      <span className="absolute bottom-[54%] left-[40%] h-[18%] w-[30%] animate-[preview-half_3s_linear_infinite]" style={{ backgroundColor: color }} />
     </>
   );
 }

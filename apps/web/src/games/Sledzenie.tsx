@@ -154,6 +154,7 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
         {balls.map((_, i) => {
           const selected = picked.includes(i);
           const lit = selected || (phase === "show" && isTarget(i));
+          const ring = phase === "show" && isTarget(i) ? "2px dashed var(--color-fg)" : undefined; // cel w pokazie: przerywany obrys (outline), nie tylko kolor gracza
           return (
             <span
               key={i}
@@ -169,7 +170,7 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
                 backgroundColor: lit ? color : undefined,
                 // Po rundzie: prawdziwe cele w pierścieniu, złe wskazania przygaszone.
                 opacity: phase === "reveal" && selected && !isTarget(i) ? 0.3 : 1,
-                outline: phase === "reveal" && isTarget(i) ? "3px solid var(--color-success)" : undefined,
+                outline: phase === "reveal" && isTarget(i) ? "3px solid var(--color-success)" : ring,
                 outlineOffset: 2,
               }}
             >

@@ -156,7 +156,7 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
                 onChange={(e) => setInput(e.target.value.replace(/\D/g, "").slice(0, String(W_PAMIECI_MAX_ANSWER).length))}
               />
             </label>
-            <button type="submit" className="btn w-full text-bg" style={{ backgroundColor: color }} disabled={input === ""}>
+            <button type="submit" className="btn w-full btn-player" style={{ backgroundColor: color }} disabled={input === ""}>
               Zatwierdź
             </button>
           </form>
@@ -176,7 +176,7 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
         )}
       </div>
       {phase === "reveal" && (
-        <button type="button" className="btn w-full text-bg" style={{ backgroundColor: color }} autoFocus onClick={() => setPhase("sent")}>
+        <button type="button" className="btn w-full btn-player" style={{ backgroundColor: color }} autoFocus onClick={() => setPhase("sent")}>
           Wyniki
         </button>
       )}

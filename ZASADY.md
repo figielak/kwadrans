@@ -167,6 +167,10 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
   Przytrzymaj, Balon, Policz kropki, Kąt i Który rok? (wydarzenia pod tabelą). Odcień to nazwany wyjątek: pary próbek kolorów obok siebie.
 - Kolory tylko z tokenów, zaokrąglenia według wspólnej skali: pełna tabela tokenów, ich ról i skala promieni
   mają jedno źródło w [DESIGN.md §2](DESIGN.md#2-tokeny).
+- Akcja gracza (przycisk w jego kolorze) to klasa `btn-player` obok `btn` (tekst grafitowy, tło `backgroundColor` z koloru gracza);
+  `btn-primary` zostaje dla akcji platformy w akcencie. Własny wybór (tryb, liczba gier, „na pewno”, pola do sprzedaży) jest w kolorze tego,
+  kto wybiera, nigdy w akcencie, i ma drugi znak (ikona `Check`, `aria-pressed`). Właściciel elementu planszy ma oprócz koloru inicjał
+  (`initials`) albo ikonę postaci, a nick w etykiecie.
 - Liczby, czasy i kody czcionką mono z `tabular-nums`.
 - Ikony z `@phosphor-icons/react`; ikona gry w lobby ma wagę `regular`.
 

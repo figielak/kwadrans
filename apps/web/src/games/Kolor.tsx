@@ -174,7 +174,7 @@ export function Kolor({ view, me, players, ranking, onMove }: Props) {
         </div>
         <p className="text-center font-mono text-5xl font-semibold tabular-nums">{match(target, guesses[index])}</p>
         <p className="text-center text-fg-muted">{wrong.length ? `Twój kolor: ${wrong.join(", ")}` : "Bardzo blisko"}</p>
-        <button type="button" className="btn mt-auto w-full text-bg" style={{ backgroundColor: color }} onClick={next}>
+        <button type="button" className="btn mt-auto w-full btn-player" style={{ backgroundColor: color }} onClick={next}>
           Następny kolor
         </button>
       </section>
@@ -199,7 +199,7 @@ export function Kolor({ view, me, players, ranking, onMove }: Props) {
           />
         </label>
       ))}
-      <button type="button" className="btn mt-auto w-full text-bg" style={{ backgroundColor: color }} onClick={confirm}>
+      <button type="button" className="btn mt-auto w-full btn-player" style={{ backgroundColor: color }} onClick={confirm}>
         Zatwierdź kolor
       </button>
     </section>

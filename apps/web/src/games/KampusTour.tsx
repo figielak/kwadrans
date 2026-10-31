@@ -546,7 +546,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
         key={p}
         role="img"
         aria-label={nick(p)}
-        className="grid shrink-0 place-items-center rounded-full border-2 border-white text-bg shadow-[0_2px_4px_rgb(0_0_0/0.8)]"
+        className="grid shrink-0 place-items-center rounded-full border-2 border-fg text-bg shadow-[0_2px_4px_rgb(0_0_0/0.8)]"
         style={{ width: size, height: size, marginLeft: first ? 0 : -size * 0.45, backgroundColor: color(p) }}
       >
         <Pawn size={size * 0.6} weight="fill" />
@@ -842,7 +842,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
                   aria-label={tile.name}
                   aria-pressed={selected === i}
                   className={`relative flex min-h-0 min-w-0 flex-col items-center justify-center rounded-sm bg-[color-mix(in_srgb,var(--color-fg)_12%,var(--color-bg))] transition-[opacity,translate] duration-180 ${
-                    sellable ? "z-10 outline-2 outline-accent" : deciding === i ? "z-10 -translate-y-0.5 outline-2" : selected === i ? "outline-2 outline-fg" : ""
+                    sellable ? "z-10 outline-2" : deciding === i ? "z-10 -translate-y-0.5 outline-2" : selected === i ? "outline-2 outline-fg" : ""
                   } ${pickable(i) === false ? "opacity-40" : ""} ${fresh.includes(i) ? "animate-[set-glow_0.9s_ease-in-out_4]" : ""}`}
                   style={{
                     gridColumn: x + 1,
@@ -851,7 +851,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
                     ["--glow" as string]: owner ? color(owner) : undefined,
                     // Grubość pola (krawędź od spodu); poświata tylko dla pola, na którym dzieje się akcja.
                     // Pole decyzji świeci kolorem gracza, który decyduje (czerwień to akcent i dług).
-                    outlineColor: deciding === i ? color(view.turn!) : undefined,
+                    outlineColor: sellable ? color(me) : deciding === i ? color(view.turn!) : undefined,
                     boxShadow: edges,
                   }}
                   onClick={() => setSelected(selected === i ? null : i)}
@@ -877,7 +877,8 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
                         aria-label={`Komplet: ${nick(owner)}`}
                       />
                     ) : (
-                      <span className="sr-only">Właściciel: {nick(owner)}</span>
+                      // Drugi znak oprócz koloru paska: mała ikona postaci właściciela (z nickiem w etykiecie).
+                      <span className="absolute -top-1 -right-1">{token(owner, 14, true)}</span>
                     ))}
                 </button>
               );
@@ -1060,7 +1061,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
                         className="grid size-14 place-items-center rounded-full border-2"
                         style={
                           owner
-                            ? { backgroundColor: color(owner), borderColor: "white", color: "var(--color-bg)" }
+                            ? { backgroundColor: color(owner), borderColor: "var(--color-fg)", color: "var(--color-bg)" }
                             : { borderColor: "var(--color-line-hover)", color: canMove ? color(me) : "var(--color-fg-muted)" }
                         }
                       >

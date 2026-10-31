@@ -41,7 +41,7 @@ Trzy rzeczy budują cały styl:
 | `accent-hover` | `#ff4560` | akcent pod kursorem, tylko `.btn-primary` |
 | `accent-soft` | akcent 12% | tło ikony wyzwania dnia, pasek „Łączenie ponownie…” |
 | `accent-fg` | `#0e0e10` | tekst na akcencie (grafit ma 5,1:1, biały tylko 3,8:1) |
-| `warning` | `#ff6369` | ostatnie 10 s limitu, pomyłka, kara, błąd formularza, bodziec „nie wolno” w Stój! (zawsze z ikoną i tekstem) |
+| `warning` | `#ff6369` | ostatnie 10 s limitu, pomyłka, kara, błąd formularza, bodziec „nie wolno” w Stój!, ostrzeżenie przed skutkiem ruchu (strefa zakazana i zły duch w Statkach, cel zbicia w Chińczyku z „i zbij”); zawsze z ikoną albo tekstem |
 | `success` | `#3dd68c` | trafienie, bodziec „dotknij” (Refleks, Stój!) |
 
 Kolory graczy to dane, nie dekoracja (`PLAYER_COLORS` w `lobby.ts`): `#3b9eff`, `#ffc53d`, `#46a758`, `#8e7cff`, `#0ac5b3`, `#f76fbe`.
@@ -49,7 +49,8 @@ Kolory graczy to dane, nie dekoracja (`PLAYER_COLORS` w `lobby.ts`): `#3b9eff`, 
 „1. miejsce” na kaflu mini-gry), ma kolor gracza.
 
 Głębię robią obrys 1 px i przezroczystość, nie cienie. Cień mają tylko rzeczy, które naprawdę leżą nad planszą
-(okna i pionki w Kampus Tour) oraz animacja `set-glow`.
+(okna i pionki w Kampus Tour, plansza 2.5D i poświata tury tamże, patrz §6) oraz animacja `set-glow` (także zwycięska linia Gomoku).
+Kamienie Gomoku i karty Memory nie mają cienia ani poświaty: wystarcza obrys.
 
 ### Typografia
 
@@ -184,12 +185,15 @@ z [ZASADY.md §4](ZASADY.md#4-spójność-wyglądu); lokalne wyjątki formularzy
   duch pionka i „Idź w górę” / „Przeskocz w lewo”; ścianka: podgląd i „Postaw”.
   Pomiar 360×640 (P4-036): każdy przycisk potwierdzenia ma 56 px, obserwator nie ma aktywnych pól.
   Memory, pola Kampus Tour i gry na czas tego wyjątku nie dostają.
-- **Kolory będące treścią gry** nie są interfejsem i nie muszą pochodzić z tokenów: pola Sekwencji, napisy Koloru liter,
-  figury Innego elementu, próbki Odcienia, grupy pól w Kampus Tour.
+- **Kolory i kształty będące treścią gry** nie są interfejsem i nie muszą pochodzić z tokenów ani skali: pola Sekwencji, napisy Koloru liter,
+  figury Innego elementu, figury Obrotu, próbki Odcienia, grupy i rogi pól w Kampus Tour (`CORNERS`, jedno źródło kolorów rogów),
+  gradient oceny odcinków w Kole (zielony → czerwony). Wyjątek dotyczy tylko tej treści, nie dowolnych ozdób wokół niej.
+- **Suwaki Odcienia i Roku**: uchwyt suwaka ma promień 6 px, obwódkę `fg` i obrys `bg`, żeby był widoczny na każdej barwie toru.
+- **Promień 4 px**: odznaka turnieju przy kropce gracza i pola planszy Kampus Tour (32 pola w małej skali); poza tym tylko 20 / 10 / 999 px.
 - **Statki**: trafienie i zatopiony statek są w `accent`. To utrwalony znak tej gry, czerwień nie oznacza tam akcji.
 - **Państwa-miasta i Kalambury** mają własny nagłówek: gracze w jednej linii z punktami obok nicku zamiast paska `Stats`,
   bo graczy może być 6, a `Stats` mieści trzy liczby. Każdy ma jedną liczbę, więc zapis w linii zostaje czytelny.
-- **Kampus Tour** ma własny układ poziomy oraz cienie pod oknami i pionkami. Przyciski decyzji i zamknięcia mają minimum 48 px po skalowaniu sceny; dawne 44 px budowy nie jest już wyjątkiem.
+- **Kampus Tour** ma własny układ poziomy, planszę 2.5D (krawędź i cień „stołu”), poświatę pola gracza na turze oraz cienie pod oknami i pionkami. Przyciski decyzji i zamknięcia mają minimum 48 px po skalowaniu sceny; dawne 44 px budowy nie jest już wyjątkiem.
 
 Zwykłe kontrolki (P4-037, pomiar Chromium 360×640) nie korzystają z wyjątku gęstych plansz:
 suwnice Odcienia mają 328×48 px, suwak Roku 182×48 px, wyjście z Lobby około 75×48 px,
