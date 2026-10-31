@@ -1,10 +1,15 @@
 import { z } from "zod";
-import { type GameDefinition, type PlayerId, ranked, withSum } from "./core.ts";
+import { type GameDefinition, type PlayerId, ranked, shuffle } from "./core.ts";
 
 export const BALLOONS = 10;
 /** Balon wytrzymuje od `MIN_SAFE` do `MAX_SAFE` stuknięć; następne go rozrywa. */
-export const MIN_SAFE = 1;
-export const MAX_SAFE = 30;
+export const MIN_SAFE = 11;
+export const MAX_SAFE = 20;
+/**
+ * Wytrzymałości balonów: zawsze ten sam komplet, tasowany między partiami. Gracz decyduje, kiedy przestać,
+ * więc sama stała suma różnych rozkładów nie wyrównywała ryzyka (dawniej 1-30 o sumie 155).
+ */
+const LIMITS = Array.from({ length: BALLOONS }, (_, i) => MIN_SAFE + i);
 /** Suma wytrzymałości w każdej partii: tyle da się najwyżej zgarnąć. */
 export const TOTAL = 155;
 
@@ -50,7 +55,7 @@ export const balon: GameDefinition<State, Move> = {
 
   setup: (players, rng) => ({
     players,
-    limits: withSum(rng, BALLOONS, MIN_SAFE, MAX_SAFE, TOTAL),
+    limits: shuffle(LIMITS, rng),
     results: {},
     pumps: {},
     progress: {},

@@ -108,8 +108,8 @@ Te rzeczy działają tak samo w każdej grze. Odstępstwo wymaga wpisu w `ZASADY
   więc dane gracza leżą w mapach z id gracza w kluczach (`results`, `taps`…), a wyniki nie zależą od stanu lokalnego komponentu. Nową mini-grę dopisz w `MiniGame.tsx`.
 - **Losowanie nie zmienia sufitu wyniku.** Rekordy porównują różne partie, więc każda musi dawać tyle samo do zdobycia:
   cele, od których zależy wynik, mają stałą sumę (`withSum` z `core.ts`), a gra na reakcję ma stałą liczbę bodźców (Refleks), nie stały czas z losowymi przerwami.
-  Rodzaje plansz o różnej trudności idą potasowanymi kompletami, nie osobnym losowaniem na planszę (Kolor liter, Inny element).
-  Gdy gracz decyduje, kiedy przestać i zachować zdobycz (decyzja stop), obowiązuje stały komplet celów tasowany między partiami;
+  Rodzaje plansz o różnej trudności idą potasowanymi kompletami, nie osobnym losowaniem na planszę (Kolor liter, Inny element, Liczenie, Obrót).
+  Gdy gracz decyduje, kiedy przestać i zachować zdobycz (decyzja stop), obowiązuje stały komplet celów tasowany między partiami (Balon: 11-20);
   równa suma różnych rozkładów nie zapewnia tego samego ryzyka. Sama stała suma wystarcza dopiero po uzasadnieniu
   w zasadach gry wpływu rozkładu na decyzje i wynik, nie jako dowód jednakowej trudności dla ludzi.
   Przytrzymaj i Za zasłoną zachowują losowe cele o stałej sumie: odtwarzanie różnych czasów jest treścią zadania,

@@ -474,15 +474,16 @@ Przebieg, walidacja, punktacja i ekran końcowy jak w Obrocie (`quiz.ts`, `Quiz.
 
 ### Balon (`balon`)
 - 10 balonów po kolei (`BALLOONS`). Każde stuknięcie pompuje balon i dodaje do niego 1 punkt.
-- Serwer losuje dla każdego balonu wytrzymałość (`limits`, liczba całkowita 1-30; `MIN_SAFE`, `MAX_SAFE`), tę samą
-  dla wszystkich: tyle stuknięć balon wytrzymuje, następne go rozrywa. Pierwsze stuknięcie jest zawsze bezpieczne.
-  Suma wytrzymałości to zawsze 155 (`TOTAL`, losowanie do skutku przez `withSum`), więc w każdej partii jest tyle samo do zgarnięcia.
+- Wytrzymałości balonów (`limits`) to zawsze komplet 11, 12, …, 20 (`MIN_SAFE`, `MAX_SAFE`) w kolejności tasowanej przez serwer,
+  tej samej dla wszystkich: tyle stuknięć balon wytrzymuje, następne go rozrywa. Pierwsze 10 stuknięć jest zawsze bezpieczne.
+  Suma to zawsze 155 (`TOTAL`), a ta sama strategia stop daje w każdej partii ten sam wynik (stały komplet zamiast samej stałej sumy, ZASADY §3).
+  Dawne partie miały wytrzymałości 1-30 o sumie 155 (`withSum`); ich rekordy i tabele zostają bez przeliczania.
 - „Zgarnij” dopisuje punkty balonu do sumy i daje następny balon. Pęknięcie daje za ten balon 0 (zgarnięte wcześniej punkty zostają).
   Zgarnąć można też pusty balon (0 stuknięć, 0 punktów, bez pęknięcia).
-- Jeden ruch z `pumps`: liczba stuknięć w każdym z 10 balonów (int 0-31; 31 to zawsze pęknięcie). Wynik liczy serwer (`score`):
+- Jeden ruch z `pumps`: liczba stuknięć w każdym z 10 balonów (int 0-21; 21 to zawsze pęknięcie). Wynik liczy serwer (`score`):
   balon z `pumps[i] > limits[i]` jest pęknięty i daje 0, inaczej daje `pumps[i]`; `score` = suma (0-155), `popped` = liczba pękniętych.
 - Ranking: więcej punktów wyżej, przy równych mniej pękniętych balonów; równe oba to remis.
-- Walidacja: dokładnie 10 liczb całkowitych 0-31 albo pusta lista. Pusta lista = limit czasu = najgorszy wynik: 0 punktów i 10 pękniętych.
+- Walidacja: dokładnie 10 liczb całkowitych 0-21 albo pusta lista. Pusta lista = limit czasu = najgorszy wynik: 0 punktów i 10 pękniętych.
 - Ruch `progress` (`done` = liczba zakończonych balonów, int 1-9) po każdym balonie poza ostatnim: tylko do podglądu u rywali
   (pasek „3/10” w pigułce gracza), nie odnawia limitu (`turn` ma stały klucz), może spaść po odświeżeniu strony.
   Punktów rywali w trakcie nie widać: zdradzałyby, ile balon wytrzymuje.

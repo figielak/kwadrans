@@ -201,6 +201,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
 - [x] [05-50-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-50-PLAN.md) - P4-057, Liczenie: potasowane czwórki rodzajów; TDD 7205b92
 - [x] [05-51-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-51-PLAN.md) - P4-058, Obrót: komplet sześciu rodzajów planszy; TDD 22cd529
 - [x] [05-52-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-52-PLAN.md) - P4-059, W pamięci: stała liczba mnożeń; TDD 1cb0e49
+- [x] [05-53-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-53-PLAN.md) - P4-060, Balon: stały komplet 11-20; TDD 51e3625
 **UI hint**: yes
 
 ## Progress
@@ -214,7 +215,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 | 2. Audyt wyglądu, animacji i wibracji | 11/11 | Complete | 2026-10-24 |
 | 3. Audyt balansu rekordów i trudności | 9/9 | Complete | 2026-10-24 |
 | 4. Raport zbiorczy i akceptacja | 5/5 | Complete; ZG4-v1, S5-v1, FIX-01 | 2026-10-26 |
-| 5. Poprawki zaakceptowanych rozbieżności | 52/52 obecnie rozpisanych | In progress; 53/62 pakietów, 220/267 części; P4-014/015 odebrane na Androidzie | - |
+| 5. Poprawki zaakceptowanych rozbieżności | 53/53 obecnie rozpisanych | In progress; 54/62 pakietów, 221/267 części; P4-014/015 odebrane na Androidzie | - |
 
 04-04 rozpoczęty 2026-10-26: przygotowano B4-001 (P4-005/006/012/013/016, warianty w DECISIONS §10). Użytkownik zatwierdził B4-001 („Zatweirdzam”): pięć pakietów i ich warianty. B4-002 (P4-003/004/036) oczekuje; liczba ukończonych planów nadal 3/5, FIX-01 otwarte.
 
@@ -448,3 +449,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-51/P4-058 zakończony: Obrót losuje rodzaj planszy (90/180/270° × ta sama/lustro) potasowanymi szóstkami, figury bez symetrii obrotowej; stan i ekran bez zmian kształtu, rekordy bez przeliczania. 52/62 pakietów, 219/267 części; FIX-02 otwarte. Następny P4-059. Dowody: 05-51-SUMMARY.md. Commity bez push.
 
 2026-10-31, 05-52/P4-059 zakończony: W pamięci ma w rundzie z n działaniami zawsze floor(n/3) mnożeń na potasowanych miejscach, wartości 1-99; generator średnio 2 podejścia na ciąg, bez zawieszenia na 10 000 seedów; rekordy bez przeliczania. Odbiór wpływu na ludzi czeka na P11. 53/62 pakietów, 220/267 części; FIX-02 otwarte. Następny P4-060. Dowody: 05-52-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-53/P4-060 zakończony: Balon ma w każdej partii komplet wytrzymałości 11-20 w potasowanej kolejności (suma 155), ta sama strategia stop daje ten sam wynik; walidacja 0-21, rekordy bez przeliczania. 54/62 pakietów, 221/267 części; FIX-02 otwarte. Następny P4-062 (P4-061 czeka na U14). Dowody: 05-53-SUMMARY.md. Commity bez push.
