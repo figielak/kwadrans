@@ -202,3 +202,20 @@ describe("koniec", () => {
     expect(far.results[B]).toBeLessThan(ROUNDS * MAX_ERROR * 10);
   });
 });
+
+
+test("P4-032/F4-006: po końcu każdy typ ruchu jest odrzucony dla graczy i obcego", () => {
+  let s = game.setup([A, B], createRng(1));
+  for (const p of [A, B]) s = send(s, p, result(mids(s)));
+  expect(game.isOver(s)).not.toBeNull();
+  for (const p of [A, B, "obcy"]) for (const move of [result(mids(s))]) expect(game.validateMove(s, p, move)).toBe(false);
+});
+
+test.each([C])("P4-032/F4-009: wygrywa także %s", (winner) => {
+  let s = game.setup([A, B, C], createRng(1));
+  for (const p of [A, B, C]) {
+    s = send(s, p, result(p === winner ? mids(s) : []));
+  }
+  expect(game.isOver(s)?.winner).toBe(winner);
+  expect(game.waitingFor(s)).toEqual([]);
+});

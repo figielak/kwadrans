@@ -218,3 +218,65 @@ describe("ukończenie i timeout", () => {
     expect(JSON.stringify(legacy)).toBe(before);
   });
 });
+
+
+// P4-032: nazwane luki istniejących zasad z F4.
+test("P4-032/F4-004: definicja 1-6 graczy, świeża gra trwa", () => {
+  expect([game.minPlayers, game.maxPlayers, game.turnSeconds]).toEqual([1, 6, 180]);
+  for (const players of [[A], [A, B, C, "darek", "ela", "filip"]]) expect(game.isOver(game.setup(players, createRng(1)))).toBeNull();
+});
+
+test("P4-032/F4-005: ten sam seed daje ten sam setup, seedy zmieniają wyzwanie", () => {
+  const s = game.setup([A, B], createRng(7));
+  expect(game.setup([A, B], createRng(7))).toEqual(s);
+  expect(game.setup([A, B], createRng(8)).grid).not.toEqual(s.grid);
+});
+
+
+test("P4-032/F4-006: po końcu każdy typ ruchu jest odrzucony dla graczy i obcego", () => {
+  let s = game.setup([A, B], createRng(1));
+  for (const p of [A, B]) s = send(s, p, result(20000));
+  expect(game.isOver(s)).not.toBeNull();
+  for (const p of [A, B, "obcy"]) for (const move of [result(20000), progress(1)]) expect(game.validateMove(s, p, move)).toBe(false);
+});
+
+test.each([null, {}, { type: "nieznany" }, { type: "result", ms: 20000, mistakes: 0 }, { type: "result", ms: "20000", mistakes: 0, splits: [] }, { type: "result", ms: 20000, splits: [] }, { type: "progress" }, { type: "progress", found: "1" }])("P4-032/F4-008: schemat odrzuca %j", (move) => {
+  expect(game.moveSchema.safeParse(move).success).toBe(false);
+});
+
+test.each([A, C])("P4-032/F4-009: wygrywa także %s", (winner) => {
+  let s = game.setup([A, B, C], createRng(1));
+  for (const p of [A, B, C]) {
+    s = send(s, p, result(p === winner ? 10000 : 20000));
+  }
+  expect(game.isOver(s)?.winner).toBe(winner);
+  expect(game.waitingFor(s)).toEqual([]);
+});
+
+test("P4-032/F4-010: każdy typ ruchu bez mutacji zamrożonego wejścia i z JSON round-trip", () => {
+  function freeze(value: unknown): void {
+    if (value && typeof value === "object") {
+      Object.values(value).forEach(freeze);
+      Object.freeze(value);
+    }
+  }
+  let s = game.setup([A, B], createRng(1));
+  const moves: Move[] = [progress(3), result(20000)];
+  for (const move of moves) {
+    const before = structuredClone(s);
+    freeze(s);
+    const after = send(s, A, move);
+    expect(s).toEqual(before);
+    expect(JSON.parse(JSON.stringify(after))).toEqual(after);
+    s = after;
+  }
+});
+
+test("P4-032/F4-045: różne międzyczasy przy tym samym czasie nie zmieniają rankingu", () => {
+  let s = game.setup([A, B], createRng(1));
+  s = send(s, A, result(20000, 0, even(20000)));
+  s = send(s, B, result(20000, 0, [1600, ...even(20000).slice(1, 24), 0]));
+  expect(s.results[A].splits).not.toEqual(s.results[B].splits);
+  expect(game.isOver(s)).toEqual({ ranking: [A, B] });
+  expect(game.places!(s)).toEqual({ [A]: 1, [B]: 1 });
+});

@@ -123,3 +123,31 @@ describe("koniec", () => {
     expect(JSON.parse(JSON.stringify(next))).toEqual(next);
   });
 });
+
+
+// P4-032: nazwane luki istniejących zasad z F4.
+test("P4-032/F4-004: definicja 1-6 graczy, świeża gra trwa", () => {
+  expect([game.minPlayers, game.maxPlayers]).toEqual([1, 6]);
+  for (const players of [[A], [A, B, C, "darek", "ela", "filip"]]) expect(game.isOver(game.setup(players, createRng(1)))).toBeNull();
+});
+
+
+test("P4-032/F4-006: po końcu każdy typ ruchu jest odrzucony dla graczy i obcego", () => {
+  let s = game.setup([A, B], createRng(1));
+  for (const p of [A, B]) s = send(s, p, steady(300));
+  expect(game.isOver(s)).not.toBeNull();
+  for (const p of [A, B, "obcy"]) for (const move of [steady(300)]) expect(game.validateMove(s, p, move)).toBe(false);
+});
+
+test.each([{ type: "result" }, { type: "nieznany", times: [] }])("P4-032/F4-008: schemat odrzuca %j", (move) => {
+  expect(game.moveSchema.safeParse(move).success).toBe(false);
+});
+
+test.each([A, C])("P4-032/F4-009: wygrywa także %s", (winner) => {
+  let s = game.setup([A, B, C], createRng(1));
+  for (const p of [A, B, C]) {
+    s = send(s, p, steady(p === winner ? 200 : 400));
+  }
+  expect(game.isOver(s)?.winner).toBe(winner);
+  expect(game.waitingFor(s)).toEqual([]);
+});

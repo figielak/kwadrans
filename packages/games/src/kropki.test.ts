@@ -171,3 +171,41 @@ describe("najgorszy błąd po limicie", () => {
     expect(game.places!(s)).toEqual({ [A]: 2, [B]: 2, [C]: 1 });
   });
 });
+
+
+// P4-032: nazwane luki istniejących zasad z F4.
+test("P4-032/F4-004: definicja 1-6 graczy", () => {
+  expect([game.minPlayers, game.maxPlayers, game.turnSeconds]).toEqual([1, 6, 120]);
+});
+
+test("P4-032/F4-005: ten sam seed daje ten sam setup", () => {
+  const s = game.setup([A, B], createRng(7));
+  expect(game.setup([A, B], createRng(7))).toEqual(s);
+});
+
+
+test("P4-032/F4-006: po końcu każdy typ ruchu jest odrzucony dla graczy i obcego", () => {
+  let s = game.setup([A, B], createRng(1));
+  for (const p of [A, B]) s = send(s, p, result(counts(s)));
+  expect(game.isOver(s)).not.toBeNull();
+  for (const p of [A, B, "obcy"]) for (const move of [result(counts(s)), progress(1)]) expect(game.validateMove(s, p, move)).toBe(false);
+});
+
+test("P4-032/F4-010: każdy typ ruchu bez mutacji zamrożonego wejścia i z JSON round-trip", () => {
+  function freeze(value: unknown): void {
+    if (value && typeof value === "object") {
+      Object.values(value).forEach(freeze);
+      Object.freeze(value);
+    }
+  }
+  let s = game.setup([A, B], createRng(1));
+  const moves: Move[] = [progress(3), result(counts(s))];
+  for (const move of moves) {
+    const before = structuredClone(s);
+    freeze(s);
+    const after = send(s, A, move);
+    expect(s).toEqual(before);
+    expect(JSON.parse(JSON.stringify(after))).toEqual(after);
+    s = after;
+  }
+});

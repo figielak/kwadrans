@@ -286,3 +286,25 @@ describe("stan", () => {
     expect(game.isOver(send(copy, B, play(3)))).toEqual({ winner: B, ranking: [B, A] });
   });
 });
+
+describe("P4-032/F4-050: pełne gwarancje ruchu kulek", () => {
+  test("każda kulka osobno ma prędkość 0,3 + 0,06 × numer rundy", () => {
+    for (const seed of [1, 7, 42]) {
+      const { rounds } = fresh([A], seed);
+      rounds.forEach((balls, r) => balls.forEach((ball, i) => {
+        // Krok zawierający odbicie jest krótszy. Maksimum próbek bez odbicia mierzy prędkość tej kulki.
+        const speed = Math.max(...[0, 1000, 2000].map((t) => distance(position(ball, r, t), position(ball, r, t + 10)))) * 100;
+        expect(speed, `seed ${seed}, runda ${r}, kulka ${i}`).toBeCloseTo(0.3 + 0.06 * r, 5);
+      }));
+    }
+  });
+
+  test.each([0, MOVE_MS])("odstęp środków co najmniej 0,14 po %i ms", (t) => {
+    for (const seed of [1, 7, 42]) {
+      fresh([A], seed).rounds.forEach((balls, r) => {
+        const at = balls.map((ball) => position(ball, r, t));
+        at.forEach((a, i) => at.slice(i + 1).forEach((b) => expect(distance(a, b), `seed ${seed}, runda ${r}`).toBeGreaterThanOrEqual(0.14)));
+      });
+    }
+  });
+});

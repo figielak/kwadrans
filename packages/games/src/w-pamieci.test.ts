@@ -260,3 +260,12 @@ test.each([1, 6])("%i graczy: wynik po trzech rundach jest zapisany i nie daje s
   const copy = JSON.parse(JSON.stringify(s)) as State;
   expect(game.playerView(copy, "")).toEqual(s);
 });
+
+test.each([1, 7, 42])("P4-032/F4-053: seed %i, runda nie przedłuża ciągu poprzedniej", (seed) => {
+  const { rounds } = fresh([A], seed);
+  for (let i = 1; i < rounds.length; i++) {
+    const previous = rounds[i - 1], current = rounds[i];
+    const prefix = { start: current.start, ops: current.ops.slice(0, previous.ops.length) };
+    expect(prefix, `rundy ${i - 1} i ${i}`).not.toEqual(previous);
+  }
+});

@@ -198,3 +198,12 @@ describe("progress i schemat", () => {
     expect(ok({ type: "skok" })).toBe(false);
   });
 });
+
+test.each([C])("P4-032/F4-009: wygrywa także %s", (winner) => {
+  let s = game.setup([A, B, C], createRng(1));
+  for (const p of [A, B, C]) {
+    s = send(s, p, result(p === winner ? years(s) : []));
+  }
+  expect(game.isOver(s)?.winner).toBe(winner);
+  expect(game.waitingFor(s)).toEqual([]);
+});

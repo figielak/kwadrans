@@ -175,3 +175,78 @@ describe("koniec", () => {
     expect(game.timeoutMove!(s, A, createRng(1))).toEqual(result([]));
   });
 });
+
+
+// P4-032: nazwane luki istniejących zasad z F4.
+test("P4-032/F4-004: definicja 1-6 graczy, świeża gra trwa", () => {
+  expect([game.minPlayers, game.maxPlayers, game.turnSeconds]).toEqual([1, 6, 120]);
+  for (const players of [[A], [A, B, C, "darek", "ela", "filip"]]) expect(game.isOver(game.setup(players, createRng(1)))).toBeNull();
+});
+
+test("P4-032/F4-005: ten sam seed daje ten sam setup", () => {
+  const s = game.setup([A, B], createRng(7));
+  expect(game.setup([A, B], createRng(7))).toEqual(s);
+});
+
+
+test("P4-032/F4-006: po końcu każdy typ ruchu jest odrzucony dla graczy i obcego", () => {
+  let s = game.setup([A, B], createRng(1));
+  for (const p of [A, B]) s = send(s, p, result([]));
+  expect(game.isOver(s)).not.toBeNull();
+  for (const p of [A, B, "obcy"]) for (const move of [result(circle()), result([])]) expect(game.validateMove(s, p, move)).toBe(false);
+});
+
+test.each([null, {}, { type: "nieznany", points: [] }, { type: "result" }, { type: "result", points: "koło" }, { type: "result", points: [[0]] }, { type: "result", points: [["0", 0]] }])("P4-032/F4-008: schemat odrzuca %j", (move) => {
+  expect(game.moveSchema.safeParse(move).success).toBe(false);
+});
+
+test.each([A, C])("P4-032/F4-009: wygrywa także %s", (winner) => {
+  let s = game.setup([A, B, C], createRng(1));
+  for (const p of [A, B, C]) {
+    s = send(s, p, result(p === winner ? circle() : square()));
+    s = send(s, p, { type: "result", points: [] });
+  }
+  expect(game.isOver(s)?.winner).toBe(winner);
+  expect(game.waitingFor(s)).toEqual([]);
+});
+
+test("P4-032/F4-010: każdy typ ruchu bez mutacji zamrożonego wejścia i z JSON round-trip", () => {
+  function freeze(value: unknown): void {
+    if (value && typeof value === "object") {
+      Object.values(value).forEach(freeze);
+      Object.freeze(value);
+    }
+  }
+  let s = game.setup([A, B], createRng(1));
+  const moves: Move[] = [result(square()), result(circle()), result([])];
+  for (const move of moves) {
+    const before = structuredClone(s);
+    freeze(s);
+    const after = send(s, A, move);
+    expect(s).toEqual(before);
+    expect(JSON.parse(JSON.stringify(after))).toEqual(after);
+    s = after;
+  }
+});
+
+test.each([[19, false], [20, true], [1000, true]])("P4-032/F4-007: %i punktów, walidacja=%s", (n, valid) => {
+  const s = game.setup([A, B], createRng(1));
+  expect(game.validateMove(s, A, result(circle({ n })))).toBe(valid);
+});
+
+test.each([[0, true], [1, true], [-0.0001, false], [1.0001, false]])("P4-032/F4-007: współrzędna %s, walidacja=%s", (coordinate, valid) => {
+  const s = game.setup([A, B], createRng(1));
+  for (const point of [[coordinate, 0.5], [0.5, coordinate]] as Point[]) {
+    expect(game.validateMove(s, A, result([...circle(), point]))).toBe(valid);
+  }
+});
+
+test("P4-032/F4-047: przerwa 2% nie kosztuje punktów", () => {
+  // 99 punktów co 1/100 obrotu: od pierwszego do ostatniego 98%, przerwa 2%.
+  expect(score(circle({ n: 100, turns: 0.99 }))).toBe(score(circle()));
+  expect(score(circle({ n: 100, turns: 0.99 }))).toBe(1000);
+});
+
+test("P4-032/F4-047: judge przy 19 punktach zwraca unfinished", () => {
+  expect(judge(circle({ n: 19 }))).toMatchObject({ status: "unfinished", score: 0 });
+});
