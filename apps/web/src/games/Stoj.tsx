@@ -2,6 +2,7 @@ import { type LobbyPlayer, STOJ_DURATION_MS, STOJ_SCHEDULE, STOJ_VISIBLE, stojSc
 import { HandPalm } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import * as clock from "../clock.ts";
+import { markFrame, reaction } from "../stimulus.ts";
 import { Intro, Stats } from "../screens/ui.tsx";
 import { Results } from "./Quiz.tsx";
 import { VIBRATE } from "../vibrate.ts";
@@ -52,7 +53,8 @@ export function Stoj({ view, me, players, ranking, winner, onMove }: Props) {
   function show(i: number) {
     if (i >= STOJ_SCHEDULE.length) return setShown(null);
     const { at, window: span } = STOJ_SCHEDULE[i];
-    run.current.shownAt = performance.now();
+    const r = run.current;
+    markFrame((t) => (r.shownAt = t));
     clock.stimulus("stoj");
     setShown({ i, lit: true, tapped: false });
     after(at + span * STOJ_VISIBLE, () => {
@@ -68,16 +70,16 @@ export function Stoj({ view, me, players, ranking, winner, onMove }: Props) {
     show(0);
   }
 
-  function tap() {
+  function tap(e: { timeStamp: number }) {
     if (!shown || shown.tapped) return;
     const r = run.current;
-    const reaction = Math.round(performance.now() - r.shownAt);
-    if (reaction < MIN_REACTION) return;
+    const took = reaction(r.shownAt, e);
+    if (took < MIN_REACTION) return;
     // Spóźniony timer następnego bodźca mógłby wydłużyć okno ponad to, co przyjmie serwer.
-    r.taps[shown.i] = Math.min(reaction, STOJ_SCHEDULE[shown.i].window);
+    r.taps[shown.i] = Math.min(took, STOJ_SCHEDULE[shown.i].window);
     setShown({ ...shown, tapped: true });
     if (view.reds[shown.i]) navigator.vibrate?.(VIBRATE.mistake);
-    else setLast(reaction);
+    else setLast(took);
   }
 
   // Zegar gry: odświeża licznik i kończy partię po 30 s.
@@ -144,7 +146,7 @@ export function Stoj({ view, me, players, ranking, winner, onMove }: Props) {
         type="button"
         onPointerDown={(e) => {
           clock.input("stoj", e);
-          tap();
+          tap(e);
         }}
         className={`flex min-h-80 flex-1 touch-none select-none items-center justify-center gap-3 rounded-tile border border-line text-2xl font-semibold ${
           missed

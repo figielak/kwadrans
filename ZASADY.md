@@ -281,6 +281,10 @@ animacja tylko go dogania na ekranie.
   - **podgląd na ekranie instrukcji**: zostaje klatka bazowa, czyli pierwsza klatka jest bazowo widoczna, a kolejne mają
     `opacity-0` i pojawiają się tylko przez `animation-delay`, więc bez animacji podgląd pokazuje czytelny pierwszy krok.
 - **Pomiar czasu nigdy nie zależy od animacji.** W grach na refleks bodziec pojawia się bez przejścia.
+- **Reakcja od pierwszej klatki z bodźcem** (Refleks, Stój!): odniesieniem jest znacznik `requestAnimationFrame` pierwszej klatki z bodźcem,
+  a dotyk to `e.timeStamp` zdarzenia (`markFrame` i `reaction` w `stimulus.ts`). To ujednolica zegar, ale nie usuwa opóźnienia ekranu ani dotyku telefonu.
+  Stoper i Wieża liczą od własnego startu, który jest też odniesieniem ich obrazu, więc zostają przy `performance.now()` (różnica obsługi dotyku poniżej 1 ms).
+  Pomiar obu metod obok siebie: `?zegar` (`clock.ts`).
 - **Odsłona prawdy od razu, bez animacji** (Mapa, Odcień, Policz kropki, Kąt, Który rok?, Środek, Tort, Nożyczki): cały czas odsłony z zasad
   jest na odczyt, nic nie wskakuje. Tak samo odsłonięta litera Kalamburów pojawia się bez animacji (wyjątek od `stone-pop` dla nowego elementu).
 - **Zastany stan pokazujemy od razu**: po wejściu, odświeżeniu albo reconnect kamienie, strzały, ścianki i pary stoją bez animacji

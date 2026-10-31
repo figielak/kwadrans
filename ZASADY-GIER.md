@@ -78,6 +78,8 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
 - Każda runda daje jeden czas reakcji 100-1000 ms. Falstart (dotknięcie przed zmianą albo reakcja poniżej 100 ms) i reakcja ponad 1 s
   liczą się jak 1000 ms (`PENALTY_MS`) i runda przepada; po falstarcie 0,8 s przerwy. Falstart to pomyłka: wibracja 60,
   „Falstart!” w kolorze ostrzeżenia i błysk pola jak przy błędzie w Stój!.
+- Czas reakcji liczy ekran od pierwszej klatki z bodźcem do znacznika dotyku (`stimulus.ts`, ZASADY §5); dotknięcie przed pierwszą klatką to falstart.
+  Rekordy sprzed zmiany (2026-10-31) liczone od zmiany stanu są o mniej więcej pół do jednej klatki wyższe i zostają bez przeliczania.
 - Jeden ruch z `times`: 12 czasów w ms (int). Wynik liczy serwer: zaokrąglona średnia w ms, mniej lepiej, równe to remis.
 - Walidacja: lista pusta albo dokładnie 12 liczb całkowitych 100-1000. Pusta lista = limit czasu = 1000 ms, czyli najgorszy możliwy wynik.
 - Stan trzyma też `times` każdego gracza (tabela i wykres na końcu; liczba kar to czasy równe 1000).
@@ -274,6 +276,7 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 - Losowe jest tylko to, które bodźce są czerwone: dokładnie co trzeci (`round(N / 3)`), w kolejności potasowanej na serwerze.
 - Jedno dotknięcie na bodziec. Zielony = trafienie, czerwony = błąd. Dotknięcie szybciej niż 100 ms od pojawienia się to zgadywanie:
   ekran je ignoruje. Przepuszczony zielony nic nie kosztuje (brak punktu).
+- Czas reakcji liczy ekran od pierwszej klatki z bodźcem do znacznika dotyku, jak w Refleksie; starsze rekordy zostają bez przeliczania.
 - Jeden ruch z `taps`: czas reakcji na każdy bodziec w ms (int) albo `null`, gdy nie było dotknięcia. Wynik liczy serwer:
   `times` (reakcje na zielone) i `errors` (dotknięte czerwone).
 - Wynik = trafienia − 2 × błędy, nie mniej niż 0, więcej lepiej. Przy remisie niższa średnia reakcji; dwa wyniki bez trafień to remis,

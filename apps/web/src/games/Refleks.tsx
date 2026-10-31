@@ -1,6 +1,7 @@
 import { type LobbyPlayer, REFLEKS_PENALTY_MS, REFLEKS_ROUNDS, type RefleksView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import * as clock from "../clock.ts";
+import { markFrame, reaction } from "../stimulus.ts";
 import { Intro, ScoreTable, Stats } from "../screens/ui.tsx";
 import { VIBRATE } from "../vibrate.ts";
 
@@ -121,7 +122,7 @@ export function Refleks({ view, me, players, ranking, winner, onMove }: Props) {
     const r = run.current;
     setPhase("wait");
     r.timer = window.setTimeout(() => {
-      r.goAt = performance.now();
+      markFrame((t) => (r.goAt = t));
       clock.stimulus("refleks");
       setPhase("go");
       // Bez dotknięcia runda sama kończy się karą.
@@ -135,12 +136,12 @@ export function Refleks({ view, me, players, ranking, winner, onMove }: Props) {
     wait();
   }
 
-  function tap() {
+  function tap(e: { timeStamp: number }) {
     const r = run.current;
-    const reaction = Math.round(performance.now() - r.goAt);
-    if (phase === "go" && reaction >= MIN_REACTION) {
+    const took = reaction(r.goAt, e);
+    if (phase === "go" && took >= MIN_REACTION) {
       clearTimeout(r.timer);
-      next(Math.min(reaction, REFLEKS_PENALTY_MS));
+      next(Math.min(took, REFLEKS_PENALTY_MS));
     } else if (phase === "wait" || phase === "go") {
       clearTimeout(r.timer);
       navigator.vibrate?.(VIBRATE.mistake);
@@ -182,7 +183,7 @@ export function Refleks({ view, me, players, ranking, winner, onMove }: Props) {
         type="button"
         onPointerDown={(e) => {
           clock.input("refleks", e);
-          tap();
+          tap(e);
         }}
         className={`flex min-h-80 flex-1 touch-none select-none items-center justify-center rounded-tile border border-line text-2xl font-semibold ${
           phase === "go" ? "bg-success text-bg" : phase === "early" ? "animate-[tile-miss_0.35s_ease-out] bg-surface text-warning" : "bg-surface text-fg-muted"
