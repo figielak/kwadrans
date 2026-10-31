@@ -174,7 +174,8 @@ export function Tort({ view, me, players, ranking, onMove }: Props) {
       >
         <svg viewBox="0 0 100 100" className="absolute inset-0 size-full" aria-hidden>
           <circle cx={50} cy={50} r={RADIUS} className="fill-surface stroke-line-hover" strokeWidth={0.8} />
-          {phase === "reveal" && ideal(cake).map((deg, i) => <Cut key={i} deg={deg} className={tone.stroke} strokeWidth={0.6} strokeDasharray="2 2" />)}
+          {/* Idealne cięcia to prawda: neutralne, ocenę niesie liczba pod tortem. */}
+          {phase === "reveal" && ideal(cake).map((deg, i) => <Cut key={i} deg={deg} className="stroke-fg" strokeWidth={0.6} strokeDasharray="2 2" />)}
           <Cut deg={cake.first} className="stroke-fg" strokeWidth={1.2} />
           {mine.map((deg, i) => (
             <Cut key={i} deg={deg} stroke={color} strokeWidth={held === i ? 1.8 : 1.2} />

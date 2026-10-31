@@ -177,7 +177,7 @@ export function Rok({ view, me, players, ranking, onMove }: Props) {
           <div className="relative h-12">
             <div className="absolute inset-x-0 top-1/2 h-9 -translate-y-1/2 rounded-inset border border-line" />
             <span className="absolute top-1/2 h-9 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ left: at(answers[index]), backgroundColor: color }} />
-            <span className="absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-success" style={{ left: at(event.year) }} />
+            <span className="absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-fg" style={{ left: at(event.year) }} />
           </div>
         ) : (
           <div className="flex items-center gap-2">

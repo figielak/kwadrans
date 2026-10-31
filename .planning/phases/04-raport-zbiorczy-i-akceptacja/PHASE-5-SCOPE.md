@@ -700,7 +700,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-041](PACKAGES.md#p4-041). Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Pełna odsłona przez czas z zasad, widoczny kierunek błędu i moja odpowiedź, reduced motion bez różnicy danych. Kalambury odsłaniają tylko nową literę i nie odtwarzają animacji innych.
 - Granice: Nie skracać/nie przedłużać rundy dekoracją.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 3/3 części. TDD `5a1c9ad`; typy, testy i build PASS. [05-41-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-41-SUMMARY.md).
 
 <a id="scope-p4-045"></a>
 

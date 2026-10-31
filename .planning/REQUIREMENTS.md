@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 41/62 pakietów, 178/267 części; 05-40/P4-043: wibracje i informacja zwrotna, typy/testy/build PASS; następny P4-044; F4-046 częściowo SKIP → P4-057 |
+| FIX-02 | Phase 5 | In progress; 42/62 pakietów, 181/267 części; 05-41/P4-044: odsłona prawdy, typy/testy/build PASS; następny P4-045; F4-046 częściowo SKIP → P4-057 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -115,7 +115,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-31 po 05-40/P4-043; 41/62 pakietów, 178/267 części, FIX-02 otwarte.*
+*Last updated: 2026-10-31 po 05-41/P4-044; 42/62 pakietów, 181/267 części, FIX-02 otwarte.*
 
 2026-10-26, 05-02/P4-027: testy regresji i dokumentacja przed kodem przygotowane. Oczekiwany RED potwierdza błąd, nie jest spełnieniem FIX-02. Wdrożenie oczekuje osobnego commitu testów na prośbę użytkownika; dowody w [05-02-TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-TDD.md).
 
@@ -316,3 +316,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, U02 na fizycznym Androidzie: użytkownik zatwierdził P4-014 (05-11 zamknięty) i P4-015 (bez zmian kodu). 40/62 pakietów, 173/267 części; FIX-02 otwarte. Następny P4-043. Dowody: 05-11-SUMMARY.md.
 
 2026-10-31, 05-40/P4-043 zakończony: jedna tabela wibracji (VIBRATE), zignorowany ruch bez wibracji z shake, falstart i Sekwencja 60, szkoda od rywala raz na zdarzenie, wibracja tury przy nowej decyzji. 41/62 pakietów, 178/267 części; FIX-02 otwarte. Następny P4-044. Dowody: 05-40-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-41/P4-044 zakończony: odsłona prawdy od razu, neutralny znacznik prawdy, ocena na błędzie, litera Kalamburów bez animacji. 42/62 pakietów, 181/267 części; FIX-02 otwarte. Następny P4-045. Dowody: 05-41-SUMMARY.md. Commit bez push.

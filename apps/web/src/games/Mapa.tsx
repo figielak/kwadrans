@@ -169,12 +169,12 @@ export function Mapa({ view, me, players, ranking, onMove }: Props) {
             <>
               <line x1={target.cx} y1={target.cy} x2={at(mine).cx} y2={at(mine).cy} className={grade(error).stroke} strokeWidth={0.8} />
               <circle {...at(mine)} r={1.4} fill={color} />
-              {/* Pierścień, nie pełna kropka: przy celnym wskazaniu oba punkty widać naraz. */}
+              {/* Pierścień, nie pełna kropka: przy celnym wskazaniu oba punkty widać naraz. Prawda neutralna i od razu, ocena na linii błędu. */}
               <circle
                 {...target}
                 r={2.6}
                 fill="none"
-                className={`origin-center animate-[stone-pop_0.35s_ease-out] [transform-box:fill-box] ${grade(error).stroke}`}
+                className="stroke-fg"
                 strokeWidth={0.8}
               />
             </>

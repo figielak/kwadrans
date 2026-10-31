@@ -166,8 +166,8 @@ export function Srodek({ view, me, players, ranking, onMove }: Props) {
               {/* Błąd biegnie wzdłuż odcinka: od środka do miejsca rzutu. */}
               <line x1={mid.x * 100} y1={mid.y * 100} x2={mine.x * 100} y2={mine.y * 100} className={grade(error).stroke} strokeWidth={1.8} />
               <circle cx={mine.x * 100} cy={mine.y * 100} r={1.6} fill={color} />
-              {/* Pierścień, nie pełna kropka: przy celnym dotknięciu oba punkty widać naraz. */}
-              <circle cx={mid.x * 100} cy={mid.y * 100} r={2.6} fill="none" className={grade(error).stroke} strokeWidth={0.6} />
+              {/* Pierścień, nie pełna kropka: przy celnym dotknięciu oba punkty widać naraz. Prawda neutralna, ocena na linii błędu. */}
+              <circle cx={mid.x * 100} cy={mid.y * 100} r={2.6} fill="none" className="stroke-fg" strokeWidth={0.6} />
             </>
           )}
         </svg>

@@ -168,6 +168,7 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
 **Reguły**
 - **Kolor gracza, nie czerwień**, dla wszystkiego, co jest „moje” lub „czyjeś”: pionki, kamienie, podświetlenie mojej tury.
   `accent` służy akcji platformy i pozostałym rolom z DESIGN §2, w tym znakowi aplikacji; ostrzeżenia używają `warning`.
+  W odsłonie rundy moja odpowiedź jest w kolorze gracza, znacznik prawdy neutralny (`fg`), a ocenę (`grade`) niesie linia błędu i liczba.
 - Mini-gra zaczyna od ekranu instrukcji: komponent `Intro` (ui.tsx) z animowanym podglądem gry (mały komponent `Preview` w pliku gry,
   sama animacja CSS w pętli), trzema krótkimi punktami (`time`: czas, `task`: co zrobić, `score`: jak liczone są punkty) i przyciskiem „Start”.
   Limit gry jeszcze wtedy nie tyka; po `INTRO_SECONDS` (15 s) gra rusza sama. Pod przyciskiem widać, kto już gra, a kto czyta zasady.
@@ -262,6 +263,8 @@ animacja tylko go dogania na ekranie.
   - **podgląd na ekranie instrukcji**: zostaje klatka bazowa, czyli pierwsza klatka jest bazowo widoczna, a kolejne mają
     `opacity-0` i pojawiają się tylko przez `animation-delay`, więc bez animacji podgląd pokazuje czytelny pierwszy krok.
 - **Pomiar czasu nigdy nie zależy od animacji.** W grach na refleks bodziec pojawia się bez przejścia.
+- **Odsłona prawdy od razu, bez animacji** (Mapa, Odcień, Policz kropki, Kąt, Który rok?, Środek, Tort, Nożyczki): cały czas odsłony z zasad
+  jest na odczyt, nic nie wskakuje. Tak samo odsłonięta litera Kalamburów pojawia się bez animacji (wyjątek od `stone-pop` dla nowego elementu).
 - **Wibracje zamiast dźwięku**, zawsze `navigator.vibrate?.(...)`:
 
   | Zdarzenie | Wzór |
