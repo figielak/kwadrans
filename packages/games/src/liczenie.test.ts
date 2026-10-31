@@ -202,7 +202,8 @@ test("P4-057: każda kolejna czwórka działań ma wszystkie cztery rodzaje, dla
       expect(p.options.every((o, i) => Number.isInteger(o) && o >= (i === p.answer ? 0 : 1) && o !== a && o !== b), p.text).toBe(true);
     }
   }
-});
+  // 1000 partii po 200 działań to kilka sekund losowania, na CI ponad domyślne 5 s.
+}, 60_000);
 
 test("P4-057: kolejność rodzajów w czwórkach jest tasowana, nie stała", () => {
   const orders = new Set(game.setup([A], createRng(1)).problems.map((p) => p.text.split(" ")[1]).join("").match(/.{4}/gu));
