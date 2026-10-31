@@ -36,3 +36,20 @@ describe("katalog animacji", () => {
     for (const { name, time } of uses) expect(catalog.get(name), `${name} ${time}`).toContain(time);
   });
 });
+
+// P4-040: przy prefers-reduced-motion pływająca liczba nie znika od razu, tylko stoi i gaśnie w tym samym czasie.
+describe("reduced motion", () => {
+  const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
+
+  test("float-up zastąpione nieruchomym wygaszeniem 1,6 s", () => {
+    expect(reduced).toContain('[class*="animate-[float-up"]');
+    expect(reduced).toMatch(/animation: float-still 1\.6s ease-out forwards !important/);
+    const still = css.slice(css.indexOf("@keyframes float-still"), css.indexOf("}", css.indexOf("@keyframes float-still") + 40) + 1);
+    expect(still).not.toContain("transform");
+  });
+
+  test("ZASADY §5 opisuje ruch będący zadaniem i klatkę bazową podglądu", () => {
+    for (const game of ["Kubki", "Śledzenie", "Wieża", "Za zasłoną"]) expect(rules).toContain(game);
+    expect(rules).toMatch(/klatka bazowa/);
+  });
+});
