@@ -199,10 +199,27 @@ animacja tylko go dogania na ekranie.
 
 - **Mechanizm**: keyframes w `index.css` z komentarzem, do czego służą, użyte przez `animate-[nazwa_czas_easing]`.
   Zmiany stanu (kolor, obwódka) przez `transition-colors`. Nowej biblioteki nie dodajemy.
-- **Najpierw istniejące**: `stone-pop` (coś pojawia się na planszy), `ring-pulse` (to można wybrać),
-  `dice-tumble` (rzut kośćmi), `card-in` (karta lub okno na środku), `float-up` (zmiana liczby), `set-glow` (świeże osiągnięcie),
-  `preview-half` i `preview-quarter` (podgląd na ekranie instrukcji; kolejność ustawia ujemny `animation-delay`).
-  Ta sama sytuacja w nowej grze używa tej samej animacji.
+- **Najpierw istniejące**: ta sama sytuacja w nowej grze używa tej samej animacji z katalogu. Katalog to wszystkie keyframes z `index.css`;
+  test `apps/web/src/animations.test.ts` pilnuje, żeby każda nazwa miała definicję, komentarz i wiersz tutaj, a każdy użyty czas był w kolumnie „Czasy”.
+
+  | Keyframes | Rola | Czasy |
+  |---|---|---|
+  | `stone-pop` | coś pojawia się na planszy (kamień, strzał, ścianka, karta Memory, znacznik, nowa wygrana) | `0.35s` standard; `0.5s` nowa wygrana na pigułce i plakietce; `180ms` działanie W pamięci (wyjątek: pokaz co 1,5 s) |
+  | `ring-pulse` | to można wybrać (pionek, karta, „Jeszcze raz” po prośbie innych), w pętli | `1.2s`; `1s` Chińczyk (do ujednolicenia w P4-042) |
+  | `dice-tumble` | rzut kośćmi, pętla na czas pokazu rzutu | `0.3s` |
+  | `card-in` | karta lub okno na środku ekranu (Karta Dziekanatu, oferty, podsumowanie) | `0.35s` |
+  | `float-up` | zmiana liczby (kwota, „+1”, punkty Balonu i Wieży) | `1.6s` |
+  | `set-glow` | świeże osiągnięcie (komplet grupy, „Nowy rekord!”), 4 powtórzenia | `0.9s` |
+  | `preview-half` | podgląd na ekranie instrukcji: element widać przez pół cyklu; kolejność z ujemnego `animation-delay` | `1s`, `2s`, `2.4s`, `3s` |
+  | `preview-quarter` | podgląd na ekranie instrukcji: element widać przez ćwierć cyklu (cztery kroki) | `2.4s`, `4s` |
+  | `line-draw` | linia rysuje się od początku do końca (zwycięska piątka; pętla w podglądzie koła) | `0.5s` Gomoku; `2.5s` podgląd Narysuj koło |
+  | `title-pop` | „Wygrywasz!” w nagłówku gry, jedyny tytuł z animacją | `0.5s` |
+  | `tile-hit` | trafienie: zielony błysk kafelka | `0.35s` |
+  | `tile-miss` | pomyłka: czerwony błysk z potrząśnięciem | `0.35s` |
+  | `piece-fall` | ucięty kawałek klocka Wieży spada po wyniku | `0.5s` |
+  | `shake` | ruch zignorowany bez kary: potrząśnięcie bez koloru (Środek, Nożyczki) | `0.3s` |
+
+  `card-in` (okno) i `stone-pop` (element planszy) to różne sytuacje; „showtime” nie jest nazwą animacji.
 - **Czasy**:
 
   | Co | Czas |
@@ -213,6 +230,7 @@ animacja tylko go dogania na ekranie.
   | pojawienie się elementu lub karty | 350 ms, `ease-out` |
   | rzut kośćmi | 700 ms |
   | pływająca liczba | 1,6 s |
+  | świeże osiągnięcie (`set-glow`) | 0,9 s × 4 |
 
 - **Animacja nie blokuje gry.** Przyciski działają w trakcie, kolejny stan z serwera przerywa poprzednią animację,
   a przy dużym skoku (odświeżenie, powrót do karty) element od razu ląduje na miejscu.

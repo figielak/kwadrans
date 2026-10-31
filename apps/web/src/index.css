@@ -28,9 +28,9 @@
   --color-accent-soft: rgb(255 36 69 / 0.12);
   /* Biały na akcencie ma tylko 3.8:1, grafit 5.1:1. */
   --color-accent-fg: #0e0e10;
-  /* Ostrzeżenie (koniec czasu tury): czerwień jaśniejsza od akcentu przycisków. */
+  /* Ostrzeżenie (ostatnie 10 s limitu, pomyłka, kara, błąd formularza, „nie wolno” w Stój!): czerwień jaśniejsza od akcentu przycisków. */
   --color-warning: #ff6369;
-  /* Potwierdzenie (np. odpowiedź na właściwą literę). */
+  /* Potwierdzenie: trafienie, bodziec „dotknij” (Refleks, Stój!), nowy rekord. */
   --color-success: #3dd68c;
 
   --font-sans: "Satoshi", ui-sans-serif, system-ui, sans-serif;
@@ -190,7 +190,7 @@ body::before {
   }
 }
 
-/* Świeżo zebrany komplet w Kampus Tour: pola pulsują kolorem gracza (--glow). */
+/* Świeże osiągnięcie, 0,9 s × 4: komplet grupy w Kampus Tour (pola pulsują kolorem gracza z --glow), „Nowy rekord!” w panelu rekordu. */
 @keyframes set-glow {
   0%,
   100% {
@@ -201,7 +201,7 @@ body::before {
   }
 }
 
-/* Chińczyk: pionek, którym można się ruszyć, pulsuje obwódką w kolorze gracza (outline-color z elementu). */
+/* „To można wybrać”: obwódka pulsuje w kolorze z outline-color elementu (pionek w Chińczyku, karta w Memory, „Jeszcze raz”, gdy inni już chcą rewanżu). */
 @keyframes ring-pulse {
   0%,
   100% {
@@ -213,7 +213,8 @@ body::before {
   }
 }
 
-/* Pięć w rzędzie: świeżo postawiony kamień wskakuje na planszę. */
+/* Coś pojawia się na planszy: kamień w Gomoku, strzał w Statkach, ścianka w Labiryncie, odkryta karta Memory, znacznik Mapy, działanie W pamięci,
+ * nowa wygrana na pigułce i plakietce gracza. */
 @keyframes stone-pop {
   from {
     transform: scale(1.6);
@@ -221,7 +222,7 @@ body::before {
   }
 }
 
-/* Pięć w rzędzie: zwycięska linia dorysowuje się od pierwszego do ostatniego kamienia (pathLength=1). */
+/* Linia rysuje się od początku do końca (pathLength=1): zwycięska piątka w Gomoku, podgląd koła w instrukcji Narysuj koło. */
 @keyframes line-draw {
   from {
     stroke-dashoffset: 1;
@@ -243,6 +244,7 @@ body::before {
   }
 }
 
+/* Element widać przez pierwszą ćwierć cyklu podglądu (cztery kroki). */
 @keyframes preview-quarter {
   0%,
   20% {
@@ -254,7 +256,7 @@ body::before {
   }
 }
 
-/* Nagłówek gry: „Wygrywasz!” u zwycięzcy. */
+/* Nagłówek gry: „Wygrywasz!” u zwycięzcy, 0,5 s ze sprężystym wyhamowaniem (jedyny tytuł z animacją). */
 @keyframes title-pop {
   from {
     transform: scale(1.25);
@@ -262,7 +264,7 @@ body::before {
   }
 }
 
-/* Turlanie kostki w Kampus Tour. */
+/* Rzut kośćmi: kostka turla się w pętli 0,3 s, dopóki trwa pokaz rzutu (Kampus Tour, Chińczyk). */
 @keyframes dice-tumble {
   0%,
   100% {
@@ -276,7 +278,7 @@ body::before {
   }
 }
 
-/* Karta Dziekanatu w Kampus Tour: wjeżdża na środek ekranu. */
+/* Karta lub okno na środku ekranu: Karta Dziekanatu, oferty i podsumowanie Kampus Tour. */
 @keyframes card-in {
   from {
     opacity: 0;
@@ -284,7 +286,7 @@ body::before {
   }
 }
 
-/* Pływająca kwota przy panelu gracza w Kampus Tour i „+1” nad pigułką zwycięzcy. */
+/* Zmiana liczby: kwota przy panelu w Kampus Tour, „+1” nad pigułką zwycięzcy i nad kropką gracza, punkty w Balonie i Wieży. */
 @keyframes float-up {
   0% {
     opacity: 0;
@@ -299,7 +301,7 @@ body::before {
   }
 }
 
-/* Tabela Schultego: zielony błysk trafionego kafelka, czerwony z potrząśnięciem przy pomyłce. */
+/* Reakcja kafelka na odpowiedź: zielony błysk trafienia, czerwony z potrząśnięciem przy pomyłce (quizy, Dziesiątki, Sudoku, Schulte, Wieża, Stój!). */
 @keyframes tile-hit {
   from {
     background-color: var(--color-success);
@@ -307,6 +309,7 @@ body::before {
   }
 }
 
+/* Pomyłka: czerwony błysk z potrząśnięciem (para do tile-hit). */
 @keyframes tile-miss {
   0% {
     background-color: var(--color-warning);
@@ -326,7 +329,7 @@ body::before {
   }
 }
 
-/* Wieża: ucięty kawałek klocka spada i gaśnie. */
+/* Wieża: ucięty kawałek klocka spada i gaśnie (0,5 s, po wyniku, nie wpływa na pomiar). */
 @keyframes piece-fall {
   to {
     opacity: 0;
@@ -334,7 +337,7 @@ body::before {
   }
 }
 
-/* Środek: delikatne potrząśnięcie odcinka, gdy dotknięcie wypadło poza strefą (bez błysku koloru, to nie kara). */
+/* Ruch zignorowany bez kary: delikatne potrząśnięcie bez błysku koloru (Środek poza strefą, Nożyczki za krótkie cięcie). */
 @keyframes shake {
   20% {
     transform: translateX(-4px);
