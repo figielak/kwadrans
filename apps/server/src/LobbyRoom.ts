@@ -367,6 +367,8 @@ export class LobbyRoom extends Room {
     match.state = match.def.applyMove(match.state, player, move, match.rng);
     const result = match.def.isOver(match.state);
     if (result) return this.finish(result);
+    // Mini-gra ma jeden termin od końca instrukcji: wynik ani próba nikomu go nie przesuwa.
+    if (match.def.minPlayers === 1) return;
     if (match.def.turn) {
       if (match.def.turn(match.state).key !== keyBefore) this.startTurnTimer();
       return;

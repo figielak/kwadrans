@@ -118,6 +118,7 @@ Te rzeczy działają tak samo w każdej grze. Odstępstwo wymaga wpisu w `ZASADY
 - **Wspólne funkcje z `core.ts`** zamiast własnych: `shuffle`, `rankResults`, `ranked`, `average`, `byHitsThenAverage`.
   Dwie gry o tej samej mechanice dzielą moduł (jak `quiz.ts` dla Kolorów i Liczenia).
 - **Limity tury**: 60 s na ruch w grach po kolei; w mini-grze limit `L >= max(1,2 * T, T + 10 s)`.
+  Mini-gra ma jeden termin od końca instrukcji (ostatni „Start” albo 15 s); żaden ruch, także rywala, go nie odnawia.
   Zapas wynosi więc co najmniej 20% czasu `T` i co najmniej 10 s. Model `T` zapisujemy jawnie:
   suma czasów stałych (wstęp po starcie, pokazy, odsłony, pauzy) + czas decyzji wolnego, uczciwego gracza + czas sieci.
   Każdy składnik ma źródło: stała kodu, założenie albo pomiar. Czasy ludzkie, np. 5 s na celowanie,

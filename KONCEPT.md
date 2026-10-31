@@ -237,6 +237,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
 - Gracze bez miejsca oglądają partię. Nowy gracz dostaje miejsce sam, jeśli gra wybrana i jest wolne.
 - Rewanż po zgodzie wszystkich grających, kolejność miejsc rotuje (poza mini-grami, gdzie wszyscy grają naraz); do lobby może wrócić każdy.
 - W mini-grach (gry solo, `minPlayers: 1`) limit rusza po ekranie instrukcji: gdy wszyscy klikną „Start” albo po 15 s.
+  To jeden termin dla całej partii: wynik, `progress` ani próba rywala go nie odnawiają; rewanż i kolejna gra turnieju liczą go od nowa.
 - Sekwencja: walidowany postęp zaliczonych serii; po limicie 300 s serwer oddaje ostatnią zaliczoną serię zamiast zera. Zaczęta seria nie zwiększa wyniku, a postęp nie odnawia limitu.
 - Zakupy: limit serwera 80 s, obejmujący 10 s pokazu, do 50 s wyboru i zapas na dostarczenie wyniku. Ręczne i automatyczne oddanie używa tego samego ruchu `result`.
 - Limit tury: 60 s w większości gier; dłużej w Śledzeniu (360 s), Sekwencji i W pamięci (300 s), Który rok? (270 s), Tabeli Schultego, Odcieniu, Wieży, Mapie i Trzech kubkach (180 s),

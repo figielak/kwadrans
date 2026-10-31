@@ -2,8 +2,8 @@
 
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
-**Stan wykonania: 22/62 pakietów, 35/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..021 oraz P4-023, P4-036 i P4-007..010.
-Dowody: 05-01..23-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
+**Stan wykonania: 23/62 pakietów, 36/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..022 oraz P4-023, P4-036 i P4-007..010.
+Dowody: 05-01..24-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
 ## 1. Pełne pokrycie i granice
 
@@ -56,7 +56,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 22 | [P4-019: Chińczyk: ruch dostępny w animacji](#scope-p4-019) | P1 | 1 | wykonano 2026-10-31, 05-21 |
 | 23 | [P4-020: Śledzenie: 360 s na pełną partię](#scope-p4-020) | P2 | 1 | wykonano 2026-10-31, 05-22; TDD 6421837 |
 | 24 | [P4-021: Który rok?: 270 s z zapasem sieciowym](#scope-p4-021) | P2 | 1 | wykonano 2026-10-31, 05-23; TDD 57a1785 |
-| 25 | [P4-022: Jeden termin mini-gry niezależny od rywali](#scope-p4-022) | P2 | 1 | nie rozpoczęto |
+| 25 | [P4-022: Jeden termin mini-gry niezależny od rywali](#scope-p4-022) | P2 | 1 | wykonano 2026-10-31, 05-24; TDD 93ef04b |
 | 26 | [P4-024: Jeden komparator średniego czasu](#scope-p4-024) | P2 | 1 | nie rozpoczęto |
 | 27 | [P4-025: Jawny remis i kolejność dalszych miejsc](#scope-p4-025) | P2 | 2 | nie rozpoczęto |
 | 28 | [P4-026: Kampus Tour: karta, wykup i rzeczywisty czynsz](#scope-p4-026) | P2 | 4 | nie rozpoczęto |
@@ -461,7 +461,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-003](PACKAGES.md#p4-003), [P4-004](PACKAGES.md#p4-004), [P4-020](PACKAGES.md#p4-020), [P4-021](PACKAGES.md#p4-021). Dodatkowy warunek: G-LIMITY rozstrzygnięte w ZG4-v1 §3.3 dla 30 mini-gier, z nazwanymi wyjątkami Środka/Tortu/Roku. Test jednego terminu po poprzedzających poprawkach.
 - Odbiór: T + UI. Kontrolowany zegar: solo/2/6 osób, pierwszy i ostatni Start, progress, wynik pierwszego i ostatniego gracza oraz kolejne próby Koła. Termin pozostałych identyczny przed/po ruchu rywala, jeden timeout na gracza. Wyjście, rewanż i turniej nie dziedziczą terminu poprzedniej partii.
 - Granice: Nie wdrażać najpierw usunięcia odnowień przy nadal kwestionowanych limitach.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **wykonano 2026-10-31**, 05-24; TDD 93ef04b. Dowody: 05-24-SUMMARY.md.
 
 <a id="scope-p4-024"></a>
 
