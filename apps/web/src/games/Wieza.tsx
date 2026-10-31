@@ -1,5 +1,6 @@
 import { type LobbyPlayer, WIEZA_BASE, WIEZA_LEVELS, WIEZA_MAX_STOP_MS, wiezaBuild, wiezaLeft, type WiezaView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
+import * as clock from "../clock.ts";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
 import { VIBRATE } from "../vibrate.ts";
 
@@ -76,6 +77,7 @@ export function Wieza({ view, me, players, ranking, onMove }: Props) {
   useEffect(() => {
     if (phase !== "play") return;
     started.current = performance.now();
+    clock.stimulus("wieza");
     let id = requestAnimationFrame(function frame(now) {
       const t = now - started.current;
       if (t >= WIEZA_MAX_STOP_MS) return drop(WIEZA_MAX_STOP_MS);
@@ -137,7 +139,11 @@ export function Wieza({ view, me, players, ranking, onMove }: Props) {
       />
       <div
         className="tile relative mx-auto aspect-square w-full max-w-[calc(100dvh-22rem)] touch-none select-none overflow-hidden"
-        onPointerDown={() => phase === "play" && drop(Math.min(WIEZA_MAX_STOP_MS, Math.round(performance.now() - started.current)))}
+        onPointerDown={(e) => {
+          if (phase !== "play") return;
+          clock.input("wieza", e);
+          drop(Math.min(WIEZA_MAX_STOP_MS, Math.round(performance.now() - started.current)));
+        }}
       >
         <div className="absolute inset-0 transition-transform duration-[180ms]" style={{ transform: `translateY(${shift * ROW}%)` }} aria-hidden>
           <span className="absolute bg-fg-muted" style={block(0, WIEZA_BASE.left, WIEZA_BASE.width)} />

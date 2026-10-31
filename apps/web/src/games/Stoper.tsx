@@ -1,5 +1,6 @@
 import { type LobbyPlayer, STOPER_VISIBLE_MS, type StoperView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
+import * as clock from "../clock.ts";
 import { Intro, Scores } from "../screens/ui.tsx";
 
 interface Props {
@@ -112,7 +113,10 @@ export function Stoper({ view, me, players, ranking, onMove }: Props) {
   return (
     <button
       type="button"
-      onPointerDown={stop}
+      onPointerDown={(e) => {
+        clock.input("stoper", e);
+        stop();
+      }}
       className="flex min-h-80 flex-1 touch-none select-none flex-col items-center justify-center gap-2 rounded-tile border border-line bg-surface"
     >
       <span className="label">Cel</span>

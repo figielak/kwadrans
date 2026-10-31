@@ -1,5 +1,6 @@
 import { type LobbyPlayer, REFLEKS_PENALTY_MS, REFLEKS_ROUNDS, type RefleksView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
+import * as clock from "../clock.ts";
 import { Intro, ScoreTable, Stats } from "../screens/ui.tsx";
 import { VIBRATE } from "../vibrate.ts";
 
@@ -121,6 +122,7 @@ export function Refleks({ view, me, players, ranking, winner, onMove }: Props) {
     setPhase("wait");
     r.timer = window.setTimeout(() => {
       r.goAt = performance.now();
+      clock.stimulus("refleks");
       setPhase("go");
       // Bez dotknięcia runda sama kończy się karą.
       r.timer = window.setTimeout(() => next(REFLEKS_PENALTY_MS), REFLEKS_PENALTY_MS);
@@ -178,7 +180,10 @@ export function Refleks({ view, me, players, ranking, winner, onMove }: Props) {
         // Klucz z falstartu: przycisk montuje się od nowa i animacja błędu startuje jeszcze raz (jak w Stój!).
         key={phase === "early" ? `early-${times.length}` : "field"}
         type="button"
-        onPointerDown={tap}
+        onPointerDown={(e) => {
+          clock.input("refleks", e);
+          tap();
+        }}
         className={`flex min-h-80 flex-1 touch-none select-none items-center justify-center rounded-tile border border-line text-2xl font-semibold ${
           phase === "go" ? "bg-success text-bg" : phase === "early" ? "animate-[tile-miss_0.35s_ease-out] bg-surface text-warning" : "bg-surface text-fg-muted"
         }`}

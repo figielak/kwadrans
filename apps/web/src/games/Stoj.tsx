@@ -1,6 +1,7 @@
 import { type LobbyPlayer, STOJ_DURATION_MS, STOJ_SCHEDULE, STOJ_VISIBLE, stojScore, type StojView } from "@kwadrans/games";
 import { HandPalm } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
+import * as clock from "../clock.ts";
 import { Intro, Stats } from "../screens/ui.tsx";
 import { Results } from "./Quiz.tsx";
 import { VIBRATE } from "../vibrate.ts";
@@ -52,6 +53,7 @@ export function Stoj({ view, me, players, ranking, winner, onMove }: Props) {
     if (i >= STOJ_SCHEDULE.length) return setShown(null);
     const { at, window: span } = STOJ_SCHEDULE[i];
     run.current.shownAt = performance.now();
+    clock.stimulus("stoj");
     setShown({ i, lit: true, tapped: false });
     after(at + span * STOJ_VISIBLE, () => {
       setShown((s) => s && { ...s, lit: false });
@@ -140,7 +142,10 @@ export function Stoj({ view, me, players, ranking, winner, onMove }: Props) {
         // Klucz z błędu: przycisk montuje się od nowa i animacja startuje jeszcze raz.
         key={missed ? `miss-${shown.i}` : "field"}
         type="button"
-        onPointerDown={tap}
+        onPointerDown={(e) => {
+          clock.input("stoj", e);
+          tap();
+        }}
         className={`flex min-h-80 flex-1 touch-none select-none items-center justify-center gap-3 rounded-tile border border-line text-2xl font-semibold ${
           missed
             ? "animate-[tile-miss_0.35s_ease-out] bg-surface text-warning"
