@@ -3,7 +3,7 @@
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
 **Stan wykonania: 38/62 pakietów, 169/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..022 oraz P4-023..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042 i P4-007..010.
-F4-046 z P4-031 częściowo otwarte: zakresy PASS, równy udział rodzajów SKIP po wykryciu błędu; naprawa w P4-057 (05-31-SUMMARY.md), bez doliczania do zamkniętych części.
+F4-046 z P4-031 domknięte w P4-057 (05-50): zakresy PASS, równy udział rodzajów PASS po naprawie generatora; część doliczona do zamkniętych.
 Dowody: 05-01..34-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
 ## 1. Pełne pokrycie i granice
@@ -64,7 +64,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 29 | [P4-028: Labirynt: losowy legalny krok po czasie](#scope-p4-028) | P2 | 0 | wykonano 2026-10-31, 05-28; TDD 74f0c54 |
 | 30 | [P4-029: Testy: Kampus Tour](#scope-p4-029) | P2 | 11 | wykonano 2026-10-31, 05-29 |
 | 31 | [P4-030: Testy: gry główne i Turniej](#scope-p4-030) | P2 | 24 | wykonano 2026-10-31, 05-30 |
-| 32 | [P4-031: Testy: quizy i Stój!](#scope-p4-031) | P2 | 20 | wykonano 2026-10-31, 05-31; 19/20 odebrane, F4-046 częściowo SKIP → P4-057 |
+| 32 | [P4-031: Testy: quizy i Stój!](#scope-p4-031) | P2 | 20 | wykonano 2026-10-31, 05-31; 20/20 odebrane (F4-046 domknięte w 05-50) |
 | 33 | [P4-032: Testy: pozostałe mini-gry](#scope-p4-032) | P2 | 52 | wykonano 2026-10-31, 05-32 |
 | 34 | [P4-033: Rekordowa partia ze stanu, także me=""](#scope-p4-033) | P2 | 2 | wykonano 2026-10-31, 05-33 |
 | 35 | [P4-037: Zwykłe kontrolki 48 px](#scope-p4-037) | P2 | 1 | wykonano 2026-10-31, 05-34 |
@@ -83,7 +83,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 48 | [P4-052: Czytelne stany oczekiwania, błędu i blokady](#scope-p4-052) | P2 | 11 | wykonano 2026-10-31, 05-47; TDD a9656f6 |
 | 49 | [P4-055: Stoper: stały cel](#scope-p4-055) | P2 | 1 | wykonano 2026-10-31, 05-48; TDD b2bd364 |
 | 50 | [P4-056: Rytm: stałe tempo](#scope-p4-056) | P2 | 1 | wykonano 2026-10-31, 05-49; TDD 1a4d7b8 |
-| 51 | [P4-057: Liczenie: komplet rodzajów](#scope-p4-057) | P2 | 1 | nie rozpoczęto |
+| 51 | [P4-057: Liczenie: komplet rodzajów](#scope-p4-057) | P2 | 1 | wykonano 2026-10-31, 05-50; TDD 7205b92 |
 | 52 | [P4-058: Obrót: sześć rodzajów planszy](#scope-p4-058) | P2 | 1 | nie rozpoczęto |
 | 53 | [P4-059: W pamięci: stała liczba mnożeń](#scope-p4-059) | P2 | 1 | nie rozpoczęto |
 | 54 | [P4-060: Balon: ten sam komplet ryzyka](#scope-p4-060) | P2 | 1 | nie rozpoczęto |
@@ -560,7 +560,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: brak. Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T/D (T obowiązkowa przy zmianie kodu lub testów). Każda luka ma nazwany test i powiązanie z atomem F4; stan osiągnięty ruchami. Definicje, seed, obcy/po końcu/brzegi, JSON/mutacja i obserwator tylko tam, gdzie wskazał audyt. Pełne pnpm typecheck/test po grupie.
 - Granice: Nie utrwalać nowej stałej przed decyzją o jej zmianie: test zmienianej zasady jest częścią właściwego pakietu i powstaje tam przed kodem.
-- Wykonanie: **wykonano 2026-10-31**, 05-31; 20/20 części sprawdzone, 19 odebranych; F4-046 częściowo, udział rodzajów SKIP → P4-057, wyłącznie testy. Dowody: 05-31-SUMMARY.md.
+- Wykonanie: **wykonano 2026-10-31**, 05-31; 20/20 części sprawdzone, 19 odebranych; F4-046 częściowo, udział rodzajów SKIP → P4-057, wyłącznie testy; domknięte w 05-50 (20/20 odebranych). Dowody: 05-31-SUMMARY.md, 05-50-SUMMARY.md.
 
 <a id="scope-p4-032"></a>
 
@@ -826,7 +826,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-001](PACKAGES.md#p4-001). Dodatkowy warunek: G-DANE rozstrzygnięte w ZG4-v1 §3.2, z zachowaniem starej historii; pozostałe testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. 1000 seedów: każda pełna czwórka ma cztery typy, poprawne liczby i brak zdegenerowanych odpowiedzi; ten sam seed to samo. /dev solo/6 os., rekord/turniej, refresh/rewanż i me="". Test przed implementacją.
 - Granice: Stała jednostka nie dowodzi porównywalności dawnych rekordów. Nie regenerować starego detail nowym setup.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 1/1 części. TDD `7205b92`; typy, testy i build PASS. [05-50-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-50-SUMMARY.md).
 
 <a id="scope-p4-058"></a>
 

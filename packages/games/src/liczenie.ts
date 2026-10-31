@@ -24,12 +24,11 @@ const SLIPS: Record<string, (a: number, b: number) => number[]> = {
   ":": () => [1, 2, 3],
 };
 
-/** Proste działanie z czterema odpowiedziami; złe są blisko poprawnej, żeby nie dało się zgadywać na oko. */
-export function problem(rng: Rng): Problem {
+/** Proste działanie danego rodzaju (0 +, 1 −, 2 ×, 3 :) z czterema odpowiedziami; złe są blisko poprawnej, żeby nie dało się zgadywać na oko. */
+export function problem(rng: Rng, kind: number): Problem {
   let a: number, b: number, op: string, result: number;
   // Wynik równy liczbie z działania (49 : 7 = 7) dałoby się wskazać bez liczenia, więc losujemy od nowa.
   do {
-    const kind = Math.floor(rng() * 4);
     if (kind === 0) {
       [a, b, op] = [between(rng, 10, 99), between(rng, 10, 99), "+"];
       result = a + b;
@@ -60,7 +59,12 @@ export const liczenie: GameDefinition<State, Move> = {
   turnSeconds: 90,
   moveSchema: quizMoveSchema,
 
-  setup: (players, rng) => ({ players, problems: Array.from({ length: QUESTIONS }, () => problem(rng)), results: {} }),
+  // Rodzaje idą potasowanymi czwórkami: w każdej partii tyle samo dodawań, odejmowań, mnożeń i dzieleń.
+  setup: (players, rng) => ({
+    players,
+    problems: Array.from({ length: QUESTIONS / 4 }, () => shuffle([0, 1, 2, 3], rng)).flat().map((kind) => problem(rng, kind)),
+    results: {},
+  }),
 
   validateMove: (state, player, move) => validQuiz(state, player, move),
 

@@ -198,7 +198,8 @@ test("P4-057: każda kolejna czwórka działań ma wszystkie cztery rodzaje, dla
       const [a, , b] = p.text.split(" ").map(Number);
       expect(p.options[p.answer], p.text).toBe(evaluate(p.text));
       expect(new Set(p.options).size, p.text).toBe(4);
-      expect(p.options.every((o) => Number.isInteger(o) && o > 0 && o !== a && o !== b), p.text).toBe(true);
+      // Wynik odejmowania może być 0 (33 − 33), złe odpowiedzi są dodatnie.
+      expect(p.options.every((o, i) => Number.isInteger(o) && o >= (i === p.answer ? 0 : 1) && o !== a && o !== b), p.text).toBe(true);
     }
   }
 });

@@ -150,10 +150,11 @@ Wspólne zasady w `quiz.ts`, wspólny ekran `Quiz.tsx` (dzielą je też Inny ele
 - **Kolor liter**: nazwa koloru (CZERWONY, NIEBIESKI, ŻÓŁTY, ZIELONY) napisana kolorem liter; odpowiedź to kolor liter, nie słowo.
   W 25% plansz słowo zgadza się z kolorem (żeby nie dało się grać „zawsze inny”): dokładnie jedna w każdej kolejnej czwórce plansz,
   na losowej pozycji. Zgodne plansze są szybsze, więc każda partia ma ich tyle samo.
-- **Liczenie**: działania losowane po równo z czterech typów: `a + b` (10-99), `a − b` (a 20-99, b 10-a, wynik ≥ 0),
+- **Liczenie**: działania losowane z czterech typów potasowanymi czwórkami (w każdej kolejnej czwórce po jednym, więc w puli po 50): `a + b` (10-99), `a − b` (a 20-99, b 10-a, wynik ≥ 0),
   `a × b` (2-9 × 2-12), `a : b` (dzielnik 2-9, wynik 2-12, zawsze bez reszty). Złe odpowiedzi to typowe pomyłki
   blisko poprawnej: ±1, ±2, ±10, ±20 przy dodawaniu i odejmowaniu, ±1, ±2, ±a, ±b przy mnożeniu, ±1, ±2, ±3 przy dzieleniu;
-  dodatnie i bez powtórek. Liczby z działania nie ma wśród opcji: działanie z wynikiem równym `a` albo `b` (49 : 7) jest losowane od nowa.
+  dodatnie i bez powtórek. Liczby z działania nie ma wśród opcji: działanie z wynikiem równym `a` albo `b` (49 : 7) jest losowane od nowa w tym samym rodzaju.
+  Dawne partie miały rodzaje losowane osobno; ich rekordy zostają bez przeliczania.
 
 ### Narysuj koło (`kolo`)
 - Limit 120 s na wszystkie próby, wspólny termin od końca instrukcji: ani próba, ani koniec prób rywala go nie odnawia.

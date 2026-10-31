@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 current_phase: 5
 current_phase_name: Poprawki zaakceptowanych rozbieżności
 status: in_progress
-stopped_at: 05-49/P4-056 zakończony; następny P4-057
+stopped_at: 05-50/P4-057 zakończony; następny P4-058
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
-last_activity_desc: "P4-056 odebrany; TDD 1a4d7b8, Rytm: stałe tempo 100 BPM; 50/62 pakietów, 216/267 części"
+last_activity_desc: "P4-057 odebrany; TDD 7205b92, Liczenie: potasowane czwórki rodzajów; 51/62 pakietów, 218/267 części"
 state_head: f06def5505a8da7b1481ef76ea778ccd8fbc12a6
 progress:
   total_phases: 5
@@ -23,16 +23,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Faza 5: 05-49/P4-056 odebrany. Następny P4-057.
+**Current focus:** Faza 5: 05-50/P4-057 odebrany. Następny P4-058.
 
 ## Current Position
 
 Phase: 5 of 5 (Poprawki zaakceptowanych rozbieżności), zakres ZG4-v1/S5-v1 zatwierdzony.
-Plan: 49 of 49 currently planned completed.
+Plan: 50 of 50 currently planned completed.
 Status: In progress. Fazy 1-4 zakończone, FIX-01 zakończone. FIX-02 otwarte.
-Wykonano 50/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048, P4-050, P4-051, P4-052, P4-055, P4-056), 216/267 części poprawek.
-Last activity: 2026-10-31: zakończono 05-49/P4-056, Rytm: stałe tempo 100 BPM.
-Dowody w 05-49-SUMMARY.md.
+Wykonano 51/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048, P4-050, P4-051, P4-052, P4-055, P4-056, P4-057), 218/267 części poprawek.
+Last activity: 2026-10-31: zakończono 05-50/P4-057, Liczenie: potasowane czwórki rodzajów.
+Dowody w 05-50-SUMMARY.md.
+
+Poprzednio zakończono 05-49. Dowody w 05-49-SUMMARY.md.
 
 Poprzednio zakończono 05-48. Dowody w 05-48-SUMMARY.md.
 
@@ -177,7 +179,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- F4-046 / P4-031: zakresy Liczenia PASS, udział rodzajów FAIL (49/55/54/42 dla seedu 1), test.skip zgodnie z poleceniem użytkownika. Naprawa w P4-057; po niej uruchomić pominięty test i zamknąć brakującą część. Dowód: 05-31-SUMMARY.md.
+- F4-046 / P4-031: zakresy Liczenia PASS; udział rodzajów naprawiony w P4-057 (05-50), test bez skip PASS, część domknięta. Dowody: 05-31-SUMMARY.md, 05-50-SUMMARY.md.
 
 - Faza 5: P4-014 wdrożony, pełny odbiór oczekuje U02; P4-015 wymaga pomiaru telefonu. 05-34/P4-037 zakończony; 33/62 pakietów, 152/267 części. Następny P4-038.
   Stała zgoda użytkownika z 2026-10-29: „Zapisz ten i kolejne commity testów”. Obowiązkowe commity testów
@@ -403,3 +405,5 @@ Następny P4-042; P4-014/015 oczekują U02. Dowody: 05-38-SUMMARY.md. Commit bez
 2026-10-31, 05-39/P4-042 zakończony: ring-pulse 1,2 s, czekanie bez migania, jawne czasy przejść, paski czasu z zegara (TimeBar).
 TDD f156052. Typy/testy/build PASS. 38/62 pakietów, 169/267 części; FIX-02 otwarte.
 Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-50/P4-057 zakończony: Liczenie losuje rodzaje działań potasowanymi czwórkami (po 50 każdego w puli), zakresy liczb bez zmian; F4-046 domknięte (test z P4-031 bez skip, P4-031 20/20). 51/62 pakietów, 218/267 części; FIX-02 otwarte. Następny P4-058. Dowody: 05-50-SUMMARY.md. Commity bez push.

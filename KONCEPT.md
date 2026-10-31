@@ -115,7 +115,7 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
   Ukończeni są zawsze przed timeoutami; nieukończeni remisują i nie dostają nowego rekordu. Stare zapisy bez statusu pozostają historyczne.
   Znalezione liczby zostają widoczne; postęp rywali widać na kropkach graczy (ruch `progress`).
 - **Kolor liter** (`stroop`): nazwa koloru napisana innym kolorem, wybierasz kolor liter (w każdej czwórce plansz jedna zgodna); 30 s, wynik = trafienia (remis: niższa średnia).
-- **Liczenie**: 30 s działań (+, −, ×, :) z czterema odpowiedziami; wynik jak w Kolorze liter.
+- **Liczenie**: 30 s działań (+, −, ×, :; w każdej czwórce po jednym rodzaju, kolejność tasowana) z czterema odpowiedziami; wynik jak w Kolorze liter.
   W obu pomyłka blokuje na 1 s (inaczej losowe klepanie byłoby szybsze niż myślenie).
 - **Narysuj koło**: do 10 prób palcem, liczy się najlepsza (można zakończyć wcześniej), wynik = % idealności liczony na serwerze z punktów rysunku (dopasowanie okręgu, zakładka obcinana, poniżej 0,9 obrotu albo za małe = 0). Niedokończone koło nie zużywa próby; na końcu najlepsze i najgorsze koło każdego gracza.
 - **Odcień** (`kolor`): 5 kolorów, każdy widać 2 s, potem odtwarzasz go suwakami barwy, nasycenia i jasności; wynik = suma odległości ΔE (Lab, każda ucięta do 100, mniej lepiej), liczona na serwerze.
