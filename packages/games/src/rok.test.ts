@@ -1,12 +1,13 @@
 import { describe, expect, test } from "vitest";
 import { createRng } from "./core.ts";
-import { EVENTS, MIN_YEAR, MAX_YEAR, rok as game, type Move, ROUNDS, type State, type View } from "./rok.ts";
+import { EVENTS, MIN_YEAR, MAX_YEAR, rok as game, type Move, REVEAL_MS, ROUND_MS, ROUNDS, type State, type View } from "./rok.ts";
 
 // Ustalają zasady:
 // - 1-6 graczy naraz, każdy dostaje te same 10 wydarzeń z puli (rok 1900-2025, tekst bez roku),
 // - odpowiedź to 10 lat całkowitych z zakresu; wynik = suma |odpowiedź − rok|, mniejsza suma wyżej,
 // - pusta odpowiedź (limit czasu) liczy się w każdej rundzie jak najgorszy możliwy błąd,
 // - ruch progress zgłasza liczbę odpowiedzianych rund (1-9) do podglądu u rywali i nie odnawia limitu.
+// - limit 270 s: 10 rund po 20 s i 2,5 s odsłony oraz 3 s sieci = 228 s, zapas 42 s (wyjątek progu 20%).
 
 const A = "ania";
 const B = "bartek";
@@ -21,9 +22,32 @@ function send(s: State, player: string, move: Move): State {
   return game.applyMove(s, player, move, createRng(1));
 }
 
-test("definicja: 1-6 graczy, limit 240 s, świeża gra trwa", () => {
-  expect([game.minPlayers, game.maxPlayers, game.turnSeconds]).toEqual([1, 6, 240]);
-  expect(game.isOver(game.setup([A, B], createRng(1)))).toBeNull();
+test("definicja: 1-6 graczy, limit 270 s, świeża gra trwa", () => {
+  const s = game.setup([A, B], createRng(1));
+  expect([game.minPlayers, game.maxPlayers, game.turnSeconds]).toEqual([1, 6, 270]);
+  expect(game.turn!(s)).toEqual({ key: "run", seconds: 270 });
+  expect(game.isOver(s)).toBeNull();
+});
+
+test("10 rund z odsłonami i siecią ma 42 s zapasu, zgodnie z wyjątkiem progu 20%", () => {
+  // Model z audytu 03-07 i zatwierdzonego D4-011:A, ZASADY §3.
+  // Runda i odsłona kończą się automatycznie, bez dodatkowego czasu na kliknięcie.
+  // 3 s na dostarczenie wyniku to założenie, nie pomiar sieci.
+  const networkMs = 3000;
+  const clientMs = ROUNDS * (ROUND_MS + REVEAL_MS);
+  const fullGameMs = clientMs + networkMs;
+  const limitMs = game.turnSeconds! * 1000;
+  const reserveMs = limitMs - fullGameMs;
+
+  expect([ROUNDS, ROUND_MS, REVEAL_MS]).toEqual([10, 20000, 2500]);
+  expect(clientMs).toBe(225000);
+  expect(fullGameMs).toBe(228000);
+  expect(reserveMs).toBe(42000);
+  expect(reserveMs).toBeGreaterThanOrEqual(10000);
+  expect(reserveMs / fullGameMs).toBeCloseTo(0.18421, 5);
+  // Pełne 20% wymaga 273,6 s; świadomie zatwierdzono 270 s, nie spełnienie tej normy.
+  expect(fullGameMs * 1.2).toBe(273600);
+  expect(limitMs).toBeLessThan(fullGameMs * 1.2);
 });
 
 test("10 rund, zakres lat, unikatowe teksty, ten sam seed i inne seedy", () => {
