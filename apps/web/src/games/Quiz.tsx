@@ -1,7 +1,6 @@
 import { type LobbyPlayer, QUIZ_DURATION_MS, QUIZ_BLOCK_MS, type QuizMove } from "@kwadrans/games";
-import { Trophy } from "@phosphor-icons/react";
 import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Intro, Stats } from "../screens/ui.tsx";
+import { Intro, ScoreTable, Stats } from "../screens/ui.tsx";
 import { VIBRATE } from "../vibrate.ts";
 
 /** Wspólny przebieg Koloru liter, Liczenia, Innego elementu, Obrotu i Literówki: 30 s pytań z odpowiedziami do wyboru, pomyłka blokuje na chwilę. */
@@ -73,66 +72,25 @@ export function Results({
   });
 
   return (
-    <section className="tile flex flex-col gap-3 p-4">
-      <table className="w-full border-separate border-spacing-y-1 whitespace-nowrap tabular-nums">
-        <thead>
-          <tr className="label text-right">
-            <th className="w-full px-2 text-left font-normal">Gracz</th>
-            <th className="px-1.5 font-normal">{points ? "Punkty" : label}</th>
-            <th className="px-1.5 font-normal">Śr. czas</th>
-            <th className="px-1.5 font-normal">Błędy</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr
-              key={r.id}
-              className={`text-right font-mono text-sm ${r.id === winner ? "font-semibold" : ""}`}
-              style={r.id === winner ? { backgroundColor: `color-mix(in srgb, ${r.color} 16%, transparent)` } : undefined}
-            >
-              <td className="max-w-0 rounded-l-inset px-2 py-1.5 text-left font-sans text-base">
-                <span className="flex items-center gap-2">
-                  {r.id === winner ? (
-                    <Trophy size={16} weight="fill" color={r.color} className="w-5 shrink-0" aria-label="Zwycięzca" />
-                  ) : ranking ? (
-                    <span className="w-5 shrink-0 font-mono" style={{ color: r.color }}>
-                      {places[i]}.
-                    </span>
-                  ) : (
-                    <span className="mx-[5px] size-2.5 shrink-0 rounded-full" style={{ backgroundColor: r.color }} aria-hidden />
-                  )}
-                  {/* Nick się zawija, nie ucina: kolumny liczb zostawiają mu mało miejsca. */}
-                  <span className="min-w-0 whitespace-normal break-words">
-                    {r.nick}
-                    {r.id === me && <span className="text-fg-muted"> (ty)</span>}
-                  </span>
-                </span>
-              </td>
-              {!r.res ? (
-                <td colSpan={3} className="rounded-r-inset px-2 font-sans text-fg-muted">
-                  gra…
-                </td>
-              ) : (
-                <>
-                  {r.avg === null ? (
-                    <td colSpan={2} className="px-1.5 font-sans text-fg-muted">
-                      brak trafień
-                    </td>
-                  ) : (
-                    <>
-                      <td className="px-1.5">{main(r)}</td>
-                      <td className="px-1.5">{duration(r.avg)}</td>
-                    </>
-                  )}
-                  <td className={`rounded-r-inset pr-2 pl-1.5 ${r.res.errors > 0 ? "text-warning" : ""}`}>{r.res.errors}</td>
-                </>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <p className="text-sm text-fg-muted">{note}</p>
-    </section>
+    <ScoreTable
+      heads={[points ? "Punkty" : label, "Śr. czas", "Błędy"]}
+      winner={winner}
+      ranked={!!ranking}
+      rows={rows.map((r, i) => ({
+        id: r.id,
+        nick: r.nick,
+        color: r.color,
+        me: r.id === me,
+        place: places[i],
+        cells: !r.res
+          ? null
+          : [
+              ...(r.avg === null ? [{ value: "brak trafień", span: 2, muted: true }] : [{ value: main(r) }, { value: duration(r.avg) }]),
+              { value: r.res.errors, warn: r.res.errors > 0 },
+            ],
+      }))}
+      note={note}
+    />
   );
 }
 

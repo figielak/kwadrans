@@ -232,7 +232,7 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 - Ekran: kafel z tekstem wydarzenia, dużym rokiem, suwakiem i przyciskami −1 / +1, nad nim pasek czasu rundy w kolorze gracza (ostatnie 10 s ostrzegawczy, jak pasek limitu).
   Po zatwierdzeniu przez 2,5 s ten sam kafel pokazuje prawdziwy rok, na torze własny rok (kolor gracza) i prawdziwy (pierścień)
   oraz różnicę ze znakiem; potem sama wskakuje następna runda, po dziesiątej wynik idzie na serwer.
-- Ekran końcowy: jedna lista 10 wydarzeń z prawdziwym rokiem i odpowiedziami graczy (w trakcie tylko własne, po końcu wszystkich).
+- Ekran końcowy: tabela rund (`RoundTable`) z wierszem prawdziwych lat i pomyłką ze znakiem u każdego gracza (w trakcie tylko własne, po końcu wszystkich), pod nią lista 10 wydarzeń z numerami kolumn.
 
 ### Środek (`srodek`)
 - 10 rund, w każdej odcinek pod losowym kątem na kwadratowym polu; gracz dotyka jego środka.

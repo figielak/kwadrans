@@ -1,6 +1,6 @@
 import { type LobbyPlayer, ROK_MAX_YEAR as MAX_YEAR, ROK_MIN_YEAR as MIN_YEAR, ROK_REVEAL_MS, ROK_ROUND_MS, ROK_ROUNDS, type RokView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
-import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { Intro, RoundTable, Scores, Stats } from "../screens/ui.tsx";
 
 interface Props {
   view: RokView;
@@ -112,27 +112,27 @@ export function Rok({ view, me, players, ranking, onMove }: Props) {
         <Scores rows={rows} />
         <p className="text-sm text-fg-muted">Suma pomyłek w latach z {ROK_ROUNDS} rund, mniej znaczy lepiej.</p>
         {shown.length > 0 && (
-          <ol className="tile flex flex-col px-3">
-            {view.events.map((event, i) => (
-              <li key={event.text} className="flex flex-col gap-1 border-t border-line py-2 text-sm first:border-t-0">
-                <div className="flex items-start justify-between gap-3">
-                  <span>{event.text}</span>
-                  <span className="font-mono font-semibold tabular-nums">{event.year}</span>
-                </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-fg-muted">
-                  {shown.map((r) => (
-                    <span key={r.id} className="flex items-center gap-1.5">
-                      <span className="size-2 rounded-full" style={{ backgroundColor: r.color }} aria-hidden />
-                      {r.nick}
-                      <span className={`font-mono tabular-nums ${view.answers[r.id][i] === event.year ? "text-success" : "text-fg"}`}>
-                        {view.answers[r.id][i]}
-                      </span>
-                    </span>
-                  ))}
-                </div>
-              </li>
-            ))}
-          </ol>
+          <RoundTable
+            heads={view.events.map((_, i) => i + 1)}
+            goal={{ label: "Rok", values: view.events.map((e) => e.year) }}
+            rows={shown.map((r) => ({ id: r.id, nick: r.nick, color: r.color, me: r.me, errors: view.answers[r.id].map((a, i) => Math.abs(a - view.events[i].year)) }))}
+            perfect={0}
+            close={Infinity}
+            unit="lata"
+            format={(d, i, id) => (d === 0 ? "0" : signed(view.answers[id][i] - view.events[i].year))}
+            caption="Pomyłka w latach w każdej rundzie: plus to za późno, minus za wcześnie. Zielony: dokładnie."
+          >
+            {/* Wydarzenia pod tabelą, z numerem kolumny (wzór: lista miast w Mapie). */}
+            <ol className="flex flex-col gap-1 text-xs text-fg-muted">
+              {view.events.map((event, i) => (
+                <li key={event.text} className="flex gap-2">
+                  <span className="w-5 shrink-0 text-right font-mono tabular-nums">{i + 1}.</span>
+                  <span className="flex-1">{event.text}</span>
+                  <span className="font-mono text-fg tabular-nums">{event.year}</span>
+                </li>
+              ))}
+            </ol>
+          </RoundTable>
         )}
       </>
     );

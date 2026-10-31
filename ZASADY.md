@@ -160,6 +160,11 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
   Zatwierdzony kontrakt wspólnej `.btn-player` dla akcji gracza opisuje [DESIGN.md §5](DESIGN.md#5-zasady-które-z-tego-wynikają);
   jej implementacja i migracja użyć należą do P4-050, klasa nie jest jeszcze dostępna w CSS.
 - Wyniki mini-gry: komponent `Scores`, wiersz na gracza, „gra…” dopóki nie oddał.
+  Gdy jedna liczba nie wystarcza (trafienia, średni czas, błędy), drugi wspólny wzorzec `ScoreTable` w ui.tsx (quizy, Dziesiątki, Stój!, Refleks):
+  te same zasady „gra…”, „(ty)”, pucharu, miejsc z remisami i cyfr mono, szczegół (wykres Refleksu) pod tabelą.
+- Rundy po partii: `RoundTable` z rundami w kolumnach i graczami w wierszach; nad rundami może stać wiersz celów (prawdziwe wartości: cel, rok, wytrzymałość).
+  Komórka może mieć własny zapis (znak kierunku) i własny kolor bez wyróżniania najlepszego (Balon). Używają go Mapa, Środek, Tort, Nożyczki,
+  Przytrzymaj, Balon, Policz kropki, Kąt i Który rok? (wydarzenia pod tabelą). Odcień to nazwany wyjątek: pary próbek kolorów obok siebie.
 - Kolory tylko z tokenów, zaokrąglenia według wspólnej skali: pełna tabela tokenów, ich ról i skala promieni
   mają jedno źródło w [DESIGN.md §2](DESIGN.md#2-tokeny).
 - Liczby, czasy i kody czcionką mono z `tabular-nums`.

@@ -157,6 +157,98 @@ export function Scores({ rows }: { rows: { id: string; nick: string; color?: str
   );
 }
 
+/** Komórka `ScoreTable`: `span` łączy kolumny (np. „brak trafień”), `muted` to tekst zamiast liczby, `warn` barwi liczbę (błędy). */
+export interface ScoreCell {
+  value: ReactNode;
+  span?: number;
+  muted?: boolean;
+  warn?: boolean;
+}
+
+/**
+ * Drugi wspólny wzorzec wyników (obok `Scores`): gracz i kilka kolumn liczb, gdy jedna liczba nie wystarcza
+ * (quizy, Dziesiątki, Stój!, Refleks). Puchar u zwycięzcy, miejsca z remisami po końcu (`ranked`), „(ty)”, „gra…” dla grających.
+ */
+export function ScoreTable({
+  heads,
+  rows,
+  winner,
+  ranked = false,
+  note,
+  children,
+}: {
+  heads: ReactNode[];
+  /** `cells: null` = gracz jeszcze gra. */
+  rows: { id: string; nick: string; color?: string; me: boolean; place?: number; cells: ScoreCell[] | null }[];
+  winner?: string;
+  ranked?: boolean;
+  note?: ReactNode;
+  /** Szczegół pod tabelą, np. wykres reakcji w Refleksie. */
+  children?: ReactNode;
+}) {
+  return (
+    <section className="tile flex flex-col gap-3 p-4">
+      <table className="w-full border-separate border-spacing-y-1 whitespace-nowrap tabular-nums">
+        <thead>
+          <tr className="label text-right">
+            <th className="w-full px-2 text-left font-normal">Gracz</th>
+            {heads.map((head, i) => (
+              <th key={i} className="px-1.5 font-normal">
+                {head}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr
+              key={r.id}
+              className={`text-right font-mono text-sm ${r.id === winner ? "font-semibold" : ""}`}
+              style={r.id === winner ? { backgroundColor: `color-mix(in srgb, ${r.color} 16%, transparent)` } : undefined}
+            >
+              <td className="max-w-0 rounded-l-inset px-2 py-1.5 text-left font-sans text-base">
+                <span className="flex items-center gap-2">
+                  {r.id === winner ? (
+                    <Trophy size={16} weight="fill" color={r.color} className="w-5 shrink-0" aria-label="Zwycięzca" />
+                  ) : ranked && r.place !== undefined ? (
+                    <span className="w-5 shrink-0 font-mono" style={{ color: r.color }}>
+                      {r.place}.
+                    </span>
+                  ) : (
+                    <span className="mx-[5px] size-2.5 shrink-0 rounded-full" style={{ backgroundColor: r.color }} aria-hidden />
+                  )}
+                  {/* Nick się zawija, nie ucina: kolumny liczb zostawiają mu mało miejsca. */}
+                  <span className="min-w-0 whitespace-normal break-words">
+                    {r.nick}
+                    {r.me && <span className="text-fg-muted"> (ty)</span>}
+                  </span>
+                </span>
+              </td>
+              {r.cells === null ? (
+                <td colSpan={heads.length} className="rounded-r-inset px-2 font-sans text-fg-muted">
+                  gra…
+                </td>
+              ) : (
+                r.cells.map((c, i) => (
+                  <td
+                    key={i}
+                    colSpan={c.span}
+                    className={`${i === r.cells!.length - 1 ? "rounded-r-inset pr-2 pl-1.5" : "px-1.5"} ${c.muted ? "font-sans text-fg-muted" : ""} ${c.warn ? "text-warning" : ""}`}
+                  >
+                    {c.value}
+                  </td>
+                ))
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {children}
+      {note && <p className="text-sm text-fg-muted">{note}</p>}
+    </section>
+  );
+}
+
 /** Pasek statystyk nad planszą mini-gry: każda liczba ma etykietę, `warn` barwi wartość (kara, błędy). */
 export function Stats({ items }: { items: { label: string; value: ReactNode; warn?: boolean }[] }) {
   return (
@@ -213,25 +305,34 @@ export function RoundTable({
   format = tenth,
   legend,
   children,
+  goal,
+  tone,
+  caption,
 }: {
   heads: ReactNode[];
-  /** Pusta lista `errors` = gracz nie odpowiedział (limit czasu). */
-  rows: { id: string; nick: string; color?: string; me: boolean; errors: number[] }[];
+  /** Pusta lista `errors` = gracz nie odpowiedział (limit czasu). `score` (opcjonalny) stoi w wierszu gracza; `null` = gra…. */
+  rows: { id: string; nick: string; color?: string; me: boolean; errors: number[]; score?: string | null }[];
   perfect: number;
   close: number;
   /** Czego dotyczy liczba, np. „% tortu”. */
   unit: string;
-  /** Zapis błędu w komórce; domyślnie jedno miejsce po przecinku. */
-  format?: (d: number) => string;
+  /** Zapis błędu w komórce (np. ze znakiem kierunku); domyślnie jedno miejsce po przecinku. */
+  format?: (d: number, round: number, row: string) => ReactNode;
   /** Tekst progów pod tabelą; domyślnie progi w procentach. */
   legend?: ReactNode;
   /** Dopisek między tabelą a legendą, np. lista miast w Mapie. */
   children?: ReactNode;
+  /** Wiersz celów pod nagłówkami (prawdziwe wartości rund), np. „Cel” w Przytrzymaj. */
+  goal?: { label: ReactNode; values: ReactNode[] };
+  /** Własny kolor komórki zamiast progów; wyłącza wyróżnienie najlepszego w rundzie (Balon: stuknięcia, nie błąd). */
+  tone?: (d: number, round: number) => { className: string; label?: string };
+  /** Własny podpis pod tabelą zamiast opisu błędu i progów. */
+  caption?: ReactNode;
 }) {
   const played = rows.filter((r) => r.errors.length);
   const best = (round: number) => {
     const sorted = [...played].sort((a, b) => a.errors[round] - b.errors[round]);
-    return sorted.length > 1 && sorted[0].errors[round] < sorted[1].errors[round] ? sorted[0].id : null;
+    return !tone && sorted.length > 1 && sorted[0].errors[round] < sorted[1].errors[round] ? sorted[0].id : null;
   };
   return (
     <section className="tile flex flex-col gap-2 p-3">
@@ -241,29 +342,51 @@ export function RoundTable({
             {head}
           </span>
         ))}
+        {goal && (
+          <>
+            <span className="col-span-full text-left font-sans text-sm text-fg-muted">{goal.label}</span>
+            {goal.values.map((v, i) => (
+              <span key={i} className="rounded-inset border border-line py-1 text-fg-muted">
+                {v}
+              </span>
+            ))}
+          </>
+        )}
         {rows.map((r) => (
           <Fragment key={r.id}>
             <span className="col-span-full mt-1 flex items-center gap-2 text-left font-sans text-sm">
               <span className="size-2 rounded-full" style={{ backgroundColor: r.color }} aria-hidden />
               {r.nick}
               {r.me && <span className="text-fg-muted">(ty)</span>}
-              {!r.errors.length && <span className="text-fg-muted">bez odpowiedzi</span>}
+              {/* Z wynikiem w wierszu puste rundy mogą być po prostu ukryte (rywal w trakcie), więc bez dopisku. */}
+              {!r.errors.length && r.score === undefined && <span className="text-fg-muted">bez odpowiedzi</span>}
+              {r.score !== undefined && (
+                <span className={`ml-auto font-mono tabular-nums ${r.score === null ? "text-fg-muted" : "font-semibold"}`}>{r.score ?? "gra…"}</span>
+              )}
             </span>
-            {r.errors.map((d, i) => (
-              <span
-                key={i}
-                className={`rounded-inset border py-1 ${grade(d, perfect, close).text} ${d <= perfect ? "font-semibold" : ""} ${best(i) === r.id ? "" : "border-line"}`}
-                style={best(i) === r.id ? { borderColor: r.color, backgroundColor: `color-mix(in srgb, ${r.color} 28%, transparent)` } : undefined}
-              >
-                {format(d)}
-              </span>
-            ))}
+            {r.errors.map((d, i) => {
+              const own = tone?.(d, i);
+              return (
+                <span
+                  key={i}
+                  aria-label={own?.label}
+                  className={`rounded-inset border py-1 ${own ? own.className : `${grade(d, perfect, close).text} ${d <= perfect ? "font-semibold" : ""}`} ${best(i) === r.id ? "" : "border-line"}`}
+                  style={best(i) === r.id ? { borderColor: r.color, backgroundColor: `color-mix(in srgb, ${r.color} 28%, transparent)` } : undefined}
+                >
+                  {format(d, i, r.id)}
+                </span>
+              );
+            })}
           </Fragment>
         ))}
       </div>
       {children}
       <p className="text-xs text-fg-muted">
-        Błąd w każdej rundzie ({unit}){played.length > 1 && "; tło w kolorze gracza ma najlepszy w rundzie"}. {legend ?? `Zielony: do ${perfect}%, czerwony: ponad ${close}%.`}
+        {caption ?? (
+          <>
+            Błąd w każdej rundzie ({unit}){played.length > 1 && "; tło w kolorze gracza ma najlepszy w rundzie"}. {legend ?? `Zielony: do ${perfect}%, czerwony: ponad ${close}%.`}
+          </>
+        )}
       </p>
     </section>
   );

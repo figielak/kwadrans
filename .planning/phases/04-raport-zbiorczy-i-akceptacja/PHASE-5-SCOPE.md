@@ -742,7 +742,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: brak. Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Trafienia/czas, pęknięcia/wytrzymałości i odchyłki pokazują te same wartości co stan. me="", gra…, (ty), remis, 1/6 osób i 10 rund przy 360 px; U04. Stary detail działa.
 - Granice: Nie zmieniać komparatora, formatu score ani limitów przy refaktorze tabel.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 2/2 części. TDD `274960c`; typy, testy i build PASS; U04 (360 px) do odbioru. [05-44-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-44-SUMMARY.md).
 
 <a id="scope-p4-050"></a>
 

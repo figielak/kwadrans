@@ -1,7 +1,6 @@
 import { type LobbyPlayer, REFLEKS_PENALTY_MS, REFLEKS_ROUNDS, type RefleksView } from "@kwadrans/games";
-import { Trophy } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
-import { Intro, Stats } from "../screens/ui.tsx";
+import { Intro, ScoreTable, Stats } from "../screens/ui.tsx";
 import { VIBRATE } from "../vibrate.ts";
 
 type Move = { type: "result"; times: number[] };
@@ -29,6 +28,7 @@ function Results({ view, me, players, ranking, winner }: Omit<Props, "onMove">) 
       id,
       nick: p?.nick ?? "Gracz",
       color: p?.color,
+      me: id === me,
       times,
       avg: times?.length ? view.results[id] : null,
       penalties: times?.filter((t) => t === REFLEKS_PENALTY_MS).length,
@@ -44,54 +44,21 @@ function Results({ view, me, players, ranking, winner }: Omit<Props, "onMove">) 
   const x = (i: number) => (i / (longest - 1)) * W;
   const y = (t: number) => (hi === lo ? H / 2 : H - ((t - lo) / (hi - lo)) * H);
 
-  return (
-    <section className="tile flex flex-col gap-4 p-4">
-      <table className="w-full border-separate border-spacing-y-1 whitespace-nowrap tabular-nums">
-        <thead>
-          <tr className="label text-right">
-            <th className="w-full px-2 text-left font-normal">Gracz</th>
-            <th className="px-1.5 font-normal">Średnio</th>
-            <th className="px-1.5 font-normal">Kary</th>
-            <th className="px-1.5 font-normal">Najlepszy</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr
-              key={r.id}
-              className={`text-right font-mono text-sm ${r.id === winner ? "font-semibold" : ""}`}
-              style={r.id === winner ? { backgroundColor: `color-mix(in srgb, ${r.color} 16%, transparent)` } : undefined}
-            >
-              <td className="max-w-0 rounded-l-inset px-2 py-1.5 text-left font-sans text-base">
-                <span className="flex items-center gap-2">
-                  {r.id === winner ? (
-                    <Trophy size={16} weight="fill" color={r.color} className="shrink-0" aria-label="Zwycięzca" />
-                  ) : (
-                    <span className="mx-[3px] size-2.5 shrink-0 rounded-full" style={{ backgroundColor: r.color }} aria-hidden />
-                  )}
-                  <span className="truncate">{r.nick}</span>
-                </span>
-              </td>
-              {!r.times ? (
-                <td colSpan={3} className="rounded-r-inset px-2 font-sans text-fg-muted">
-                  gra…
-                </td>
-              ) : r.avg === null ? (
-                <td colSpan={3} className="rounded-r-inset px-2 font-sans text-fg-muted">
-                  limit czasu
-                </td>
-              ) : (
-                <>
-                  <td className="px-1.5">{r.avg} ms</td>
-                  <td className="px-1.5">{r.penalties}</td>
-                  <td className="rounded-r-inset pr-2 pl-1.5">{r.best} ms</td>
-                </>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  // Remis (ta sama średnia) to to samo miejsce, jak w quizach.
+  const places: number[] = [];
+  rows.forEach((r, i) => places.push(i > 0 && rows[i - 1].avg === r.avg ? places[i - 1] : i + 1));
 
+  return (
+    <ScoreTable
+      heads={["Średnio", "Kary", "Najlepszy"]}
+      winner={winner}
+      ranked={!!ranking}
+      rows={rows.map((r, i) => ({
+        ...r,
+        place: places[i],
+        cells: !r.times ? null : r.avg === null ? [{ value: "limit czasu", span: 3, muted: true }] : [{ value: `${r.avg} ms` }, { value: r.penalties }, { value: `${r.best} ms` }],
+      }))}
+    >
       {longest > 1 && (
         <figure className="flex flex-col gap-1">
           <figcaption className="label">Czasy kolejnych reakcji</figcaption>
@@ -117,7 +84,7 @@ function Results({ view, me, players, ranking, winner }: Omit<Props, "onMove">) 
           </div>
         </figure>
       )}
-    </section>
+    </ScoreTable>
   );
 }
 

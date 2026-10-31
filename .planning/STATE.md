@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 5
 current_phase_name: Poprawki zaakceptowanych rozbieżności
 status: in_progress
-stopped_at: 05-43/P4-046 zakończony; następny P4-048
+stopped_at: 05-44/P4-048 zakończony; następny P4-050
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
-last_activity_desc: "P4-046 odebrany; TDD 30688d5, koniec, para i zastany stan; 44/62 pakietów, 189/267 części"
+last_activity_desc: "P4-048 odebrany; TDD 274960c, wspólne tabele; 45/62 pakietów, 191/267 części"
 state_head: f06def5505a8da7b1481ef76ea778ccd8fbc12a6
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 78
-  completed_plans: 78
+  total_plans: 79
+  completed_plans: 79
   percent: 100
 ---
 
@@ -23,16 +23,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Faza 5: 05-43/P4-046 odebrany. Następny P4-048.
+**Current focus:** Faza 5: 05-44/P4-048 odebrany. Następny P4-050.
 
 ## Current Position
 
 Phase: 5 of 5 (Poprawki zaakceptowanych rozbieżności), zakres ZG4-v1/S5-v1 zatwierdzony.
-Plan: 43 of 43 currently planned completed.
+Plan: 44 of 44 currently planned completed.
 Status: In progress. Fazy 1-4 zakończone, FIX-01 zakończone. FIX-02 otwarte.
-Wykonano 44/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046), 189/267 części poprawek.
-Last activity: 2026-10-31: zakończono 05-43/P4-046, koniec partii, para i zastany stan.
-Dowody w 05-43-SUMMARY.md.
+Wykonano 45/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048), 191/267 części poprawek.
+Last activity: 2026-10-31: zakończono 05-44/P4-048, wspólne tabele wyników i rund.
+Dowody w 05-44-SUMMARY.md.
+
+Poprzednio zakończono 05-43/P4-046, koniec partii, para i zastany stan. Dowody w 05-43-SUMMARY.md.
 
 Poprzednio zakończono 05-42/P4-045, zaznaczenie, okno i błysk trafienia. Dowody w 05-42-SUMMARY.md.
 

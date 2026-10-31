@@ -1,7 +1,7 @@
 import { HandTap } from "@phosphor-icons/react";
 import { type LobbyPlayer, PRZYTRZYMAJ_ROUNDS, przytrzymajDeviation, type PrzytrzymajView } from "@kwadrans/games";
-import { Fragment, type PointerEvent, useEffect, useRef, useState } from "react";
-import { Intro, Stats } from "../screens/ui.tsx";
+import { type PointerEvent, useEffect, useRef, useState } from "react";
+import { Intro, RoundTable, Stats } from "../screens/ui.tsx";
 
 interface Props {
   view: PrzytrzymajView;
@@ -119,60 +119,26 @@ export function Przytrzymaj({ view, me, players, ranking, onMove }: Props) {
     const shown = rows.map((r) => ({ ...r, holds: (over || r.me ? view.holds[r.id] : undefined) ?? [] }));
     const played = shown.filter((r) => r.holds.length);
     const off = (r: { holds: number[] }, i: number) => przytrzymajDeviation(view.targets[i], r.holds[i]);
-    /** Kto wygrał rundę: jedyna najmniejsza odchyłka, przy remisie albo jednym graczu nikt. */
-    const best = (i: number) => {
-      const sorted = [...played].sort((a, b) => off(a, i) - off(b, i));
-      return sorted.length > 1 && off(sorted[0], i) < off(sorted[1], i) ? sorted[0].id : null;
-    };
+    const holdsOf = (id: string) => shown.find((r) => r.id === id)!.holds;
+    // Wszystko w sekundach, żeby cel i błąd dało się porównać wprost. Cel widać dopiero, gdy ktoś ma rundy.
     return (
-      <section className="tile flex flex-col gap-3 p-4">
-        {/* Wszystko w sekundach, żeby cel i błąd dało się porównać wprost; etykiety wierszy zamiast legendy. */}
-        <div className="grid grid-cols-[auto_repeat(5,1fr)] items-center gap-x-1 gap-y-1.5 text-center font-mono text-xs tabular-nums">
-          {played.length > 0 && (
-            <>
-              <span className="label text-left">Runda</span>
-              {view.targets.map((_, i) => (
-                <span key={i} className="text-fg-muted">
-                  {i + 1}
-                </span>
-              ))}
-              <span className="label text-left">Cel</span>
-              {view.targets.map((t, i) => (
-                <span key={i}>{seconds(t)}</span>
-              ))}
-            </>
-          )}
-          {shown.map((r) => (
-            <Fragment key={r.id}>
-              <span className="col-span-6 mt-2 flex items-center gap-2 border-t border-line pt-3 text-left font-sans text-base first:mt-0 first:border-0 first:pt-0">
-                <span className="size-2.5 rounded-full" style={{ backgroundColor: r.color }} aria-hidden />
-                <span className="flex-1">
-                  {r.nick}
-                  {r.me && <span className="text-fg-muted"> (ty)</span>}
-                </span>
-                <span className={`font-mono tabular-nums ${r.score === null ? "text-fg-muted" : "font-semibold"}`}>{r.score ?? "gra…"}</span>
-              </span>
-              {r.holds.length > 0 && <span className="label text-left">Błąd</span>}
-              {r.holds.map((h, i) => (
-                <span
-                  key={i}
-                  className={`rounded-inset border py-1 ${grade(off(r, i))} ${off(r, i) <= PERFECT ? "font-semibold" : ""} ${best(i) === r.id ? "" : "border-line"}`}
-                  style={best(i) === r.id ? { borderColor: r.color, backgroundColor: `color-mix(in srgb, ${r.color} 28%, transparent)` } : undefined}
-                >
-                  {/* Znak mówi, czy za krótko, czy za długo; liczba to odchyłka po ucięciu do celu. */}
-                  {h < view.targets[i] ? "−" : "+"}
-                  {seconds(off(r, i))}
-                </span>
-              ))}
-            </Fragment>
-          ))}
-        </div>
-        <p className="text-xs text-fg-muted">
-          Wynik to suma błędów z {PRZYTRZYMAJ_ROUNDS} rund, mniej znaczy lepiej.
-          {played.length > 0 && " Czasy w sekundach, minus znaczy za krótko."}
-          {played.length > 1 && " Tło w kolorze gracza: najlepszy w rundzie."}
-        </p>
-      </section>
+      <RoundTable
+        heads={view.targets.map((_, i) => i + 1)}
+        goal={played.length > 0 ? { label: "Cel", values: view.targets.map(seconds) } : undefined}
+        rows={shown.map((r) => ({ id: r.id, nick: r.nick, color: r.color, me: r.me, score: r.score, errors: r.holds.map((_, i) => off(r, i)) }))}
+        perfect={PERFECT}
+        close={CLOSE}
+        unit="s"
+        // Znak mówi, czy za krótko, czy za długo; liczba to odchyłka po ucięciu do celu.
+        format={(d, i, id) => `${holdsOf(id)[i] < view.targets[i] ? "−" : "+"}${seconds(d)}`}
+        caption={
+          <>
+            Wynik to suma błędów z {PRZYTRZYMAJ_ROUNDS} rund, mniej znaczy lepiej.
+            {played.length > 0 && " Czasy w sekundach, minus znaczy za krótko."}
+            {played.length > 1 && " Tło w kolorze gracza: najlepszy w rundzie."}
+          </>
+        }
+      />
     );
   }
 
