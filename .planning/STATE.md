@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 current_phase: 5
 current_phase_name: Poprawki zaakceptowanych rozbieżności
 status: in_progress
-stopped_at: 05-32/P4-032 zakończony; P4-014/015 oczekują U02; następny P4-033
+stopped_at: 05-33/P4-033: testy przed kodem; potem 05-34/P4-037
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
 last_activity_desc: "P4-032: testy pozostałe mini-gry; typy/testy PASS; 31/62 pakietów, 149/267 części"
@@ -11,9 +11,9 @@ state_head: 28196b51b38fb21b53c0992a2777b5a397f57777
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 67
+  total_plans: 68
   completed_plans: 66
-  percent: 98
+  percent: 97
 ---
 
 # Project State
@@ -23,12 +23,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Faza 5: 05-32/P4-032 odebrany. Następny P4-033; P4-014/015 oczekują U02.
+**Current focus:** Faza 5: 05-33/P4-033, testy przed kodem; potem 05-34/P4-037. P4-014/015 oczekują U02.
 
 ## Current Position
 
 Phase: 5 of 5 (Poprawki zaakceptowanych rozbieżności), zakres ZG4-v1/S5-v1 zatwierdzony.
-Plan: 31 of 32 currently planned completed; 05-11 oczekuje fizycznego U02.
+Plan: 31 of 33 currently planned completed; 05-11 oczekuje fizycznego U02.
 Status: In progress. Fazy 1-4 zakończone, FIX-01 zakończone. FIX-02 otwarte.
 Wykonano 31/62 pakietów (P4-001, P4-027, P4-002..013, P4-016..022, P4-023..026, P4-028..032, P4-036), 149/267 części poprawek; P4-014 wdrożony, 2/3 części odebrane.
 Last activity: 2026-10-31: zakończono 05-32/P4-032, Testy: pozostałe mini-gry.
@@ -118,7 +118,7 @@ commity implementacji po każdym zadaniu. Nie pytać ponownie; push wymaga osobn
 
 Previous activity: 2026-10-24: 03-09 zamknął fazę 3: 16 wpisów z 44 częściowych, macierz 39 gier × 6 kryteriów, 14 przekazań D-02 i 22 pytania do partii. Faza 2 zakończona raportem 102 wpisów (300 wystąpień), faza 1 raportem 55 wpisów.
 
-Progress: 98% obecnie rozpisanych planów, 66/67 (fazy 1-4: 35/35; faza 5: 31/32).
+Progress: 97% obecnie rozpisanych planów, 66/68 (fazy 1-4: 35/35; faza 5: 31/33).
 To nie jest procent ukończenia wdrożenia: wykonano 31/62 pakietów, dalsze plany będą dopisywane.
 
 ## Performance Metrics
@@ -357,3 +357,5 @@ Następny P4-029; P4-014/015 nadal oczekują U02. Dowody: 05-28-SUMMARY.md. Comm
 2026-10-31, 05-31/P4-031: Testy: quizy i Stój!; 20/20 części sprawdzone, 19 odebranych; F4-046 częściowo, udział rodzajów SKIP → P4-057. Typy i pełne testy PASS. 30/62 pakietów, 97/267 części; FIX-02 otwarte. Następny P4-032; P4-014/015 oczekują U02. Dowody: 05-31-SUMMARY.md. Jeden commit, bez push.
 
 2026-10-31, 05-32/P4-032: Testy: pozostałe mini-gry; 52/52 części sprawdzone. Typy i pełne testy PASS. 31/62 pakietów, 149/267 części; FIX-02 otwarte. Następny P4-033; P4-014/015 oczekują U02. Dowody: 05-32-SUMMARY.md. Jeden commit, bez push.
+
+2026-10-31: 05-33/P4-033 rozpoczęty na zlecenie użytkownika; testy i opis danych przed kodem. Bez zmiany liczby odebranych pakietów/części. Następnie 05-34/P4-037.

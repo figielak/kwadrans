@@ -220,3 +220,49 @@ test.each(MINI_GAME_IDS)("%s: soloState zostawia jednego gracza i ten sam wynik"
   }
   expect(state.players).toEqual(["sesja-a", "sesja-b"]);
 });
+
+// P4-033/F4-021: dane z normalnych ruchów, a nie mapy z samego timeoutu.
+test.each(["schulte", "kropki", "kat", "rok", "wieza", "balon", "sudoku", "kolo"])("%s: soloState zachowuje wypełnione mapy, wynik i widok obserwatora", (id) => {
+  const game = GAMES[id], rng = createRng(42);
+  const players = ["sesja-ania", "sesja-bartek"];
+  let state = game.setup(players, rng);
+  const send = (player: string, data: unknown) => {
+    const move = game.moveSchema.parse(data);
+    expect(game.validateMove(state, player, move)).toBe(true);
+    state = game.applyMove(state, player, move, rng);
+  };
+  for (const [i, player] of players.entries()) {
+    if (id === "kolo") {
+      const points = Array.from({ length: 100 }, (_, at) => [0.5 + 0.3 * Math.cos(at * Math.PI / 50), 0.5 + 0.3 * Math.sin(at * Math.PI / 50)]);
+      send(player, { type: "result", points });
+      send(player, { type: "result", points: [] });
+    } else {
+      const field = id === "schulte" ? "found" : id === "sudoku" ? "filled" : id === "wieza" ? "height" : "done";
+      send(player, { type: "progress", [field]: i + 1 });
+      if (id === "schulte" || id === "sudoku") send(player, { type: "result", ms: 20000 + i * 1000, mistakes: i, ...(id === "schulte" ? { splits: Array(25).fill((20000 + i * 1000) / 25) } : {}) });
+      else if (id === "wieza") send(player, { type: "result", stops: [600, 566] });
+      else if (id === "balon") send(player, { type: "result", pumps: Array(10).fill(i + 1) });
+      else {
+        const answers = id === "kropki" ? state.rounds.map((r: unknown[]) => r.length) : id === "kat" ? state.rounds.map((r: { angle: number }) => r.angle) : state.events.map((e: { year: number }) => e.year);
+        send(player, { type: "result", answers });
+      }
+    }
+  }
+  expect(game.isOver(state)).not.toBeNull();
+  const before = structuredClone(state);
+  for (const player of players) {
+    const solo = JSON.parse(JSON.stringify(soloState(state, player)));
+    const view = game.playerView(solo, "");
+    expect(solo.players).toEqual(["1"]);
+    expect(JSON.stringify(view)).not.toContain("sesja-");
+    expect(game.record!.score(solo, "1")).toBe(game.record!.score(state, player));
+    expect(game.isOver(solo)).toEqual({ ranking: ["1"] });
+    const fields = id === "kolo" ? ["attempts", "best", "worst"] : ["progress", "results", ...({ schulte: [], sudoku: [], kropki: ["answers"], kat: ["answers"], rok: ["answers"], wieza: [], balon: ["pumps"] }[id] ?? [])];
+    for (const field of fields) {
+      expect(state[field][player], field).toBeDefined();
+      expect(solo[field], field).toEqual({ "1": state[field][player] });
+    }
+    expect(view).toEqual(solo);
+  }
+  expect(state).toEqual(before);
+});

@@ -98,6 +98,9 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
 - Cel (`target`) losuje serwer: pełne sekundy 6-14 s, ten sam dla wszystkich w partii.
 - Grający nie widzi limitu tury po starcie (tykający pasek zdradzałby czas); po dotknięciu: odkryty czas i odchyłka ze znakiem.
 - Wynik: `deviation` = odchyłka w ms (int, od 0 do celu), mniej lepiej. Limit czasu: odchyłka równa celowi.
+- Ruch może też zawierać `stopped`: czas zatrzymania w pełnych ms, 0 do dwukrotności celu, zgodny z `deviation = abs(stopped − target)`.
+  Serwer zachowuje go w mapie `stops` na potrzeby kafla czasu i odchyłki ze znakiem po odświeżeniu oraz w rekordowej partii.
+  Dawne ruchy bez `stopped` i timeout pozostają dozwolone; dawny detail bez `stops` pokazuje samą bezwzględną odchyłkę, bez odtwarzania czasu ani znaku. Punktacja i rekordy nie zmieniają się.
 
 ### Tabela Schultego (`schulte`)
 - Siatka 5×5 z liczbami 1-25 w losowym układzie, dotykasz po kolei od 1.
@@ -366,6 +369,8 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 - Jedyna gra z dźwiękiem: metronom klika (WebAudio), błyska polem (pierwsze uderzenie taktu mocniej) i wibruje 30. Bez gestu
   (start sam po 15 s instrukcji) albo przy wyciszonym telefonie zostaje błysk i wibracja, więc gra jest grywalna z samym błyskiem.
 - Ekran: całe pole reaguje na dotyk i błyska kolorem gracza. Ekran końcowy: kafel z własnym tempem w BPM obok celu i tabela z odchyłkami.
+  Serwer zachowuje czasy stuknięć w mapie `taps` gracza; kafel czyta tę mapę również po odświeżeniu i w rekordowej partii.
+  Dawny detail bez mapy i wynik bez stuknięć pokazują tabelę z odchyłką, bez domniemanego tempa. Punktacja i rekordy pozostają bez zmian.
 
 ### Inny element (`inny`)
 Wynik, walidacja, ranking i ekran końcowy jak w Kolorze liter (`quiz.ts`, `Quiz.tsx`); inne jest tylko to, co widać na planszy.

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { createRng } from "./core.ts";
+import { createRng, soloState } from "./core.ts";
 import { type Move, type State, stoper as game } from "./stoper.ts";
 
 // Testy napisane przed implementacją. Ustalają zasady:
@@ -116,4 +116,43 @@ test("P4-032/F4-010: każdy typ ruchu bez mutacji zamrożonego wejścia i z JSON
     expect(JSON.parse(JSON.stringify(after))).toEqual(after);
     s = after;
   }
+});
+
+// P4-033/F4-016: dane kafla są zapisem pomiaru, nie zmieniają punktacji.
+describe("kafel Stopera ze stanu", () => {
+  test.each([-123, 0, 456])("czas zatrzymania zachowuje znak odchyłki %i po soloState i JSON", (offset) => {
+    const s = game.setup([A, B], createRng(1));
+    const stopped = s.target + offset;
+    const move = game.moveSchema.parse({ type: "result", deviation: Math.abs(offset), stopped });
+    const before = structuredClone(s);
+    const after = send(s, A, move);
+    expect(s).toEqual(before);
+    expect(after).toMatchObject({ stops: { [A]: stopped }, results: { [A]: Math.abs(offset) } });
+    const restored = JSON.parse(JSON.stringify(soloState(after, A)));
+    expect(game.playerView(restored, "")).toMatchObject({ players: ["1"], stops: { "1": stopped }, results: { "1": Math.abs(offset) } });
+  });
+
+  test.each([-1, 1.5, Infinity, NaN, "1000"])("schemat odrzuca zły pomiar stopped=%s", (stopped) => {
+    expect(game.moveSchema.safeParse({ type: "result", deviation: 0, stopped }).success).toBe(false);
+  });
+
+  test("pomiar musi odpowiadać odchyłce i mieścić się między 0 a dwukrotnością celu", () => {
+    const s = game.setup([A, B], createRng(1));
+    for (const stopped of [0, s.target, 2 * s.target]) {
+      const move = game.moveSchema.parse({ type: "result", deviation: Math.abs(stopped - s.target), stopped });
+      expect(game.validateMove(s, A, move)).toBe(true);
+    }
+    for (const [stopped, deviation] of [[s.target + 100, 99], [2 * s.target + 1, s.target]]) {
+      const move = game.moveSchema.parse({ type: "result", deviation, stopped });
+      expect(game.validateMove(s, A, move)).toBe(false);
+    }
+  });
+
+  test("dawny ruch i timeout nie dopisują nieznanego czasu zatrzymania", () => {
+    let s = game.setup([A, B], createRng(1));
+    s = send(s, A, result(100));
+    s = send(s, B, game.timeoutMove!(s, B, createRng(1)));
+    expect(s).toMatchObject({ stops: {} });
+    expect(game.record!.score(s, A)).toBe(100);
+  });
 });

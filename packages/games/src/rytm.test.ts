@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { createRng } from "./core.ts";
+import { createRng, soloState } from "./core.ts";
 import { BEATS, deviation, expected, MAX_TAPS, type Move, rytm as game, type State, TAP_MS, type View } from "./rytm.ts";
 
 // Testy napisane przed implementacją. Ustalają zasady:
@@ -217,5 +217,28 @@ describe("stan", () => {
     const copy = JSON.parse(JSON.stringify(next)) as State;
     expect(copy).toEqual(next);
     expect(game.isOver(send(copy, B, play(copy, 10)))).toEqual({ winner: B, ranking: [B, A] });
+  });
+});
+
+describe("P4-033/F4-016: kafel Rytmu ze stanu", () => {
+  test("oddane stuknięcia zostają w stanie i nie mutują poprzedniej partii", () => {
+    const s = game.setup([A, B], createRng(1));
+    const taps = [s.interval + 10, 2 * s.interval + 20, 3 * s.interval + 30];
+    const move = game.moveSchema.parse({ type: "result", taps });
+    expect(game.validateMove(s, A, move)).toBe(true);
+    const before = structuredClone(s);
+    const after = game.applyMove(s, A, move, createRng(1));
+    expect(s).toEqual(before);
+    expect(after).toMatchObject({ taps: { [A]: taps } });
+    const restored = JSON.parse(JSON.stringify(soloState(after, A)));
+    expect(game.playerView(restored, "")).toMatchObject({ taps: { "1": taps } });
+    expect(JSON.parse(JSON.stringify(after))).toEqual(after);
+  });
+
+  test("timeout zapisuje pustą listę, bez fikcyjnego tempa", () => {
+    const s = game.setup([A], createRng(1));
+    const move = game.timeoutMove!(s, A, createRng(1));
+    expect(game.validateMove(s, A, move)).toBe(true);
+    expect(game.applyMove(s, A, move, createRng(1))).toMatchObject({ taps: { [A]: [] }, results: { [A]: s.interval } });
   });
 });
