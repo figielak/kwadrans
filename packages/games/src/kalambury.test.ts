@@ -670,3 +670,21 @@ describe("schemat i stan", () => {
     expect(JSON.parse(before)).toEqual(s);
   });
 });
+
+describe("P4-030: luki F4 Kalamburów", () => {
+  test("F4-040: różne seedy dają różny nonce rewanżu", () => {
+    expect(game.setup([A, B], createRng(1)).nonce).not.toBe(game.setup([A, B], createRng(2)).nonce);
+  });
+
+  test("F4-011: kreska, pudło i pas w tej samej połowie nie odnawiają klucza tury", () => {
+    let s = drawing([A, B, C]);
+    const key = game.turn!(s).key;
+    s = send(s, A, line([0, 0, 10, 10]));
+    expect(game.turn!(s).key).toBe(key);
+    s = send(s, B, guess("zzzzzz"));
+    expect(game.turn!(s).key).toBe(key);
+    s = send(s, B, pass);
+    expect(s.phase).toBe("draw");
+    expect(game.turn!(s).key).toBe(key);
+  });
+});

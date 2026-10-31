@@ -259,3 +259,11 @@ describe("widok", () => {
     expect(game.moveSchema.safeParse(null).success).toBe(false);
   });
 });
+
+test("P4-030/F4-004: limit tury Gomoku wynosi 60 s", () => {
+  expect(game.turnSeconds).toBe(60);
+});
+
+test("P4-030/F4-008: schemat odrzuca niecałkowitą współrzędną", () => {
+  expect(game.moveSchema.safeParse({ x: 1.5, y: 0 }).success).toBe(false);
+});

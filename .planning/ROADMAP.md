@@ -81,6 +81,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] [05-19-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-19-PLAN.md) - P4-009, Chińczyk: domki i kostka w 640 px; 1/1 odebrane
 - [x] [05-20-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-20-PLAN.md) - P4-010, Labirynt: plansza równo z nagłówkiem, tura w 640 px; 1/1 odebrane
 - [x] [05-29-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-29-PLAN.md) - P4-029, Testy: Kampus Tour; 11/11 części, typy/testy PASS
+- [x] [05-30-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-30-PLAN.md) - P4-030, Testy: gry główne i Turniej; 24/24 części, typy/testy PASS
 **UI hint**: yes
 
 ### Phase 3: Audyt balansu rekordów i trudności
@@ -142,7 +143,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
   3. `pnpm typecheck && pnpm test` przechodzi bez błędów po każdym pakiecie
   4. Ponowne sprawdzenie poprawionych wpisów tą samą metodą co w audycie nie znajduje ich w kodzie
   5. Żadne `id` gry się nie zmieniło, nie doszła żadna zależność bez zgody, `apps/server` dalej nie ma bezpośredniego `zod`
-**Plans**: 29 obecnie rozpisane (27/28 odebranych; 05-11 oczekuje fizycznego U02); pełny zakres 62 pakietów w [S5-v1](phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md). Kolejne plany zgodnie z zatwierdzonym grafem.
+**Plans**: 30 obecnie rozpisane (27/28 odebranych; 05-11 oczekuje fizycznego U02); pełny zakres 62 pakietów w [S5-v1](phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md). Kolejne plany zgodnie z zatwierdzonym grafem.
 
 - [x] [05-01-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-01-PLAN.md) - P4-001, wspólne normy i granice wyjątków, już zatwierdzone ZG4-v1
 - [x] [05-02-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-PLAN.md) - P4-027, Kalambury i zaufane źródło walidacji; TDD 50172d5, wdrożenie i odbiór zakończone
@@ -173,6 +174,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
 - [x] [05-27-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-27-PLAN.md) - P4-026, Kampus Tour: karta, wykup i rzeczywisty czynsz; TDD b4d749e, 4/4 odebrane
 - [x] [05-28-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-28-PLAN.md) - P4-028, Labirynt: losowy legalny krok po czasie; TDD 74f0c54 (Codex)
 - [x] [05-29-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-29-PLAN.md) - P4-029, Testy: Kampus Tour; 11/11 części, typy/testy PASS
+- [x] [05-30-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-30-PLAN.md) - P4-030, Testy: gry główne i Turniej; 24/24 części, typy/testy PASS
 **UI hint**: yes
 
 ## Progress
@@ -186,7 +188,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 | 2. Audyt wyglądu, animacji i wibracji | 11/11 | Complete | 2026-10-24 |
 | 3. Audyt balansu rekordów i trudności | 9/9 | Complete | 2026-10-24 |
 | 4. Raport zbiorczy i akceptacja | 5/5 | Complete; ZG4-v1, S5-v1, FIX-01 | 2026-10-26 |
-| 5. Poprawki zaakceptowanych rozbieżności | 28/29 obecnie rozpisanych | In progress; 28/62 pakietów, 54/267 części; P4-014/015 oczekują U02 | - |
+| 5. Poprawki zaakceptowanych rozbieżności | 29/30 obecnie rozpisanych | In progress; 29/62 pakietów, 78/267 części; P4-014/015 oczekują U02 | - |
 
 04-04 rozpoczęty 2026-10-26: przygotowano B4-001 (P4-005/006/012/013/016, warianty w DECISIONS §10). Użytkownik zatwierdził B4-001 („Zatweirdzam”): pięć pakietów i ich warianty. B4-002 (P4-003/004/036) oczekuje; liczba ukończonych planów nadal 3/5, FIX-01 otwarte.
 
@@ -362,3 +364,5 @@ TDD 74f0c54. Typy/2078 testów PASS. 27/62 pakietów, 43/267 części; FIX-02 ot
 Następny P4-029; P4-014/015 nadal oczekują U02. Dowody: 05-28-SUMMARY.md. Commit bez push.
 
 2026-10-31, 05-29/P4-029: Testy: Kampus Tour; 11/11 części sprawdzone. Typy i pełne testy PASS. 28/62 pakietów, 54/267 części; FIX-02 otwarte. Następny P4-030; P4-014/015 oczekują U02. Dowody: 05-29-SUMMARY.md. Jeden commit, bez push.
+
+2026-10-31, 05-30/P4-030: Testy: gry główne i Turniej; 24/24 części sprawdzone. Typy i pełne testy PASS. 29/62 pakietów, 78/267 części; FIX-02 otwarte. Następny P4-031; P4-014/015 oczekują U02. Dowody: 05-30-SUMMARY.md. Jeden commit, bez push.

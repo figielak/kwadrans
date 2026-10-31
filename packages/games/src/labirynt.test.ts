@@ -368,3 +368,30 @@ describe("stan", () => {
     expect(game.validateMove(copy, A, step(4, 7))).toBe(true);
   });
 });
+
+describe("P4-030/F4-042: skos przy trzech pionkach", () => {
+  function corridor(blockDiagonal: boolean) {
+    return play(game.setup([A, B, C], createRng(1)), [
+      step(4, 7), step(1, 4), step(4, 1),
+      step(4, 6), step(2, 4), step(4, 2),
+      step(4, 5), step(3, 4), step(4, 3),
+      wall(7, 7, "h"), step(4, 4), blockDiagonal ? wall(3, 3, "v") : wall(0, 0, "h"),
+    ]);
+  }
+
+  test("za sąsiadem stoi trzeci pionek: dozwolone skosy, zabroniony podwójny skok", () => {
+    const s = corridor(false);
+    expect(game.validateMove(s, A, step(4, 2))).toBe(false);
+    for (const x of [3, 5]) {
+      expect(game.validateMove(s, A, step(x, 4))).toBe(true);
+      expect(send(s, A, step(x, 4)).pawns[0]).toEqual({ x, y: 4 });
+    }
+  });
+
+  test("skos omija sąsiada tylko po stronie bez ścianki", () => {
+    const s = corridor(true);
+    expect(game.validateMove(s, A, step(3, 4))).toBe(false);
+    expect(game.validateMove(s, A, step(5, 4))).toBe(true);
+    expect(send(s, A, step(5, 4)).pawns[0]).toEqual({ x: 5, y: 4 });
+  });
+});

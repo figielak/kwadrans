@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { createRng, GAMES } from "./index.ts";
-import { advance, begin, cleanConfig, create, DEFAULT_LENGTH, draw, gamePoints, isDone, mark, MIN_LENGTH, standings, tablePlaces, TOURNAMENT_ID, type Tournament, winner } from "./turniej.ts";
+import { advance, begin, cleanConfig, create, DEFAULT_LENGTH, draw, gamePoints, isDone, mark, MIN_LENGTH, NEXT_SECONDS, standings, tablePlaces, TOURNAMENT_ID, type Tournament, winner } from "./turniej.ts";
 
 // Testy napisane przed implementacją. Ustalają zasady:
 // - turniej to seria mini-gier, nie gra z rejestru; `id` "turniej" służy tylko rankingowi,
@@ -328,4 +328,8 @@ describe("koniec i dogrywka", () => {
     expect(isDone(end)).toBe(true);
     expect(winner(end, [B, C])).toBe(B);
   });
+});
+
+test("P4-030/F4-004: przejście do następnej gry najpóźniej po 15 s", () => {
+  expect(NEXT_SECONDS).toBe(15);
 });

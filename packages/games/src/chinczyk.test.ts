@@ -566,3 +566,29 @@ describe("stan", () => {
     expect(ok({ type: "cheat" })).toBe(false);
   });
 });
+
+describe("P4-030: luki F4", () => {
+  test.each([2, 3, 4])("F4-004: świeży Klasyczny dla %i graczy nie jest skończony", (n) => {
+    expect(game.isOver(game.setup([A, B, C, D].slice(0, n), createRng(1), "klasyczny"))).toBeNull();
+  });
+
+  test.each([1.5, undefined, -1])("F4-008: schemat odrzuca pawn=%s", (pawn) => {
+    expect(game.moveSchema.safeParse({ type: "move", pawn }).success).toBe(false);
+  });
+
+  test("F4-037: szóstka z wejściem do domku daje tylko jeden dodatkowy rzut", () => {
+    let s = quick();
+    // Pionki idą legalnie po torze, B nie wchodzi A w drogę.
+    for (let turn = 0; turn < 7; turn++) {
+      s = roll(s, A, 5);
+      s = roll(s, B, 3);
+    }
+    expect(s.pawns[A][0]).toBe(35);
+    s = move(roll(s, A, 6), A, 0);
+    expect(s.pawns[A][0]).toBe(41);
+    expect(game.waitingFor(s)).toEqual([A]);
+    s = roll(s, A, 2);
+    expect(s.pawns[A][0]).toBe(43);
+    expect(game.waitingFor(s)).toEqual([B]);
+  });
+});
