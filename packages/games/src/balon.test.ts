@@ -4,9 +4,9 @@ import { BALLOONS, balon as game, MAX_SAFE, MIN_SAFE, type Move, score, type Sta
 
 // Testy napisane przed implementacją. Ustalają zasady:
 // - 1-6 graczy grają naraz u siebie; 10 balonów, każde stuknięcie to punkt w balonie,
-// - serwer losuje wytrzymałość każdego balonu (1-30 stuknięć), tę samą dla wszystkich; następne stuknięcie go rozrywa,
-// - suma wytrzymałości to zawsze 155, żeby każda partia dawała tyle samo do zgarnięcia,
-// - klient oddaje jeden wynik: liczbę stuknięć w każdym z 10 balonów (int 0-31),
+// - wytrzymałości balonów to zawsze komplet 11-20 stuknięć w potasowanej kolejności, ten sam dla wszystkich; następne stuknięcie rozrywa,
+// - suma wytrzymałości to zawsze 155, a ryzyko w każdej partii takie samo (P4-060: dawniej 1-30 o stałej sumie),
+// - klient oddaje jeden wynik: liczbę stuknięć w każdym z 10 balonów (int 0-21),
 // - serwer liczy: balon z większą liczbą stuknięć niż wytrzymałość pękł i daje 0, inaczej daje tyle punktów, ile stuknięć,
 // - więcej punktów wyżej, przy równych mniej pękniętych balonów; zwycięzca tylko przy 2+ graczach i bez remisu,
 // - po limicie czasu pusta lista, czyli najgorszy wynik: 0 punktów i 10 pękniętych,
@@ -43,8 +43,8 @@ describe("definicja", () => {
 });
 
 describe("setup", () => {
-  test("10 balonów, każdy wytrzymuje od 1 do 30 stuknięć (liczba całkowita)", () => {
-    expect([BALLOONS, MIN_SAFE, MAX_SAFE]).toEqual([10, 1, 30]);
+  test("10 balonów, każdy wytrzymuje od 11 do 20 stuknięć (liczba całkowita)", () => {
+    expect([BALLOONS, MIN_SAFE, MAX_SAFE]).toEqual([10, 11, 20]);
     for (let seed = 1; seed <= 50; seed++) {
       const { limits } = fresh([A], seed);
       expect(limits).toHaveLength(BALLOONS);
@@ -56,10 +56,20 @@ describe("setup", () => {
     }
   });
 
-  test("losowanie sięga obu końców zakresu", () => {
-    const all = Array.from({ length: 200 }, (_, seed) => fresh([A], seed + 1).limits).flat();
-    expect(Math.min(...all)).toBe(MIN_SAFE);
-    expect(Math.max(...all)).toBe(MAX_SAFE);
+  test("P4-060: każda partia to ten sam komplet 11-20 w innej kolejności, dla 1000 seedów", () => {
+    const all = Array.from({ length: 1000 }, (_, seed) => fresh([A], seed + 1).limits);
+    for (const limits of all) expect([...limits].sort((a, b) => a - b)).toEqual([11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
+    expect(new Set(all.map(String)).size).toBeGreaterThan(900);
+  });
+
+  test("P4-060: ta sama strategia stop daje w każdej partii ten sam wynik", () => {
+    const stop = (s: State, at: number) => s.limits.map(() => at);
+    for (let seed = 1; seed <= 1000; seed++) {
+      const s = fresh([A], seed);
+      // Stop po 10: żaden balon nie pęka. Stop po 15: pękają balony 11-14, zostaje 6 × 15.
+      expect(score(s.limits, stop(s, 10)), `seed ${seed}`).toEqual({ score: 100, popped: 0 });
+      expect(score(s.limits, stop(s, 15)), `seed ${seed}`).toEqual({ score: 90, popped: 4 });
+    }
   });
 
   test("suma wytrzymałości to zawsze 155: każda partia ma tyle samo do zgarnięcia", () => {
@@ -126,7 +136,7 @@ describe("walidacja", () => {
     expect(accepts(s, A, result(ok.slice(0, BALLOONS - 1)))).toBe(false);
     expect(accepts(s, A, result([...ok, 1]))).toBe(false);
   });
-  test("wartości brzegowe: 0 i 31 przechodzą, −1 i 32 nie", () => {
+  test("wartości brzegowe: 0 i 21 przechodzą, −1 i 22 nie", () => {
     expect(accepts(s, A, last(0))).toBe(true);
     expect(accepts(s, A, last(MAX_SAFE + 1))).toBe(true);
     expect(accepts(s, A, last(-1))).toBe(false);
