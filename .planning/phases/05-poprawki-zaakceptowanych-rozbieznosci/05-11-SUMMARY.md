@@ -1,7 +1,7 @@
 ---
 phase: 05-poprawki-zaakceptowanych-rozbieznosci
 plan: 11
-status: in_progress
+status: complete
 implementation: complete
 requirements: [FIX-02]
 ---
@@ -66,3 +66,11 @@ pnpm --filter web build PASS, istniejące ostrzeżenie pakietu JS >500 kB. git d
 Logi: /tmp/kwadrans-05-11-tests.log, /tmp/kwadrans-05-11-build.log.
 Brak zmiany zasad, więc nie dodawano nowego testu zasad ani commitu TDD.
 Commit implementacji zgodnie ze stałą zgodą użytkownika; bez push.
+
+## Odbiór U02 (2026-10-31)
+
+Użytkownik sprawdził lokalny serwer dev na fizycznym Androidzie i zatwierdził P4-014 oraz P4-015.
+- P4-014: F4-056:panstwa-miasta odebrany; pakiet 3/3 części, plan 05-11 zamknięty.
+- P4-015: F4-056 kat, kropki, w-pamieci odebrane bez zmian kodu; hipoteza o kurczeniu formularza
+  przy klawiaturze nie potwierdziła się na urządzeniu. Pomiarów visualViewport nie zanotowano, decyzja użytkownika.
+Łącznie 40/62 pakietów, 173/267 części. FIX-02 otwarte. Następny P4-043.

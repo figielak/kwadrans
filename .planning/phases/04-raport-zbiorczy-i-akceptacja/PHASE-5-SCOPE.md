@@ -266,7 +266,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: brak. Dodatkowy warunek: U02 jest warunkiem odbioru formularza z klawiaturą; pomiar samego viewportu nie zamyka go.
 - Odbiór: T + UI. E11 write oraz vote/summary przy 2/6 osobach: pełna odpowiedź i wszystkie głosy dostępne bez poziomego scroll; każda kategoria osiągalna, nic nie jest domyślnie odrzucane przez zmianę ekranu. U02: Android z klawiaturą, autoFocus, Oddaj i STOP. Refresh szkicu, koniec czasu i remis.
 - Granice: Zmiana sposobu przeglądania nie zmienia progu głosowania ani 45 s; tę stałą rozstrzyga H-003.
-- Wykonanie: **wdrożone 2026-10-29; pełny odbiór oczekuje U02**. 2/3 części (F4-093 i F4-152) odebrane; F4-056 wymaga fizycznego Androida. [05-11-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-11-SUMMARY.md). Typy, 1947 testów, build i scenariusze przeglądarkowe PASS.
+- Wykonanie: **zakończone 2026-10-31**, 3/3 części. F4-093 i F4-152 odebrane 2026-10-29; F4-056 odebrany przez użytkownika na fizycznym Androidzie (U02) 2026-10-31. [05-11-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-11-SUMMARY.md). Typy, 1947 testów, build i scenariusze przeglądarkowe PASS.
 
 <a id="scope-p4-015"></a>
 
@@ -280,7 +280,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: brak. Dodatkowy warunek: U02: przed wyborem technicznej poprawki wymagany pomiar telefonu.
 - Odbiór: T + UI. U02: prawdziwy Android, 360×640, zanotowane visualViewport/innerHeight i rect formularza po autoFocus, rotacji i zamknięciu klawiatury. Pełna runda, błąd/timeout, refresh i rewanż; desktop bez regresji.
 - Granice: Problem jest hipotezą dla urządzenia; nie wdrażać konkretnego max/min rozmiaru wyłącznie z emulacji.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31 bez zmian kodu**, 3/3 części. Hipoteza nie potwierdziła się: użytkownik odebrał Kropki, Kąt i W pamięci na fizycznym Androidzie (U02), więc poprawka nie była potrzebna. [05-11-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-11-SUMMARY.md).
 
 <a id="scope-p4-016"></a>
 
