@@ -1,4 +1,4 @@
-import { average, byScoreThenAverage, type GameDefinition, type PlayerId, ranked, shuffle } from "./core.ts";
+import { averageMs, byScoreThenAverage, type GameDefinition, type PlayerId, ranked, shuffle } from "./core.ts";
 import { type Pair, PAIRS } from "./literowka-dane.ts";
 import { netScore, QUESTIONS, type QuizMove, quizMoveSchema, type QuizResult, validQuiz } from "./quiz.ts";
 
@@ -49,7 +49,7 @@ export const literowka: GameDefinition<State, Move> = {
 
   playerView: (state): View => state,
 
-  ...ranked((state: State) => state.results, byScoreThenAverage(score), { lower: false, score, tie: { lower: true, score: (r) => Math.round(average(r.times)) } }),
+  ...ranked((state: State) => state.results, byScoreThenAverage(score), { lower: false, score, tie: { lower: true, score: (r) => averageMs(r.times) } }),
 
   waitingFor: (state) => state.players.filter((p) => !(p in state.results)),
 

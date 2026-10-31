@@ -141,7 +141,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
   3. `pnpm typecheck && pnpm test` przechodzi bez błędów po każdym pakiecie
   4. Ponowne sprawdzenie poprawionych wpisów tą samą metodą co w audycie nie znajduje ich w kodzie
   5. Żadne `id` gry się nie zmieniło, nie doszła żadna zależność bez zgody, `apps/server` dalej nie ma bezpośredniego `zod`
-**Plans**: 24 obecnie rozpisane (23/24 odebranych; 05-11 oczekuje fizycznego U02); pełny zakres 62 pakietów w [S5-v1](phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md). Kolejne plany zgodnie z zatwierdzonym grafem.
+**Plans**: 25 obecnie rozpisane (24/25 odebranych; 05-11 oczekuje fizycznego U02); pełny zakres 62 pakietów w [S5-v1](phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md). Kolejne plany zgodnie z zatwierdzonym grafem.
 
 - [x] [05-01-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-01-PLAN.md) - P4-001, wspólne normy i granice wyjątków, już zatwierdzone ZG4-v1
 - [x] [05-02-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-PLAN.md) - P4-027, Kalambury i zaufane źródło walidacji; TDD 50172d5, wdrożenie i odbiór zakończone
@@ -166,6 +166,8 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
 - [x] [05-21-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-21-PLAN.md) - P4-019, Chińczyk: przerywalna animacja i dostępny ruch; 1/1 odebrane
 - [x] [05-22-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-22-PLAN.md) - P4-020, Śledzenie: limit 360 s i zapas 73 s; TDD 6421837, 1/1 odebrane
 - [x] [05-23-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-23-PLAN.md) - P4-021, Który rok?: 270 s i zapas 42 s; TDD 57a1785, 1/1 odebrane
+- [x] [05-24-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-24-PLAN.md) - P4-022, jeden termin mini-gry niezależny od rywali; TDD 93ef04b, 1/1 odebrane
+- [x] [05-25-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-25-PLAN.md) - P4-024, jeden komparator średniego czasu; TDD 18f979b, 1/1 odebrane
 **UI hint**: yes
 
 ## Progress
@@ -179,7 +181,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 | 2. Audyt wyglądu, animacji i wibracji | 11/11 | Complete | 2026-10-24 |
 | 3. Audyt balansu rekordów i trudności | 9/9 | Complete | 2026-10-24 |
 | 4. Raport zbiorczy i akceptacja | 5/5 | Complete; ZG4-v1, S5-v1, FIX-01 | 2026-10-26 |
-| 5. Poprawki zaakceptowanych rozbieżności | 23/24 obecnie rozpisanych | In progress; 23/62 pakietów, 36/267 części; P4-014/015 oczekują U02 | - |
+| 5. Poprawki zaakceptowanych rozbieżności | 24/25 obecnie rozpisanych | In progress; 24/62 pakietów, 37/267 części; P4-014/015 oczekują U02 | - |
 
 04-04 rozpoczęty 2026-10-26: przygotowano B4-001 (P4-005/006/012/013/016, warianty w DECISIONS §10). Użytkownik zatwierdził B4-001 („Zatweirdzam”): pięć pakietów i ich warianty. B4-002 (P4-003/004/036) oczekuje; liczba ukończonych planów nadal 3/5, FIX-01 otwarte.
 
@@ -337,3 +339,7 @@ Następny P4-022, P4-014/015 nadal oczekują U02. Dowody: 05-23-SUMMARY.md. Comm
 2026-10-31, 05-24/P4-022 zakończony: mini-gra ma jeden termin od końca instrukcji; wynik, progress ani próby rywala go nie odnawiają.
 TDD 93ef04b, usunięte `kolo.turn`. Typy/2058 testów/build PASS. 23/62 pakietów, 36/267 części; FIX-02 otwarte.
 Następny P4-024, P4-014/015 nadal oczekują U02. Dowody: 05-24-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-25/P4-024 zakończony: jedna średnia zaokrąglona do ms w miejscach i record.tie; w rekordach znany tie przed null jak w SQL.
+TDD 18f979b. Typy/2063 testów/build PASS. 24/62 pakietów, 37/267 części; FIX-02 otwarte.
+Następny P4-025, P4-014/015 nadal oczekują U02. Dowody: 05-25-SUMMARY.md. Commit bez push.

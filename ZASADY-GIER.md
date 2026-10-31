@@ -61,6 +61,9 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
 - `waitingFor` = gracze bez wyniku. Po limicie `timeoutMove` wpisuje najgorszy możliwy wynik.
 - Koniec, gdy wszyscy oddali wynik. Ranking liczy `rankResults` (core.ts): zwycięzca tylko przy 2+ graczach i bez remisu
   na pierwszym miejscu; gra solo nie ma zwycięzcy (nie nabija statystyk).
+- Gry rozstrzygające remis średnim czasem (Kolor liter, Liczenie, Inny element, Obrót, Literówka, Dziesiątki, Stój!) porównują średnią
+  zaokrągloną do ms (`averageMs`), tą samą w miejscach partii i w `record.tie`; różnica ułamka ms to remis.
+  W rekordach brak drugiego kryterium (stare zapisy) stoi za znanym, dwa braki remisują, brak nigdy nie liczy się jak zero; SQL i `compareRecords` mają ten sam porządek.
 - Odświeżenie strony w trakcie = partia od nowa na kliencie. `nonce` w stanie (Stoper, Narysuj koło, Rytm) służy tylko do tego,
   żeby rewanż zamontował komponent od nowa.
 

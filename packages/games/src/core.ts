@@ -194,7 +194,11 @@ type Score = { best: number; tie: number | null };
 
 /** Porównanie dwóch rekordów: ujemne, gdy `a` lepszy. Drugie kryterium liczy się tylko przy równym głównym wyniku. */
 export const compareRecords = (order: RecordOrder) => (a: Score, b: Score) =>
-  (order.lower ? a.best - b.best : b.best - a.best) || (order.tie && a.tie !== null && b.tie !== null ? (order.tie.lower ? a.tie - b.tie : b.tie - a.tie) : 0);
+  (order.lower ? a.best - b.best : b.best - a.best) || (order.tie ? compareTie(a.tie, b.tie, order.tie.lower) : 0);
+
+/** Drugie kryterium jak w SQL (`NULLS LAST`): znane przed brakiem, dwa braki równe, brak nigdy nie udaje zera. */
+const compareTie = (a: number | null, b: number | null, lower: boolean) =>
+  a === null || b === null ? Number(a === null) - Number(b === null) : lower ? a - b : b - a;
 
 /** Pozycja gracza w rankingu rekordów; `rows` od najlepszego (tak przychodzą z serwera). null, gdy gracz nie ma rekordu. */
 export function standing(rows: RecordRow[], nick: string, order: RecordOrder): RecordStanding | null {
@@ -246,13 +250,16 @@ export const dailyGame = (day: number, ids: readonly string[]) => shuffle(ids, c
 
 export const average = (times: number[]) => (times.length ? times.reduce((a, b) => a + b, 0) / times.length : Infinity);
 
+/** Średnia zaokrąglona do ms: ta sama w miejscach i w `record.tie`, więc ułamek ms nie rozstrzyga remisu. */
+export const averageMs = (times: number[]) => Math.round(average(times));
+
 /** Porównanie wyników „na trafienia”: więcej trafień wyżej, przy równej liczbie niższa średnia czasu. */
 export const byHitsThenAverage = (a: { times: number[] }, b: { times: number[] }) =>
   // Dwa puste wyniki to remis: Infinity - Infinity dałoby NaN, a NaN !== 0 robiło zwycięzcę z pierwszego gracza.
-  b.times.length - a.times.length || (a.times.length ? average(a.times) - average(b.times) : 0);
+  b.times.length - a.times.length || (a.times.length ? averageMs(a.times) - averageMs(b.times) : 0);
 
 /** Porównanie wyników „na punkty” (Stój!, Obrót): więcej punktów wyżej, przy równych niższa średnia czasu; dwa wyniki bez trafień to remis. */
 export const byScoreThenAverage =
   <R extends { times: number[] }>(score: (r: R) => number) =>
   (a: R, b: R) =>
-    score(b) - score(a) || (a.times.length || b.times.length ? average(a.times) - average(b.times) : 0);
+    score(b) - score(a) || (a.times.length || b.times.length ? averageMs(a.times) - averageMs(b.times) : 0);
