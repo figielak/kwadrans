@@ -222,7 +222,7 @@ interface GameDefinition<State, Move> {
 }
 ```
 
-Rejestr gier: `GAMES` w `packages/games/src/index.ts`. Wiadomości pokoju: `ROOM_MESSAGES` w `lobby.ts`.
+Rejestr gier: `GAMES` w `packages/games/src/index.ts`; `MINI_GAME_IDS` (gry z `minPlayers: 1`) to jedyna lista mini-gier, z której biorą lobby, ekran gry, rekordy i turniej. Wiadomości pokoju: `ROOM_MESSAGES` w `lobby.ts`.
 Kontekst `validateMove` pochodzi z miejsca wywołania w serwerze: wiadomość gracza ma `source: "client"`,
 ruch zegara `source: "timeout"`. Brak kontekstu oznacza klienta, więc wywołania z trzema argumentami pozostają poprawne.
 Kontekst nie jest częścią ruchu ani JSON klienta; pole `source` przesłane przez klienta nie daje uprawnień timeoutu.

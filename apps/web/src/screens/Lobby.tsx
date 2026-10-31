@@ -47,8 +47,8 @@ import {
   Timer,
   Trophy,
 } from "@phosphor-icons/react";
-import { DEFAULT_LENGTH, GAMES, type LobbyPlayer, MAX_PLAYERS, PLAYER_COLORS, type RoomView } from "@kwadrans/games";
-import { useState } from "react";
+import { DEFAULT_LENGTH, GAMES, type LobbyPlayer, MAX_PLAYERS, MINI_GAME_IDS, PLAYER_COLORS, type RoomView } from "@kwadrans/games";
+import { type ReactNode, useState } from "react";
 import { Screen, type Send, StickyBar } from "./ui.tsx";
 
 
@@ -191,7 +191,8 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
 }
 
 /** Dolny pasek: start u gospodarza, gotowość u gościa z miejscem, informacja u oglądających. */
-export function StartBar({ view, me, send }: { view: RoomView; me: string; send: Send }) {
+/** `note` to linia nad przyciskiem w tym samym pasku (podsumowanie Turnieju); bez niej pasek ma tylko akcję. */
+export function StartBar({ view, me, send, note }: { view: RoomView; me: string; send: Send; note?: ReactNode }) {
   const isHost = view.hostId === me;
   const def = picked(view);
   const hostNick = view.players.find((p) => p.id === view.hostId)?.nick ?? "gospodarz";
@@ -209,30 +210,40 @@ export function StartBar({ view, me, send }: { view: RoomView; me: string; send:
           ? `Czekamy na gotowość (${guests.length - unready.length}/${guests.length})`
           : null;
 
+  const action =
+    isHost && !startBlocker ? (
+      <button type="button" className="btn btn-primary w-full" onClick={() => send("start")}>
+        <Play size={18} weight="fill" aria-hidden />
+        <span className="truncate">Zagraj: {def!.name}</span>
+      </button>
+    ) : isHost ? (
+      // Zwykły podpis zamiast wyszarzonego przycisku: nie udaje czegoś, co da się nacisnąć.
+      <p className="flex min-h-12 w-full items-center justify-center text-center text-sm text-fg-muted">{startBlocker}</p>
+    ) : def && meSeated ? (
+      <button
+        type="button"
+        className={`btn w-full ${meReady ? "btn-ghost" : "btn-primary"}`}
+        aria-pressed={meReady}
+        onClick={() => send("ready", { ready: !meReady })}
+      >
+        {meReady ? <Check size={18} weight="bold" aria-hidden /> : <HandWaving size={18} weight="fill" aria-hidden />}
+        <span className="truncate">{meReady ? `Gotowe, czekamy na ${hostNick}` : `Zgłaszam gotowość: ${def.name}`}</span>
+      </button>
+    ) : (
+      <p className="flex min-h-12 w-full items-center justify-center text-center text-sm text-fg-muted">
+        {def ? `Oglądasz. Czekamy, aż ${hostNick} zacznie` : `Czekamy, aż ${hostNick} wybierze grę`}
+      </p>
+    );
+
   return (
-    <StickyBar>
-      {isHost && !startBlocker ? (
-        <button type="button" className="btn btn-primary w-full" onClick={() => send("start")}>
-          <Play size={18} weight="fill" aria-hidden />
-          <span className="truncate">Zagraj: {def!.name}</span>
-        </button>
-      ) : isHost ? (
-        // Zwykły podpis zamiast wyszarzonego przycisku: nie udaje czegoś, co da się nacisnąć.
-        <p className="flex min-h-12 w-full items-center justify-center text-center text-sm text-fg-muted">{startBlocker}</p>
-      ) : def && meSeated ? (
-        <button
-          type="button"
-          className={`btn w-full ${meReady ? "btn-ghost" : "btn-primary"}`}
-          aria-pressed={meReady}
-          onClick={() => send("ready", { ready: !meReady })}
-        >
-          {meReady ? <Check size={18} weight="bold" aria-hidden /> : <HandWaving size={18} weight="fill" aria-hidden />}
-          <span className="truncate">{meReady ? `Gotowe, czekamy na ${hostNick}` : `Zgłaszam gotowość: ${def.name}`}</span>
-        </button>
+    <StickyBar className={note ? "mt-auto" : ""}>
+      {note ? (
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          {note}
+          {action}
+        </div>
       ) : (
-        <p className="flex min-h-12 w-full items-center justify-center text-center text-sm text-fg-muted">
-          {def ? `Oglądasz. Czekamy, aż ${hostNick} zacznie` : `Czekamy, aż ${hostNick} wybierze grę`}
-        </p>
+        action
       )}
     </StickyBar>
   );
@@ -244,8 +255,8 @@ export function picked(view: RoomView): { name: string; minPlayers: number; maxP
   return view.gameId ? GAMES[view.gameId] : undefined;
 }
 
-/** Mini-gry to gry, w które da się grać solo (minPlayers 1); reszta to gry główne. */
-export const MINI_GAMES = Object.values(GAMES).filter((g) => g.minPlayers === 1);
+/** Mini-gry z rejestru (gry solo, minPlayers 1); reszta to gry główne. */
+export const MINI_GAMES = MINI_GAME_IDS.map((id) => GAMES[id]);
 
 /** Kafel w siatce gier: ikona, nazwa i jedna linijka pod spodem; `wide` to wiersz na całą szerokość, `dim` przygasza bez blokowania. */
 export function Tile({ icon: TileIcon, name, hint, picked, disabled, dim, wide, onClick }: { icon: Icon; name: string; hint: string; picked?: boolean; disabled?: boolean; dim?: boolean; wide?: boolean; onClick: () => void }) {

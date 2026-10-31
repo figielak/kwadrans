@@ -633,7 +633,8 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 - Losowanie na serwerze w `setup`: pełna poprawna siatka (wzorzec bazowy z potasowanymi cyframi, wierszami w pasach, kolumnami w pasach
   i samymi pasami), potem usuwanie pól w wylosowanej kolejności, dopóki rozwiązanie zostaje jedno. Gdy usuwanie utknie powyżej 6 danych,
   losujemy od nowa.
-- Stan (= widok, nic nie jest ukryte): `puzzle` (16 pól wiersz po wierszu, 0 = puste) i `solution` (16 cyfr).
+- Stan (= widok, nic nie jest ukryte): `puzzle` (16 pól wiersz po wierszu, 0 = puste), `solution` (16 cyfr) i `nonce` (losowany po planszy).
+  Plansz jest mało, więc rewanż może wylosować tę samą; ekran montuje się od nowa po `nonce`, a dawne partie bez niego po planszy.
 - Przebieg: gracz dotyka pustego pola, potem jednej z cyfr 1-4. Dobra cyfra zostaje w polu, zła nie zostaje i liczy się jako pomyłka.
   Partia kończy się po wypełnieniu ostatniego pola. Pól danych i już wypełnionych nie da się zmienić.
 - Wynik: `ms` + 5000 ms za każdą pomyłkę (`PENALTY_MS`, `total`), mniej lepiej, bez drugiego kryterium; równe = remis bez zwycięzcy.

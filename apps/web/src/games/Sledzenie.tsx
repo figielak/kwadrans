@@ -1,4 +1,4 @@
-import { BALLS, type LobbyPlayer, MOVE_MS, RADIUS, ROUNDS, SHOW_MS, sledzeniePosition, type SledzenieView, TARGETS } from "@kwadrans/games";
+import { type LobbyPlayer, SLEDZENIE_BALLS, SLEDZENIE_MOVE_MS, SLEDZENIE_RADIUS, SLEDZENIE_ROUNDS, SLEDZENIE_SHOW_MS, SLEDZENIE_TARGETS, sledzeniePosition, type SledzenieView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
 import { VIBRATE } from "../vibrate.ts";
@@ -14,11 +14,11 @@ interface Props {
 type Phase = "intro" | "wait" | "show" | "move" | "pick" | "reveal" | "sent";
 
 /** Fazy na zegarze: kulki bez podświetlenia, podświetlone cele, pokazane prawdziwe cele. */
-const TIMED: Partial<Record<Phase, number>> = { wait: 700, show: SHOW_MS, reveal: 1000 };
+const TIMED: Partial<Record<Phase, number>> = { wait: 700, show: SLEDZENIE_SHOW_MS, reveal: 1000 };
 
-const SIZE = `${RADIUS * 200}%`;
+const SIZE = `${SLEDZENIE_RADIUS * 200}%`;
 
-const isTarget = (i: number) => i < TARGETS;
+const isTarget = (i: number) => i < SLEDZENIE_TARGETS;
 
 /**
  * Indeksy kulek w kolejności numerów 1-8: od góry do dołu, przy równym y od lewej.
@@ -55,7 +55,7 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
   const dots = useRef<(HTMLSpanElement | null)[]>([]);
   const color = players.find((p) => p.id === me)?.color;
 
-  const round = Math.min(phase === "reveal" ? picks.length - 1 : picks.length, ROUNDS - 1);
+  const round = Math.min(phase === "reveal" ? picks.length - 1 : picks.length, SLEDZENIE_ROUNDS - 1);
   const balls = view.rounds[round];
   const failed = phase === "reveal" && !picked.every(isTarget);
 
@@ -65,7 +65,7 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
     const id = setTimeout(() => {
       if (phase === "wait") return setPhase("show");
       if (phase === "show") return setPhase("move");
-      if (failed || picks.length >= ROUNDS) {
+      if (failed || picks.length >= SLEDZENIE_ROUNDS) {
         setPhase("sent");
         return onMove({ type: "result", picks });
       }
@@ -82,7 +82,7 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
     const start = performance.now();
     let id = requestAnimationFrame(function frame(now) {
       const t = now - start;
-      if (t >= MOVE_MS) return setPhase("pick");
+      if (t >= SLEDZENIE_MOVE_MS) return setPhase("pick");
       balls.forEach((ball, i) => {
         const el = dots.current[i];
         if (!el) return;
@@ -96,7 +96,7 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
   }, [phase]);
 
   const stopped = phase === "pick" || phase === "reveal";
-  const at = balls.map((ball) => (stopped ? sledzeniePosition(ball, round, MOVE_MS) : ball));
+  const at = balls.map((ball) => (stopped ? sledzeniePosition(ball, round, SLEDZENIE_MOVE_MS) : ball));
 
   // Numery dopiero po zatrzymaniu; w show/move ich nie ma, żeby śledzić ruch, a nie etykietę.
   const order = stopped ? labelOrder(at) : [];
@@ -106,7 +106,7 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
     if (phase !== "pick") return;
     const next = picked.includes(i) ? picked.filter((n) => n !== i) : [...picked, i];
     setPicked(next);
-    if (next.length < TARGETS) return;
+    if (next.length < SLEDZENIE_TARGETS) return;
     setPicks([...picks, next]);
     setPhase("reveal");
     if (!next.every(isTarget)) navigator.vibrate?.(VIBRATE.mistake);
@@ -122,7 +122,7 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
       <>
         <Scores rows={rows} />
         <p className="text-sm text-fg-muted">
-          Liczą się rundy bez pomyłki (najwyżej {ROUNDS}). Przy remisie wygrywa więcej trafionych kulek w rundzie z pomyłką (liczba po plusie).
+          Liczą się rundy bez pomyłki (najwyżej {SLEDZENIE_ROUNDS}). Przy remisie wygrywa więcej trafionych kulek w rundzie z pomyłką (liczba po plusie).
         </p>
       </>
     );
@@ -132,21 +132,21 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
     return (
       <Intro
         preview={<Preview color={color} />}
-        time={`Do ${ROUNDS} rund, kulki lecą coraz szybciej`}
-        task={`Zapamiętaj ${TARGETS} podświetlone kulki z ${BALLS} i wskaż je, gdy się zatrzymają`}
+        time={`Do ${SLEDZENIE_ROUNDS} rund, kulki lecą coraz szybciej`}
+        task={`Zapamiętaj ${SLEDZENIE_TARGETS} podświetlone kulki z ${SLEDZENIE_BALLS} i wskaż je, gdy się zatrzymają`}
         score="Pierwsza pomyłka kończy partię, liczą się zaliczone rundy"
         onStart={() => setPhase("wait")}
       />
     );
   }
 
-  const status = phase === "move" ? "Śledź" : phase === "pick" ? `Wskaż ${picked.length}/${TARGETS}` : phase === "reveal" ? (failed ? "Pomyłka" : "Dobrze") : "Patrz";
+  const status = phase === "move" ? "Śledź" : phase === "pick" ? `Wskaż ${picked.length}/${SLEDZENIE_TARGETS}` : phase === "reveal" ? (failed ? "Pomyłka" : "Dobrze") : "Patrz";
 
   return (
     <section className="flex flex-col gap-2">
       <Stats
         items={[
-          { label: "Runda", value: `${round + 1}/${ROUNDS}` },
+          { label: "Runda", value: `${round + 1}/${SLEDZENIE_ROUNDS}` },
           { label: "Teraz", value: status, warn: failed },
         ]}
       />
@@ -180,7 +180,7 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
         })}
       </div>
       <div className="grid grid-cols-4 gap-2" role="group" aria-label="Wskaż kulki">
-        {Array.from({ length: BALLS }, (_, n) => {
+        {Array.from({ length: SLEDZENIE_BALLS }, (_, n) => {
           const i = order[n];
           const selected = i !== undefined && picked.includes(i);
           return (

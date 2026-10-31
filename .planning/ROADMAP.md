@@ -203,6 +203,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
 - [x] [05-52-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-52-PLAN.md) - P4-059, W pamięci: stała liczba mnożeń; TDD 1cb0e49
 - [x] [05-53-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-53-PLAN.md) - P4-060, Balon: stały komplet 11-20; TDD 51e3625
 - [x] [05-54-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-54-PLAN.md) - P4-062, Państwa-miasta: bez Ł; TDD cd9d00d
+- [x] [05-55-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-55-PLAN.md) - P4-034, Jedna lista mini-gier i klucz rewanżu; TDD e3d6157
 **UI hint**: yes
 
 ## Progress
@@ -216,7 +217,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 | 2. Audyt wyglądu, animacji i wibracji | 11/11 | Complete | 2026-10-24 |
 | 3. Audyt balansu rekordów i trudności | 9/9 | Complete | 2026-10-24 |
 | 4. Raport zbiorczy i akceptacja | 5/5 | Complete; ZG4-v1, S5-v1, FIX-01 | 2026-10-26 |
-| 5. Poprawki zaakceptowanych rozbieżności | 54/54 obecnie rozpisanych | In progress; 55/62 pakietów, 222/267 części; P4-014/015 odebrane na Androidzie | - |
+| 5. Poprawki zaakceptowanych rozbieżności | 55/55 obecnie rozpisanych | In progress; 56/62 pakietów, 226/267 części; P4-014/015 odebrane na Androidzie | - |
 
 04-04 rozpoczęty 2026-10-26: przygotowano B4-001 (P4-005/006/012/013/016, warianty w DECISIONS §10). Użytkownik zatwierdził B4-001 („Zatweirdzam”): pięć pakietów i ich warianty. B4-002 (P4-003/004/036) oczekuje; liczba ukończonych planów nadal 3/5, FIX-01 otwarte.
 
@@ -454,3 +455,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-53/P4-060 zakończony: Balon ma w każdej partii komplet wytrzymałości 11-20 w potasowanej kolejności (suma 155), ta sama strategia stop daje ten sam wynik; walidacja 0-21, rekordy bez przeliczania. 54/62 pakietów, 221/267 części; FIX-02 otwarte. Następny P4-062 (P4-061 czeka na U14). Dowody: 05-53-SUMMARY.md. Commity bez push.
 
 2026-10-31, 05-54/P4-062 zakończony: Państwa-miasta nie losują Ł (pula 22 liter), punktacja i głosowanie bez zmian. 55/62 pakietów, 222/267 części; FIX-02 otwarte. Następny P4-034; P4-061 czeka na U14. Dowody: 05-54-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-55/P4-034 zakończony: mini-gry z MINI_GAME_IDS w Game/Lobby (SIMULTANEOUS, OWN_RANKING z Kalamburami), nonce Sudoku z fallbackiem planszy, stałe SLEDZENIE_*, Turniej z podsumowaniem w StartBar bez drugiego sticky. 56/62 pakietów, 226/267 części; FIX-02 otwarte. Następny P4-035; P4-061 czeka na U14. Dowody: 05-55-SUMMARY.md. Commity bez push.

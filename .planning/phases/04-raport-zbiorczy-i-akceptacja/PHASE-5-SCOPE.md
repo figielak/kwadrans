@@ -89,7 +89,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 54 | [P4-060: Balon: ten sam komplet ryzyka](#scope-p4-060) | P2 | 1 | wykonano 2026-10-31, 05-53; TDD 51e3625 |
 | 55 | [P4-061: Zegar bodźca i dotyku](#scope-p4-061) | P2 | 1 | nie rozpoczęto |
 | 56 | [P4-062: Państwa-miasta: pominąć Ł](#scope-p4-062) | P2 | 1 | wykonano 2026-10-31, 05-54; TDD cd9d00d |
-| 57 | [P4-034: Jedna lista mini-gier i klucz rewanżu](#scope-p4-034) | P3 | 4 | nie rozpoczęto |
+| 57 | [P4-034: Jedna lista mini-gier i klucz rewanżu](#scope-p4-034) | P3 | 4 | wykonano 2026-10-31, 05-55; TDD e3d6157 |
 | 58 | [P4-035: Wspólne funkcje bez zmiany reguł](#scope-p4-035) | P3 | 1 | nie rozpoczęto |
 | 59 | [P4-047: Słowa czynności i przejść](#scope-p4-047) | P3 | 6 | nie rozpoczęto |
 | 60 | [P4-049: Liczby, etykiety i wąskie kolumny](#scope-p4-049) | P3 | 12 | nie rozpoczęto |
@@ -910,7 +910,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-016](PACKAGES.md#p4-016). Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Porównać zestawy 30 id przed/po, rewanż identycznej planszy Sudoku montuje nową partię, stary detail bez nonce działa. Turniej preset/min/max i przyklejony Start nie zmienia gotowości.
 - Granice: Nie dodawać nowej gry ani zależności; zmiana nazw eksportów nie zmienia id.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 4/4 części. TDD `e3d6157`; typy, testy i build PASS. [05-55-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-55-SUMMARY.md).
 
 <a id="scope-p4-035"></a>
 

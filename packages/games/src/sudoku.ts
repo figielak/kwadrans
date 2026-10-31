@@ -23,6 +23,8 @@ export interface State {
   results: Record<PlayerId, Result>;
   /** Ile cyfr gracz już wpisał (1-9), zgłaszane przez klienta; tylko do podglądu u rywali. */
   progress: Record<PlayerId, number>;
+  /** Odróżnia partie z tą samą planszą (ekran montuje się od nowa przy rewanżu); dawne partie go nie mają. */
+  nonce?: number;
 }
 
 export type View = State;
@@ -90,7 +92,8 @@ export const sudoku: GameDefinition<State, Move> = {
     z.object({ type: z.literal("progress"), filled: z.number() }),
   ]),
 
-  setup: (players, rng) => ({ players, ...makePuzzle(rng), results: {}, progress: {} }),
+  // Nonce losowany po planszy, więc seed daje tę samą planszę co przed jego dodaniem.
+  setup: (players, rng) => ({ players, ...makePuzzle(rng), results: {}, progress: {}, nonce: Math.floor(rng() * 2 ** 32) }),
 
   validateMove: (state, player, move, context) =>
     state.players.includes(player) &&

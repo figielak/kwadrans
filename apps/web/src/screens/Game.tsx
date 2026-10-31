@@ -1,5 +1,5 @@
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
@@ -216,10 +216,10 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
       : myTurn
         ? (game.view as { phase?: string }).phase === "placing"
           ? "Ustaw statki"
-          : MINI_GAMES.has(def.id)
+          : SIMULTANEOUS.has(def.id)
             ? def.name // wszyscy grają naraz, więc to nie jest niczyj „ruch”
             : "Twój ruch"
-        : turnOf && !MINI_GAMES.has(def.id)
+        : turnOf && !SIMULTANEOUS.has(def.id)
           ? <>Ruch: <span style={{ color: turnColor }}>{nick(turnOf)}</span></>
           : `Czekamy na: ${waitingNicks}`;
 
@@ -274,8 +274,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                   <Countdown
                     game={round ?? game}
                     total={round ? QUIZ_DURATION_MS / 1000 : (def.turn?.(game.view).seconds ?? def.turnSeconds)}
-                    color={myTurn ? myColor : MINI_GAMES.has(def.id) ? undefined : turnColor}
-                    label={compact ? undefined : round ? "Czas" : MINI_GAMES.has(def.id) ? "Limit" : undefined}
+                    color={myTurn ? myColor : SIMULTANEOUS.has(def.id) ? undefined : turnColor}
+                    label={compact ? undefined : round ? "Czas" : SIMULTANEOUS.has(def.id) ? "Limit" : undefined}
                   />
                 </div>
               )}
@@ -430,7 +430,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
         )}
 
         {/* Mini-gry pokazują ranking same, razem z wynikami. */}
-        {view.phase === "over" && !MINI_GAMES.has(def.id) && game.result?.ranking && game.result.ranking.length > 2 && (
+        {view.phase === "over" && !OWN_RANKING.has(def.id) && game.result?.ranking && game.result.ranking.length > 2 && (
           <ol className="tile flex flex-col gap-1 p-4">
             {game.result.ranking.map((id, i) => (
               <li key={id} className="flex items-center gap-3">
@@ -514,7 +514,10 @@ function recordHint(gameId: string, rows: RecordRow[] | null, nick: string) {
   return `${top} (${rows[0].nick})${mine ? ` · twój: ${formatRecord(gameId, mine)}` : ""}`;
 }
 
-const MINI_GAMES = new Set(["tort", "zakupy", "zaslona", "nozyczki", "refleks", "simon", "stoper", "schulte", "sudoku", "stroop", "liczenie", "kolo", "kolor", "kropki", "rok", "srodek", "stoj", "sledzenie", "kubki", "wieza", "rytm", "inny", "obrot", "literowka", "mapa", "kat", "przytrzymaj", "balon", "w-pamieci", "dziesiatki", "panstwa-miasta"]);
+/** Wszyscy grają naraz: nie ma niczyjego „ruchu”, a licznik to limit partii. */
+const SIMULTANEOUS = new Set([...MINI_GAME_IDS, "panstwa-miasta"]);
+/** Gry z własną tabelą wyników po partii; bez nich ekran dokłada listę miejsc. */
+const OWN_RANKING = new Set([...MINI_GAME_IDS, "panstwa-miasta", "kalambury"]);
 
 const SCHULTE_LAST = SCHULTE_SIZE * SCHULTE_SIZE;
 

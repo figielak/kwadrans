@@ -304,9 +304,9 @@ animacja tylko go dogania na ekranie.
 Podpięcie, w tej kolejności:
 1. sekcja i wiersz tabeli w `ZASADY-GIER.md` (krok 1),
 2. `packages/games/src/<id>.test.ts` (krok 2),
-3. `packages/games/src/<id>.ts`, wpis w `GAMES` i eksport typu `View` oraz stałych w `index.ts`,
+3. `packages/games/src/<id>.ts`, wpis w `GAMES` i eksport typu `View` oraz stałych w `index.ts` (stałe z przedrostkiem gry, np. `SLEDZENIE_ROUNDS`),
 4. `apps/web/src/games/<Gra>.tsx`,
-5. gałąź w `screens/Game.tsx` (mini-gra: `key` z wyzwania i wpis w `MINI_GAMES`), ikona w `ICONS` w `screens/Lobby.tsx`,
+5. gałąź w `screens/Game.tsx` (mini-gra: `key` z wyzwania albo `nonce`; listę mini-gier daje sam rejestr przez `MINI_GAME_IDS`, gra główna z własną tabelą po partii trafia do `OWN_RANKING`), ikona w `ICONS` w `screens/Lobby.tsx`,
    mini-gra: `record` w definicji (trzeci argument `ranked`; z `tie`, jeśli komparator ma drugie kryterium), przypadek w `RECORDS` w `index.test.ts` i jednostka w `FORMAT` w `screens/Records.tsx`,
 6. opis w `KONCEPT.md` (sekcja 2 i tabela etapów).
 

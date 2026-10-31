@@ -1,4 +1,4 @@
-import { createRng, GAMES, MOVE_MS, sledzeniePosition, type SledzenieView } from "@kwadrans/games";
+import { createRng, GAMES, SLEDZENIE_MOVE_MS, sledzeniePosition, type SledzenieView } from "@kwadrans/games";
 import { describe, expect, test } from "vitest";
 import { labelOrder } from "./Sledzenie.tsx";
 
@@ -28,7 +28,7 @@ describe("Śledzenie: numery kulek", () => {
   test("każda kulka prawdziwej partii dostaje inny numer 1-8", () => {
     const state = GAMES.sledzenie.setup(["a"], createRng(7)) as SledzenieView;
     state.rounds.forEach((balls, round) => {
-      const order = labelOrder(balls.map((b) => sledzeniePosition(b, round, MOVE_MS)));
+      const order = labelOrder(balls.map((b) => sledzeniePosition(b, round, SLEDZENIE_MOVE_MS)));
       expect([...order].sort()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
     });
   });

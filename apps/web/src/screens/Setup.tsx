@@ -231,12 +231,16 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
       ))}
 
       {/* Podsumowanie jedzie razem z przyciskiem: od razu mówi, co się stanie po starcie. */}
-      <div className="sticky bottom-0 -mx-4 mt-auto bg-bg/90 px-4 backdrop-blur">
-        <p className="pt-3 text-sm" aria-live="polite">
-          {summary} <span className="text-fg-muted">· ok. {minutes(length)} min</span>
-        </p>
-        <StartBar view={view} me={me} send={send} />
-      </div>
+      <StartBar
+        view={view}
+        me={me}
+        send={send}
+        note={
+          <p className="text-sm" aria-live="polite">
+            {summary} <span className="text-fg-muted">· ok. {minutes(length)} min</span>
+          </p>
+        }
+      />
     </Screen>
   );
 }
