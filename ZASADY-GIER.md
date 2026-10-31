@@ -497,6 +497,9 @@ Przebieg, walidacja, punktacja i ekran końcowy jak w Obrocie (`quiz.ts`, `Quiz.
 - Pierwsza zła odpowiedź kończy partię (jak w Sekwencji i Śledzeniu).
 - Serwer losuje `rounds` (`{ start, ops: { op, n }[] }`), te same dla wszystkich: start 1-9, działanie to +1..9, −1..9, ×2 albo ×3,
   losowane tak, żeby wartość po każdym kroku była w 1-99 (`MAX_VALUE`). Działania liczy się po kolei od lewej (`value(round)`).
+- Runda z `n` działaniami ma zawsze `floor(n / 3)` mnożeń (od 0 w pierwszej do 4 w ostatniej) na potasowanych miejscach,
+  pozostałe to + albo − po równo. Gdy przed mnożeniem wartość przekracza 49, ciąg losuje się od nowa (te same miejsca mnożeń).
+  Dawne partie miały rodzaj każdego działania losowany osobno; ich rekordy zostają bez przeliczania.
 - Jeden ruch z `answers`: odpowiedzi w kolejnych rozegranych rundach (int 0-999, `MAX_ANSWER`). Wynik liczy serwer:
   `rounds` = liczba poprawnych odpowiedzi od początku, `diff` = odchyłka odpowiedzi od wyniku w pierwszej rundzie niezaliczonej
   (brak odpowiedzi w tej rundzie = 999, komplet 12 rund = 0). Wszystko po pierwszym błędzie jest ignorowane.

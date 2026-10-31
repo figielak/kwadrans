@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type GameDefinition, type PlayerId, ranked, type Rng } from "./core.ts";
+import { type GameDefinition, type PlayerId, ranked, type Rng, shuffle } from "./core.ts";
 
 export const ROUNDS = 12;
 /** Tyle działań ma pierwsza runda; każda następna o jedno więcej. */
@@ -32,20 +32,32 @@ const apply = (v: number, { op, n }: Op) => (op === "+" ? v + n : op === "−" ?
 /** Wynik ciągu: działania po kolei od lewej, bez kolejności działań. */
 export const value = (round: Round) => round.ops.reduce(apply, round.start);
 
-// Z każdej wartości 1-99 da się zrobić dozwolony krok (+1 albo −1), więc losowanie z odrzucaniem zawsze się kończy.
+/**
+ * Ciąg `length` działań z dokładnie floor(length / 3) mnożeniami na potasowanych miejscach, reszta to + i −.
+ * Z każdej wartości 1-99 da się zrobić krok + albo − (+1 albo −1), więc te losowania z odrzucaniem zawsze się kończą.
+ * Mnożenie wymaga wartości do 49; gdy jej nie ma, cały ciąg losuje się od nowa (średnio około dwóch podejść na ciąg, 10 000 partii bez zawieszenia).
+ */
 function chain(rng: Rng, length: number): Round {
-  const start = int(rng, 1, 9);
-  const ops: Op[] = [];
-  let v = start;
-  while (ops.length < length) {
-    const kind = int(rng, 0, 2);
-    const op: Op = kind === 0 ? { op: "+", n: int(rng, 1, 9) } : kind === 1 ? { op: "−", n: int(rng, 1, 9) } : { op: "×", n: int(rng, 2, 3) };
-    const next = apply(v, op);
-    if (next < 1 || next > MAX_VALUE) continue;
-    ops.push(op);
-    v = next;
+  const times = shuffle(Array.from({ length }, (_, i) => i < Math.floor(length / 3)), rng);
+  for (;;) {
+    const start = int(rng, 1, 9);
+    const ops: Op[] = [];
+    let v = start;
+    while (ops.length < length) {
+      if (times[ops.length]) {
+        const fits = [2, 3].filter((n) => v * n <= MAX_VALUE);
+        if (!fits.length) break;
+        ops.push({ op: "×", n: fits[Math.floor(rng() * fits.length)] });
+      } else {
+        const op: Op = rng() < 0.5 ? { op: "+", n: int(rng, 1, 9) } : { op: "−", n: int(rng, 1, 9) };
+        const next = apply(v, op);
+        if (next < 1 || next > MAX_VALUE) continue;
+        ops.push(op);
+      }
+      v = apply(v, ops[ops.length - 1]);
+    }
+    if (ops.length === length) return { start, ops };
   }
-  return { start, ops };
 }
 
 // ponytail: ciągi są w widoku od startu (jak kropki w Policz kropki), da się podejrzeć; między znajomymi wystarczy.

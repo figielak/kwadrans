@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 current_phase: 5
 current_phase_name: Poprawki zaakceptowanych rozbieżności
 status: in_progress
-stopped_at: 05-51/P4-058 zakończony; następny P4-059
+stopped_at: 05-52/P4-059 zakończony; następny P4-060
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
-last_activity_desc: "P4-058 odebrany; TDD 22cd529, Obrót: komplet sześciu rodzajów planszy; 52/62 pakietów, 219/267 części"
+last_activity_desc: "P4-059 odebrany; TDD 1cb0e49, W pamięci: stała liczba mnożeń; 53/62 pakietów, 220/267 części"
 state_head: f06def5505a8da7b1481ef76ea778ccd8fbc12a6
 progress:
   total_phases: 5
@@ -23,16 +23,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Faza 5: 05-51/P4-058 odebrany. Następny P4-059.
+**Current focus:** Faza 5: 05-52/P4-059 odebrany. Następny P4-060.
 
 ## Current Position
 
 Phase: 5 of 5 (Poprawki zaakceptowanych rozbieżności), zakres ZG4-v1/S5-v1 zatwierdzony.
-Plan: 51 of 51 currently planned completed.
+Plan: 52 of 52 currently planned completed.
 Status: In progress. Fazy 1-4 zakończone, FIX-01 zakończone. FIX-02 otwarte.
-Wykonano 52/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048, P4-050, P4-051, P4-052, P4-055, P4-056, P4-057, P4-058), 219/267 części poprawek.
-Last activity: 2026-10-31: zakończono 05-51/P4-058, Obrót: komplet sześciu rodzajów planszy.
-Dowody w 05-51-SUMMARY.md.
+Wykonano 53/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048, P4-050, P4-051, P4-052, P4-055, P4-056, P4-057, P4-058, P4-059), 220/267 części poprawek.
+Last activity: 2026-10-31: zakończono 05-52/P4-059, W pamięci: stała liczba mnożeń.
+Dowody w 05-52-SUMMARY.md.
+
+Poprzednio zakończono 05-51. Dowody w 05-51-SUMMARY.md.
 
 Poprzednio zakończono 05-50. Dowody w 05-50-SUMMARY.md.
 
@@ -411,3 +413,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-50/P4-057 zakończony: Liczenie losuje rodzaje działań potasowanymi czwórkami (po 50 każdego w puli), zakresy liczb bez zmian; F4-046 domknięte (test z P4-031 bez skip, P4-031 20/20). 51/62 pakietów, 218/267 części; FIX-02 otwarte. Następny P4-058. Dowody: 05-50-SUMMARY.md. Commity bez push.
 
 2026-10-31, 05-51/P4-058 zakończony: Obrót losuje rodzaj planszy (90/180/270° × ta sama/lustro) potasowanymi szóstkami, figury bez symetrii obrotowej; stan i ekran bez zmian kształtu, rekordy bez przeliczania. 52/62 pakietów, 219/267 części; FIX-02 otwarte. Następny P4-059. Dowody: 05-51-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-52/P4-059 zakończony: W pamięci ma w rundzie z n działaniami zawsze floor(n/3) mnożeń na potasowanych miejscach, wartości 1-99; generator średnio 2 podejścia na ciąg, bez zawieszenia na 10 000 seedów; rekordy bez przeliczania. Odbiór wpływu na ludzi czeka na P11. 53/62 pakietów, 220/267 części; FIX-02 otwarte. Następny P4-060. Dowody: 05-52-SUMMARY.md. Commity bez push.

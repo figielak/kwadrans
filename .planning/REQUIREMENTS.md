@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 52/62 pakietów, 219/267 części; 05-51/P4-058: Obrót: komplet sześciu rodzajów planszy, typy/testy/build PASS; następny P4-059 |
+| FIX-02 | Phase 5 | In progress; 53/62 pakietów, 220/267 części; 05-52/P4-059: W pamięci: stała liczba mnożeń, typy/testy/build PASS; następny P4-060; P4-059 czeka na P11 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -338,3 +338,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-50/P4-057 zakończony: Liczenie losuje rodzaje działań potasowanymi czwórkami (po 50 każdego w puli), zakresy liczb bez zmian; F4-046 domknięte (test z P4-031 bez skip, P4-031 20/20). 51/62 pakietów, 218/267 części; FIX-02 otwarte. Następny P4-058. Dowody: 05-50-SUMMARY.md. Commity bez push.
 
 2026-10-31, 05-51/P4-058 zakończony: Obrót losuje rodzaj planszy (90/180/270° × ta sama/lustro) potasowanymi szóstkami, figury bez symetrii obrotowej; stan i ekran bez zmian kształtu, rekordy bez przeliczania. 52/62 pakietów, 219/267 części; FIX-02 otwarte. Następny P4-059. Dowody: 05-51-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-52/P4-059 zakończony: W pamięci ma w rundzie z n działaniami zawsze floor(n/3) mnożeń na potasowanych miejscach, wartości 1-99; generator średnio 2 podejścia na ciąg, bez zawieszenia na 10 000 seedów; rekordy bez przeliczania. Odbiór wpływu na ludzi czeka na P11. 53/62 pakietów, 220/267 części; FIX-02 otwarte. Następny P4-060. Dowody: 05-52-SUMMARY.md. Commity bez push.
