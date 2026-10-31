@@ -183,7 +183,7 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
   `accent` służy akcji platformy i pozostałym rolom z DESIGN §2, w tym znakowi aplikacji; ostrzeżenia używają `warning`.
   W odsłonie rundy moja odpowiedź jest w kolorze gracza, znacznik prawdy neutralny (`fg`), a ocenę (`grade`) niesie linia błędu i liczba.
 - Mini-gra zaczyna od ekranu instrukcji: komponent `Intro` (ui.tsx) z animowanym podglądem gry (mały komponent `Preview` w pliku gry,
-  sama animacja CSS w pętli), trzema krótkimi punktami (`time`: czas, `task`: co zrobić, `score`: jak liczone są punkty) i przyciskiem „Start”.
+  sama animacja CSS w pętli), trzema krótkimi punktami (`time`: długość partii, czyli czas albo liczba rund z limitem całej partii („10 odcinków, razem do minuty”), `task`: co zrobić, `score`: jak liczone są punkty) i przyciskiem „Start”.
   Limit gry jeszcze wtedy nie tyka; po `INTRO_SECONDS` (15 s) gra rusza sama. Pod przyciskiem widać, kto już gra, a kto czyta zasady.
 - Pola dotykowe co najmniej 48 px (tyle ma `.btn`), a pola gry na czas mają `touch-none select-none` i reagują na `onPointerDown`.
   Wyjątek mają tylko gęste plansze gier turowych (DESIGN §6): pole mniejsze niż 48 px wolno dotknąć, jeśli dotknięcie

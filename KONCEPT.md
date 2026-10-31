@@ -51,7 +51,7 @@ Mechanik można się inspirować, natomiast nazwy, grafiki i logo oryginału nie
 | Więzienie | **Kolokwium**: tracisz turę albo zdajesz rzutem dubletu |
 | Mistrzostwa świata | **Juwenalia**: wybrane własne pole ma czynsz ×2, kolejne Juwenalia ×3, ×4… (jedno pole naraz) |
 | Podróż | **Bilet MPK**: przeskok na dowolne pole w następnej turze |
-| Karty szansy | **Karty Dziekanatu**: stypendium, warunek, poprawka itp. |
+| Karty szansy | **Karty Dziekanatu**: stypendium, warunek, Zaliczenie w pierwszym terminie itp. |
 
 Do tego pole **Opłata za akademik** (15 zł) oraz Ksero i Stołówka (czynsz zależny od rzutu).
 
@@ -151,7 +151,7 @@ Po partii ekran podsumowania (`KampusSummary.tsx`): wykres majątku, zapłacone 
 
 - **Rekordy**: po każdej skończonej mini-grze (także solo i w turnieju) serwer zapisuje wynik każdego gracza jako jedną liczbę
   (`record` w `GameDefinition`: `score` i kierunek `lower`) oraz, jeśli gra rozstrzyga remisy drugim kryterium, także je (`tie`: średnia reakcji
-  w grach na trafienia i punkty, trafione cele w Śledzeniu, szerokość klocka w Wieży, pęknięte balony w Balonie, czas zaznaczania w Zakupach). Ranking gry to najlepszy wynik każdego nicku: główny wynik,
+  w grach na trafienia i punkty, trafione cele w Śledzeniu, szerokość klocka w Wieży, pęknięte balony w Balonie, czas zaznaczania w Zakupach, odchyłka w rundzie z pomyłką w W pamięci). Ranking gry to najlepszy wynik każdego nicku: główny wynik,
   potem drugie kryterium („12 traf. · 256 ms”; średnia zaokrąglona do ms jak w miejscach partii, brak drugiego kryterium za znanym), a przy całkiem równych wyżej wcześniejszy. Widać go w trzech miejscach: panel po partii (`RecordPanel`: miejsce wszech czasów, „Nowy rekord!” po pobiciu własnego albo „Pierwszy wynik”, awans,
   ile brakuje do osoby wyżej), lista po wybraniu gry i linia „Rekord: …” na ekranie instrukcji, oraz ekran „Rekordy” (`Records.tsx`, z ekranu głównego i z listy mini-gier):
   trzy sekcje: „Twoje rekordy” (gry, w których gracz prowadzi), „Do pobicia” (rekord ma ktoś inny; lider z jasną koroną, własny rekord w kolorze gracza)
@@ -355,4 +355,5 @@ podpięcie w `screens/Game.tsx` i ikona w `screens/Lobby.tsx`.
 
 - Nazwy pól Kampus Tour ustalone (grupy jako pory dnia studenta, Ksero i Stołówka jak wodociągi); druga nazwa w grupie „Rano” robocza (Automat z przekąskami).
 - Balans ekonomii: start 200 zł (+20 zł za każde dalsze miejsce), kieszonkowe 40 zł, czynsz P/10 (cała grupa x2), z budynkami 0,4P / P / 2P / 4P; bez kompletu grupy do poziomu 2 (poziom 3 i landmark z kompletem), jazda Biletem MPK bez kieszonkowego. Zmiany po 4 partiach testowych (2026-10-07): poziom 3 od pierwszej tury i czynsze 60-100 zł przy pustych kieszeniach dawały szybkie bankructwa, a MPK zamieniał się w darmowy komplet. Do sprawdzenia w kolejnych partiach; jeśli monopol dalej będzie łatwy przez grupy dwupolowe, liczyć tylko grupy trzypolowe.
-- Zestaw kart specjalnych w Poprawce (talia 18 Kart Dziekanatu ustalona, w kodzie: CARDS w kampus-tour.ts).
+- Talia 18 Kart Dziekanatu w Kampus Tour ustalona (w kodzie: `CARDS` w kampus-tour.ts).
+- Zestaw kart specjalnych w Poprawce (gra jeszcze do zrobienia).

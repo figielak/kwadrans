@@ -1,6 +1,6 @@
-import { type LobbyPlayer, SRODEK_ACCEPT_PX, srodekError, srodekOffset, srodekProject, SRODEK_ROUNDS, type SrodekPoint, type SrodekView } from "@kwadrans/games";
+import { GAMES, type LobbyPlayer, SRODEK_ACCEPT_PX, srodekError, srodekOffset, srodekProject, SRODEK_ROUNDS, type SrodekPoint, type SrodekView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useState } from "react";
-import { grade as gradeBy, Intro, RoundTable, Scores, Stats } from "../screens/ui.tsx";
+import { grade as gradeBy, Intro, RoundTable, Scores, Stats, upTo } from "../screens/ui.tsx";
 
 interface Props {
   view: SrodekView;
@@ -127,7 +127,7 @@ export function Srodek({ view, me, players, ranking, onMove }: Props) {
     return (
       <Intro
         preview={<Preview />}
-        time={`${SRODEK_ROUNDS} rund, w każdej jeden odcinek`}
+        time={`${SRODEK_ROUNDS} odcinków, razem ${upTo(GAMES.srodek.turnSeconds!)}`}
         task="Wskaż połowę odcinka. Możesz dotknąć obok i przesunąć palec, liczy się miejsce puszczenia"
         score="Liczy się suma błędów w % długości odcinka, mniej znaczy lepiej"
         onStart={() => setPhase("play")}

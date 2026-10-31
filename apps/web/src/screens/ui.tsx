@@ -287,6 +287,9 @@ export function TimeBar({ ms, fill = false, color, bar = "" }: { ms: number; fil
 }
 
 /** Liczba z przecinkiem dziesiętnym i typograficznym minusem; zaokrąglone do zera nie dostaje znaku („0,0”, nie „−0,0”). */
+/** „do minuty”, „do 3 minut”: limit całej partii mini-gry w punkcie `time` ekranu Intro. */
+export const upTo = (seconds: number) => (seconds === 60 ? "do minuty" : seconds % 60 ? `do ${seconds} s` : `do ${seconds / 60} minut`);
+
 export function decimal(n: number, digits: number): string {
   const text = Math.abs(n).toFixed(digits).replace(".", ",");
   return n < 0 && Number(text.replace(",", ".")) !== 0 ? `−${text}` : text;

@@ -1,6 +1,6 @@
-import { type LobbyPlayer, TORT_CAKES, type TortCake, tortError, type TortView } from "@kwadrans/games";
+import { GAMES, type LobbyPlayer, TORT_CAKES, type TortCake, tortError, type TortView } from "@kwadrans/games";
 import { type PointerEvent, type SVGProps, useEffect, useState } from "react";
-import { grade, Intro, RoundTable, Scores, Stats, tenth } from "../screens/ui.tsx";
+import { grade, Intro, RoundTable, Scores, Stats, tenth, upTo } from "../screens/ui.tsx";
 
 interface Props {
   view: TortView;
@@ -141,7 +141,7 @@ export function Tort({ view, me, players, ranking, onMove }: Props) {
     return (
       <Intro
         preview={<Preview />}
-        time={`${TORT_CAKES} tortów, każdy na 3 do 7 kawałków`}
+        time={`${TORT_CAKES} tortów na 3 do 7 kawałków, razem ${upTo(GAMES.tort.turnSeconds!)}`}
         task="Podziel tort na równe kawałki. Dotknięcie stawia cięcie, każde swoje możesz złapać i przesunąć"
         score="Liczy się, ile tortu trzeba by przełożyć, żeby było równo. Mniej znaczy lepiej"
         onStart={() => setPhase("play")}

@@ -1,6 +1,6 @@
-import { type LobbyPlayer, MAPA_ASPECT, MAPA_OUTLINE, MAPA_ROUNDS, mapaError, type MapaPoint, mapaPlace, type MapaView } from "@kwadrans/games";
+import { GAMES, type LobbyPlayer, MAPA_ASPECT, MAPA_OUTLINE, MAPA_ROUNDS, mapaError, type MapaPoint, mapaPlace, type MapaView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useState } from "react";
-import { grade as gradeBy, Intro, RoundTable, Scores, Stats } from "../screens/ui.tsx";
+import { grade as gradeBy, Intro, RoundTable, Scores, Stats, upTo } from "../screens/ui.tsx";
 
 interface Props {
   view: MapaView;
@@ -127,7 +127,7 @@ export function Mapa({ view, me, players, ranking, onMove }: Props) {
     return (
       <Intro
         preview={<Preview />}
-        time={`${MAPA_ROUNDS} rund, w każdej jedno miasto`}
+        time={`${MAPA_ROUNDS} miast, razem ${upTo(GAMES.mapa.turnSeconds!)}`}
         task="Dotknij mapy tam, gdzie leży miasto, popraw znacznik i zatwierdź"
         score="Liczy się suma odległości w km, mniej znaczy lepiej"
         onStart={() => setPhase("play")}

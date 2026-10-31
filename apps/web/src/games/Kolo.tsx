@@ -1,6 +1,6 @@
-import { KOLO_ATTEMPTS, KOLO_MAX_POINTS, koloJudge, type KoloPoint, type KoloView, type LobbyPlayer } from "@kwadrans/games";
+import { GAMES, KOLO_ATTEMPTS, KOLO_MAX_POINTS, koloJudge, type KoloPoint, type KoloView, type LobbyPlayer } from "@kwadrans/games";
 import { type PointerEvent, useLayoutEffect, useRef, useState } from "react";
-import { Intro, Stats } from "../screens/ui.tsx";
+import { Intro, Stats, upTo } from "../screens/ui.tsx";
 
 interface Props {
   view: KoloView;
@@ -201,7 +201,7 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
             />
           </svg>
         }
-        time={`${KOLO_ATTEMPTS} prób, możesz zakończyć wcześniej`}
+        time={`${KOLO_ATTEMPTS} prób, razem ${upTo(GAMES.kolo.turnSeconds!)}, możesz zakończyć wcześniej`}
         task="Narysuj palcem jednym ruchem jak najdoskonalszy okrąg"
         score="Liczy się najlepsza próba, w procentach idealności"
         onStart={() => setStarted(true)}
