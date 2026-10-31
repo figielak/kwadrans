@@ -82,7 +82,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 47 | [P4-051: Etykiety, natywne kontrolki i wykres dotykiem](#scope-p4-051) | P2 | 3 | wykonano 2026-10-31, 05-46; TDD 070cc6e |
 | 48 | [P4-052: Czytelne stany oczekiwania, błędu i blokady](#scope-p4-052) | P2 | 11 | wykonano 2026-10-31, 05-47; TDD a9656f6 |
 | 49 | [P4-055: Stoper: stały cel](#scope-p4-055) | P2 | 1 | wykonano 2026-10-31, 05-48; TDD b2bd364 |
-| 50 | [P4-056: Rytm: stałe tempo](#scope-p4-056) | P2 | 1 | nie rozpoczęto |
+| 50 | [P4-056: Rytm: stałe tempo](#scope-p4-056) | P2 | 1 | wykonano 2026-10-31, 05-49; TDD 1a4d7b8 |
 | 51 | [P4-057: Liczenie: komplet rodzajów](#scope-p4-057) | P2 | 1 | nie rozpoczęto |
 | 52 | [P4-058: Obrót: sześć rodzajów planszy](#scope-p4-058) | P2 | 1 | nie rozpoczęto |
 | 53 | [P4-059: W pamięci: stała liczba mnożeń](#scope-p4-059) | P2 | 1 | nie rozpoczęto |
@@ -812,7 +812,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-001](PACKAGES.md#p4-001). Dodatkowy warunek: G-DANE rozstrzygnięte w ZG4-v1 §3.2, z zachowaniem starej historii; pozostałe testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Test stałego odstępu 600 ms i zachowania liczby uderzeń, timeout i metronom; stary detail z innym tempem renderuje zapisane dane. /dev solo/6 os., rekord/turniej, refresh/rewanż i me="". Test przed implementacją.
 - Granice: Stała jednostka nie dowodzi porównywalności dawnych rekordów. Nie regenerować starego detail nowym setup.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 1/1 części. TDD `1a4d7b8`; typy, testy i build PASS. [05-49-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-49-SUMMARY.md).
 
 <a id="scope-p4-057"></a>
 

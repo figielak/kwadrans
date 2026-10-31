@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 49/62 pakietów, 215/267 części; 05-48/P4-055: Stoper: stały cel 10 s, typy/testy/build PASS; następny P4-056; F4-046 częściowo SKIP → P4-057 |
+| FIX-02 | Phase 5 | In progress; 50/62 pakietów, 216/267 części; 05-49/P4-056: Rytm: stałe tempo 100 BPM, typy/testy/build PASS; następny P4-057; F4-046 częściowo SKIP → P4-057 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -332,3 +332,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-47/P4-052 zakończony: tekst przy wznawianiu i wczytywaniu, zamknięcie pokoju jako komunikat, brak odpowiedzi serwera odróżniony od braku rekordów, rozłączony gracz z przerywaną pigułką, krycie 40/60 z podpisem, powody blokad (Szacowanie, Chińczyk, Sudoku, liczba gier Turnieju), opis pustych ciekawostek i turnieju solo. 48/62 pakietów, 214/267 części; FIX-02 otwarte. Następny P4-055. Dowody: 05-47-SUMMARY.md. Commit bez push.
 
 2026-10-31, 05-48/P4-055 zakończony: Stoper ma stały cel 10 s (`TARGET_MS`), wynik nadal w ms; dawne partie z celem 6-14 s walidują się i wyświetlają po swoim celu ze stanu, rekordy bez przeliczania. 49/62 pakietów, 215/267 części; FIX-02 otwarte. Następny P4-056. Dowody: 05-48-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-49/P4-056 zakończony: Rytm ma stałe tempo 100 BPM (`interval` 600 ms), 8 uderzeń i wynik w ms bez zmian; dawne partie 70-130 BPM liczą się po swoim odstępie ze stanu, rekordy bez przeliczania. 50/62 pakietów, 216/267 części; FIX-02 otwarte. Następny P4-057. Dowody: 05-49-SUMMARY.md. Commit bez push.

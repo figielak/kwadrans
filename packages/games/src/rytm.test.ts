@@ -63,7 +63,7 @@ describe("setup", () => {
     const s = game.applyMove(old, A, play(old), createRng(1));
     expect(view(s).interval).toBe(857);
     expect(view(s).results[A]).toBe(0);
-    expect(view(s).taps[A]).toHaveLength(expected(857));
+    expect(view(s).taps?.[A]).toHaveLength(expected(857));
   });
 
   test("wszyscy grają naraz i dostają to samo tempo", () => {

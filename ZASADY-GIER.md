@@ -357,8 +357,9 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 ### Rytm (`rytm`)
 - Po „Start” 1 s ciszy, potem metronom gra 8 uderzeń (`BEATS`, 2 takty po 4) i cichnie, a gracz stuka dalej w tym samym tempie
   przez 10 s (`TAP_MS`), licząc od ostatniego uderzenia metronomu.
-- Tempo losuje serwer: 70-130 BPM co 5 (13 wartości), to samo dla wszystkich. W stanie jest `interval = round(60000 / BPM)` ms (462-857)
-  i `nonce` (rewanż może wylosować to samo tempo).
+- Tempo jest stałe: 100 BPM, w stanie `interval = 600` ms, oraz `nonce` (rewanż ma to samo tempo, nonce montuje grę od nowa).
+  Dawne partie miały losowe 70-130 BPM co 5 (`interval` 462-857); ich stan i rekordy zostają bez przeliczania, a wynik, walidacja
+  i ekran zawsze czytają `interval` ze stanu. Historia rekordów łączy partie o różnych tempach (ZG4-v1 §3.2).
 - Jeden ruch z `taps`: czasy stuknięć w ms (int) od ostatniego uderzenia metronomu. Stuknięcia przed nim i po 10 s ekran ignoruje.
 - Wynik liczy serwer (`deviation`): odstępy to różnice kolejnych czasów, pierwszy liczy się od ostatniego uderzenia metronomu.
   Błąd odstępu = różnica względem `interval`, ucięta do `interval`. Oczekiwana liczba odstępów to `floor(10 000 / interval) − 1`

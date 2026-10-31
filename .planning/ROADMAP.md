@@ -197,6 +197,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
 - [x] [05-46-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-46-PLAN.md) - P4-051, etykiety, natywne kontrolki i wykres dotykiem; TDD 070cc6e
 - [x] [05-47-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-47-PLAN.md) - P4-052, czytelne stany oczekiwania, błędu i blokady; TDD a9656f6
 - [x] [05-48-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-48-PLAN.md) - P4-055, Stoper: stały cel 10 s; TDD b2bd364
+- [x] [05-49-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-49-PLAN.md) - P4-056, Rytm: stałe tempo 100 BPM; TDD 1a4d7b8
 **UI hint**: yes
 
 ## Progress
@@ -210,7 +211,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 | 2. Audyt wyglądu, animacji i wibracji | 11/11 | Complete | 2026-10-24 |
 | 3. Audyt balansu rekordów i trudności | 9/9 | Complete | 2026-10-24 |
 | 4. Raport zbiorczy i akceptacja | 5/5 | Complete; ZG4-v1, S5-v1, FIX-01 | 2026-10-26 |
-| 5. Poprawki zaakceptowanych rozbieżności | 48/48 obecnie rozpisanych | In progress; 49/62 pakietów, 215/267 części; F4-046 częściowo SKIP → P4-057; P4-014/015 odebrane na Androidzie | - |
+| 5. Poprawki zaakceptowanych rozbieżności | 49/49 obecnie rozpisanych | In progress; 50/62 pakietów, 216/267 części; F4-046 częściowo SKIP → P4-057; P4-014/015 odebrane na Androidzie | - |
 
 04-04 rozpoczęty 2026-10-26: przygotowano B4-001 (P4-005/006/012/013/016, warianty w DECISIONS §10). Użytkownik zatwierdził B4-001 („Zatweirdzam”): pięć pakietów i ich warianty. B4-002 (P4-003/004/036) oczekuje; liczba ukończonych planów nadal 3/5, FIX-01 otwarte.
 
@@ -436,3 +437,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-47/P4-052 zakończony: tekst przy wznawianiu i wczytywaniu, zamknięcie pokoju jako komunikat, brak odpowiedzi serwera odróżniony od braku rekordów, rozłączony gracz z przerywaną pigułką, krycie 40/60 z podpisem, powody blokad (Szacowanie, Chińczyk, Sudoku, liczba gier Turnieju), opis pustych ciekawostek i turnieju solo. 48/62 pakietów, 214/267 części; FIX-02 otwarte. Następny P4-055. Dowody: 05-47-SUMMARY.md. Commit bez push.
 
 2026-10-31, 05-48/P4-055 zakończony: Stoper ma stały cel 10 s (`TARGET_MS`), wynik nadal w ms; dawne partie z celem 6-14 s walidują się i wyświetlają po swoim celu ze stanu, rekordy bez przeliczania. 49/62 pakietów, 215/267 części; FIX-02 otwarte. Następny P4-056. Dowody: 05-48-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-49/P4-056 zakończony: Rytm ma stałe tempo 100 BPM (`interval` 600 ms), 8 uderzeń i wynik w ms bez zmian; dawne partie 70-130 BPM liczą się po swoim odstępie ze stanu, rekordy bez przeliczania. 50/62 pakietów, 216/267 części; FIX-02 otwarte. Następny P4-057. Dowody: 05-49-SUMMARY.md. Commit bez push.
