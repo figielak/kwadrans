@@ -207,6 +207,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
 - [x] [05-56-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-56-PLAN.md) - P4-035, Wspólne funkcje bez zmiany reguł; TDD 33e148a
 - [x] [05-57-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-57-PLAN.md) - P4-047, Słowa czynności i przejść; TDD 1fe5ae6
 - [x] [05-58-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-58-PLAN.md) - P4-049, Liczby, etykiety i wąskie kolumny; TDD f16aa02
+- [x] [05-59-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-59-PLAN.md) - P4-054, Nieaktualne opisy bez zmiany zasad; TDD a8080e4
 **UI hint**: yes
 
 ## Progress
@@ -220,7 +221,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 | 2. Audyt wyglądu, animacji i wibracji | 11/11 | Complete | 2026-10-24 |
 | 3. Audyt balansu rekordów i trudności | 9/9 | Complete | 2026-10-24 |
 | 4. Raport zbiorczy i akceptacja | 5/5 | Complete; ZG4-v1, S5-v1, FIX-01 | 2026-10-26 |
-| 5. Poprawki zaakceptowanych rozbieżności | 58/58 obecnie rozpisanych | In progress; 59/62 pakietów, 245/267 części; P4-014/015 odebrane na Androidzie | - |
+| 5. Poprawki zaakceptowanych rozbieżności | 59/59 obecnie rozpisanych | In progress; 60/62 pakietów, 255/267 części; P4-014/015 odebrane na Androidzie | - |
 
 04-04 rozpoczęty 2026-10-26: przygotowano B4-001 (P4-005/006/012/013/016, warianty w DECISIONS §10). Użytkownik zatwierdził B4-001 („Zatweirdzam”): pięć pakietów i ich warianty. B4-002 (P4-003/004/036) oczekuje; liczba ukończonych planów nadal 3/5, FIX-01 otwarte.
 
@@ -466,3 +467,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-57/P4-047 zakończony: Dalej po odsłonie, Wyniki do podsumowania, wspólne słowa nagłówka w Kampus Tour, Zgłaszam gotowość (neutralnie zamiast Jestem gotowy, wybór użytkownika), Czekamy na: {nicki}, Idealnie!, rysujesz, Dotknij symbolu; słownik ról w ZASADY §4, kolor Dalej w DESIGN §5. 58/62 pakietów, 233/267 części; FIX-02 otwarte. Następny P4-049; P4-061 czeka na U14. Dowody: 05-57-SUMMARY.md. Commity bez push.
 
 2026-10-31, 05-58/P4-049 zakończony: mono z tabular-nums dla odczytów (zdania Satoshi wg D4-096 B), .label dla podpisów, bold małych ikon, wspólne decimal, brak/0, oś Schultego, Odcień w Stats, Mapa 999+, Zakupy w jednym wierszu, pkt w nagłówku turnieju, nagłówek ustawień turnieju. 59/62 pakietów, 245/267 części; FIX-02 otwarte. Następny P4-053; P4-061 czeka na U14. Dowody: 05-58-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-59/P4-054 zakończony: tie W pamięci i karty Kampus Tour w KONCEPT, wybór postaci naraz, Refleks na serwerze, Balon na ekranie, Ć, nagłówek testów Kampus Tour, seria Sekwencji, limit partii w Intro pięciu gier (upTo). 60/62 pakietów, 255/267 części; FIX-02 otwarte. Następny P4-053 (P4-061 czeka na U14). Dowody: 05-59-SUMMARY.md. Commity bez push.
