@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 5
 current_phase_name: Poprawki zaakceptowanych rozbieżności
 status: in_progress
-stopped_at: 05-59/P4-054 zakończony; następny P4-053 (P4-061 czeka na U14)
+stopped_at: 05-60/P4-053 zakończony; następny P4-061 (czeka na U14)
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
-last_activity_desc: "P4-054 odebrany; TDD a8080e4, Nieaktualne opisy bez zmiany zasad; 60/62 pakietów, 255/267 części"
-state_head: bedfcf51baf73ddabea51be79b0d9554774271c7
+last_activity_desc: "P4-053 odebrany; TDD f085fc4, Wąskie podpisy i hierarchia ekranów; 61/62 pakietów, 266/267 części"
+state_head: d1b582023ab649b2309320ca76288c8b6178b37b
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 82
-  completed_plans: 82
+  total_plans: 83
+  completed_plans: 83
   percent: 100
 ---
 
@@ -23,16 +23,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Faza 5: 05-59/P4-054 odebrany. Następny P4-053 (P4-061 czeka na U14).
+**Current focus:** Faza 5: 05-60/P4-053 odebrany. Następny P4-061 (czeka na U14).
 
 ## Current Position
 
 Phase: 5 of 5 (Poprawki zaakceptowanych rozbieżności), zakres ZG4-v1/S5-v1 zatwierdzony.
-Plan: 59 of 59 currently planned completed.
+Plan: 60 of 60 currently planned completed.
 Status: In progress. Fazy 1-4 zakończone, FIX-01 zakończone. FIX-02 otwarte.
-Wykonano 60/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048, P4-050, P4-051, P4-052, P4-055, P4-056, P4-057, P4-058, P4-059, P4-060, P4-062, P4-034, P4-035, P4-047, P4-049, P4-054), 255/267 części poprawek.
-Last activity: 2026-10-31: zakończono 05-59/P4-054, Nieaktualne opisy bez zmiany zasad.
-Dowody w 05-59-SUMMARY.md.
+Wykonano 61/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048, P4-050, P4-051, P4-052, P4-055, P4-056, P4-057, P4-058, P4-059, P4-060, P4-062, P4-034, P4-035, P4-047, P4-049, P4-054, P4-053), 266/267 części poprawek.
+Last activity: 2026-10-31: zakończono 05-60/P4-053, Wąskie podpisy i hierarchia ekranów.
+Dowody w 05-60-SUMMARY.md.
+
+Poprzednio zakończono 05-59. Dowody w 05-59-SUMMARY.md.
 
 Poprzednio zakończono 05-58. Dowody w 05-58-SUMMARY.md.
 
@@ -443,3 +445,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-58/P4-049 zakończony: mono z tabular-nums dla odczytów (zdania Satoshi wg D4-096 B), .label dla podpisów, bold małych ikon, wspólne decimal, brak/0, oś Schultego, Odcień w Stats, Mapa 999+, Zakupy w jednym wierszu, pkt w nagłówku turnieju, nagłówek ustawień turnieju. 59/62 pakietów, 245/267 części; FIX-02 otwarte. Następny P4-053; P4-061 czeka na U14. Dowody: 05-58-SUMMARY.md. Commity bez push.
 
 2026-10-31, 05-59/P4-054 zakończony: tie W pamięci i karty Kampus Tour w KONCEPT, wybór postaci naraz, Refleks na serwerze, Balon na ekranie, Ć, nagłówek testów Kampus Tour, seria Sekwencji, limit partii w Intro pięciu gier (upTo). 60/62 pakietów, 255/267 części; FIX-02 otwarte. Następny P4-053 (P4-061 czeka na U14). Dowody: 05-59-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-60/P4-053 zakończony: jeden wypełniony akcent na Home, „Wszystkie” i trzy odpowiedzi w podglądzie Koloru liter po zmierzonych obcięciach przy 115%, tytuły Setup, tła i link Rekordów wg ról, minmax w siatkach, Preview Koła; podpisy Kampus Tour bez obcięć, czytelność do U04. 61/62 pakietów, 266/267 części; FIX-02 otwarte. Następny P4-061 (czeka na U14). Dowody: 05-60-SUMMARY.md. Commity bez push.
