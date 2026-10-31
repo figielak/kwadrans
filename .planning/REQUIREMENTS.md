@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 35/62 pakietów, 156/267 części; 05-36/P4-038: Tort: uchwyt cięcia pod palcem, typy/testy/build PASS; następny P4-039; F4-046 częściowo SKIP → P4-057; P4-014 (2/3) i P4-015 oczekują U02 |
+| FIX-02 | Phase 5 | In progress; 36/62 pakietów, 157/267 części; 05-37/P4-039: Śledzenie: rozdzielne cele dotyku, typy/testy/build PASS; następny P4-040; F4-046 częściowo SKIP → P4-057; P4-014 (2/3) i P4-015 oczekują U02 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -115,7 +115,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-31 po 05-36/P4-038; 35/62 pakietów, 156/267 części, FIX-02 otwarte.*
+*Last updated: 2026-10-31 po 05-37/P4-039; 36/62 pakietów, 157/267 części, FIX-02 otwarte.*
 
 2026-10-26, 05-02/P4-027: testy regresji i dokumentacja przed kodem przygotowane. Oczekiwany RED potwierdza błąd, nie jest spełnieniem FIX-02. Wdrożenie oczekuje osobnego commitu testów na prośbę użytkownika; dowody w [05-02-TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-TDD.md).
 
@@ -300,3 +300,7 @@ Następny P4-040 (warunek P4-042); P4-014/015 oczekują U02. Dowody: 05-35-SUMMA
 2026-10-31, 05-36/P4-038 zakończony: Tort łapie najbliższe cięcie do 24 px od odcinka zamiast 10°.
 TDD 5d05002. Typy/testy/build PASS. 35/62 pakietów, 156/267 części; FIX-02 otwarte.
 Następny P4-039; P4-014/015 oczekują U02. Dowody: 05-36-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-37/P4-039 zakończony: Śledzenie wybiera kulki panelem 8 przycisków 48 px, numery według końcowej pozycji tylko po zatrzymaniu.
+TDD 05a0dfe. Typy/testy/build PASS. 36/62 pakietów, 157/267 części; FIX-02 otwarte.
+Następny P4-040; P4-014/015 oczekują U02. Dowody: 05-37-SUMMARY.md. Commit bez push.

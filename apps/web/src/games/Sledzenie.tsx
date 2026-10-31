@@ -1,5 +1,5 @@
 import { BALLS, type LobbyPlayer, MOVE_MS, RADIUS, ROUNDS, SHOW_MS, sledzeniePosition, type SledzenieView, TARGETS } from "@kwadrans/games";
-import { type PointerEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
 
 interface Props {
@@ -18,6 +18,12 @@ const TIMED: Partial<Record<Phase, number>> = { wait: 700, show: SHOW_MS, reveal
 const SIZE = `${RADIUS * 200}%`;
 
 const isTarget = (i: number) => i < TARGETS;
+
+/**
+ * Indeksy kulek w kolejności numerów 1-8: od góry do dołu, przy równym y od lewej.
+ * Tylko z pozycji, więc numer nie zdradza, które indeksy stanu są celami.
+ */
+export const labelOrder = (at: { x: number; y: number }[]) => at.map((_, i) => i).sort((a, b) => at[a].y - at[b].y || at[a].x - at[b].x);
 
 /** „1 runda”, „3 rundy”, „7 rund”. */
 const roundsLabel = (n: number) => `${n} ${n === 1 ? "runda" : n % 10 >= 2 && n % 10 <= 4 && (n < 12 || n > 14) ? "rundy" : "rund"}`;
@@ -90,15 +96,12 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
   const stopped = phase === "pick" || phase === "reveal";
   const at = balls.map((ball) => (stopped ? sledzeniePosition(ball, round, MOVE_MS) : ball));
 
-  // Dotyk łapie cały kafel i wybiera najbliższą kulkę: pole dotyku jest większe niż kulka i nigdy nie nachodzi na sąsiada.
-  function tap(e: PointerEvent<HTMLDivElement>) {
+  // Numery dopiero po zatrzymaniu; w show/move ich nie ma, żeby śledzić ruch, a nie etykietę.
+  const order = stopped ? labelOrder(at) : [];
+
+  // Wybór tylko przyciskami panelu (48 px, także klawiatura); kulki na planszy są podglądem z numerami.
+  function tap(i: number) {
     if (phase !== "pick") return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    const far = at.map((p) => Math.hypot(p.x - x, p.y - y));
-    const i = far.indexOf(Math.min(...far));
-    if (far[i] > 2 * RADIUS) return;
     const next = picked.includes(i) ? picked.filter((n) => n !== i) : [...picked, i];
     setPicked(next);
     if (next.length < TARGETS) return;
@@ -145,7 +148,7 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
           { label: "Teraz", value: status, warn: failed },
         ]}
       />
-      <div className="tile relative mx-auto aspect-square w-full max-w-[calc(100dvh-19rem)] touch-none select-none overflow-hidden" onPointerDown={tap}>
+      <div className="tile relative mx-auto aspect-square w-full max-w-[calc(100dvh-26rem)] touch-none select-none overflow-hidden">
         {balls.map((_, i) => {
           const selected = picked.includes(i);
           const lit = selected || (phase === "show" && isTarget(i));
@@ -155,7 +158,7 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
               ref={(el) => {
                 dots.current[i] = el;
               }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full ${lit ? "" : "bg-fg"}`}
+              className={`absolute grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full font-mono text-xs font-semibold text-bg ${lit ? "" : "bg-fg"}`}
               style={{
                 left: `${at[i].x * 100}%`,
                 top: `${at[i].y * 100}%`,
@@ -167,7 +170,29 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
                 outline: phase === "reveal" && isTarget(i) ? "3px solid var(--color-success)" : undefined,
                 outlineOffset: 2,
               }}
-            />
+            >
+              {stopped && order.indexOf(i) + 1}
+            </span>
+          );
+        })}
+      </div>
+      <div className="grid grid-cols-4 gap-2" role="group" aria-label="Wskaż kulki">
+        {Array.from({ length: BALLS }, (_, n) => {
+          const i = order[n];
+          const selected = i !== undefined && picked.includes(i);
+          return (
+            <button
+              key={n}
+              type="button"
+              className="btn min-h-12 font-mono font-semibold tabular-nums"
+              style={selected ? { backgroundColor: color, borderColor: color, color: "var(--color-bg)" } : undefined}
+              disabled={phase !== "pick"}
+              aria-pressed={selected}
+              aria-label={`Kulka ${n + 1}`}
+              onClick={() => tap(i)}
+            >
+              {n + 1}
+            </button>
           );
         })}
       </div>

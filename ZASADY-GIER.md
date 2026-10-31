@@ -298,8 +298,10 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 - Ranking: więcej rund wyżej, przy równych więcej `hits` („prawie się udało” wygrywa z pudłem); równe oba to remis.
 - Walidacja: najwyżej 20 rund, każda to 3 różne liczby całkowite 0-7. Pusta lista = limit czasu = 0 rund i 0 trafionych.
 - Bez ruchu `progress`: rywale nie widzą numeru rundy (jak w Sekwencji).
-- Ekran: kwadratowy kafel z kulkami; cele podświetlone kolorem gracza, w ruchu wszystkie jednakowe. Po zatrzymaniu dotknięcie zaznacza kulkę
-  (ponowne odznacza), trzecie zatwierdza. Potem przez 1 s widać prawdziwe cele; pomyłka to wibracja 60.
+- Ekran: kwadratowy kafel z kulkami; cele podświetlone kolorem gracza, w ruchu wszystkie jednakowe. Po zatrzymaniu kulki dostają numery 1-8
+  według końcowej pozycji (od góry, przy równym y od lewej; numer nie zależy od tego, która kulka jest celem), w ruchu numerów nie ma.
+  Wybór tylko panelem 8 przycisków 48 px pod planszą (dwa rzędy po cztery, działa też klawiatura); plansza jest podglądem.
+  Przycisk zaznacza kulkę (ponowny odznacza), trzeci wybór zatwierdza. Potem przez 1 s widać prawdziwe cele; pomyłka to wibracja 60.
   Ruch kulek jest treścią gry, więc działa także przy `prefers-reduced-motion`.
 
 ### Trzy kubki (`kubki`)

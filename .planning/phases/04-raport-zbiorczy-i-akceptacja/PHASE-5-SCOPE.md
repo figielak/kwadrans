@@ -2,7 +2,7 @@
 
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
-**Stan wykonania: 35/62 pakietów, 156/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..022 oraz P4-023..026, P4-028..033, P4-036..037, P4-041, P4-038 i P4-007..010.
+**Stan wykonania: 36/62 pakietów, 157/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..022 oraz P4-023..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039 i P4-007..010.
 F4-046 z P4-031 częściowo otwarte: zakresy PASS, równy udział rodzajów SKIP po wykryciu błędu; naprawa w P4-057 (05-31-SUMMARY.md), bez doliczania do zamkniętych części.
 Dowody: 05-01..34-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
@@ -69,7 +69,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 34 | [P4-033: Rekordowa partia ze stanu, także me=""](#scope-p4-033) | P2 | 2 | wykonano 2026-10-31, 05-33 |
 | 35 | [P4-037: Zwykłe kontrolki 48 px](#scope-p4-037) | P2 | 1 | wykonano 2026-10-31, 05-34 |
 | 36 | [P4-038: Tort: uchwyt cięcia pod palcem](#scope-p4-038) | P2 | 1 | wykonano 2026-10-31, 05-36; TDD 5d05002 |
-| 37 | [P4-039: Śledzenie: rozdzielne cele dotyku](#scope-p4-039) | P2 | 1 | nie rozpoczęto |
+| 37 | [P4-039: Śledzenie: rozdzielne cele dotyku](#scope-p4-039) | P2 | 1 | wykonano 2026-10-31, 05-37; TDD 05a0dfe |
 | 38 | [P4-040: Reduced motion: zadanie działa, komunikat widoczny](#scope-p4-040) | P2 | 4 | nie rozpoczęto |
 | 39 | [P4-041: Katalog i opisy animacji](#scope-p4-041) | P3 | 3 | wykonano 2026-10-31, 05-35; TDD 4c1b835 |
 | 40 | [P4-042: Przejścia, pętle i paski czasu](#scope-p4-042) | P2 | 8 | nie rozpoczęto |
@@ -630,7 +630,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: brak. Dodatkowy warunek: konkretny wariant panelu zatwierdzony w ZG4-v1 §3.4, G-DANE według §3.2. U12/U13 do odbioru; brak zgody na zmianę GAP.
 - Odbiór: T + UI; panel 48 px, bliskie/skrajne pozycje, 8 kulek/3 cele, numeracja bez informacji o celu, bez oznaczeń w show/move, dotyk i klawiatura. Plansza/panel/instrukcja w 360×640, stary detail i wynik bez zmian; U12/U13.
 - Granice: Numerów nie wyprowadzać z indeksu celu. Kulki nie są obszarem wykonywania wyboru; bez nakładających się hitboxów. Nie przesuwać pozycji kulek dla etykiet i nie zmieniać generatora.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **wykonano 2026-10-31**, 05-37; TDD 05a0dfe. Dowody: 05-37-SUMMARY.md.
 
 <a id="scope-p4-040"></a>
 
