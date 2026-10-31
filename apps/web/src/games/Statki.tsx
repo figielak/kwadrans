@@ -274,7 +274,7 @@ function Placement({
       <div className="flex flex-col gap-3">
         <Grid size={SIZE} label={label} color={color} shapes={ships.map((ship) => ({ ship, style: hull(color) }))} cell={() => ({})} />
         <p role="status" className="flex items-center justify-center gap-2 text-center text-sm text-fg-muted">
-          <span className="size-2.5 animate-pulse rounded-full" style={{ backgroundColor: color }} aria-hidden />
+          <span className="size-2.5 rounded-full" style={{ backgroundColor: color }} aria-hidden />
           Czekamy, aż {enemyNick} ustawi flotę…
         </p>
         <button type="button" className="btn btn-ghost" onClick={() => onMove({ type: "unready" })}>

@@ -76,9 +76,9 @@ export function PiecWRzedzie({ view, players, canMove, onMove }: Props) {
                     }}
                   />
                 ) : preview ? (
-                  // Jeszcze nie postawiony: stała, pełna obwódka i pulsujące wypełnienie.
+                  // Jeszcze nie postawiony: pełna obwódka i półprzezroczyste wypełnienie, bez migania.
                   <span className="grid aspect-square w-[80%] rounded-full border-2" style={{ borderColor: myColor }}>
-                    <span className="animate-pulse rounded-full" style={{ backgroundColor: `color-mix(in srgb, ${myColor} 55%, transparent)` }} />
+                    <span className="rounded-full" style={{ backgroundColor: `color-mix(in srgb, ${myColor} 55%, transparent)` }} />
                   </span>
                 ) : (
                   STARS.has(i) && <span className="size-[14%] rounded-full bg-fg-subtle" aria-hidden />
@@ -122,7 +122,7 @@ export function PiecWRzedzie({ view, players, canMove, onMove }: Props) {
       ) : (
         !over && (
           <p role="status" className="flex h-14 items-center justify-center gap-2 text-fg-muted">
-            <span className="size-2.5 animate-pulse rounded-full" style={{ backgroundColor: myColor }} aria-hidden />
+            <span className="size-2.5 rounded-full" style={{ backgroundColor: myColor }} aria-hidden />
             {turnNick} się zastanawia…
           </p>
         )

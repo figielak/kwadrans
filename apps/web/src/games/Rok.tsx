@@ -13,7 +13,7 @@ interface Props {
 /** Suwak startuje na środku zakresu. */
 const MIDDLE = Math.floor((MIN_YEAR + MAX_YEAR) / 2);
 /** Ostatnie sekundy rundy: pasek czasu w kolorze ostrzeżenia. */
-const HURRY_MS = 5000;
+const HURRY_MS = 10_000;
 
 /** Różnica ze znakiem: „−4”, „+3”. */
 const signed = (n: number) => (n < 0 ? `−${-n}` : `+${n}`);
@@ -165,8 +165,8 @@ export function Rok({ view, me, players, ranking, onMove }: Props) {
       />
       <div className={`h-1.5 overflow-hidden rounded-full bg-line ${reveal ? "invisible" : ""}`} role="progressbar" aria-label="Czas rundy" aria-valuenow={Math.ceil(left / 1000)}>
         <div
-          className={`h-full rounded-full transition-[width] duration-250 ease-linear ${left <= HURRY_MS ? "bg-warning" : "bg-fg-muted"}`}
-          style={{ width: `${(left / ROK_ROUND_MS) * 100}%` }}
+          className={`h-full rounded-full transition-[width] duration-250 ease-linear ${left <= HURRY_MS ? "bg-warning" : ""}`}
+          style={{ width: `${(left / ROK_ROUND_MS) * 100}%`, backgroundColor: left > HURRY_MS ? color : undefined }}
         />
       </div>
       <div className="tile flex flex-col gap-4 p-4">

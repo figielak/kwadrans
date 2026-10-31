@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 37/62 pakietów, 161/267 części; 05-38/P4-040: reduced motion: zadanie działa, komunikat widoczny, typy/testy/build PASS; następny P4-042; F4-046 częściowo SKIP → P4-057; P4-014 (2/3) i P4-015 oczekują U02 |
+| FIX-02 | Phase 5 | In progress; 38/62 pakietów, 169/267 części; 05-39/P4-042: przejścia, pętle i paski czasu, typy/testy/build PASS; następny P4-043; F4-046 częściowo SKIP → P4-057; P4-014 (2/3) i P4-015 oczekują U02 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -115,7 +115,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-31 po 05-38/P4-040; 37/62 pakietów, 161/267 części, FIX-02 otwarte.*
+*Last updated: 2026-10-31 po 05-39/P4-042; 38/62 pakietów, 169/267 części, FIX-02 otwarte.*
 
 2026-10-26, 05-02/P4-027: testy regresji i dokumentacja przed kodem przygotowane. Oczekiwany RED potwierdza błąd, nie jest spełnieniem FIX-02. Wdrożenie oczekuje osobnego commitu testów na prośbę użytkownika; dowody w [05-02-TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-TDD.md).
 
@@ -308,3 +308,7 @@ Następny P4-040; P4-014/015 oczekują U02. Dowody: 05-37-SUMMARY.md. Commit bez
 2026-10-31, 05-38/P4-040 zakończony: przy reduced motion ruch-zadanie zostaje, float-up zamienia się w nieruchome float-still, klatka bazowa podglądu opisana.
 TDD 4a535fb. Typy/testy/build PASS. 37/62 pakietów, 161/267 części; FIX-02 otwarte.
 Następny P4-042; P4-014/015 oczekują U02. Dowody: 05-38-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-39/P4-042 zakończony: ring-pulse 1,2 s, czekanie bez migania, jawne czasy przejść, paski czasu z zegara (TimeBar).
+TDD f156052. Typy/testy/build PASS. 38/62 pakietów, 169/267 części; FIX-02 otwarte.
+Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez push.

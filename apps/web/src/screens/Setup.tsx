@@ -45,7 +45,7 @@ export function Setup({ view, me, dropped, send, onLeave }: Props) {
                 role="radio"
                 aria-checked={on}
                 disabled={!isHost}
-                className={`flex min-h-12 flex-col items-start justify-center rounded-inset border px-3 py-2 text-left transition-colors ${
+                className={`flex min-h-12 flex-col items-start justify-center rounded-inset border px-3 py-2 text-left transition-colors duration-180 ${
                   on ? "border-accent bg-accent-soft" : "border-line enabled:hover:border-line-hover disabled:opacity-50"
                 }`}
                 onClick={() => send("pickMode", { mode: m.id })}
@@ -153,7 +153,7 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
                 key={name}
                 type="button"
                 aria-pressed={length === games}
-                className={`flex min-h-12 flex-col items-center justify-center rounded-inset border text-sm transition-colors ${
+                className={`flex min-h-12 flex-col items-center justify-center rounded-inset border text-sm transition-colors duration-180 ${
                   length === games ? "border-accent bg-accent-soft" : "border-line hover:border-line-hover"
                 }`}
                 onClick={() => pick({ length: games })}
@@ -181,7 +181,7 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
                   key={id}
                   type="button"
                   aria-label={`${GAMES[id].name}: ${state}${author && state !== "losowo" ? `, zaznaczył(a) ${author.nick}` : ""}`}
-                  className={`flex min-h-20 flex-col items-start gap-1 rounded-inset border p-2 text-left transition-colors ${
+                  className={`flex min-h-20 flex-col items-start gap-1 rounded-inset border p-2 text-left transition-colors duration-180 ${
                     state === "na pewno" ? "border-accent bg-accent-soft" : state === "bez" ? "border-line opacity-50" : "border-line hover:border-line-hover"
                   }`}
                   onClick={() => cycle(id)}

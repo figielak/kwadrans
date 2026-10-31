@@ -61,7 +61,7 @@ export function PlayerDots({ view }: { view: RoomView }) {
         return (
           <li
             key={p.id}
-            className={`grid size-4 place-items-center rounded-full transition-opacity ${p.connected ? "" : "opacity-40"}`}
+            className={`grid size-4 place-items-center rounded-full transition-opacity duration-180 ${p.connected ? "" : "opacity-40"}`}
             style={{ backgroundColor: p.color }}
             aria-label={`${p.nick}${ready ? ", gotowe" : ""}${p.connected ? "" : ", rozłączony"}`}
           >
@@ -111,7 +111,7 @@ export function GameDots({ dots, square, open, onToggle, compact = false }: { do
         >
           <span className="grid size-8 place-items-center rounded-full bg-bg" aria-hidden>
             <span
-              className={`grid size-7 place-items-center rounded-full leading-none font-semibold text-bg transition-opacity ${d.label.length > 1 ? "text-[11px]" : "text-sm"} ${d.reading || !d.connected ? "opacity-40" : ""}`}
+              className={`grid size-7 place-items-center rounded-full leading-none font-semibold text-bg transition-opacity duration-180 ${d.label.length > 1 ? "text-[11px]" : "text-sm"} ${d.reading || !d.connected ? "opacity-40" : ""}`}
               style={{ backgroundColor: d.color }}
             >
               {d.label}
@@ -122,7 +122,7 @@ export function GameDots({ dots, square, open, onToggle, compact = false }: { do
             // Klucz z wyniku: po wygranej liczba montuje się od nowa i wskakuje.
             <span
               key={d.badge}
-              className={`absolute -top-1 -right-1 grid h-4 min-w-4 place-items-center border border-line bg-surface px-0.5 font-mono text-[10px] leading-none text-fg tabular-nums ${square ? "rounded-sm" : "rounded-full"} ${d.plus ? "animate-[stone-pop_0.5s_ease-out]" : ""}`}
+              className={`absolute -top-1 -right-1 grid h-4 min-w-4 place-items-center border border-line bg-surface px-0.5 font-mono text-[10px] leading-none text-fg tabular-nums ${square ? "rounded-sm" : "rounded-full"} ${d.plus ? "animate-[stone-pop_0.35s_ease-out]" : ""}`}
               aria-hidden
             >
               {d.badge}
@@ -172,6 +172,28 @@ export function Stats({ items }: { items: { label: string; value: ReactNode; war
 }
 
 /** „12,3”: jedno miejsce po przecinku, z przecinkiem. */
+/** Krok odświeżania pasków czasu; przejście szerokości trwa tyle samo, więc pasek jedzie płynnie i liniowo. */
+export const TICK_MS = 250;
+
+/**
+ * Pasek czasu liczony z zegara od zamontowania: działa przy prefers-reduced-motion (wtedy skacze co krok) i po powrocie do karty.
+ * `fill` rośnie od zera, bez niego maleje. Kolor z `color` albo z klasy `bar`.
+ */
+export function TimeBar({ ms, fill = false, color, bar = "" }: { ms: number; fill?: boolean; color?: string; bar?: string }) {
+  const [start] = useState(() => performance.now());
+  const [now, setNow] = useState(start);
+  useEffect(() => {
+    const id = setInterval(() => setNow(performance.now()), TICK_MS);
+    return () => clearInterval(id);
+  }, []);
+  const done = Math.min(1, (now - start) / ms);
+  return (
+    <div className="h-1.5 overflow-hidden rounded-full bg-line" aria-hidden>
+      <div className={`h-full transition-[width] duration-250 ease-linear ${bar}`} style={{ width: `${(fill ? done : 1 - done) * 100}%`, backgroundColor: color }} />
+    </div>
+  );
+}
+
 export const tenth = (n: number) => n.toFixed(1).replace(".", ",");
 
 /** Kolor według celności błędu: do `perfect` zielony, powyżej `close` ostrzegawczy. */

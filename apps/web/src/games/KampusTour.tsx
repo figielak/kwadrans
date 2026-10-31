@@ -825,7 +825,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
                   type="button"
                   aria-label={tile.name}
                   aria-pressed={selected === i}
-                  className={`relative flex min-h-0 min-w-0 flex-col items-center justify-center rounded-sm bg-[color-mix(in_srgb,var(--color-fg)_12%,var(--color-bg))] transition-[opacity,translate] ${
+                  className={`relative flex min-h-0 min-w-0 flex-col items-center justify-center rounded-sm bg-[color-mix(in_srgb,var(--color-fg)_12%,var(--color-bg))] transition-[opacity,translate] duration-180 ${
                     sellable ? "z-10 outline-2 outline-accent" : deciding === i ? "z-10 -translate-y-0.5 outline-2" : selected === i ? "outline-2 outline-fg" : ""
                   } ${pickable(i) === false ? "opacity-40" : ""} ${fresh.includes(i) ? "animate-[set-glow_0.9s_ease-in-out_4]" : ""}`}
                   style={{

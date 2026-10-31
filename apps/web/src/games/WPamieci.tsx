@@ -130,7 +130,7 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
       <div className="tile relative mx-auto flex aspect-square w-full max-w-[calc(100dvh-23.5rem)] items-center justify-center select-none">
         {phase === "wait" && answers.length > 0 && <span className="text-lg text-success">Dobrze</span>}
         {phase === "show" && (
-          // Klucz z pozycji: dwa takie same działania z rzędu wskakują osobno.
+          // Klucz z pozycji: dwa takie same działania z rzędu wskakują osobno. 180 ms zamiast 350: pokaz trwa 1,5 s (wyjątek w ZASADY §5).
           <span key={pos} className="animate-[stone-pop_180ms_ease-out] font-mono text-6xl font-semibold tabular-nums">
             {items(round)[pos]}
           </span>

@@ -113,7 +113,6 @@ export function Memory({ view, players, canMove, onMove }: Props) {
         <p role="status" className="flex h-8 items-center justify-center gap-2 text-fg-muted">
           {/* Pełny kolor gracza; fala rozchodzi się tylko wtedy, gdy czekamy na rywala. */}
           <span className="relative size-2.5 rounded-full" style={{ backgroundColor: turnColor }} aria-hidden>
-            {!canMove && <span className="absolute inset-0 animate-ping rounded-full" style={{ backgroundColor: turnColor }} />}
           </span>
           {canMove ? (view.first === null ? "Odkryj pierwszą kartę" : "Odkryj drugą kartę") : `${turnNick} szuka pary…`}
         </p>

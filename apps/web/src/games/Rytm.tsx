@@ -1,6 +1,6 @@
 import { type LobbyPlayer, RYTM_BEATS, RYTM_MAX_TAPS, RYTM_TAP_MS, type RytmView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
-import { Intro, Scores } from "../screens/ui.tsx";
+import { Intro, Scores, TimeBar } from "../screens/ui.tsx";
 
 interface Props {
   view: RytmView;
@@ -145,9 +145,7 @@ export function Rytm({ view, me, players, ranking, onMove }: Props) {
           ))}
         </div>
         {/* Płynny pasek zamiast licznika sekund: tykające cyfry podawałyby tempo 60 BPM. */}
-        <div className="h-1.5 overflow-hidden rounded-full bg-line">
-          <div className="h-full bg-fg-muted transition-[width] ease-linear" style={{ width: tapping ? "100%" : "0%", transitionDuration: `${RYTM_TAP_MS}ms` }} />
-        </div>
+        {tapping ? <TimeBar ms={RYTM_TAP_MS} fill bar="bg-fg-muted" /> : <div className="h-1.5 rounded-full bg-line" />}
       </div>
       <button
         type="button"

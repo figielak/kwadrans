@@ -2,7 +2,7 @@
 
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
-**Stan wykonania: 37/62 pakietów, 161/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..022 oraz P4-023..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040 i P4-007..010.
+**Stan wykonania: 38/62 pakietów, 169/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..022 oraz P4-023..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042 i P4-007..010.
 F4-046 z P4-031 częściowo otwarte: zakresy PASS, równy udział rodzajów SKIP po wykryciu błędu; naprawa w P4-057 (05-31-SUMMARY.md), bez doliczania do zamkniętych części.
 Dowody: 05-01..34-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
@@ -72,7 +72,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 37 | [P4-039: Śledzenie: rozdzielne cele dotyku](#scope-p4-039) | P2 | 1 | wykonano 2026-10-31, 05-37; TDD 05a0dfe |
 | 38 | [P4-040: Reduced motion: zadanie działa, komunikat widoczny](#scope-p4-040) | P2 | 4 | wykonano 2026-10-31, 05-38; TDD 4a535fb |
 | 39 | [P4-041: Katalog i opisy animacji](#scope-p4-041) | P3 | 3 | wykonano 2026-10-31, 05-35; TDD 4c1b835 |
-| 40 | [P4-042: Przejścia, pętle i paski czasu](#scope-p4-042) | P2 | 8 | nie rozpoczęto |
+| 40 | [P4-042: Przejścia, pętle i paski czasu](#scope-p4-042) | P2 | 8 | wykonano 2026-10-31, 05-39; TDD f156052 |
 | 41 | [P4-043: Błąd, ignorowany ruch i nowa decyzja](#scope-p4-043) | P2 | 5 | nie rozpoczęto |
 | 42 | [P4-044: Odsłona wyniku i prawdy](#scope-p4-044) | P2 | 3 | nie rozpoczęto |
 | 43 | [P4-045: Zaznaczenie, okno i błysk trafienia](#scope-p4-045) | P2 | 3 | nie rozpoczęto |
@@ -672,7 +672,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-041](PACKAGES.md#p4-041), [P4-040](PACKAGES.md#p4-040). Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Porównać wszystkie wystąpienia F4: ring-pulse 1,2 s, bez Tailwind pulse/ping; pojawienie standardowe 350, pływająca liczba 1,6. Rytm/Zakupy pasek aktualizuje się przy reduced motion i po powrocie do karty, nie zdradza ukrytego zegara.
 - Granice: Nie wydłużać pokazów i odsłon wraz z animacją; globalny CSS nie może zmienić bodźca na refleks.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **wykonano 2026-10-31**, 05-39; TDD f156052. Dowody: 05-39-SUMMARY.md.
 
 <a id="scope-p4-043"></a>
 

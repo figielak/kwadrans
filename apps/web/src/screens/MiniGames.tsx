@@ -54,7 +54,7 @@ export function MiniGameGrid({ records, nick, color, picked, disabled, onPick }:
               type="button"
               aria-pressed={picked === undefined ? undefined : picked === id}
               disabled={disabled}
-              className={`flex min-h-20 flex-col items-start gap-1 rounded-inset border p-2 text-left transition-colors ${
+              className={`flex min-h-20 flex-col items-start gap-1 rounded-inset border p-2 text-left transition-colors duration-180 ${
                 picked === id ? "border-accent bg-accent-soft" : "border-line hover:border-line-hover"
               }`}
               onClick={() => onPick(id)}

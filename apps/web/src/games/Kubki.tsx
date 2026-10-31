@@ -170,7 +170,7 @@ export function Kubki({ view, me, players, ranking, onMove }: Props) {
             >
               {hasBall && <span className="absolute bottom-0 left-1/2 aspect-square w-[40%] -translate-x-1/2 rounded-full" style={{ backgroundColor: color }} />}
               <span
-                className="absolute inset-0 bg-fg transition-transform duration-150"
+                className="absolute inset-0 bg-fg transition-transform duration-180"
                 style={{
                   clipPath: CUP_SHAPE,
                   transform: lifted ? "translateY(-55%)" : undefined,

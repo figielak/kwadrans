@@ -265,7 +265,7 @@ function GameCard({ game: { id, rows, mine }, nick, color, loaded, onOpen, onPla
             {mine.place}/{mine.of}
           </span>
         )}
-        <CaretDown size={14} className="shrink-0 text-fg-muted transition-transform group-open:rotate-180" aria-hidden />
+        <CaretDown size={14} className="shrink-0 text-fg-muted transition-transform duration-180 group-open:rotate-180" aria-hidden />
       </summary>
       <div className="border-t border-line px-3 pb-3">
         <RecordList gameId={id} rows={rows} me={nick} color={color} limit={10} />

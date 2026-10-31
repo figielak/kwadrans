@@ -276,7 +276,7 @@ function Pad({ view, onMove }: { view: KalamburyView; onMove: Props["onMove"] })
               role="radio"
               aria-checked={ink === i}
               aria-label={p.name}
-              className={`flex size-12 items-center justify-center rounded-full border border-line-hover transition-colors ${ink === i ? "ring-2 ring-fg ring-offset-2 ring-offset-bg" : ""}`}
+              className={`flex size-12 items-center justify-center rounded-full border border-line-hover transition-colors duration-100 ${ink === i ? "ring-2 ring-fg ring-offset-2 ring-offset-bg" : ""}`}
               style={{ backgroundColor: p.color }}
               onClick={() => setInk(i)}
             >

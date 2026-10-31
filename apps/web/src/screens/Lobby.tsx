@@ -65,8 +65,8 @@ export function Lobby({ view, me, dropped, send, onLeave, onMini }: Props) {
   if (!view) {
     return (
       <Screen dropped={dropped}>
-        <div className="tile h-36 animate-pulse" aria-label="Wczytywanie" />
-        <div className="tile h-24 animate-pulse" />
+        <div className="tile h-36" aria-label="Wczytywanie" />
+        <div className="tile h-24" />
       </Screen>
     );
   }
@@ -155,7 +155,7 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
                     </span>
                   </>
                 );
-                const className = `flex w-full min-h-12 items-center gap-3 rounded-inset px-3 text-left transition-opacity ${p.connected ? "" : "opacity-50"}`;
+                const className = `flex w-full min-h-12 items-center gap-3 rounded-inset px-3 text-left transition-opacity duration-180 ${p.connected ? "" : "opacity-50"}`;
                 const style = { backgroundColor: `color-mix(in srgb, ${p.color} ${seated || !def ? 10 : 4}%, transparent)` };
                 return (
                   <li key={p.id}>
@@ -252,7 +252,7 @@ export function Tile({ icon: TileIcon, name, hint, picked, disabled, dim, wide, 
       type="button"
       aria-pressed={picked}
       disabled={disabled}
-      className={`flex rounded-inset border p-3 text-left transition-[color,border-color,opacity] ${wide ? "min-h-14 items-center gap-3" : "min-h-20 flex-col items-start gap-1"} ${
+      className={`flex rounded-inset border p-3 text-left transition-[color,background-color,border-color,opacity] duration-180 ${wide ? "min-h-14 items-center gap-3" : "min-h-20 flex-col items-start gap-1"} ${
         picked ? "border-accent bg-accent-soft" : "border-line enabled:hover:border-line-hover"
       } ${disabled ? "opacity-40" : dim ? "opacity-60" : ""}`}
       onClick={onClick}

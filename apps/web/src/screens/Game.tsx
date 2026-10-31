@@ -275,7 +275,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                 return (
                   <li
                     key={id}
-                    className={`flex min-h-9 max-w-full flex-wrap items-center gap-2 rounded-full border px-3 text-sm transition-colors ${fleet ? "w-full" : ""} ${
+                    className={`flex min-h-9 max-w-full flex-wrap items-center gap-2 rounded-full border px-3 text-sm transition-colors duration-180 ${fleet ? "w-full" : ""} ${
                       active ? "" : "border-line text-fg-muted"
                     }`}
                     style={active ? { borderColor: p?.color, backgroundColor: `color-mix(in srgb, ${p?.color} 16%, transparent)` } : undefined}
@@ -315,7 +315,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                           wygrane
                         </span>
                         {/* Klucz z wyniku: po wygranej liczba montuje się od nowa i wskakuje. */}
-                        <span key={view.scores[id] ?? 0} className={id === winner ? "animate-[stone-pop_0.5s_ease-out]" : ""}>
+                        <span key={view.scores[id] ?? 0} className={id === winner ? "animate-[stone-pop_0.35s_ease-out]" : ""}>
                           {view.scores[id] ?? 0}
                         </span>
                         {id === winner && (
@@ -613,7 +613,7 @@ function Countdown({ game, total, tense, color, label }: { game: { msLeft: numbe
         {label && <span className="label">{label}</span>}
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line" role="progressbar" aria-label="Czas tury" aria-valuenow={seconds}>
           <div
-            className={`h-full rounded-full transition-[width] duration-300 ease-linear ${seconds <= 10 ? "animate-pulse bg-warning" : tense ? "bg-fg" : "bg-fg-muted"}`}
+            className={`h-full rounded-full transition-[width] duration-250 ease-linear ${seconds <= 10 ? "bg-warning" : tense ? "bg-fg" : "bg-fg-muted"}`}
             style={{ width: `${Math.min(1, left) * 100}%`, backgroundColor: seconds > 10 ? color : undefined }}
           />
         </div>

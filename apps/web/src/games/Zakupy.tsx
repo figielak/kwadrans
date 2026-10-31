@@ -1,6 +1,6 @@
 import { type LobbyPlayer, ZAKUPY_LIST, ZAKUPY_MAX_MS, ZAKUPY_SHOW_MS, type ZakupyView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
-import { Intro, Scores, Stats, tenth } from "../screens/ui.tsx";
+import { Intro, Scores, Stats, tenth, TimeBar } from "../screens/ui.tsx";
 
 interface Props {
   view: ZakupyView;
@@ -40,7 +40,6 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
   const [picked, setPicked] = useState<number[]>([]);
   const [elapsed, setElapsed] = useState(0);
   /** Pasek pokazu startuje od pełnego i po zamontowaniu przechodzi do zera. */
-  const [draining, setDraining] = useState(false);
   const start = useRef(0);
   // Synchroniczne dane dla timera i zdarzeń z tej samej klatki, zanim React odmaluje ekran.
   const selected = useRef<number[]>([]);
@@ -49,7 +48,6 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
 
   useEffect(() => {
     if (phase !== "show") return;
-    setDraining(true);
     const id = setTimeout(() => {
       start.current = performance.now();
       setPhase("pick");
@@ -140,9 +138,7 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
   if (phase === "show") {
     return (
       <section className="flex flex-col gap-2">
-        <div className="h-1.5 overflow-hidden rounded-full bg-surface" aria-hidden>
-          <div className="h-full" style={{ width: draining ? "0%" : "100%", backgroundColor: color, transition: `width ${ZAKUPY_SHOW_MS}ms linear` }} />
-        </div>
+        <TimeBar ms={ZAKUPY_SHOW_MS} color={color} />
         <div className="tile grid grid-cols-5 gap-1 p-3">
           {view.listed.map((i) => (
             <span key={i} className="flex aspect-square items-center justify-center rounded-inset border border-line text-3xl">

@@ -204,8 +204,8 @@ animacja tylko go dogania na ekranie.
 
   | Keyframes | Rola | Czasy |
   |---|---|---|
-  | `stone-pop` | coś pojawia się na planszy (kamień, strzał, ścianka, karta Memory, znacznik, nowa wygrana) | `0.35s` standard; `0.5s` nowa wygrana na pigułce i plakietce; `180ms` działanie W pamięci (wyjątek: pokaz co 1,5 s) |
-  | `ring-pulse` | to można wybrać (pionek, karta, „Jeszcze raz” po prośbie innych), w pętli | `1.2s`; `1s` Chińczyk (do ujednolicenia w P4-042) |
+  | `stone-pop` | coś pojawia się na planszy (kamień, strzał, ścianka, karta Memory, znacznik, nowa wygrana) | `0.35s` standard; `180ms` działanie W pamięci (wyjątek: pokaz co 1,5 s) |
+  | `ring-pulse` | to można wybrać (pionek, karta, „Jeszcze raz” po prośbie innych), w pętli | `1.2s` |
   | `dice-tumble` | rzut kośćmi, pętla na czas pokazu rzutu | `0.3s` |
   | `card-in` | karta lub okno na środku ekranu (Karta Dziekanatu, oferty, podsumowanie) | `0.35s` |
   | `float-up` | zmiana liczby (kwota, „+1”, punkty Balonu i Wieży) | `1.6s` |
@@ -232,6 +232,14 @@ animacja tylko go dogania na ekranie.
   | rzut kośćmi | 700 ms |
   | pływająca liczba | 1,6 s |
   | świeże osiągnięcie (`set-glow`) | 0,9 s × 4 |
+  | pętla „to można wybrać” (`ring-pulse`) | 1,2 s |
+  | pasek czasu | przejście szerokości `linear` równe krokowi odświeżania (`TICK_MS` 250 ms), z zegara, nie jednym długim przejściem |
+  | pojawienie w pokazie na czas (W pamięci) | 180 ms (wyjątek: działanie co 1,5 s) |
+  | Szybki Chińczyk: krok pionka i rzut | 110 ms na pole, 400 ms (wyjątek: tryb na 20 s tury) |
+
+  Czekanie na rywala jest spokojne: nieruchoma kropka w kolorze gracza i tekst, bez `animate-pulse`/`animate-ping` z Tailwinda
+  (ekran nie miga, DESIGN §1). Ostatnie 10 s limitu pokazuje sam kolor `warning`. Każde przejście Tailwinda ma jawny czas
+  (`duration-180` dla stanu, `duration-100` dla reakcji na dotyk); test `animations.test.ts` to sprawdza.
 
 - **Animacja nie blokuje gry.** Przyciski działają w trakcie, kolejny stan z serwera przerywa poprzednią animację,
   a przy dużym skoku (odświeżenie, powrót do karty) element od razu ląduje na miejscu.

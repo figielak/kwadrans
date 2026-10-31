@@ -183,7 +183,7 @@ export function Labirynt({ view, me, players, canMove, onMove }: Props) {
                   strokeDasharray="1 0.7"
                 />
               ) : (
-                <circle key={`${c.x},${c.y}`} cx={(c.x + 0.5) * CELL} cy={(c.y + 0.5) * CELL} r={1.6} fill={myColor} className="animate-pulse" />
+                <circle key={`${c.x},${c.y}`} cx={(c.x + 0.5) * CELL} cy={(c.y + 0.5) * CELL} r={1.6} fill={myColor} />
               ),
             )}
             {view.walls.map((w, i) => (

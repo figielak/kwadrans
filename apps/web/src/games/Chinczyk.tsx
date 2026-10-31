@@ -244,7 +244,7 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
           const inner = pawn ? (
             <span
               className={`size-[70%] rounded-full border-2 border-bg ${
-                isPick ? "outline-2 outline-offset-1" : movable ? "animate-[ring-pulse_1s_ease-in-out_infinite] outline-2" : ""
+                isPick ? "outline-2 outline-offset-1" : movable ? "animate-[ring-pulse_1.2s_ease-in-out_infinite] outline-2" : ""
               }`}
               style={{ backgroundColor: color(pawn.player), outlineColor: color(pawn.player) }}
             />
