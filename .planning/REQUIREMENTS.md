@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 05-01..10 wykonane, 18/62 pakietów, 31/267 części; P4-014 (2/3) i P4-015 oczekują U02; P4-023, P4-036, P4-007..009 odebrane; typy/2049 testów/build PASS; następny P4-010 |
+| FIX-02 | Phase 5 | In progress; 20/62 pakietów, 33/267 części; P4-019 odebrany w 05-21; P4-014 (2/3) i P4-015 oczekują U02; ostatni odbiór: typy/2049 testów/build PASS; następny P4-020 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -115,7 +115,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-26 po zakończeniu 05-02 (faza 5: 2/62 pakietów, 6/267 części, 05-03 przygotowany, FIX-02 otwarte)*
+*Last updated: 2026-10-31 po 05-21/P4-019; 20/62 pakietów, 33/267 części, FIX-02 otwarte.*
 
 2026-10-26, 05-02/P4-027: testy regresji i dokumentacja przed kodem przygotowane. Oczekiwany RED potwierdza błąd, nie jest spełnieniem FIX-02. Wdrożenie oczekuje osobnego commitu testów na prośbę użytkownika; dowody w [05-02-TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-TDD.md).
 
@@ -242,3 +242,7 @@ Następny P4-010. Dowody: 05-19-SUMMARY.md. Commit bez push.
 pole 9×9 ~34 px). Klasyczny 4+obs, ściana, partia do końca, rewanż, Szybki 2+obs i odświeżenie: 640 px w grze.
 Typy/2049 testów/build PASS. 19/62 pakietów, 32/267 części; FIX-02 otwarte.
 Następny P4-019. Dowody: 05-20-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-21/P4-019 wykonany: Chińczyk, przerywalny pokaz i ruch dostępny od razu po pominięciu.
+Typy/2049 testów/build PASS. 20/62 pakietów, 33/267 części; FIX-02 otwarte.
+Następny P4-020. Dowody: 05-21-SUMMARY.md. Commit bez push.

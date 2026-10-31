@@ -218,10 +218,13 @@ animacja tylko go dogania na ekranie.
   Kampus Tour: pierwsze dotknięcie podczas turlania lub marszu kończy pokaz do pozycji serwera,
   bez wysyłania ruchu. Kolejne dotknięcie wybiera decyzję. Nowa wiadomość przerywa stary pokaz,
   limit tury biegnie niezależnie. Karta i MPK przestawiają pionek bez udawanego rzutu kośćmi.
+  Chińczyk tak samo: pierwsze dotknięcie planszy albo dolnego paska w trakcie turlania lub marszu kończy pokaz
+  (bez ruchu i bez wyboru pionka spod palca), kolejne wybiera pionek. Nowy rzut albo ruch zaczyna pokaz od poprzedniego
+  widoku serwera, bez zaległej kolejki; wibracja zbicia przychodzi raz, gdy pokaz dojdzie do końca albo zostanie zastąpiony.
   Wyjątek: Statki po pudle trzymają stary układ plansz przez 1,2 s (`SWAP_MS`), zanim plansze się zamienią i pojawi się
   przycisk strzału; bez tego broniący nie widział, gdzie padł strzał.
 - **Kroki sekwencyjne** (pionek idzie pole po polu) to stan „pokazywany” goniący stan „docelowy” w `setTimeout`,
-  ze stałymi `STEP_MS` i `ROLL_MS` na górze pliku (wzór: `Chinczyk.tsx`).
+  ze stałymi `STEP_MS` i `ROLL_MS` na górze pliku (wzór: `useShow` w `Chinczyk.tsx`).
 - **`prefers-reduced-motion`**: reguła globalna w `index.css` wyłącza animacje CSS, a każda animacja sterowana z JS
   sprawdza `reducedMotion` i przeskakuje do stanu końcowego.
 - **Pomiar czasu nigdy nie zależy od animacji.** W grach na refleks bodziec pojawia się bez przejścia.

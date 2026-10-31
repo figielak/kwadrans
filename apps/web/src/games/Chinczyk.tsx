@@ -54,42 +54,56 @@ const QUICK_STEP_MS = 110;
 const QUICK_ROLL_MS = 400;
 const reducedMotion = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** Czy kostka się właśnie turla: przez chwilę po każdym nowym rzucie (nie po odświeżeniu strony). */
-function useRolling(roll: number | undefined, rollMs: number): boolean {
-  const last = useRef(roll);
-  const [rolling, setRolling] = useState(false);
-  useEffect(() => {
-    if (last.current === roll) return;
-    last.current = roll;
-    if (reducedMotion) return;
-    setRolling(true);
-    const t = setTimeout(() => setRolling(false), rollMs);
-    return () => clearTimeout(t);
-  }, [roll, rollMs]);
-  return rolling;
-}
+/** Zdarzenie, od którego zaczyna się pokaz: nowy rzut albo ruch pionka po wyborze w tym samym rzucie. */
+const eventKey = (view: ChinczykView) => (view.last ? `${view.last.roll}:${view.last.move ? view.last.move.pawn : "-"}` : "");
+
+/** Pionek idzie pole po polu (wyjście z domku to jeden krok); zbicia i dalekie skoki zmieniają się od razu. */
+const walking = (from: number | undefined, to: number) => from !== undefined && to > from && to - from <= 6;
 
 /**
- * Pozycje pionków do wyświetlenia: pionek idzie pole po polu (wyjście z domku to jeden krok).
- * Zbicia i dalekie skoki (powrót po zerwanym połączeniu) zmieniają się od razu, ale dopiero gdy nikt już nie idzie.
+ * Jeden przerywalny pokaz: turlanie kostki, potem marsz pionka. Nowe zdarzenie z serwera zastępuje poprzedni pokaz
+ * i zaczyna od poprzedniego widoku serwera, bez zaległej kolejki; `finish` od razu pokazuje stan serwera.
+ * Po odświeżeniu strony pozycje są od razu aktualne.
  */
-function useWalk(target: Record<string, number[]>, paused: boolean, stepMs: number): Record<string, number[]> {
-  const [shown, setShown] = useState(target);
+function useShow(view: ChinczykView, rollMs: number, stepMs: number) {
+  const [frame, setFrame] = useState({ view, shown: view.pawns, rollEnd: 0 });
+  if (frame.view !== view) {
+    const fresh = eventKey(view) !== eventKey(frame.view);
+    const newRoll = fresh && !!view.last && view.last.roll !== frame.view.last?.roll;
+    if (reducedMotion) setFrame({ view, shown: view.pawns, rollEnd: 0 });
+    else if (fresh) setFrame({ view, shown: frame.view.pawns, rollEnd: newRoll ? performance.now() + rollMs : 0 });
+    else setFrame({ ...frame, view });
+  }
+  const rolling = frame.rollEnd > 0;
   useEffect(() => {
-    if (paused) return;
-    const walking = (p: string, i: number) => {
-      const from = shown[p]?.[i];
-      return from !== undefined && target[p][i] > from && target[p][i] - from <= 6;
-    };
-    const ids = Object.keys(target);
-    if (ids.every((p) => target[p].every((pos, i) => shown[p]?.[i] === pos))) return;
-    if (reducedMotion || !ids.some((p) => target[p].some((_, i) => walking(p, i)))) return setShown(target);
-    const t = setTimeout(() => {
-      setShown((prev) => Object.fromEntries(ids.map((p) => [p, (prev[p] ?? target[p]).map((pos, i) => (walking(p, i) ? (pos < 0 ? 0 : pos + 1) : pos))])));
+    if (frame.view !== view) return;
+    if (frame.rollEnd) {
+      const id = setTimeout(() => setFrame({ ...frame, rollEnd: 0 }), Math.max(0, frame.rollEnd - performance.now()));
+      return () => clearTimeout(id);
+    }
+    const ids = Object.keys(view.pawns);
+    if (ids.every((p) => view.pawns[p].every((pos, i) => frame.shown[p]?.[i] === pos))) return;
+    if (!ids.some((p) => view.pawns[p].some((to, i) => walking(frame.shown[p]?.[i], to)))) {
+      setFrame({ ...frame, shown: view.pawns });
+      return;
+    }
+    const id = setTimeout(() => {
+      const shown = Object.fromEntries(
+        ids.map((p) => [p, view.pawns[p].map((to, i) => {
+          const from = frame.shown[p]?.[i];
+          return walking(from, to) ? (from! < 0 ? 0 : from! + 1) : (from ?? to);
+        })]),
+      );
+      setFrame({ ...frame, shown });
     }, stepMs);
-    return () => clearTimeout(t);
-  }, [shown, target, paused, stepMs]);
-  return shown;
+    return () => clearTimeout(id);
+  }, [frame, view, stepMs]);
+  return {
+    shown: frame.shown,
+    rolling,
+    settled: frame.view === view && !rolling && view.players.every((p) => frame.shown[p]?.every((pos, i) => pos === view.pawns[p][i])),
+    finish: () => setFrame({ view, shown: view.pawns, rollEnd: 0 }),
+  };
 }
 
 /** Kostka: w trakcie turlania co chwilę losowe oczka i podskakiwanie, potem wynik z serwera. */
@@ -124,23 +138,34 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
   const nick = (id: string) => players.find((p) => p.id === id)?.nick ?? "?";
   const last = view.last;
   const quick = view.mode === "szybki";
-  const rolling = useRolling(last?.roll, quick ? QUICK_ROLL_MS : ROLL_MS);
-  const shown = useWalk(view.pawns, rolling, quick ? QUICK_STEP_MS : STEP_MS);
-  const settled = !rolling && view.players.every((p) => shown[p]?.every((pos, i) => pos === view.pawns[p][i]));
+  const { shown, rolling, settled, finish } = useShow(view, quick ? QUICK_ROLL_MS : ROLL_MS, quick ? QUICK_STEP_MS : STEP_MS);
   const myMove = canMove && settled && view.phase === "move";
+  const event = eventKey(view);
+
+  // Pierwsze dotknięcie w trakcie pokazu tylko go kończy. Warstwa zostaje do końca gestu,
+  // żeby puszczenie palca po naturalnym końcu pokazu nie trafiło w odsłonięty przycisk.
+  const [holding, setHolding] = useState(false);
 
   // Wybrany pionek pokazuje cel; „Rusz pionek” albo drugie dotknięcie (pionka albo celu) wykonuje ruch.
   const [selected, setSelected] = useState<number | null>(null);
-  useEffect(() => setSelected(null), [last?.roll, view.phase]);
+  useEffect(() => setSelected(null), [event, view.phase, view.turn]);
   const pick = selected !== null && myMove && view.movable.includes(selected) ? selected : null;
 
-  // Zbity pionek: krótka wibracja u właściciela, raz na ruch.
-  const buzzed = useRef(last?.roll);
+  // Zbity pionek: wibracja u właściciela raz na ruch, gdy pokaz dojdzie do zbicia (albo zastąpi go kolejne zdarzenie).
+  // Ruch zastany przy wejściu do gry nie wibruje.
+  const seen = useRef(event);
+  const pending = useRef(false);
   useEffect(() => {
-    if (!settled || !last?.move || buzzed.current === last.roll) return;
-    buzzed.current = last.roll;
-    if (last.move.captured.includes(me)) navigator.vibrate?.([60, 40, 60]);
-  }, [settled, last, me]);
+    if (seen.current === event) return;
+    seen.current = event;
+    if (pending.current) navigator.vibrate?.([60, 40, 60]);
+    pending.current = !!last?.move?.captured.includes(me);
+  }, [event, last, me]);
+  useEffect(() => {
+    if (!settled || !pending.current) return;
+    pending.current = false;
+    navigator.vibrate?.([60, 40, 60]);
+  }, [settled]);
 
   const seatOf = (player: string) => view.starts[player] / (TRACK / 4);
   const cellOf = (player: string, pos: number, index: number) =>
@@ -205,7 +230,7 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
   const move = (pawn: number) => onMove({ type: "move", pawn });
 
   return (
-    <div className="flex flex-1 flex-col gap-3">
+    <div className="relative flex flex-1 flex-col gap-3">
       <div className="tile grid aspect-square w-full gap-[3px] p-2" style={{ gridTemplate: "repeat(11, minmax(0, 1fr)) / repeat(11, minmax(0, 1fr))" }}>
         {Array.from({ length: 121 }, (_, i) => {
           if (i === CENTER) return <Finish key={i} colors={seats.map((p) => (p ? tint(color(p), 0.62, 0.9) : UNUSED))} />;
@@ -314,6 +339,22 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
           )}
         </div>
       </StickyBar>
+
+      {(!settled || holding) && (
+        <button
+          type="button"
+          className="absolute -inset-x-4 inset-y-0 z-40 cursor-pointer"
+          aria-label="Pomiń animację"
+          onPointerDown={() => setHolding(true)}
+          onPointerCancel={() => setHolding(false)}
+          onPointerUp={() => setTimeout(() => setHolding(false))}
+          onClick={(e) => {
+            e.stopPropagation();
+            finish();
+            setHolding(false);
+          }}
+        />
+      )}
     </div>
   );
 }

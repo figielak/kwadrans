@@ -53,7 +53,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 19 | [P4-008: Statki: rozstawianie i bitwa w ekranie](#scope-p4-008) | P1 | 1 | wykonano 2026-10-30, 05-18 |
 | 20 | [P4-009: Chińczyk: domki i kostka w ekranie](#scope-p4-009) | P1 | 1 | wykonano 2026-10-30, 05-19 |
 | 21 | [P4-010: Labirynt: własny pionek i wybór ruchu](#scope-p4-010) | P1 | 1 | wykonano 2026-10-30, 05-20 |
-| 22 | [P4-019: Chińczyk: ruch dostępny w animacji](#scope-p4-019) | P1 | 1 | nie rozpoczęto |
+| 22 | [P4-019: Chińczyk: ruch dostępny w animacji](#scope-p4-019) | P1 | 1 | wykonano 2026-10-31, 05-21 |
 | 23 | [P4-020: Śledzenie: 360 s na pełną partię](#scope-p4-020) | P2 | 1 | nie rozpoczęto |
 | 24 | [P4-021: Który rok?: 270 s z zapasem sieciowym](#scope-p4-021) | P2 | 1 | nie rozpoczęto |
 | 25 | [P4-022: Jeden termin mini-gry niezależny od rywali](#scope-p4-022) | P2 | 1 | nie rozpoczęto |
@@ -419,7 +419,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-009](PACKAGES.md#p4-009). Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Klasyczny/Szybki, 2/4 graczy: rzut 6, wejście do domku, zbicie, dodatkowy rzut, trzeci brak ruchu; dotyk w trakcie i nowy stan nie tworzą podwójnego ruchu. Refresh/reconnect i reduced motion bez zaległej kolejki.
 - Granice: Wibracja zbicia raz na zdarzenie; nie zmieniać 20 s ani premii rzutu.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **wykonano 2026-10-31**. Dowody: [05-21-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-21-SUMMARY.md).
 
 <a id="scope-p4-020"></a>
 
