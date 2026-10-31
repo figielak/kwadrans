@@ -239,7 +239,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
 - W mini-grach (gry solo, `minPlayers: 1`) limit rusza po ekranie instrukcji: gdy wszyscy klikną „Start” albo po 15 s.
 - Sekwencja: walidowany postęp zaliczonych serii; po limicie 300 s serwer oddaje ostatnią zaliczoną serię zamiast zera. Zaczęta seria nie zwiększa wyniku, a postęp nie odnawia limitu.
 - Zakupy: limit serwera 80 s, obejmujący 10 s pokazu, do 50 s wyboru i zapas na dostarczenie wyniku. Ręczne i automatyczne oddanie używa tego samego ruchu `result`.
-- Limit tury: 60 s w większości gier; dłużej w Śledzeniu (360 s), Sekwencji i W pamięci (300 s), Który rok? (240 s), Tabeli Schultego, Odcieniu, Wieży, Mapie i Trzech kubkach (180 s),
+- Limit tury: 60 s w większości gier; dłużej w Śledzeniu (360 s), Sekwencji i W pamięci (300 s), Który rok? (270 s), Tabeli Schultego, Odcieniu, Wieży, Mapie i Trzech kubkach (180 s),
   Narysuj koło, Sudoku, Policz kropki, Kąt, Przytrzymaj, Za zasłoną, Balon i Tort (120 s), Kolorze liter, Liczeniu, Innym elemencie, Obrocie, Literówce i Dziesiątkach (90 s); Państwa-miasta i Kalambury mają limit per faza, Statki 90 s na całe rozstawianie, Chińczyk w trybie Szybkim 20 s.
 - Gdy gracz z miejscem zniknie z pokoju w trakcie partii (wyjdzie sam albo nie wróci w 10 minut), partia się kończy:
   jeśli został jeden gracz, wygrywa walkowerem; przy większej liczbie kończy się bez zwycięzcy.

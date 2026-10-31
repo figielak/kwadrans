@@ -2,8 +2,8 @@
 
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
-**Stan wykonania: 21/62 pakietów, 34/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..020 oraz P4-023, P4-036 i P4-007..010.
-Dowody: 05-01..22-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
+**Stan wykonania: 22/62 pakietów, 35/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..021 oraz P4-023, P4-036 i P4-007..010.
+Dowody: 05-01..23-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
 ## 1. Pełne pokrycie i granice
 
@@ -55,7 +55,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 21 | [P4-010: Labirynt: własny pionek i wybór ruchu](#scope-p4-010) | P1 | 1 | wykonano 2026-10-30, 05-20 |
 | 22 | [P4-019: Chińczyk: ruch dostępny w animacji](#scope-p4-019) | P1 | 1 | wykonano 2026-10-31, 05-21 |
 | 23 | [P4-020: Śledzenie: 360 s na pełną partię](#scope-p4-020) | P2 | 1 | wykonano 2026-10-31, 05-22; TDD 6421837 |
-| 24 | [P4-021: Który rok?: 270 s z zapasem sieciowym](#scope-p4-021) | P2 | 1 | nie rozpoczęto |
+| 24 | [P4-021: Który rok?: 270 s z zapasem sieciowym](#scope-p4-021) | P2 | 1 | wykonano 2026-10-31, 05-23; TDD 57a1785 |
 | 25 | [P4-022: Jeden termin mini-gry niezależny od rywali](#scope-p4-022) | P2 | 1 | nie rozpoczęto |
 | 26 | [P4-024: Jeden komparator średniego czasu](#scope-p4-024) | P2 | 1 | nie rozpoczęto |
 | 27 | [P4-025: Jawny remis i kolejność dalszych miejsc](#scope-p4-025) | P2 | 2 | nie rozpoczęto |
@@ -447,7 +447,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-001](PACKAGES.md#p4-001). Dodatkowy warunek: G-DANE rozstrzygnięte w ZG4-v1 §3.2, z zachowaniem starej historii; pozostałe testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Test 270, wyliczenie czasu rund, pełna partia z maksymalnym oczekiwaniem, timeout i rewanż; wyniki nie zmieniają jednostki ani zakresu roku.
 - Granice: Nie rozszerzać historycznej bazy wydarzeń w pakiecie limitu.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 1/1 części. [05-23-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-23-SUMMARY.md). TDD 57a1785; 270 s i zapas 42 s (18,4%), nazwany wyjątek. Pełna partia UI 6 graczy, timeout handlerów i rewanż PASS. Typy/2051 testów/build PASS; historia bez przeliczania.
 
 <a id="scope-p4-022"></a>
 

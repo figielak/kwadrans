@@ -133,7 +133,7 @@ Te rzeczy działają tak samo w każdej grze. Odstępstwo wymaga wpisu w `ZASADY
 - Środek pozostaje przy 60 s, a Tort przy 120 s. Są to świadome wyjątki na ten etap, mimo wątpliwości modelowych;
   brak pomiaru ludzi nie potwierdza wystarczalności czasu. Ewentualne zwiększenie po pomiarach wymaga osobnej decyzji.
 - Dla Który rok? zatwierdzono 270 s przy `T = 228 s`: 42 s zapasu, około 18,4%, zamiast 273,6 s wymaganych przez pełne 20%.
-  To nazwany wyjątek. Zmiana limitu z obecnych 240 s należy do osobnego wdrożenia P4-021.
+  To nazwany wyjątek od progu 20% (P4-021).
 - Przyjęcie normy nie zmienia automatycznie stałych, losowania ani punktacji istniejących gier. Aktualne liczby pozostają
   w `ZASADY-GIER.md` i `KONCEPT.md`; ich dostosowanie wymaga testu i dokumentacji przed kodem w odpowiednim pakiecie.
   W szczególności nowy komplet Balonu należy do P4-060. Nie wszystkie obecne gry spełniają już powyższe normy.

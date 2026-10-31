@@ -23,7 +23,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Narysuj koło | `kolo` | 1-6 | 120 s | mini-gra |
 | Odcień | `kolor` | 1-6 | 180 s | mini-gra |
 | Policz kropki | `kropki` | 1-6 | 120 s | mini-gra |
-| Który rok? | `rok` | 1-6 | 240 s | mini-gra |
+| Który rok? | `rok` | 1-6 | 270 s | mini-gra |
 | Środek | `srodek` | 1-6 | 60 s | mini-gra |
 | Stój! | `stoj` | 1-6 | 60 s | mini-gra |
 | Śledzenie | `sledzenie` | 1-6 | 360 s | mini-gra |
@@ -211,7 +211,13 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 - Jeden ruch z 10 odpowiedziami (int 1900-2025). Wynik liczy serwer: suma |odpowiedź − rok|, mniej lepiej.
 - Pusta lista = limit czasu partii = w każdej rundzie najgorszy możliwy błąd, czyli `max(rok − 1900, 2025 − rok)`.
 - Limit rundy 20 s jest na kliencie: po czasie zatwierdza się rok ustawiony na suwaku. Suwak startuje na środku (1962).
-  Limit partii 240 s = 10 × (20 s + 2,5 s odsłony) plus zapas.
+  Limit partii na serwerze: 270 s. Model pełnej partii: 10 × (20 s + 2,5 s odsłony) + 3 s na dostarczenie wyniku
+  = 228 s; zapas 42 s (około 18,4%), co przekracza minimum 10 s. To zatwierdzony wyjątek od progu 20%
+  z ZASADY §3, który wymagałby 273,6 s. Rundy i odsłony kończą się automatycznie, bez dodatkowych kliknięć;
+  3 s sieci to założenie modelu, nie pomiar ani gwarancja czasu rzeczywistego.
+- Limit zwiększono z 240 do 270 s; liczba rund, zakres lat i punktacja pozostają bez zmian. Dawne rekordy,
+  wygrane i zapisane partie pozostają bez przeliczania i kasowania. Nowe wyniki trafiają do tego samego rankingu,
+  który obejmuje partie o różnych limitach czasu; nie gwarantuje to pełnej porównywalności historii.
 - Ruch `progress` (`done` = liczba odpowiedzianych rund, int 1-9) po każdej odpowiedzi poza ostatnią: tylko do podglądu u rywali
   (pasek „3/10” w pigułce gracza), nie odnawia limitu (`turn` ma stały klucz), może spaść po odświeżeniu strony.
 - Ekran: kafel z tekstem wydarzenia, dużym rokiem, suwakiem i przyciskami −1 / +1, nad nim pasek czasu rundy (ostatnie 5 s ostrzegawczy).

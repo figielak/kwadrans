@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 21/62 pakietów, 34/267 części; 05-22/P4-020 odebrany: TDD 6421837, limit 360 s, typy/2050 testów/build PASS; następny P4-021; P4-014 (2/3) i P4-015 oczekują U02 |
+| FIX-02 | Phase 5 | In progress; 22/62 pakietów, 35/267 części; 05-23/P4-021 odebrany: TDD 57a1785, limit 270 s, typy/2051 testów/build PASS; następny P4-022; P4-014 (2/3) i P4-015 oczekują U02 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -115,7 +115,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-31 po 05-22/P4-020; 21/62 pakietów, 34/267 części, FIX-02 otwarte.*
+*Last updated: 2026-10-31 po 05-23/P4-021; 22/62 pakietów, 35/267 części, FIX-02 otwarte.*
 
 2026-10-26, 05-02/P4-027: testy regresji i dokumentacja przed kodem przygotowane. Oczekiwany RED potwierdza błąd, nie jest spełnieniem FIX-02. Wdrożenie oczekuje osobnego commitu testów na prośbę użytkownika; dowody w [05-02-TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-TDD.md).
 
@@ -251,3 +251,8 @@ Następny P4-020. Dowody: 05-21-SUMMARY.md. Commit bez push.
 TDD 6421837, T = 287 s, zapas 73 s (25,4%). Solo/6 graczy, samoistny timeout i turniej PASS.
 Typy/2050 testów/build PASS. Historia bez przeliczania. 21/62 pakietów, 34/267 części; FIX-02 otwarte.
 Następny P4-021, P4-014/015 nadal oczekują U02. Dowody: 05-22-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-23/P4-021 zakończony: Który rok?, limit 270 s zamiast 240 s; 10 rund, czasy i punktacja bez zmian.
+TDD 57a1785, T = 228 s, zapas 42 s (18,4%), zatwierdzony wyjątek 20%. Pełna partia UI 6 osób, timeout handlerów i rewanż PASS.
+Typy/2051 testów/build PASS; historia bez przeliczania. 22/62 pakietów, 35/267 części; FIX-02 otwarte.
+Następny P4-022, P4-014/015 nadal oczekują U02. Dowody: 05-23-SUMMARY.md. Commit bez push.

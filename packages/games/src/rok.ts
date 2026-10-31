@@ -26,8 +26,8 @@ export interface State {
 
 export type View = State;
 
-// 10 rund po 20 s i 2,5 s odsłony to 225 s, reszta to zapas.
-const TURN_SECONDS = 240;
+// 10 × (20 s + 2,5 s odsłony) + 3 s sieci = 228 s; zapas 42 s (wyjątek progu 20%, ZASADY §3).
+const TURN_SECONDS = 270;
 
 /** Największy błąd, jaki da się zrobić w rundzie: dalszy koniec suwaka. */
 const worst = (year: number) => Math.max(year - MIN_YEAR, MAX_YEAR - year);
