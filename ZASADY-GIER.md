@@ -761,10 +761,12 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 - Tylko na polu, na którym gracz właśnie stoi. Jednym ruchem `build` można wskoczyć o kilka poziomów.
 - Poziomy 1-3 kosztują po P/2 (zaokrąglone), poziom 4 (landmark) kosztuje P.
 - Bez kompletu grupy najwyżej poziom 2; poziom 3 i landmark tylko z kompletem.
+- Utrata kompletu (wykup, sprzedaż pola z grupy) nie zrzuca poziomów: postawiony poziom 3 zostaje i daje swój czynsz,
+  ale wyżej można budować dopiero po odzyskaniu kompletu.
 
 ### Wykupienie (`buyout`)
 - Po zapłaceniu czynszu można wykupić cudze pole za 2 × wartość (cena + koszt postawionych budynków); pieniądze dostaje właściciel,
-  budynki zostają.
+  budynki zostają. Juwenalia na wykupionym polu też zostają (pole nie wraca do banku); przepadają dopiero przy sprzedaży bankowi albo bankructwie.
 - Nie dotyczy landmarków. Oferta jest tylko, gdy gracza stać, i nie ma jej, gdy na czynsz trzeba było sprzedawać pola.
 
 ### Dług, sprzedaż, bankructwo
@@ -789,7 +791,7 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 
 ### Karty Dziekanatu (18 kart, `CARDS`)
 - Talia tasowana w `setup`. Karta jest dobierana z wierzchu (faza `card`), efekt działa po ruchu `card` (odkrycie), karta wraca na spód.
-  „Zaliczenie” zostaje u gracza do użycia.
+  „Zaliczenie” zostaje u gracza do użycia; po bankructwie gracza jego Zaliczenia wracają na spód talii.
 - Gotówka z banku: +30, +20, +15, +25. Do banku: −30, −10, −20.
 - Korepetycje: każdy płaci graczowi 5 zł, ale najwyżej tyle, ile ma (nie wpędza w dług).
 - Składka na imprezę: gracz płaci każdemu po 5 zł.
@@ -810,7 +812,8 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 - `timeoutMove`: `pick` losowa wolna postać; `buy`, `build`, `buyout` pominięcie; `juwenalia` najdroższe własne pole;
   `card` odkrycie; `sell` najtańsze pole; w pozostałych rzut (czyli Bilet MPK przepada).
 - `playerView` ukrywa kolejność talii (zostaje `deckSize`). `events` to 4 ostatnie zdarzenia, UI zamienia je na tekst.
-- `stats` (majątek co rundę, zapłacony czynsz, dochód z pól, dublety) służy tylko ekranowi podsumowania.
+- `stats` (majątek co rundę, zapłacony czynsz, dochód z pól, dublety) służy tylko ekranowi podsumowania. Czynsz liczy się w kwocie faktycznie oddanej:
+  bankrut oddaje tylko swoją gotówkę i tyle trafia do statystyk (i zdarzenia `rent`); sama wypłata się nie zmienia.
 
 ## 7. Memory (`memory`)
 

@@ -2,8 +2,8 @@
 
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
-**Stan wykonania: 25/62 pakietów, 39/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..022 oraz P4-023, P4-024, P4-025, P4-036 i P4-007..010.
-Dowody: 05-01..26-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
+**Stan wykonania: 26/62 pakietów, 43/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..022 oraz P4-023..026, P4-036 i P4-007..010.
+Dowody: 05-01..27-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
 ## 1. Pełne pokrycie i granice
 
@@ -59,7 +59,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 25 | [P4-022: Jeden termin mini-gry niezależny od rywali](#scope-p4-022) | P2 | 1 | wykonano 2026-10-31, 05-24; TDD 93ef04b |
 | 26 | [P4-024: Jeden komparator średniego czasu](#scope-p4-024) | P2 | 1 | wykonano 2026-10-31, 05-25; TDD 18f979b |
 | 27 | [P4-025: Jawny remis i kolejność dalszych miejsc](#scope-p4-025) | P2 | 2 | wykonano 2026-10-31, 05-26; TDD 53201b6 |
-| 28 | [P4-026: Kampus Tour: karta, wykup i rzeczywisty czynsz](#scope-p4-026) | P2 | 4 | nie rozpoczęto |
+| 28 | [P4-026: Kampus Tour: karta, wykup i rzeczywisty czynsz](#scope-p4-026) | P2 | 4 | wykonano 2026-10-31, 05-27; TDD b4d749e |
 | 29 | [P4-028: Labirynt: losowy legalny krok po czasie](#scope-p4-028) | P2 | 0 | nie rozpoczęto |
 | 30 | [P4-029: Testy: Kampus Tour](#scope-p4-029) | P2 | 11 | nie rozpoczęto |
 | 31 | [P4-030: Testy: gry główne i Turniej](#scope-p4-030) | P2 | 24 | nie rozpoczęto |
@@ -503,7 +503,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: brak. Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Test bankructwa z Zaliczeniem i dobierania po pełnym obiegu; Juwenalia zostają po wykupie, znikają po banku; poziomy 3/4 zostają bez kompletu, dalsza budowa nadal wymaga warunku. Statystyka równa faktycznej wypłacie przy długu i kilku wierzycielach. /dev2/4 osoby i obserwator w tych fazach.
 - Granice: Nie obniżać premii startowej, kosztować MPK ani zmieniać monopolu; H-019..021 odrębne.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **wykonano 2026-10-31**, 05-27; TDD b4d749e. Dowody: 05-27-SUMMARY.md.
 
 <a id="scope-p4-028"></a>
 
