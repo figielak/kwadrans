@@ -152,7 +152,8 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
             aria-hidden
           />
         )}
-        {phase === "pause" && (
+        {/* Werdykt ostatniego balonu nie zależy od fazy: przerwa trwa 0,8 s, a float-up 1,6 s i kończy niewidoczny. */}
+        {pumps.length > 0 && (
           <span
             key={pumps.length}
             className={`pointer-events-none absolute inset-x-0 top-[12%] animate-[float-up_1.6s_ease-out_forwards] text-center font-mono text-4xl font-semibold tabular-nums ${

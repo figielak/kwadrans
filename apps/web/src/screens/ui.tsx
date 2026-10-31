@@ -355,3 +355,22 @@ export function Intro({ time, task, score, preview, onStart }: { time: ReactNode
     </section>
   );
 }
+
+/**
+ * Klucze zastane przy montażu (wejście, odświeżenie, reconnect) i obecne od tamtej pory bez przerwy.
+ * Klucz, który zniknie (np. rewanż czyści planszę), przestaje być zastany, więc jego ponowne pojawienie jest nowe.
+ */
+export function seenAtMount<K>(seen: Set<K> | null, present: Iterable<K>): Set<K> {
+  const now = new Set(present);
+  if (!seen) return now;
+  for (const k of seen) if (!now.has(k)) seen.delete(k);
+  return seen;
+}
+
+/** Zastany stan pokazujemy od razu; `isNew` mówi, czy element pojawił się po montażu i może dostać animację pojawienia. */
+export function useFresh<K>(present: Iterable<K>) {
+  const seen = useRef<Set<K> | null>(null);
+  seen.current = seenAtMount(seen.current, present);
+  const initial = seen.current;
+  return { isNew: (k: K) => !initial.has(k) };
+}

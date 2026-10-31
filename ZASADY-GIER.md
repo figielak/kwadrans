@@ -481,7 +481,7 @@ Przebieg, walidacja, punktacja i ekran końcowy jak w Obrocie (`quiz.ts`, `Quiz.
   (pasek „3/10” w pigułce gracza), nie odnawia limitu (`turn` ma stały klucz), może spaść po odświeżeniu strony.
   Punktów rywali w trakcie nie widać: zdradzałyby, ile balon wytrzymuje.
 - Ekran: kwadratowy kafel z balonem w kolorze gracza, dotknięcie kafla pompuje. Rozmiar balonu zależy tylko od liczby stuknięć,
-  nie od wytrzymałości. Pod kaflem „Zgarnij 12 pkt”. Po zgarnięciu „+12”, po pęknięciu „Pękł!” i wibracja 60, przez 0,8 s.
+  nie od wytrzymałości. Pod kaflem „Zgarnij 12 pkt”. Po zgarnięciu „+12”, po pęknięciu „Pękł!” i wibracja 60; następny balon po 0,8 s, a napis gaśnie w pełne 1,6 s.
   Na końcu tabela: ile każdy balon wytrzymywał i ile stuknięć zrobił każdy gracz (pęknięty: przekreślona czerwona liczba, pusty: kreska).
 
 ### W pamięci (`w-pamieci`)
@@ -498,7 +498,7 @@ Przebieg, walidacja, punktacja i ekran końcowy jak w Obrocie (`quiz.ts`, `Quiz.
 - Walidacja: najwyżej 12 liczb całkowitych 0-999. Pusta lista = limit czasu = 0 rund i odchyłka 999.
 - Bez ruchu `progress`: rywale nie widzą numeru rundy (jak w Śledzeniu).
 - Ekran: kwadratowy kafel, pozycje ciągu wskakują jedna po drugiej (dwa takie same działania z rzędu widać jako dwa), nad nim numer rundy
-  i działania. Po dobrej odpowiedzi od razu następna runda; po złej wibracja 60 i cały ciąg z prawdziwym wynikiem.
+  i działania. Po dobrej odpowiedzi kafel krótko błyska na zielono („Dobrze”, bez wibracji) i od razu następna runda; po złej wibracja 60 i cały ciąg z prawdziwym wynikiem.
   Pomyłka albo komplet wysyła wynik natychmiast, bez dodatkowego potwierdzenia. Odsłona po pomyłce pozostaje
   do obejrzenia również po odpowiedzi serwera; „Wyniki” tylko ją zamyka i nie wysyła kolejnego ruchu.
   Odświeżenie po odsłonie pokazuje zapisany wynik. Odpowiedzi, punktacja, tie i limit pozostają bez zmian.

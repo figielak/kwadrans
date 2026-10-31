@@ -13,7 +13,7 @@ import {
 } from "@kwadrans/games";
 import { type CSSProperties, type PointerEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { StickyBar } from "../screens/ui.tsx";
+import { StickyBar, useFresh } from "../screens/ui.tsx";
 import { useHarm, VIBRATE } from "../vibrate.ts";
 
 type Move = { type: "place"; ships: Ship[] } | { type: "ready" } | { type: "unready" } | { type: "shoot"; x: number; y: number };
@@ -376,7 +376,9 @@ function Battle({
   const lastIndex = last && last.y * SIZE + last.x;
   // Najświeższy strzał w tę planszę wskakuje na pole: widać, gdzie padł, nie tylko w tekście.
   const fresh = lastShot(board.shots);
-  const pop = (i: number) => (fresh && fresh.y * SIZE + fresh.x === i ? "animate-[stone-pop_0.35s_ease-out]" : "");
+  // Strzały zastane po odświeżeniu stoją od razu; wskakuje tylko strzał oddany po wejściu.
+  const { isNew } = useFresh(board.shots.map((s) => s.y * SIZE + s.x));
+  const pop = (i: number) => (fresh && fresh.y * SIZE + fresh.x === i && isNew(i) ? "animate-[stone-pop_0.35s_ease-out]" : "");
 
   function fire(i: number) {
     setPicked(null);

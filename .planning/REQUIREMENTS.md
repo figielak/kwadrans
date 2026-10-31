@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 43/62 pakietów, 184/267 części; 05-42/P4-045: zaznaczenie, okno i błysk, typy/testy/build PASS; następny P4-046; F4-046 częściowo SKIP → P4-057 |
+| FIX-02 | Phase 5 | In progress; 44/62 pakietów, 189/267 części; 05-43/P4-046: koniec, para i zastany stan, typy/testy/build PASS; następny P4-048; F4-046 częściowo SKIP → P4-057 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -115,7 +115,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-31 po 05-42/P4-045; 43/62 pakietów, 184/267 części, FIX-02 otwarte.*
+*Last updated: 2026-10-31 po 05-43/P4-046; 44/62 pakietów, 189/267 części, FIX-02 otwarte.*
 
 2026-10-26, 05-02/P4-027: testy regresji i dokumentacja przed kodem przygotowane. Oczekiwany RED potwierdza błąd, nie jest spełnieniem FIX-02. Wdrożenie oczekuje osobnego commitu testów na prośbę użytkownika; dowody w [05-02-TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-TDD.md).
 
@@ -320,3 +320,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-41/P4-044 zakończony: odsłona prawdy od razu, neutralny znacznik prawdy, ocena na błędzie, litera Kalamburów bez animacji. 42/62 pakietów, 181/267 części; FIX-02 otwarte. Następny P4-045. Dowody: 05-41-SUMMARY.md. Commit bez push.
 
 2026-10-31, 05-42/P4-045 zakończony: zaznaczenie na czas jednym wzorem z aria-pressed, okno z dotyku od razu, błysk trafienia quizu na liczniku. 43/62 pakietów, 184/267 części; FIX-02 otwarte. Następny P4-046. Dowody: 05-42-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-43/P4-046 zakończony: koniec Kampus Tour w kolorze zwycięzcy z title-pop tylko u niego, zastany stan bez animacji (useFresh), tile-hit w W pamięci, pełny werdykt Balonu. 44/62 pakietów, 189/267 części; FIX-02 otwarte. Następny P4-048. Dowody: 05-43-SUMMARY.md. Commit bez push.

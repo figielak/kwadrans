@@ -1,6 +1,6 @@
 import type { LobbyPlayer, PiecWRzedzieView } from "@kwadrans/games";
 import { useState } from "react";
-import { StickyBar } from "../screens/ui.tsx";
+import { StickyBar, useFresh } from "../screens/ui.tsx";
 
 interface Props {
   view: PiecWRzedzieView;
@@ -27,6 +27,8 @@ export function PiecWRzedzie({ view, players, canMove, onMove }: Props) {
   // Końce zwycięskiej linii: po sortowaniu (x, y) skrajne pola w każdym kierunku.
   const ends = view.winLine && [...view.winLine].sort((a, b) => a.x - b.x || a.y - b.y);
   const last = view.lastMove && view.lastMove.y * view.size + view.lastMove.x;
+  // Kamienie zastane po odświeżeniu stoją od razu; wskakuje tylko kamień położony po wejściu.
+  const { isNew } = useFresh(view.board.flatMap((c, i) => (c === null ? [] : [i])));
   const pickedFree = picked !== null && canMove && view.board[picked] === null ? picked : null;
   const px = pickedFree === null ? null : pickedFree % view.size;
   const py = pickedFree === null ? null : Math.floor(pickedFree / view.size);
@@ -69,7 +71,7 @@ export function PiecWRzedzie({ view, players, canMove, onMove }: Props) {
               >
                 {cell !== null ? (
                   <span
-                    className={`aspect-square w-[80%] rounded-full ${last === i ? "animate-[stone-pop_0.35s_ease-out] outline-2 outline-offset-1 outline-fg" : ""}`}
+                    className={`aspect-square w-[80%] rounded-full ${last === i ? `outline-2 outline-offset-1 outline-fg ${isNew(i) ? "animate-[stone-pop_0.35s_ease-out]" : ""}` : ""}`}
                     style={{
                       background: `radial-gradient(circle at 35% 30%, color-mix(in srgb, ${colorOf(cell)} 70%, white), ${colorOf(cell)} 65%)`,
                       boxShadow: win.has(i) ? `0 0 10px 2px ${colorOf(cell)}` : "0 1px 2px rgb(0 0 0 / 0.6)",

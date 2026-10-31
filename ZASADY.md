@@ -211,11 +211,11 @@ animacja tylko go dogania na ekranie.
   | `card-in` | karta lub okno na środku ekranu (Karta Dziekanatu, oferty, podsumowanie) | `0.35s` |
   | `float-up` | zmiana liczby (kwota, „+1”, punkty Balonu i Wieży) | `1.6s` |
   | `float-still` | zamiennik `float-up` przy `prefers-reduced-motion`: bez ruchu, gaśnie | `1.6s` |
-  | `set-glow` | świeże osiągnięcie (komplet grupy, „Nowy rekord!”), 4 powtórzenia | `0.9s` |
+  | `set-glow` | świeże osiągnięcie: komplet wielu różnych pól (grupa w Kampus Tour), „Nowy rekord!”; para Memory to `stone-pop`, 4 powtórzenia | `0.9s` |
   | `preview-half` | podgląd na ekranie instrukcji: element widać przez pół cyklu; kolejność z ujemnego `animation-delay` | `1s`, `2s`, `2.4s`, `3s` |
   | `preview-quarter` | podgląd na ekranie instrukcji: element widać przez ćwierć cyklu (cztery kroki) | `2.4s`, `4s` |
   | `line-draw` | linia rysuje się od początku do końca (zwycięska piątka; pętla w podglądzie koła) | `0.5s` Gomoku; `2.5s` podgląd Narysuj koło |
-  | `title-pop` | „Wygrywasz!” w nagłówku gry, jedyny tytuł z animacją | `0.5s` |
+  | `title-pop` | „Wygrywasz!” w nagłówku gry (też Kampus Tour), tylko u zwycięzcy; przegrany i remis bez animacji, jedyny tytuł z animacją | `0.5s` |
   | `tile-hit` | trafienie: zielony błysk kafelka | `0.35s` |
   | `tile-miss` | pomyłka: czerwony błysk z potrząśnięciem | `0.35s` |
   | `piece-fall` | ucięty kawałek klocka Wieży spada po wyniku | `0.5s` |
@@ -265,6 +265,10 @@ animacja tylko go dogania na ekranie.
 - **Pomiar czasu nigdy nie zależy od animacji.** W grach na refleks bodziec pojawia się bez przejścia.
 - **Odsłona prawdy od razu, bez animacji** (Mapa, Odcień, Policz kropki, Kąt, Który rok?, Środek, Tort, Nożyczki): cały czas odsłony z zasad
   jest na odczyt, nic nie wskakuje. Tak samo odsłonięta litera Kalamburów pojawia się bez animacji (wyjątek od `stone-pop` dla nowego elementu).
+- **Zastany stan pokazujemy od razu**: po wejściu, odświeżeniu albo reconnect kamienie, strzały, ścianki i pary stoją bez animacji
+  (`useFresh` w ui.tsx); pojawienie (`stone-pop`) dostaje tylko element nowy od pierwszego otrzymanego stanu, a szkoda od rywala nie wibruje ponownie.
+- **Werdykt rundy żyje dłużej niż przerwa**: pływająca liczba Balonu gra pełne 1,6 s, choć następny balon pojawia się po 0,8 s.
+  Zaliczona runda w grze do pomyłki (W pamięci) to krótki `tile-hit` kafla, bez wibracji i bez wydłużania przerwy.
 - **Zaznaczenie w polu gry na czas** (Dziesiątki, Sudoku, Zakupy) pojawia się od razu, bez przejścia, jak bodziec:
   pierścień 2 px w kolorze gracza i `aria-pressed`.
 - **Okno otwierane dotknięciem** (szczegóły pola w Kampus Tour) pojawia się od razu; `card-in` jest tylko dla okna albo karty, które otwiera stan gry.

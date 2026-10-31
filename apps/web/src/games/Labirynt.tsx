@@ -1,6 +1,6 @@
 import { type LabiryntCell, labiryntPawnMoves, labiryntWallError, type LabiryntView, type LabiryntWall, type LobbyPlayer } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useState } from "react";
-import { StickyBar } from "../screens/ui.tsx";
+import { StickyBar, useFresh } from "../screens/ui.tsx";
 
 interface Props {
   view: LabiryntView;
@@ -92,6 +92,8 @@ export function Labirynt({ view, me, players, canMove, onMove }: Props) {
   const walling = canMove && mode === "wall";
   const error = walling && picked ? labiryntWallError(view, picked) : null;
   const last = view.last?.type === "wall" ? view.walls.length - 1 : -1;
+  // Ścianki zastane po odświeżeniu stoją od razu; wskakuje tylko postawiona po wejściu.
+  const { isNew } = useFresh(view.walls.map((w) => `${w.dir}${w.x},${w.y}`));
   const aimed = aim && targets.some((c) => c.x === aim.x && c.y === aim.y) ? aim : null;
 
   /** Punkt dotknięcia w układzie planszy (przed obrotem). */
@@ -192,7 +194,7 @@ export function Labirynt({ view, me, players, canMove, onMove }: Props) {
                 {...wallRect(w)}
                 rx={0.6}
                 fill={colorOf(w.by)}
-                className={i === last ? "animate-[stone-pop_0.35s_ease-out]" : ""}
+                className={i === last && isNew(`${w.dir}${w.x},${w.y}`) ? "animate-[stone-pop_0.35s_ease-out]" : ""}
                 style={{ transformBox: "fill-box", transformOrigin: "center" }}
               />
             ))}

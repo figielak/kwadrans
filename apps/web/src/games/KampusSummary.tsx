@@ -3,6 +3,8 @@ import { type ReactNode, useState } from "react";
 
 interface Props {
   title: string;
+  /** Zwycięzca: tytuł w jego kolorze; remis i koniec bez zwycięzcy zostają neutralne. */
+  winner?: string;
   stats: KampusStats;
   /** Gracze w kolejności rankingu. */
   players: string[];
@@ -15,7 +17,7 @@ interface Props {
 }
 
 /** Podsumowanie partii: wykres majątku po rundach i kilka ciekawostek. */
-export function KampusSummary({ title, stats, players, nick, color, finalWealth, actions, onClose }: Props) {
+export function KampusSummary({ title, winner, stats, players, nick, color, finalWealth, actions, onClose }: Props) {
   // Ostatni punkt: majątek końcowy, chyba że koniec rundy już go zapisał (koniec po limicie rund).
   const series = players.map((id) => {
     const history = stats.wealth[id] ?? [];
@@ -40,7 +42,9 @@ export function KampusSummary({ title, stats, players, nick, color, finalWealth,
         aria-label="Podsumowanie partii"
         className="flex max-h-[calc(100%-1rem)] w-[36rem] animate-[card-in_0.35s_ease-out] flex-col gap-2 overflow-hidden rounded-inset border border-line bg-surface p-4 shadow-[0_16px_48px_rgb(0_0_0/0.7)]"
       >
-        <h2 className="text-center text-lg font-semibold">{title}</h2>
+        <h2 className="text-center text-lg font-semibold" style={winner ? { color: color(winner) } : undefined}>
+          {title}
+        </h2>
         <div className="flex min-h-0 gap-4 overflow-y-auto">
           <WealthChart series={series} nick={nick} color={color} />
           <dl className="flex w-40 shrink-0 flex-col gap-2 text-xs">

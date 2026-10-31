@@ -118,6 +118,7 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
   }
 
   const shown = phase === "show" ? pos : phase === "wait" ? 0 : round.ops.length;
+  const passed = phase === "wait" && answers.length > 0;
 
   // Kafel stoi w tym samym miejscu we wszystkich fazach, żeby układ nie skakał.
   return (
@@ -128,8 +129,12 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
           { label: "Działanie", value: `${shown}/${round.ops.length}` },
         ]}
       />
-      <div className="tile relative mx-auto flex aspect-square w-full max-w-[calc(100dvh-23.5rem)] items-center justify-center select-none">
-        {phase === "wait" && answers.length > 0 && <span className="text-lg text-success">Dobrze</span>}
+      {/* Zaliczona runda: krótki zielony błysk kafla (klucz z liczby odpowiedzi), bez wibracji i bez dodatkowego czekania. */}
+      <div
+        key={passed ? `ok-${answers.length}` : "tile"}
+        className={`tile relative mx-auto flex aspect-square w-full max-w-[calc(100dvh-23.5rem)] items-center justify-center select-none ${passed ? "animate-[tile-hit_0.35s_ease-out]" : ""}`}
+      >
+        {passed && <span className="text-lg text-success">Dobrze</span>}
         {phase === "show" && (
           // Klucz z pozycji: dwa takie same działania z rzędu wskakują osobno. 180 ms zamiast 350: pokaz trwa 1,5 s (wyjątek w ZASADY §5).
           <span key={pos} className="animate-[stone-pop_180ms_ease-out] font-mono text-6xl font-semibold tabular-nums">

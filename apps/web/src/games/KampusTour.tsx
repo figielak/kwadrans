@@ -896,8 +896,11 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
                   </span>
                   {timer && <div className="flex-1">{timer}</div>}
                 </div>
-                {/* Kto jest na turze: duży nagłówek w jego kolorze. */}
-                <h1 className="flex w-full shrink-0 items-center justify-center gap-2 text-base leading-tight font-semibold" style={over ? undefined : { color: color(view.turn!) }}>
+                {/* Kto jest na turze: duży nagłówek w jego kolorze. Koniec: kolor zwycięzcy, podbicie tylko u niego (jak w Game.tsx). */}
+                <h1
+                  className={`flex w-full shrink-0 items-center justify-center gap-2 text-base leading-tight font-semibold ${over && result?.winner === me ? "animate-[title-pop_0.5s_cubic-bezier(0.2,0.8,0.4,1)]" : ""}`}
+                  style={over ? (result?.winner ? { color: color(result.winner) } : undefined) : { color: color(view.turn!) }}
+                >
                   {!over && token(view.turn!, 20, true)}
                   <span className="min-w-0 truncate" title={status}>{status}</span>
                   {!seated && <span className="text-xs font-normal text-fg-muted">Oglądasz</span>}
@@ -1107,6 +1110,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
         {over && settled && !summaryHidden && view.stats && (
           <KampusSummary
             title={seated ? status : `${status} · Oglądasz`}
+            winner={result?.winner}
             stats={view.stats}
             players={ranking.length ? ranking : view.players}
             nick={nick}

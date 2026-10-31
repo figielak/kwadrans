@@ -728,7 +728,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-041](PACKAGES.md#p4-041), [P4-040](PACKAGES.md#p4-040). Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Wygrana/przegrana/remis i solo; nowa para/komplet, następna runda Balonu z nadal widocznym wynikiem. Refresh/reconnect nie odtwarza historycznych ruchów ani +1; reduced motion czytelny, punktacja identyczna.
 - Granice: Nie czekać z oddaniem wyniku na koniec efektu.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 5/5 części. TDD `30688d5`; typy, testy i build PASS. [05-43-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-43-SUMMARY.md).
 
 <a id="scope-p4-048"></a>
 

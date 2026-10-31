@@ -1,6 +1,7 @@
 import { DiamondsFour } from "@phosphor-icons/react";
 import type { LobbyPlayer, MemoryView } from "@kwadrans/games";
 import { useEffect, useState } from "react";
+import { useFresh } from "../screens/ui.tsx";
 
 interface Props {
   view: MemoryView;
@@ -41,6 +42,8 @@ export function Memory({ view, players, canMove, onMove }: Props) {
   const turnColor = colorOf(turnId);
   const turnNick = players.find((p) => p.id === turnId)?.nick ?? "Przeciwnik";
   const over = view.owner.every((o) => o !== null);
+  // Pary zastane po odświeżeniu leżą od razu; wskakuje tylko para zebrana po wejściu.
+  const { isNew } = useFresh(view.owner.flatMap((o, i) => (o === null ? [] : [i])));
 
   // Widok trzyma pudło do następnego ruchu; ekran zakrywa je sam po MISS_MS.
   const missKey = view.miss?.join();
@@ -101,7 +104,7 @@ export function Memory({ view, players, canMove, onMove }: Props) {
                   aria-hidden
                 >
                   {/* Animacja na emoji, nie na ściance: transform z keyframes nadpisałby jej obrót. */}
-                  <span className={`text-[50cqw] leading-none ${owner !== null ? "animate-[stone-pop_0.35s_ease-out]" : ""}`}>{emoji}</span>
+                  <span className={`text-[50cqw] leading-none ${owner !== null && isNew(i) ? "animate-[stone-pop_0.35s_ease-out]" : ""}`}>{emoji}</span>
                 </span>
               </span>
             </button>
