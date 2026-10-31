@@ -50,3 +50,18 @@ describe.each(["stroop", "liczenie", "inny", "obrot", "literowka", "dziesiatki"]
     expect((game.playerView(state, A) as { results: Record<string, { times: number[] }> }).results[A].times).toEqual([100, 6000]);
   });
 });
+
+
+// P4-031/F4-007: brakujące granice sumy i 200 czasów w sześciu quizach.
+// Suma 30001 i 201 poprawnych czasów są już pokryte wyżej (P4-023); bez dublowania.
+describe.each(["stroop", "liczenie", "inny", "obrot", "literowka", "dziesiatki"])("%s: P4-031/F4-007", (id) => {
+  test.each([
+    { name: "suma dwóch czasów dokładnie 30000 ms", times: [15000, 15000], valid: true },
+    { name: "200 czasów po 150 ms", times: Array(200).fill(150), valid: true },
+  ])("$name", ({ times, valid }) => {
+    const game = GAMES[id], s = game.setup([A, B], createRng(1));
+    const move = { type: "result", times, errors: 0 };
+    expect(game.moveSchema.safeParse(move).success).toBe(valid);
+    expect(game.validateMove(s, A, move)).toBe(valid);
+  });
+});

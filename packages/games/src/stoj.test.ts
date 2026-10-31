@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { createRng } from "./core.ts";
-import { DURATION_MS, type Move, SCHEDULE, score, type State, stoj as game, type View } from "./stoj.ts";
+import { DURATION_MS, type Move, SCHEDULE, score, type State, stoj as game, VISIBLE, type View } from "./stoj.ts";
 
 // Testy napisane przed implementacją. Ustalają zasady:
 // - 1-6 graczy grają naraz u siebie; harmonogram bodźców jest stały (odstęp maleje z 1000 do 500 ms, razem najwyżej 30 s),
@@ -230,4 +230,8 @@ describe("stan", () => {
     expect(copy).toEqual(next);
     expect(game.isOver(send(copy, B, play(copy, 3)))).toEqual({ winner: B, ranking: [B, A] });
   });
+});
+
+test("P4-031/F4-049: bodziec widoczny przez 0,6 odstępu", () => {
+  expect(VISIBLE).toBe(0.6);
 });

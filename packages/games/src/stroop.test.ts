@@ -79,3 +79,66 @@ describe("koniec", () => {
     expect(game.timeoutMove!(game.setup([A], createRng(1)), A, createRng(1))).toEqual(result([]));
   });
 });
+
+
+describe("P4-031: brakujące kontrakty F4", () => {
+  test.each([[A], [A, B, C, "darek", "ela", "filip"]])("F4-004/F4-005: definicja i start dla %j", (...players) => {
+    expect([game.minPlayers, game.maxPlayers, game.turnSeconds]).toEqual([1, 6, 90]);
+    const s = game.setup(players, createRng(7));
+    expect(game.isOver(s)).toBeNull();
+    expect(game.waitingFor(s)).toEqual(players);
+    expect(s.results).toEqual({});
+  });
+
+  test("F4-005: ten sam seed odtwarza stan, inny zmienia wyzwanie", () => {
+    const s = game.setup([A, B], createRng(7));
+    expect(game.setup([A, B], createRng(7))).toEqual(s);
+    const other = game.setup([A, B], createRng(8));
+    expect(other).not.toEqual(s);
+  });
+
+  test("F4-006: po końcu wynik odrzucony dla każdego gracza i obcego", () => {
+    let s = game.setup([A, B], createRng(1));
+    for (const p of [A, B]) s = send(s, p, result([500]));
+    expect(game.isOver(s)).not.toBeNull();
+    for (const p of [A, B, "obcy"]) expect(game.validateMove(s, p, result([400]))).toBe(false);
+  });
+
+  test("F4-007: czasy 150 i 5000 ms przechodzą (wewnątrz obecnego zakresu 0-30000)", () => {
+    expect(game.validateMove(game.setup([A, B], createRng(1)), A, result([150, 5000]))).toBe(true);
+  });
+
+  test.each([
+    { type: "nieznany", times: [], errors: 0 },
+    { type: "result", errors: 0 },
+    { type: "result", times: [] },
+    { type: "result", times: ["500"], errors: 0 },
+  ])("F4-008: schemat odrzuca %j", (move) => {
+    expect(game.moveSchema.safeParse(move).success).toBe(false);
+  });
+
+  test.each([A, C])("F4-009: wygrywa także %s", (winner) => {
+    let s = game.setup([A, B, C], createRng(1));
+    for (const p of [A, B, C]) s = send(s, p, result(p === winner ? [400, 400] : [500]));
+    expect(game.isOver(s)?.winner).toBe(winner);
+    expect(game.waitingFor(s)).toEqual([]);
+  });
+
+  test("F4-010: wynik na zamrożonym wejściu bez mutacji, JSON zachowuje stan", () => {
+    function freeze(value: unknown): void {
+      if (value && typeof value === "object") {
+        Object.values(value).forEach(freeze);
+        Object.freeze(value);
+      }
+    }
+    let s = game.setup([A, B], createRng(1));
+    for (const p of [A, B]) {
+      const before = structuredClone(s);
+      freeze(s);
+      const next = send(s, p, result([500, 700], 2));
+      expect(s).toEqual(before);
+      expect(JSON.parse(JSON.stringify(next))).toEqual(next);
+      s = next;
+    }
+  });
+});

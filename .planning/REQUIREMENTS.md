@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 29/62 pakietów, 78/267 części; 05-30/P4-030: testy gry główne i Turniej, typy/testy PASS; następny P4-031; P4-014 (2/3) i P4-015 oczekują U02 |
+| FIX-02 | Phase 5 | In progress; 30/62 pakietów, 97/267 części; 05-31/P4-031: testy quizy i Stój!, 19/20 części; F4-046 częściowo SKIP → P4-057, typy/testy PASS; następny P4-032; P4-014 (2/3) i P4-015 oczekują U02 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -115,7 +115,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-31 po 05-30/P4-030; 29/62 pakietów, 78/267 części, FIX-02 otwarte.*
+*Last updated: 2026-10-31 po 05-31/P4-031; 30/62 pakietów, 97/267 części, FIX-02 otwarte.*
 
 2026-10-26, 05-02/P4-027: testy regresji i dokumentacja przed kodem przygotowane. Oczekiwany RED potwierdza błąd, nie jest spełnieniem FIX-02. Wdrożenie oczekuje osobnego commitu testów na prośbę użytkownika; dowody w [05-02-TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-TDD.md).
 
@@ -280,3 +280,5 @@ Następny P4-029; P4-014/015 nadal oczekują U02. Dowody: 05-28-SUMMARY.md. Comm
 2026-10-31, 05-29/P4-029: Testy: Kampus Tour; 11/11 części sprawdzone. Typy i pełne testy PASS. 28/62 pakietów, 54/267 części; FIX-02 otwarte. Następny P4-030; P4-014/015 oczekują U02. Dowody: 05-29-SUMMARY.md. Jeden commit, bez push.
 
 2026-10-31, 05-30/P4-030: Testy: gry główne i Turniej; 24/24 części sprawdzone. Typy i pełne testy PASS. 29/62 pakietów, 78/267 części; FIX-02 otwarte. Następny P4-031; P4-014/015 oczekują U02. Dowody: 05-30-SUMMARY.md. Jeden commit, bez push.
+
+2026-10-31, 05-31/P4-031: Testy: quizy i Stój!; 20/20 części sprawdzone, 19 odebranych; F4-046 częściowo, udział rodzajów SKIP → P4-057. Typy i pełne testy PASS. 30/62 pakietów, 97/267 części; FIX-02 otwarte. Następny P4-032; P4-014/015 oczekują U02. Dowody: 05-31-SUMMARY.md. Jeden commit, bez push.
