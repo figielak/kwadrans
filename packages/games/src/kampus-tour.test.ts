@@ -354,6 +354,53 @@ describe("długi i bankructwo", () => {
   });
 });
 
+// P4-026: obieg karty, Juwenalia i budynki po wykupie, faktycznie wypłacony czynsz.
+describe("bankructwo, wykup i statystyka (P4-026)", () => {
+  const PASS = card("Zaliczenie w pierwszym terminie");
+  // Czynsz za pełną grupę 50 zł to 10 zł; A ma 1 zł i pole warte 5 zł przy sprzedaży, więc bankrutuje.
+  const broke = (patch: Parameters<typeof with2>[1] = {}) =>
+    roll(with2(three(), { cash: { [A]: 1 }, owners: { 1: A, 30: B, 31: B }, positions: { [A]: 26 }, ...patch }), A, 1, 3);
+
+  test("Zaliczenie bankruta wraca na spód talii i krąży dalej", () => {
+    const s = broke({ passes: { [A]: 1 }, deck: two().deck.filter((c) => c !== PASS) });
+    expect(view(s).bankrupt).toEqual([A]);
+    expect(view(s).passes[A] ?? 0).toBe(0);
+    expect(s.deck.at(-1)).toBe(PASS);
+    expect(s.deck).toHaveLength(CARDS.length);
+    expect(new Set(s.deck).size).toBe(CARDS.length);
+  });
+
+  test("statystyka czynszu bankruta: tylko faktycznie oddana gotówka", () => {
+    const s = broke();
+    expect(view(s).bankrupt).toEqual([A]);
+    expect(view(s).cash[B]).toBe(START_CASH + 1);
+    expect(view(s).stats.rentPaid[A]).toBe(1);
+    expect(view(s).stats.tileIncome[30]).toBe(1);
+  });
+
+  test("Juwenalia przepadają, gdy pole bankruta wraca do banku", () => {
+    const s = broke({ juwenalia: { tile: 1, factor: 2 } });
+    expect(view(s).owners[1]).toBeUndefined();
+    expect(view(s).juwenalia).toBeNull();
+  });
+
+  test("Juwenalia zostają na polu po wykupie", () => {
+    let s = roll(with2(two(), { owners: { 4: B }, juwenalia: { tile: 4, factor: 2 } }), A, 1, 3);
+    s = play(s, A, { type: "buyout" });
+    expect(view(s).owners[4]).toBe(A);
+    expect(view(s).juwenalia).toEqual({ tile: 4, factor: 2 });
+  });
+
+  test("poziom 3 zostaje bez kompletu po wykupie i utracie grupy; dalej budować nie można", () => {
+    let s = roll(with2(two(), { owners: { 3: B, 4: B, 6: B }, levels: { 3: 3, 4: 3 } }), A, 1, 3);
+    s = play(s, A, { type: "buyout" });
+    expect(view(s).owners[4]).toBe(A);
+    expect(view(s).levels).toMatchObject({ 3: 3, 4: 3 });
+    expect(view(s).phase).not.toBe("build");
+    expect(game.validateMove({ ...s, phase: "build", turn: 0 }, A, { type: "build", level: 4 })).toBe(false);
+  });
+});
+
 describe("bankructwo: przypadki brzegowe", () => {
   test("bankructwo przez opłatę: gotówka przepada w banku", () => {
     const s = roll(with2(two(), { cash: { [A]: 1 }, positions: { [A]: 24 } }), A, 1, 3); // Opłata za akademik 15 zł
