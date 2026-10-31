@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 32/62 pakietów, 151/267 części; 05-33/P4-033: wynik i rekordowa partia ze stanu, typy/testy/build/UI PASS; następny P4-037; F4-046 częściowo SKIP → P4-057; P4-014 (2/3) i P4-015 oczekują U02 |
+| FIX-02 | Phase 5 | In progress; 33/62 pakietów, 152/267 części; 05-34/P4-037: zwykłe kontrolki 48 px, typy/testy/build/UI PASS; następny P4-038; F4-046 częściowo SKIP → P4-057; P4-014 (2/3) i P4-015 oczekują U02 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -115,7 +115,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 
 ---
 *Requirements defined: 2026-10-21*
-*Last updated: 2026-10-31 po 05-33/P4-033; 32/62 pakietów, 151/267 części, FIX-02 otwarte.*
+*Last updated: 2026-10-31 po 05-34/P4-037; 33/62 pakietów, 152/267 części, FIX-02 otwarte.*
 
 2026-10-26, 05-02/P4-027: testy regresji i dokumentacja przed kodem przygotowane. Oczekiwany RED potwierdza błąd, nie jest spełnieniem FIX-02. Wdrożenie oczekuje osobnego commitu testów na prośbę użytkownika; dowody w [05-02-TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-TDD.md).
 
@@ -288,3 +288,7 @@ Następny P4-029; P4-014/015 nadal oczekują U02. Dowody: 05-28-SUMMARY.md. Comm
 2026-10-31, 05-33/P4-033: rozpoczęto przygotowanie testów i dokumentacji danych przed kodem; odbiór jeszcze otwarty. Potem 05-34/P4-037.
 
 2026-10-31, 05-33/P4-033 zakończony: wynik i rekordowa partia ze stanu; typy/testy/build i odbiór UI PASS. 32/62 pakietów, 151/267 części. Następny P4-037; F4-046 częściowo SKIP → P4-057; P4-014/015 oczekują U02; FIX-02 otwarte. Dowody: 05-33-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-34/P4-037 rozpoczęty: pomiar realnych pól dotyku przed zmianą. Bez zmiany liczby odebranych pakietów/części.
+
+2026-10-31, 05-34/P4-037 zakończony: zwykłe kontrolki 48 px; typy/testy/build i odbiór UI PASS. 33/62 pakietów, 152/267 części. Następny P4-038; F4-046 częściowo SKIP → P4-057; P4-014/015 oczekują U02; FIX-02 otwarte. Dowody: 05-34-SUMMARY.md. Commity bez push.

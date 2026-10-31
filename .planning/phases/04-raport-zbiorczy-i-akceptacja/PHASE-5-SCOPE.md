@@ -2,9 +2,9 @@
 
 Data przekazania: **2026-10-26**. Wersja: **S5-v1**, wykonawcze przekazanie zatwierdzonego **PK4-v1 + ZG4-v1**; bez nowego wyboru wariantów. Źródło upoważnienia: użytkownik **„Zatwierdzam”** w odpowiedzi na pytanie o cały ZG4-v1; [DECISIONS §14](DECISIONS.md#zg4-accepted), [FINAL-APPROVAL](FINAL-APPROVAL.md). B4-001/B4-002 zachowane.
 
-**Stan wykonania: 32/62 pakietów, 151/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..022 oraz P4-023..026, P4-028..033, P4-036 i P4-007..010.
+**Stan wykonania: 33/62 pakietów, 152/267 części poprawek.** P4-014 wdrożony, 2/3 części odebrane; formularz oczekuje fizycznego U02. Zakończono P4-001, P4-027, P4-002..006 i P4-011..013 i P4-016..022 oraz P4-023..026, P4-028..033, P4-036..037 i P4-007..010.
 F4-046 z P4-031 częściowo otwarte: zakresy PASS, równy udział rodzajów SKIP po wykryciu błędu; naprawa w P4-057 (05-31-SUMMARY.md), bez doliczania do zamkniętych części.
-Dowody: 05-01..33-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
+Dowody: 05-01..34-SUMMARY.md w ../05-poprawki-zaakceptowanych-rozbieznosci/. Zakres zaakceptowany nie oznacza poprawionego kodu ani odbioru. FIX-01 zakończone po kontroli przekazania; FIX-02 pozostaje otwarte. Kod bazowy: `85f0e4fe4e1183c390f9a7c88ad64b5b817d2cb3`, gałąź labirynt, bez zmian w apps/packages i źródłowych zasadach podczas fazy 4.
 
 ## 1. Pełne pokrycie i granice
 
@@ -67,7 +67,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 32 | [P4-031: Testy: quizy i Stój!](#scope-p4-031) | P2 | 20 | wykonano 2026-10-31, 05-31; 19/20 odebrane, F4-046 częściowo SKIP → P4-057 |
 | 33 | [P4-032: Testy: pozostałe mini-gry](#scope-p4-032) | P2 | 52 | wykonano 2026-10-31, 05-32 |
 | 34 | [P4-033: Rekordowa partia ze stanu, także me=""](#scope-p4-033) | P2 | 2 | wykonano 2026-10-31, 05-33 |
-| 35 | [P4-037: Zwykłe kontrolki 48 px](#scope-p4-037) | P2 | 1 | nie rozpoczęto |
+| 35 | [P4-037: Zwykłe kontrolki 48 px](#scope-p4-037) | P2 | 1 | wykonano 2026-10-31, 05-34 |
 | 36 | [P4-038: Tort: uchwyt cięcia pod palcem](#scope-p4-038) | P2 | 1 | nie rozpoczęto |
 | 37 | [P4-039: Śledzenie: rozdzielne cele dotyku](#scope-p4-039) | P2 | 1 | nie rozpoczęto |
 | 38 | [P4-040: Reduced motion: zadanie działa, komunikat widoczny](#scope-p4-040) | P2 | 4 | nie rozpoczęto |
@@ -602,7 +602,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: brak. Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Zmierzyć rect/hitbox 48×48 przy 360 px, 6 kolorów bez poziomego scroll, suwak dotykany przy krawędzi i klawiaturą; układ w Setup i Lobby z 6 osobami.
 - Granice: Nie zwiększać samego uchwytu kosztem nakładania, aktywny obszar musi być realny.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **wykonano 2026-10-31**, 05-34; typy/testy/build i UI PASS. Dowody: 05-34-SUMMARY.md.
 
 <a id="scope-p4-038"></a>
 

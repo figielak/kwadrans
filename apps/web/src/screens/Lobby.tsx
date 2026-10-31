@@ -155,7 +155,7 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
                     </span>
                   </>
                 );
-                const className = `flex w-full min-h-11 items-center gap-3 rounded-inset px-3 text-left transition-opacity ${p.connected ? "" : "opacity-50"}`;
+                const className = `flex w-full min-h-12 items-center gap-3 rounded-inset px-3 text-left transition-opacity ${p.connected ? "" : "opacity-50"}`;
                 const style = { backgroundColor: `color-mix(in srgb, ${p.color} ${seated || !def ? 10 : 4}%, transparent)` };
                 return (
                   <li key={p.id}>
@@ -377,7 +377,7 @@ function ColorPicker({ view, me, send }: { view: RoomView; me: string; send: Sen
   return (
     <div className="mt-4 flex flex-col gap-1">
       <span className="text-sm text-fg-muted">Twój kolor</span>
-      <div className="flex justify-between" role="radiogroup" aria-label="Twój kolor">
+      <div className="-mx-1 flex justify-between" role="radiogroup" aria-label="Twój kolor">
         {PLAYER_COLORS.map((color, i) => {
           const owner = view.players.find((p) => p.color === color);
           const taken = !!owner && owner.id !== me;
@@ -389,7 +389,7 @@ function ColorPicker({ view, me, send }: { view: RoomView; me: string; send: Sen
               aria-checked={color === mine}
               aria-label={taken ? `${COLOR_NAMES[i]}, zajęty: ${owner.nick}` : COLOR_NAMES[i]}
               disabled={taken}
-              className="grid size-10 place-items-center rounded-full"
+              className="grid size-12 shrink-0 place-items-center rounded-full"
               onClick={() => send("pickColor", { color })}
             >
               <span
@@ -432,7 +432,7 @@ function Code({ code, alone, onLeave }: { code: string; alone: boolean; onLeave:
     <section className="tile">
       <div className="flex items-center justify-between">
         <h2 className="label">{copied ? "Skopiowano!" : "Kod pokoju"}</h2>
-        <button type="button" className="-m-2 flex items-center gap-1.5 p-2 text-sm text-fg-muted" onClick={onLeave}>
+        <button type="button" className="-mt-2 -mr-2 flex min-h-12 min-w-12 items-center gap-1.5 px-2 text-sm text-fg-muted" onClick={onLeave}>
           <SignOut size={16} aria-hidden />
           Wyjdź
         </button>

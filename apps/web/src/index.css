@@ -141,11 +141,11 @@ body::before {
     outline-color: var(--color-warning);
   }
 
-  /* Suwak koloru (Kolor z pamięci): tor to gradient z inline `background`, gruby pod palec. */
+  /* Suwaki Odcienia i Roku: cały input ma pole dotyku 48 px, gradient toru pochodzi z inline `background`. */
   .swatch-range {
     appearance: none;
     width: 100%;
-    height: 36px;
+    height: 48px;
     border-radius: var(--radius-inset);
     border: 1px solid var(--color-line);
     touch-action: none;
