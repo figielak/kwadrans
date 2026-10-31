@@ -54,7 +54,7 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
             ) : view.word ? (
               view.word
             ) : (
-              <span className="font-mono tracking-[0.3em]" aria-label={`Hasło, liter: ${view.hint.length}${view.revealed.length ? `, odsłonięta: ${view.hint.replace(/_/g, "")}` : ""}`}>
+              <span role="img" className="font-mono tracking-[0.3em]" aria-label={`Hasło, liter: ${view.hint.length}${view.revealed.length ? `, odsłonięta: ${view.hint.replace(/_/g, "")}` : ""}`}>
                 {view.hint}
               </span>
             )}
@@ -152,6 +152,8 @@ function Canvas({ strokes, size, children, ...pointer }: { strokes: KalamburyStr
       viewBox={`0 0 ${KALAMBURY_SIDE} ${KALAMBURY_SIDE}`}
       className="mx-auto block aspect-square w-full touch-none select-none rounded-tile border border-line bg-surface [-webkit-touch-callout:none]"
       style={{ maxWidth: size }}
+      role="img"
+      aria-label="Rysunek"
       {...pointer}
     >
       {strokes.map((s, i) => (

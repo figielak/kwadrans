@@ -105,6 +105,7 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
               const onList = view.listed.includes(i);
               return (
                 <span
+                  role="img"
                   key={i}
                   className={`relative flex aspect-square items-center justify-center rounded-inset border text-2xl ${onList ? "border-success bg-surface" : "border-line opacity-60"}`}
                   aria-label={onList ? `${item}, z listy` : item}

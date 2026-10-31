@@ -163,7 +163,7 @@ export function FleetLeft({ board, color, lengths: all }: { board: Board; color:
   );
   const afloat = fleet.filter((f) => !f.sunk).length;
   return (
-    <span className="ml-2 flex flex-1 flex-wrap items-center justify-end gap-1" aria-label={`Statki na wodzie: ${afloat} z ${fleet.length}`}>
+    <span role="img" className="ml-2 flex flex-1 flex-wrap items-center justify-end gap-1" aria-label={`Statki na wodzie: ${afloat} z ${fleet.length}`}>
       {fleet.map((ship, i) => (
         <span key={i} className={`relative flex gap-px ${ship.sunk ? "opacity-40" : ""}`} aria-hidden>
           {ship.hits.map((h, j) => (
@@ -403,10 +403,11 @@ function Battle({
           const shot = shotAt(board.shots, x, y);
           const ring = pickedFree === i || lastIndex === i;
           // Trafienie to płomień, pudło to kropka: różnią się kształtem, a płomień nie krzyczy tak jak pełne czerwone pole.
-          if (shot?.result === "hit") return { content: <Fire size={compact ? 10 : 18} weight="fill" className={`text-accent ${pop(i)}`} aria-hidden />, ring };
-          if (shot?.result === "miss") return { content: <span className={`size-1.5 rounded-full bg-fg-muted ${pop(i)}`} />, ring };
+          if (shot?.result === "hit") return { content: <Fire size={compact ? 10 : 18} weight="fill" className={`text-accent ${pop(i)}`} aria-hidden />, ring, state: "trafiony" };
+          if (shot?.result === "miss") return { content: <span className={`size-1.5 rounded-full bg-fg-muted ${pop(i)}`} aria-hidden />, ring, state: "pudło" };
           // Pole wykluczone wokół zatopionego: przygaszony ×.
-          if (shot?.result === "around") return { content: <X size={compact ? 8 : 12} className="text-fg-subtle" aria-hidden /> };
+          if (shot?.result === "around") return { content: <X size={compact ? 8 : 12} className="text-fg-subtle" aria-hidden />, state: "obok zatopionego" };
+          if (shot?.result === "sunk") return { ring, state: "zatopiony" };
           return { ring };
         }}
         onTap={canShoot ? (x, y) => (pickedFree === y * SIZE + x ? fire(pickedFree) : setPicked(y * SIZE + x)) : undefined}
@@ -465,7 +466,8 @@ function Grid({
   vt?: string;
   /** Wybrane pole: celownik z wiersza i kolumny (jak w Gomoku) i pogrubione opisy osi. */
   cross?: number | null;
-  cell: (i: number) => { background?: string; content?: ReactNode; ring?: boolean };
+  /** `state`: stan pola dla czytnika („pudło”, „trafiony”…), dopisywany do nazwy pola. */
+  cell: (i: number) => { background?: string; content?: ReactNode; ring?: boolean; state?: string };
   shapes: Shape[];
   onTap?: (x: number, y: number) => void;
   /** Przeciąganie (rozstawianie): pole pod wskaźnikiem; `move` zwraca true, gdy plansza ma przejąć wskaźnik. */
@@ -519,7 +521,8 @@ function Grid({
         })}
         {Array.from({ length: SIZE * SIZE }, (_, i) => {
           const { x, y } = at(i);
-          const { background, content, ring } = cell(i);
+          const { background, content, ring, state } = cell(i);
+          const label = `${name({ x, y })}${state ? `, ${state}` : ""}`;
           const crossed = x === px || y === py ? "color-mix(in srgb, var(--color-fg) 6%, transparent)" : undefined;
           const style = { gridColumn: x + 2, gridRow: y + 2, background: background ?? crossed };
           const className = `grid aspect-square place-items-center border-r border-b border-line-hover ${x === 0 ? "border-l" : ""} ${
@@ -530,7 +533,7 @@ function Grid({
               key={i}
               type="button"
               data-cell={i}
-              aria-label={name({ x, y })}
+              aria-label={label}
               className={className}
               style={style}
               disabled={disabled?.(i)}
@@ -539,7 +542,7 @@ function Grid({
               {content}
             </button>
           ) : (
-            <span key={i} aria-label={name({ x, y })} className={className} style={style}>
+            <span role="img" key={i} aria-label={label} className={className} style={style}>
               {content}
             </span>
           );

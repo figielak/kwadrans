@@ -41,6 +41,8 @@
 }
 
 html {
+  /* Tylko ciemny motyw: natywne kontrolki (suwaki, przewijanie, autouzupełnianie) też ciemne. */
+  color-scheme: dark;
   background: var(--color-bg);
   color: var(--color-fg);
   font-family: var(--font-sans);

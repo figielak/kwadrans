@@ -368,6 +368,7 @@ export function RoundTable({
               const own = tone?.(d, i);
               return (
                 <span
+                  role="img"
                   key={i}
                   aria-label={own?.label}
                   className={`rounded-inset border py-1 ${own ? own.className : `${grade(d, perfect, close).text} ${d <= perfect ? "font-semibold" : ""}`} ${best(i) === r.id ? "" : "border-line"}`}
@@ -469,7 +470,7 @@ export function Intro({ time, task, score, preview, onStart }: { time: ReactNode
         <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm text-fg-muted" role="status">
           {room.others.map((p) => (
             <li key={p.id} className="flex items-center gap-2">
-              <span className="size-2 rounded-full" style={{ backgroundColor: p.color }} />
+              <span className="size-2 rounded-full" style={{ backgroundColor: p.color }} aria-hidden />
               {p.nick} {p.began ? "już gra" : "czyta zasady"}
             </li>
           ))}

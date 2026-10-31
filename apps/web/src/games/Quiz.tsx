@@ -233,6 +233,8 @@ export function Quiz({ view, me, players, ranking, winner, task, preview, questi
             key={i === flash?.i ? `${i}-${flash.id}` : i}
             type="button"
             disabled={phase !== "play"}
+            // Siatka figur (Inny element) nie ma tekstu w przycisku: nazwa z pozycji, bez zdradzania odpowiedzi.
+            aria-label={q.cols ? `Figura ${i + 1} z ${q.options.length}` : undefined}
             onPointerDown={() => answer(i)}
             className={`flex touch-none select-none items-center justify-center border bg-surface ${q.cols ? "aspect-square rounded-inset" : "min-h-24 gap-2 rounded-tile text-xl font-semibold"} ${
               phase !== "wrong" ? "border-line" : i === flash?.i ? "border-warning" : "border-line opacity-40"

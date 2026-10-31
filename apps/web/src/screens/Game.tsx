@@ -297,7 +297,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                     {p && !p.connected && <span className="text-xs text-fg-muted">rozłączony</span>}
                     {fleet?.phase === "placing" && fleet.boards[id].ready && <Check size={14} weight="bold" aria-label="gotowy" />}
                     {ludo ? (
-                      <span className="flex gap-1" aria-label={`W domu: ${ludo.pawns[id].filter((p) => p >= CHINCZYK_TRACK).length} z 4`}>
+                      <span role="img" className="flex gap-1" aria-label={`W domu: ${ludo.pawns[id].filter((p) => p >= CHINCZYK_TRACK).length} z 4`}>
                         {[...ludo.pawns[id]].sort((a, b) => b - a).map((pos, i) => (
                           <span
                             key={i}
@@ -308,7 +308,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                         ))}
                       </span>
                     ) : memory ? (
-                      <span className="text-base font-semibold text-fg tabular-nums" aria-label={`Pary: ${memory.owner.filter((o) => o === id).length / 2}`}>
+                      <span role="img" className="text-base font-semibold text-fg tabular-nums" aria-label={`Pary: ${memory.owner.filter((o) => o === id).length / 2}`}>
                         {memory.owner.filter((o) => o === id).length / 2}
                       </span>
                     ) : fleet ? (
@@ -316,12 +316,12 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                     ) : progress ? (
                       <Progress {...progress} color={p?.color} />
                     ) : table ? (
-                      <span className="font-mono text-sm font-semibold text-fg tabular-nums" aria-label={`Punkty w turnieju: ${table.find((r) => r.id === id)?.total ?? 0}`}>
+                      <span role="img" className="font-mono text-sm font-semibold text-fg tabular-nums" aria-label={`Punkty w turnieju: ${table.find((r) => r.id === id)?.total ?? 0}`}>
                         {table.find((r) => r.id === id)?.total ?? 0} pkt
                       </span>
                     ) : (
                       // Puchar odróżnia wygrane partie w pokoju od wyniku bieżącej partii.
-                      <span className="relative flex items-center gap-1 font-mono text-base font-semibold text-fg tabular-nums" aria-label={`Wygrane partie: ${view.scores[id] ?? 0}`}>
+                      <span role="img" className="relative flex items-center gap-1 font-mono text-base font-semibold text-fg tabular-nums" aria-label={`Wygrane partie: ${view.scores[id] ?? 0}`}>
                         <Trophy size={14} weight="fill" className="text-fg-muted" aria-hidden />
                         <span className="font-sans text-xs font-normal text-fg-muted" aria-hidden>
                           wygrane
@@ -342,13 +342,13 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                       </span>
                     )}
                     {compact && (ludo || memory || fleet || progress) && (
-                      <span className="flex items-center gap-1 font-mono text-sm text-fg tabular-nums" aria-label={table ? `Punkty w turnieju: ${table.find((r) => r.id === id)?.total ?? 0}` : `Wygrane partie: ${view.scores[id] ?? 0}`}>
+                      <span role="img" className="flex items-center gap-1 font-mono text-sm text-fg tabular-nums" aria-label={table ? `Punkty w turnieju: ${table.find((r) => r.id === id)?.total ?? 0}` : `Wygrane partie: ${view.scores[id] ?? 0}`}>
                         <span className="font-sans text-xs text-fg-muted">{table ? "punkty" : "wygrane"}</span>
                         {table ? (table.find((r) => r.id === id)?.total ?? 0) : (view.scores[id] ?? 0)}
                       </span>
                     )}
                     {maze && (
-                      <span className="flex items-center gap-1 font-mono text-base font-semibold text-fg tabular-nums" aria-label={`Ściany: ${maze.wallsLeft[maze.players.indexOf(id)]}`}>
+                      <span role="img" className="flex items-center gap-1 font-mono text-base font-semibold text-fg tabular-nums" aria-label={`Ściany: ${maze.wallsLeft[maze.players.indexOf(id)]}`}>
                         <span className="font-sans text-xs font-normal text-fg-muted" aria-hidden>
                           ściany
                         </span>
@@ -466,12 +466,12 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                     {r.id === me && <span className="text-fg-muted"> (ty)</span>}
                   </span>
                   {tournamentOver ? (
-                    <span className="flex items-center gap-1 font-mono text-sm text-fg-muted tabular-nums" aria-label={`Wygrane gry: ${r.wins}`}>
+                    <span role="img" className="flex items-center gap-1 font-mono text-sm text-fg-muted tabular-nums" aria-label={`Wygrane gry: ${r.wins}`}>
                       <Trophy size={14} weight="fill" aria-hidden />
                       {r.wins}
                     </span>
                   ) : (
-                    <span className="font-mono text-sm text-fg-muted tabular-nums" aria-label={`Za tę grę: ${r.last}`}>
+                    <span role="img" className="font-mono text-sm text-fg-muted tabular-nums" aria-label={`Za tę grę: ${r.last}`}>
                       +{r.last}
                     </span>
                   )}
@@ -623,7 +623,7 @@ function Countdown({ game, total, tense, color, label }: { game: { msLeft: numbe
     return (
       <div className="flex items-center gap-2">
         {label && <span className="label">{label}</span>}
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line" role="progressbar" aria-label="Czas tury" aria-valuenow={seconds}>
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line" role="progressbar" aria-label="Czas tury" aria-valuemin={0} aria-valuemax={total ?? seconds} aria-valuenow={seconds}>
           <div
             className={`h-full rounded-full transition-[width] duration-250 ease-linear ${seconds <= 10 ? "bg-warning" : tense ? "bg-fg" : "bg-fg-muted"}`}
             style={{ width: `${Math.min(1, left) * 100}%`, backgroundColor: seconds > 10 ? color : undefined }}

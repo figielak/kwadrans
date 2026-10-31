@@ -117,6 +117,9 @@ Do skopiowania: przy dużej liczbie elementów kolor zostaje dla wyjątków, a p
 ## 4. Stany
 
 Stan pokazują obrys, przezroczystość i waga ikony, nie nowy kolor. Opis odpowiada temu, co jest w kodzie.
+Natywne kontrolki są ciemne (`color-scheme: dark` w `html` i w `index.html`). Liczba albo ikona z opisem dla czytnika to `span`
+z `role="img"` i `aria-label`; ozdoby mają `aria-hidden`; pole gry bez tekstu (Balon, Za zasłoną, siatki) to przycisk z nazwą.
+Podpowiedź wykresu zostaje po dotknięciu, mysz chowa ją po zjechaniu z wykresu.
 
 | Stan | Wygląd | Przykład |
 |---|---|---|

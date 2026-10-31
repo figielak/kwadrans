@@ -770,7 +770,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: brak. Dodatkowy warunek: U10/U11: prawdziwy dotyk/czytnik przed zamknięciem odbioru.
 - Odbiór: T + UI. Klawiatura i DOM: nazwy przycisków i role, logiczny fokus. U11 TalkBack/VoiceOver: faktycznie wypowiadane postępy i status; U10 dotknięcie wykresu utrzymuje kwotę. Nie uznać samego aria-label na span za udowodniony odczyt.
 - Granice: Odczyt czytnika nie wynika ze snapshotu Playwright.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 3/3 części. TDD `070cc6e`; typy, testy i build PASS; U10/U11 do odbioru na urządzeniu. [05-46-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-46-SUMMARY.md).
 
 <a id="scope-p4-052"></a>
 

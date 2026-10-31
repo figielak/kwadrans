@@ -299,7 +299,7 @@ function Dice({ values, rolling }: { values: [number, number]; rolling: boolean 
   }, [rolling]);
   const shown = rolling ? faces : values;
   return (
-    <span className="flex gap-1" aria-label={rolling ? "Rzut kośćmi" : `Wyrzucono ${values[0]} i ${values[1]}`}>
+    <span role="img" className="flex gap-1" aria-label={rolling ? "Rzut kośćmi" : `Wyrzucono ${values[0]} i ${values[1]}`}>
       {shown.map((d, i) => {
         const Die = DICE[d - 1];
         return (
@@ -611,7 +611,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
               <Buildings size={11} weight="fill" aria-label="Landmark" />
             ) : (
               level(i) > 0 && (
-                <span className="flex gap-[2px]" aria-label={`Poziom ${level(i)}`}>
+                <span role="img" className="flex gap-[2px]" aria-label={`Poziom ${level(i)}`}>
                   {Array.from({ length: level(i) }, (_, k) => (
                     <span key={k} className="size-[5px] rounded-[1px] bg-bg" />
                   ))}
@@ -689,7 +689,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
             {SPECIAL_KINDS[tile.kind] && <p className="text-xs text-fg-muted">{SPECIAL_KINDS[tile.kind]}</p>}
           </div>
           <button type="button" className="btn btn-ghost shrink-0 px-2 text-fg-muted" aria-label="Zamknij" onClick={() => setSelected(null)}>
-            <X size={18} />
+            <X size={18} aria-hidden />
           </button>
         </div>
         {text && <p className="text-sm">{text}</p>}
@@ -859,6 +859,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
                   {tileFace(i)}
                   {view.juwenalia?.tile === i && (
                     <span
+                      role="img"
                       className="absolute top-0 left-0 flex items-center rounded-br-sm bg-bg/80 px-0.5 font-mono text-[10px] leading-none font-semibold"
                       style={{ color: CORNERS.juwenalia.color }}
                       aria-label={`Juwenalia: czynsz ×${view.juwenalia.factor}`}

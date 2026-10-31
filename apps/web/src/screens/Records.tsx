@@ -257,6 +257,7 @@ function GameCard({ game: { id, rows, mine }, nick, color, loaded, onOpen, onPla
         </span>
         {mine && (
           <span
+            role="img"
             className={`flex shrink-0 items-center gap-1 rounded-full bg-surface-inset px-2 py-0.5 font-mono text-sm tabular-nums ${lead ? "" : "text-fg-muted"}`}
             style={lead ? { color } : undefined}
             aria-label={`${mine.place}. miejsce z ${mine.of}`}
@@ -434,7 +435,7 @@ function Wins({ ranking, me, color }: { ranking: Record<string, RankingRow[]>; m
                     {r.nick}
                     {mine && " (ty)"}
                   </span>
-                  <span className="font-mono tabular-nums" aria-label={`${r.wins} wygranych z ${r.played} partii`}>
+                  <span role="img" className="font-mono tabular-nums" aria-label={`${r.wins} wygranych z ${r.played} partii`}>
                     {r.wins} z {r.played}
                   </span>
                 </li>

@@ -31,6 +31,7 @@ export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, o
       {timer && (
         <header className="flex items-center gap-4">
           <span
+            role="img"
             className="flex size-24 shrink-0 items-center justify-center rounded-tile border border-line bg-surface text-7xl font-semibold"
             aria-label={`Litera ${letter}`}
           >
@@ -240,7 +241,7 @@ function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView;
         })}
       </div>
       <div className="flex shrink-0 items-center gap-3 bg-bg pt-2 pb-3">
-        <span className="w-10 shrink-0 font-mono text-sm text-fg-muted tabular-nums" aria-label={`Wypełnione ${filled} z ${PM_CATEGORIES.length}`}>
+        <span role="img" className="w-10 shrink-0 font-mono text-sm text-fg-muted tabular-nums" aria-label={`Wypełnione ${filled} z ${PM_CATEGORIES.length}`}>
           {filled}/{PM_CATEGORIES.length}
         </span>
         {complete ? (
@@ -359,7 +360,7 @@ function Answers({
           <span className="flex shrink-0 flex-col items-end font-mono tabular-nums">
             {view.roundScores[id]?.[c] ?? 0}
             {against > 0 && (
-              <span className="flex items-center gap-0.5 text-xs text-fg-muted" aria-label={`Przeciw: ${against}`}>
+              <span role="img" className="flex items-center gap-0.5 text-xs text-fg-muted" aria-label={`Przeciw: ${against}`}>
                 <ThumbsDown size={12} aria-hidden />
                 {against}
               </span>

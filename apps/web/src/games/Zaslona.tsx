@@ -163,6 +163,7 @@ export function Zaslona({ view, me, players, ranking, onMove }: Props) {
         type="button"
         onPointerDown={press}
         onContextMenu={(e) => e.preventDefault()}
+        aria-label="Dotknij, gdy kulka dojedzie do mety"
         className="tile relative flex min-h-48 flex-1 touch-none select-none flex-col items-center justify-center gap-1 overflow-hidden text-2xl font-semibold [-webkit-touch-callout:none]"
       >
         <span className="relative h-24 w-[calc(100%-3rem)]">

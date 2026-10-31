@@ -147,7 +147,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
   3. `pnpm typecheck && pnpm test` przechodzi bez błędów po każdym pakiecie
   4. Ponowne sprawdzenie poprawionych wpisów tą samą metodą co w audycie nie znajduje ich w kodzie
   5. Żadne `id` gry się nie zmieniło, nie doszła żadna zależność bez zgody, `apps/server` dalej nie ma bezpośredniego `zod`
-**Plans**: 45 obecnie rozpisanych (45/45 odebranych); pełny zakres 62 pakietów w [S5-v1](phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md).
+**Plans**: 46 obecnie rozpisanych (46/46 odebranych); pełny zakres 62 pakietów w [S5-v1](phases/04-raport-zbiorczy-i-akceptacja/PHASE-5-SCOPE.md).
 
 - [x] [05-01-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-01-PLAN.md) - P4-001, wspólne normy i granice wyjątków, już zatwierdzone ZG4-v1
 - [x] [05-02-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-02-PLAN.md) - P4-027, Kalambury i zaufane źródło walidacji; TDD 50172d5, wdrożenie i odbiór zakończone
@@ -194,6 +194,7 @@ otwarte pomiary i częściowa akceptacja pozostają jawne. Zmiany kodu i dokumen
 - [x] [05-43-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-43-PLAN.md) - P4-046, koniec, para i powrót do partii; TDD 30688d5
 - [x] [05-44-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-44-PLAN.md) - P4-048, wspólne wyniki i tabele rund; TDD 274960c
 - [x] [05-45-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-45-PLAN.md) - P4-050, role tokenów i drugi sygnał stanu; TDD 6fd7a7b
+- [x] [05-46-PLAN.md](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-46-PLAN.md) - P4-051, etykiety, natywne kontrolki i wykres dotykiem; TDD 070cc6e
 **UI hint**: yes
 
 ## Progress
@@ -207,7 +208,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 (fazy 1-3 są od sieb
 | 2. Audyt wyglądu, animacji i wibracji | 11/11 | Complete | 2026-10-24 |
 | 3. Audyt balansu rekordów i trudności | 9/9 | Complete | 2026-10-24 |
 | 4. Raport zbiorczy i akceptacja | 5/5 | Complete; ZG4-v1, S5-v1, FIX-01 | 2026-10-26 |
-| 5. Poprawki zaakceptowanych rozbieżności | 45/45 obecnie rozpisanych | In progress; 46/62 pakietów, 200/267 części; F4-046 częściowo SKIP → P4-057; P4-014/015 odebrane na Androidzie | - |
+| 5. Poprawki zaakceptowanych rozbieżności | 46/46 obecnie rozpisanych | In progress; 47/62 pakietów, 203/267 części; F4-046 częściowo SKIP → P4-057; P4-014/015 odebrane na Androidzie | - |
 
 04-04 rozpoczęty 2026-10-26: przygotowano B4-001 (P4-005/006/012/013/016, warianty w DECISIONS §10). Użytkownik zatwierdził B4-001 („Zatweirdzam”): pięć pakietów i ich warianty. B4-002 (P4-003/004/036) oczekuje; liczba ukończonych planów nadal 3/5, FIX-01 otwarte.
 
@@ -427,3 +428,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-44/P4-048 zakończony: ScoreTable jako drugi wspólny wzorzec wyników, RoundTable z wierszem celów w Przytrzymaj, Balonie, Policz kropki, Kącie i Który rok?; Odcień wyjątkiem. 45/62 pakietów, 191/267 części; FIX-02 otwarte. Następny P4-050. Dowody: 05-44-SUMMARY.md. Commit bez push.
 
 2026-10-31, 05-45/P4-050 zakończony: btn-player, tokeny w swoich rolach, wybór w kolorze wybierającego, inicjał właściciela na planszach, nazwane wyjątki treści. 46/62 pakietów, 200/267 części; FIX-02 otwarte. Następny P4-051. Dowody: 05-45-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-46/P4-051 zakończony: color-scheme dark, role i nazwy pól, ozdoby aria-hidden, podpowiedź wykresu po dotknięciu. 47/62 pakietów, 203/267 części; FIX-02 otwarte. Następny P4-052; U10/U11 do odbioru. Dowody: 05-46-SUMMARY.md. Commit bez push.

@@ -163,7 +163,9 @@ export function Labirynt({ view, me, players, canMove, onMove }: Props) {
           onPointerUp={up}
           onPointerCancel={() => setDragging(false)}
           role="img"
-          aria-label="Plansza labiryntu"
+          aria-label={`Plansza labiryntu ${size}×${size}. ${view.pawns
+            .map((pawn, seat) => `${player(seat)?.nick ?? "Gracz"}: kolumna ${pawn.x + 1}, rząd ${pawn.y + 1}`)
+            .join("; ")}. Ścianek na planszy: ${view.walls.length}.`}
         >
           <g transform={`rotate(${angle} ${full / 2} ${full / 2})`}>
             {view.sides.map((side, i) => (

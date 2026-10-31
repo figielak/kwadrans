@@ -132,7 +132,12 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
           { label: "Suma", value: total },
         ]}
       />
-      <div className="tile relative mx-auto flex aspect-square w-full max-w-[calc(100dvh-25rem)] touch-none items-center justify-center overflow-hidden select-none" onPointerDown={pump}>
+      <button
+        type="button"
+        aria-label="Pompuj balon"
+        className="tile relative mx-auto flex aspect-square w-full max-w-[calc(100dvh-25rem)] touch-none items-center justify-center overflow-hidden select-none"
+        onPointerDown={pump}
+      >
         {shown !== null && (
           <span
             className="aspect-[5/6] rounded-[50%] transition-[width] duration-100"
@@ -151,7 +156,7 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
             {lastPopped ? "Pękł!" : `+${last}`}
           </span>
         )}
-      </div>
+      </button>
       <button type="button" className="btn btn-player" style={{ backgroundColor: color }} disabled={phase !== "play"} onClick={() => finish(current)}>
         Zgarnij {current} pkt
       </button>

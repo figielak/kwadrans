@@ -1,5 +1,5 @@
 import { KAMPUS_BOARD as BOARD, type KampusStats } from "@kwadrans/games";
-import { type ReactNode, useState } from "react";
+import { type PointerEvent, type ReactNode, useState } from "react";
 
 interface Props {
   title: string;
@@ -100,6 +100,13 @@ function WealthChart({
   color: (id: string) => string;
 }) {
   const [hover, setHover] = useState<number | null>(null);
+  const pointAt = (e: PointerEvent<SVGSVGElement>) => {
+    // Współrzędne w układzie SVG (uwzględniają obrót .landscape w pionie i zoom sceny).
+    const ctm = e.currentTarget.getScreenCTM();
+    if (!ctm) return;
+    const px = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse()).x;
+    setHover(step ? Math.min(count - 1, Math.max(0, Math.round((px - PAD.left) / step))) : 0);
+  };
   const count = Math.max(...series.map((s) => s.points.length));
   // Wykres zmian w czasie: oś od minimum do maksimum (co 50 zł), nie od zera, żeby linie nie ściskały się u góry.
   const values = series.flatMap((s) => s.points);
@@ -134,14 +141,10 @@ function WealthChart({
         className="w-full touch-none overflow-visible"
         role="img"
         aria-label={`Majątek graczy po rundach. ${series.map((s) => `${nick(s.id)}: ${s.points.at(-1)} zł na koniec`).join(", ")}.`}
-        onPointerMove={(e) => {
-          // Współrzędne w układzie SVG (uwzględniają obrót .landscape w pionie i zoom sceny).
-          const ctm = e.currentTarget.getScreenCTM();
-          if (!ctm) return;
-          const px = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse()).x;
-          setHover(step ? Math.min(count - 1, Math.max(0, Math.round((px - PAD.left) / step))) : 0);
-        }}
-        onPointerLeave={() => setHover(null)}
+        onPointerMove={pointAt}
+        // Dotyk: dotknięcie wybiera rundę i podpowiedź zostaje po podniesieniu palca; mysz chowa ją po zjechaniu z wykresu.
+        onPointerDown={pointAt}
+        onPointerLeave={(e) => e.pointerType === "mouse" && setHover(null)}
       >
         {ticks.map((t) => (
           <g key={t}>
