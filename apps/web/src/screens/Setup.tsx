@@ -1,4 +1,4 @@
-import { Check, Minus, Play, Plus } from "@phosphor-icons/react";
+import { Check, Minus, Play, Plus, Prohibit, Trophy } from "@phosphor-icons/react";
 import { GAMES, MAX_PLAYERS, MIN_LENGTH, type RoomView } from "@kwadrans/games";
 import { BLURBS, ICONS, MINI_GAMES, Players, seats, StartBar } from "./Lobby.tsx";
 import { SECTIONS } from "./MiniGames.tsx";
@@ -13,11 +13,16 @@ interface Props {
   onLeave: () => void;
 }
 
+/** Zaznaczony wybór w kolorze tego, kto wybrał (obrys i tło 12%); sam kolor uzupełnia ikona albo `aria-pressed`. */
+const chosenStyle = (color?: string) => ({ borderColor: color, backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)` });
+
 /** Ekran gry głównej przed partią: opis, tryb, gracze i start. Gospodarz ustawia, goście widzą to samo tylko do odczytu. */
 export function Setup({ view, me, dropped, send, onLeave }: Props) {
   const isHost = view.hostId === me;
   const def = GAMES[view.gameId!];
   const GameIcon = ICONS[def.id] ?? Play;
+  // Tryb wybiera gospodarz: zaznaczenie w jego kolorze i z ikoną, nie w akcencie i nie samym kolorem.
+  const hostColor = view.players.find((p) => p.id === view.hostId)?.color;
   return (
     <Screen dropped={dropped}>
       <TopBar code={view.code} onBack={isHost ? () => send("pickGame", { gameId: null }) : undefined} onLeave={onLeave} />
@@ -26,7 +31,7 @@ export function Setup({ view, me, dropped, send, onLeave }: Props) {
         <div className="flex items-center gap-3">
           <GameIcon size={28} weight="fill" className="shrink-0" aria-hidden />
           <div className="min-w-0">
-            <h1 className="leading-tight">{def.name}</h1>
+            <h1 className="font-semibold leading-tight">{def.name}</h1>
             <p className="font-mono text-xs text-fg-muted tabular-nums">{seats(def)}</p>
           </div>
         </div>
@@ -36,6 +41,7 @@ export function Setup({ view, me, dropped, send, onLeave }: Props) {
       {def.modes && (
         <section className="flex flex-col gap-2" role="radiogroup" aria-label="Tryb">
           <h2 className="label px-1">Tryb</h2>
+          {!isHost && <p className="px-1 text-sm text-fg-muted">Tryb wybiera gospodarz.</p>}
           {def.modes.map((m) => {
             const on = view.mode === m.id;
             return (
@@ -45,12 +51,16 @@ export function Setup({ view, me, dropped, send, onLeave }: Props) {
                 role="radio"
                 aria-checked={on}
                 disabled={!isHost}
-                className={`flex min-h-12 flex-col items-start justify-center rounded-inset border px-3 py-2 text-left transition-colors ${
-                  on ? "border-accent bg-accent-soft" : "border-line enabled:hover:border-line-hover disabled:opacity-50"
+                className={`flex min-h-12 flex-col items-start justify-center rounded-inset border px-3 py-2 text-left transition-colors duration-180 ${
+                  on ? "border-2" : "border-line enabled:hover:border-line-hover disabled:opacity-40"
                 }`}
+                style={on ? chosenStyle(hostColor) : undefined}
                 onClick={() => send("pickMode", { mode: m.id })}
               >
-                <span className="leading-tight">{m.name}</span>
+                <span className="flex items-center gap-1.5 leading-tight">
+                  {on && <Check size={16} weight="bold" aria-hidden />}
+                  {m.name}
+                </span>
                 <span className="font-mono text-xs text-fg-muted tabular-nums">{m.hint}</span>
               </button>
             );
@@ -78,6 +88,7 @@ const minutes = (games: number) => Math.round(games * 1.5);
  * resztę losuje serwer. Gry zaznacza każdy w pokoju, lista jest wspólna; przy zaznaczonej grze widać kropkę w kolorze gracza, który to zrobił.
  */
 export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
+  const myColor = view.players.find((p) => p.id === me)?.color;
   const isHost = view.hostId === me;
   const { length, must, skip } = view.tournament!.config;
   const available = MINI_GAMES.length - skip.length;
@@ -93,13 +104,17 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
   const chosen = plural(must.length, "wybrana", "wybrane", "wybranych");
   const drawn = `${plural(random, "losowa", "losowe", "losowych")} z ${available - must.length}`;
   const summary = must.length === 0 ? drawn : random === 0 ? `${chosen}, bez losowania` : `${chosen} + ${drawn}`;
-  // Liczba gier sama idzie za zaznaczeniami (serwer ją przycina), więc zamiast blokady jest jedno zdanie wyjaśnienia.
+  // Liczba gier sama idzie za zaznaczeniami (serwer ją przycina); przy granicy jedno zdanie mówi, czemu dalej się nie da.
   const adjusted =
     random === 0 && must.length > MIN_LENGTH
-      ? "Liczba gier rośnie razem z wybranymi."
-      : length === available
-        ? "Grane będą wszystkie niewykluczone gry."
-        : null;
+      ? "Liczba gier rośnie razem z wybranymi, mniej się nie da."
+      : length >= available
+        ? skip.length > 0
+          ? "Więcej gier nie ma: reszta jest wykluczona."
+          : "Grane będą wszystkie gry."
+        : length <= MIN_LENGTH
+          ? `Najmniej ${plural(MIN_LENGTH, "gra", "gry", "gier")} w turnieju.`
+          : null;
 
   return (
     <Screen dropped={dropped}>
@@ -107,14 +122,21 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
         <PlayerDots view={view} />
       </TopBar>
 
-      <div className="flex flex-col gap-1 px-1">
-        <h1 className="label">Turniej · 1-{MAX_PLAYERS} osób</h1>
-        <p className="text-sm text-fg-muted">
+      {/* Ten sam nagłówek co ekran gry: ikona z kafla w lobby, nazwa i liczba osób. */}
+      <section className="tile">
+        <div className="flex items-center gap-3">
+          <Trophy size={28} weight="fill" className="shrink-0" aria-hidden />
+          <div className="min-w-0">
+            <h1 className="font-semibold leading-tight">Turniej</h1>
+            <p className="font-mono text-xs text-fg-muted tabular-nums">1-{MAX_PLAYERS} osób</p>
+          </div>
+        </div>
+        <p className="mt-3 text-sm text-fg-muted">
           {view.seats.length > 1
             ? "Seria mini-gier po kolei. Za każdą grę dostajesz punkt za każdego pokonanego rywala, wygrywa najwięcej punktów."
             : "Seria mini-gier po kolei. Grasz sam, więc punktów nie ma: liczą się twoje rekordy w każdej grze."}
         </p>
-      </div>
+      </section>
 
       <section className="tile flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
@@ -146,6 +168,7 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
             )}
           </div>
         </div>
+        {adjusted && <p className="-mt-1 text-xs text-fg-muted">{adjusted}</p>}
         {isHost && (
           <div className="grid grid-cols-3 gap-2">
             {PRESETS.map(([name, games]) => (
@@ -153,9 +176,11 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
                 key={name}
                 type="button"
                 aria-pressed={length === games}
-                className={`flex min-h-12 flex-col items-center justify-center rounded-inset border text-sm transition-colors ${
-                  length === games ? "border-accent bg-accent-soft" : "border-line hover:border-line-hover"
+                className={`flex min-h-12 flex-col items-center justify-center rounded-inset border text-sm transition-colors duration-180 ${
+                  length === games ? "border-2" : "border-line hover:border-line-hover"
                 }`}
+                // Przyciski długości widzi tylko gospodarz, więc wybór jest w jego (moim) kolorze.
+                style={length === games ? chosenStyle(myColor) : undefined}
                 onClick={() => pick({ length: games })}
               >
                 {name}
@@ -181,9 +206,10 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
                   key={id}
                   type="button"
                   aria-label={`${GAMES[id].name}: ${state}${author && state !== "losowo" ? `, zaznaczył(a) ${author.nick}` : ""}`}
-                  className={`flex min-h-20 flex-col items-start gap-1 rounded-inset border p-2 text-left transition-colors ${
-                    state === "na pewno" ? "border-accent bg-accent-soft" : state === "bez" ? "border-line opacity-50" : "border-line hover:border-line-hover"
+                  className={`flex min-h-20 flex-col items-start gap-1 rounded-inset border p-2 text-left transition-colors duration-180 ${
+                    state === "na pewno" ? "" : state === "bez" ? "border-line opacity-60" : "border-line hover:border-line-hover"
                   }`}
+                  style={state === "na pewno" ? chosenStyle(author?.color) : undefined}
                   onClick={() => cycle(id)}
                 >
                   <span className="flex w-full items-center justify-between">
@@ -194,8 +220,14 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
                   {/* Podpis mają tylko gry zmienione; domyślne „losowo” na każdym kaflu zagłuszałoby wybory. */}
                   {state === "na pewno" && (
                     <span className="mt-auto flex items-center gap-1 font-mono text-xs tabular-nums">
-                      <Check size={12} weight="bold" className="text-accent" aria-hidden />
+                      <Check size={12} weight="bold" aria-hidden />
                       na pewno
+                    </span>
+                  )}
+                  {state === "bez" && (
+                    <span className="mt-auto flex items-center gap-1 font-mono text-xs tabular-nums">
+                      <Prohibit size={12} weight="bold" aria-hidden />
+                      bez
                     </span>
                   )}
                 </button>
@@ -206,13 +238,16 @@ export function TournamentSetup({ view, me, dropped, send, onLeave }: Props) {
       ))}
 
       {/* Podsumowanie jedzie razem z przyciskiem: od razu mówi, co się stanie po starcie. */}
-      <div className="sticky bottom-0 -mx-4 mt-auto bg-bg/90 px-4 backdrop-blur">
-        <p className="pt-3 text-sm" aria-live="polite">
-          {summary} <span className="text-fg-muted">· ok. {minutes(length)} min</span>
-        </p>
-        {adjusted && <p className="text-xs text-fg-muted">{adjusted}</p>}
-        <StartBar view={view} me={me} send={send} />
-      </div>
+      <StartBar
+        view={view}
+        me={me}
+        send={send}
+        note={
+          <p className="text-sm" aria-live="polite">
+            {summary} <span className="text-fg-muted">· ok. {minutes(length)} min</span>
+          </p>
+        }
+      />
     </Screen>
   );
 }

@@ -243,3 +243,120 @@ describe("rundy i koniec", () => {
     expect(game.isOver(s)).toEqual({ ranking: [A, B] });
   });
 });
+
+describe("P4-030: luki F4 Państw-miast", () => {
+  test.each([[A, B], [A, B, C, "darek", "ela", "filip"]])("F4-004: świeża gra dla %j", (...players) => {
+    expect(game.minPlayers).toBe(2);
+    expect(game.maxPlayers).toBe(6);
+    expect(game.isOver(game.setup(players, createRng(1)))).toBeNull();
+  });
+
+  test("F4-005: ten sam seed odtwarza stan, inny zmienia litery", () => {
+    const s = game.setup([A, B], createRng(1));
+    expect(game.setup([A, B], createRng(1))).toEqual(s);
+    expect(game.setup([A, B], createRng(2)).letters).not.toEqual(s.letters);
+  });
+
+  test("F4-007: odpowiedź o długości 30 znaków przechodzi", () => {
+    const s = game.setup([A, B], createRng(1));
+    const move = write(Array<string>(6).fill(s.letters[0] + "a".repeat(29)), false);
+    expect(game.moveSchema.safeParse(move).success).toBe(true);
+    expect(send(s, A, move).answers[A][0]).toHaveLength(30);
+    expect(game.moveSchema.safeParse(write(Array<string>(6).fill("a".repeat(31)))).success).toBe(false);
+  });
+
+  test("F4-007: ostatnia kategoria 5 przechodzi, -1 i 6 odpadają", () => {
+    let s = game.setup([A, B], createRng(1));
+    for (const p of [A, B]) s = send(s, p, write(on(s.letters[0])));
+    for (const category of [-1, 0, 5, 6]) expect(game.validateMove(s, A, vote([B, category]))).toBe(category >= 0 && category <= 5);
+  });
+
+  test.each([
+    { type: "write", answers: Array(6).fill("A"), done: "true" },
+    { type: "write", answers: Array(6).fill("A") },
+    { type: "vote", rejected: [{ player: B, category: 1.5 }] },
+    { type: "nieznany" },
+  ])("F4-008: schemat odrzuca %j", (move) => {
+    expect(game.moveSchema.safeParse(move).success).toBe(false);
+  });
+
+  test("F4-006/F4-009: wygrywa B, po końcu każdy typ ruchu jest odrzucony", () => {
+    let s = game.setup([A, B], createRng(3));
+    for (let r = 0; r < ROUNDS; r++) {
+      s = round(s, { [A]: Array<string>(6).fill(""), [B]: on(s.letters[r]) });
+      if (s.phase === "summary") s = send(send(s, A, next), B, next);
+    }
+    expect(game.isOver(s)).toEqual({ winner: B, ranking: [B, A] });
+    expect(game.waitingFor(s)).toEqual([]);
+    for (const p of [A, B, "obcy"]) for (const move of [write(on("A")), vote(), next]) expect(game.validateMove(s, p, move)).toBe(false);
+  });
+
+  test("F4-010: write, vote i next nie mutują zamrożonego wejścia i zachowują JSON", () => {
+    function freeze(value: unknown): void {
+      if (value && typeof value === "object") {
+        Object.values(value).forEach(freeze);
+        Object.freeze(value);
+      }
+    }
+    function checked(s: State, p: string, move: Move): State {
+      const before = structuredClone(s);
+      freeze(s);
+      const result = send(s, p, move);
+      expect(s).toEqual(before);
+      expect(JSON.parse(JSON.stringify(result))).toEqual(result);
+      return result;
+    }
+    let s = game.setup([A, B], createRng(1));
+    const answers = on(s.letters[0]);
+    s = checked(s, A, write(answers, false));
+    for (const p of [A, B]) s = checked(s, p, write(answers));
+    s = checked(s, A, vote([B, 5]));
+    s = checked(s, B, vote());
+    for (const p of [A, B]) s = checked(s, p, next);
+    expect(s.round).toBe(1);
+  });
+
+  test("F4-011: szkic, kolejne oddanie, głos i gotowość nie zmieniają klucza w fazie", () => {
+    let s = game.setup([A, B, C], createRng(1));
+    let key = game.turn!(s).key;
+    const answers = on(s.letters[0]);
+    s = send(s, A, write(answers, false));
+    expect(game.turn!(s).key).toBe(key);
+    s = send(s, A, write(answers));
+    expect(game.turn!(s).key).not.toBe(key); // pierwszy STOP zmienia termin
+    key = game.turn!(s).key;
+    s = send(s, B, write(answers));
+    expect(game.turn!(s).key).toBe(key);
+    s = send(s, C, write(answers));
+    key = game.turn!(s).key;
+    s = send(s, A, vote());
+    expect(game.turn!(s).key).toBe(key);
+    for (const p of [B, C]) s = send(s, p, vote());
+    key = game.turn!(s).key;
+    s = send(s, A, next);
+    expect(game.turn!(s).key).toBe(key);
+  });
+
+  test("F4-054: głos A niewidoczny dla B i obserwatora aż do podsumowania", () => {
+    let s = game.setup([A, B], createRng(1));
+    for (const p of [A, B]) s = send(s, p, write(on(s.letters[0])));
+    const rejected = [{ player: B, category: 5 }];
+    s = send(s, A, vote([B, 5]));
+    expect((game.playerView(s, A) as View).votes[A]).toEqual(rejected);
+    for (const viewer of [B, ""]) expect((game.playerView(s, viewer) as View).votes).toEqual({});
+    s = send(s, B, vote());
+    expect(s.phase).toBe("summary");
+    for (const viewer of [A, B, ""]) expect((game.playerView(s, viewer) as View).votes).toEqual({ [A]: rejected, [B]: [] });
+  });
+});
+
+test("P4-062: Ł nie losuje się w rundach (kategoria Państwo jest na nią systemowo słabsza)", () => {
+  expect(LETTERS).toBe("ABCDEFGHIJKLMNOPRSTUWZ");
+  for (let seed = 1; seed <= 1000; seed++) {
+    const { letters } = game.setup([A, B], createRng(seed));
+    expect(letters, `seed ${seed}`).toHaveLength(ROUNDS);
+    expect(new Set(letters).size, `seed ${seed}`).toBe(ROUNDS);
+    expect(letters.every((l) => LETTERS.includes(l) && l !== "Ł"), `seed ${seed}: ${letters}`).toBe(true);
+  }
+  expect(game.setup([A, B], createRng(7)).letters).toEqual(game.setup([A, B], createRng(7)).letters);
+});

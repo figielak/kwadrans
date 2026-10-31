@@ -1,7 +1,9 @@
 import { type LobbyPlayer, REFLEKS_PENALTY_MS, REFLEKS_ROUNDS, type RefleksView } from "@kwadrans/games";
-import { Trophy } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
-import { Intro, Stats } from "../screens/ui.tsx";
+import * as clock from "../clock.ts";
+import { markFrame, reaction } from "../stimulus.ts";
+import { Intro, ScoreTable, Stats } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 type Move = { type: "result"; times: number[] };
 
@@ -28,6 +30,7 @@ function Results({ view, me, players, ranking, winner }: Omit<Props, "onMove">) 
       id,
       nick: p?.nick ?? "Gracz",
       color: p?.color,
+      me: id === me,
       times,
       avg: times?.length ? view.results[id] : null,
       penalties: times?.filter((t) => t === REFLEKS_PENALTY_MS).length,
@@ -43,54 +46,21 @@ function Results({ view, me, players, ranking, winner }: Omit<Props, "onMove">) 
   const x = (i: number) => (i / (longest - 1)) * W;
   const y = (t: number) => (hi === lo ? H / 2 : H - ((t - lo) / (hi - lo)) * H);
 
-  return (
-    <section className="tile flex flex-col gap-4 p-4">
-      <table className="w-full border-separate border-spacing-y-1 whitespace-nowrap tabular-nums">
-        <thead>
-          <tr className="label text-right">
-            <th className="w-full px-2 text-left font-normal">Gracz</th>
-            <th className="px-1.5 font-normal">Średnio</th>
-            <th className="px-1.5 font-normal">Kary</th>
-            <th className="px-1.5 font-normal">Najlepszy</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr
-              key={r.id}
-              className={`text-right font-mono text-sm ${r.id === winner ? "font-semibold" : ""}`}
-              style={r.id === winner ? { backgroundColor: `color-mix(in srgb, ${r.color} 16%, transparent)` } : undefined}
-            >
-              <td className="max-w-0 rounded-l-inset px-2 py-1.5 text-left font-sans text-base">
-                <span className="flex items-center gap-2">
-                  {r.id === winner ? (
-                    <Trophy size={16} weight="fill" color={r.color} className="shrink-0" aria-label="Zwycięzca" />
-                  ) : (
-                    <span className="mx-[3px] size-2.5 shrink-0 rounded-full" style={{ backgroundColor: r.color }} aria-hidden />
-                  )}
-                  <span className="truncate">{r.nick}</span>
-                </span>
-              </td>
-              {!r.times ? (
-                <td colSpan={3} className="rounded-r-inset px-2 font-sans text-fg-muted">
-                  gra…
-                </td>
-              ) : r.avg === null ? (
-                <td colSpan={3} className="rounded-r-inset px-2 font-sans text-fg-muted">
-                  limit czasu
-                </td>
-              ) : (
-                <>
-                  <td className="px-1.5">{r.avg} ms</td>
-                  <td className="px-1.5">{r.penalties}</td>
-                  <td className="rounded-r-inset pr-2 pl-1.5">{r.best} ms</td>
-                </>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  // Remis (ta sama średnia) to to samo miejsce, jak w quizach.
+  const places: number[] = [];
+  rows.forEach((r, i) => places.push(i > 0 && rows[i - 1].avg === r.avg ? places[i - 1] : i + 1));
 
+  return (
+    <ScoreTable
+      heads={["Średnio", "Kary", "Najlepszy"]}
+      winner={winner}
+      ranked={!!ranking}
+      rows={rows.map((r, i) => ({
+        ...r,
+        place: places[i],
+        cells: !r.times ? null : r.avg === null ? [{ value: "limit czasu", span: 3, muted: true }] : [{ value: `${r.avg} ms` }, { value: r.penalties }, { value: `${r.best} ms` }],
+      }))}
+    >
       {longest > 1 && (
         <figure className="flex flex-col gap-1">
           <figcaption className="label">Czasy kolejnych reakcji</figcaption>
@@ -116,7 +86,7 @@ function Results({ view, me, players, ranking, winner }: Omit<Props, "onMove">) 
           </div>
         </figure>
       )}
-    </section>
+    </ScoreTable>
   );
 }
 
@@ -152,7 +122,8 @@ export function Refleks({ view, me, players, ranking, winner, onMove }: Props) {
     const r = run.current;
     setPhase("wait");
     r.timer = window.setTimeout(() => {
-      r.goAt = performance.now();
+      markFrame((t) => (r.goAt = t));
+      clock.stimulus("refleks");
       setPhase("go");
       // Bez dotknięcia runda sama kończy się karą.
       r.timer = window.setTimeout(() => next(REFLEKS_PENALTY_MS), REFLEKS_PENALTY_MS);
@@ -165,14 +136,15 @@ export function Refleks({ view, me, players, ranking, winner, onMove }: Props) {
     wait();
   }
 
-  function tap() {
+  function tap(e: { timeStamp: number }) {
     const r = run.current;
-    const reaction = Math.round(performance.now() - r.goAt);
-    if (phase === "go" && reaction >= MIN_REACTION) {
+    const took = reaction(r.goAt, e);
+    if (phase === "go" && took >= MIN_REACTION) {
       clearTimeout(r.timer);
-      next(Math.min(reaction, REFLEKS_PENALTY_MS));
+      next(Math.min(took, REFLEKS_PENALTY_MS));
     } else if (phase === "wait" || phase === "go") {
       clearTimeout(r.timer);
+      navigator.vibrate?.(VIBRATE.mistake);
       setPhase("early");
       r.timer = window.setTimeout(() => next(REFLEKS_PENALTY_MS), 800);
     }
@@ -206,10 +178,15 @@ export function Refleks({ view, me, players, ranking, winner, onMove }: Props) {
         ]}
       />
       <button
+        // Klucz z falstartu: przycisk montuje się od nowa i animacja błędu startuje jeszcze raz (jak w Stój!).
+        key={phase === "early" ? `early-${times.length}` : "field"}
         type="button"
-        onPointerDown={tap}
+        onPointerDown={(e) => {
+          clock.input("refleks", e);
+          tap(e);
+        }}
         className={`flex min-h-80 flex-1 touch-none select-none items-center justify-center rounded-tile border border-line text-2xl font-semibold ${
-          phase === "go" ? "bg-success text-bg" : "bg-surface text-fg-muted"
+          phase === "go" ? "bg-success text-bg" : phase === "early" ? "animate-[tile-miss_0.35s_ease-out] bg-surface text-warning" : "bg-surface text-fg-muted"
         }`}
       >
         {phase === "go" ? "Teraz!" : phase === "early" ? "Falstart!" : last === null ? "Czekaj…" : last === REFLEKS_PENALTY_MS ? "Za wolno!" : `${last} ms`}

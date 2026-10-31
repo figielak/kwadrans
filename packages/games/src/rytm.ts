@@ -5,9 +5,8 @@ import { type GameDefinition, type PlayerId, ranked } from "./core.ts";
 export const BEATS = 8;
 /** Tyle trwa stukanie, licząc od ostatniego uderzenia metronomu. */
 export const TAP_MS = 10_000;
-const BPM_MIN = 70;
-const BPM_MAX = 130;
-const BPM_STEP = 5;
+/** Tempo metronomu, to samo w każdej partii, żeby wyniki dało się porównać (dawne partie mają w stanie swój odstęp z 70-130 BPM). */
+const BPM = 100;
 export const MAX_TAPS = 60;
 
 /** Czasy stuknięć w ms od ostatniego uderzenia metronomu. */
@@ -15,12 +14,14 @@ export type Move = { type: "result"; taps: number[] };
 
 export interface State {
   players: PlayerId[];
-  /** Odstęp między uderzeniami metronomu w ms, ten sam dla wszystkich. */
+  /** Odstęp między uderzeniami metronomu w ms: 600 (100 BPM), w dawnych zapisach 462-857. Wynik i ekran zawsze czytają go ze stanu. */
   interval: number;
-  /** Nic nie losuje, tylko odróżnia partie (rewanż może wylosować to samo tempo). */
+  /** Nic nie losuje, tylko odróżnia partie (tempo w rewanżu jest to samo). */
   nonce: number;
   /** Średnia odchyłka odstępów w ms. */
   results: Record<PlayerId, number>;
+  /** Surowe stuknięcia do kafla tempa; brak mapy w dawnych zapisach. */
+  taps?: Record<PlayerId, number[]>;
 }
 
 export type View = State;
@@ -47,9 +48,10 @@ export const rytm: GameDefinition<State, Move> = {
 
   setup: (players, rng) => ({
     players,
-    interval: Math.round(60_000 / (BPM_MIN + BPM_STEP * Math.floor(rng() * ((BPM_MAX - BPM_MIN) / BPM_STEP + 1)))),
+    interval: Math.round(60_000 / BPM),
     nonce: Math.floor(rng() * 2 ** 32),
     results: {},
+    taps: {},
   }),
 
   validateMove: (state, player, { taps }) =>
@@ -58,7 +60,7 @@ export const rytm: GameDefinition<State, Move> = {
     taps.length <= MAX_TAPS &&
     taps.every((t, i) => Number.isInteger(t) && t > (taps[i - 1] ?? 0) && t <= TAP_MS),
 
-  applyMove: (state, player, { taps }) => ({ ...state, results: { ...state.results, [player]: deviation(state.interval, taps) } }),
+  applyMove: (state, player, { taps }) => ({ ...state, results: { ...state.results, [player]: deviation(state.interval, taps) }, taps: { ...state.taps, [player]: [...taps] } }),
 
   playerView: (state): View => state,
 

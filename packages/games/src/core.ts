@@ -5,7 +5,11 @@ export type PlayerId = string;
 /** Zwraca liczbę z przedziału [0, 1). */
 export type Rng = () => number;
 
-export type GameResult = { winner?: PlayerId; ranking?: PlayerId[] };
+/** `places` (opcjonalne): miejsca z remisami, gdy `ranking` ma równe dalsze miejsca; bez pola miejsce to pozycja w `ranking`. */
+export type GameResult = { winner?: PlayerId; ranking?: PlayerId[]; places?: Record<PlayerId, number> };
+
+/** Zaufane źródło z miejsca wywołania w serwerze, nigdy z treści ruchu klienta. */
+export type MoveContext = { source: "client" | "timeout" };
 
 export interface GameDefinition<State, Move> {
   id: string;
@@ -18,7 +22,8 @@ export interface GameDefinition<State, Move> {
   modes?: { id: string; name: string; hint: string; default?: boolean }[];
   /** `mode` to id z `modes` wybrane przez gospodarza; nieznane albo brak oznacza tryb domyślny. */
   setup(players: PlayerId[], rng: Rng, mode?: string): State;
-  validateMove(state: State, player: PlayerId, move: Move): boolean;
+  /** Brak kontekstu oznacza klienta. Ruchy po limicie również wymagają walidacji. */
+  validateMove(state: State, player: PlayerId, move: Move, context?: MoveContext): boolean;
   applyMove(state: State, player: PlayerId, move: Move, rng: Rng): State;
   /** Widok stanu dla konkretnego gracza: tu ukrywamy informacje. Obserwator dostaje widok dla "". */
   playerView(state: State, player: PlayerId): unknown;
@@ -77,6 +82,13 @@ export function rankResults<R>(players: PlayerId[], results: Record<PlayerId, R>
 /** Miejsca z remisami: 1 + liczba graczy ze ściśle lepszym wynikiem. Tylko po końcu gry (każdy ma wynik). */
 export function rankPlaces<R>(players: PlayerId[], results: Record<PlayerId, R>, compare: (a: R, b: R) => number): Record<PlayerId, number> {
   return Object.fromEntries(players.map((p) => [p, 1 + players.filter((q) => compare(results[q], results[p]) < 0).length]));
+}
+
+/** Nieukończone nowe partie są na końcu i remisują. Brak znacznika w historii nie zmienia wyniku. */
+export function byCompletion<R extends { completed?: boolean }>(compare: (a: R, b: R) => number): (a: R, b: R) => number {
+  return (a, b) => a.completed === false || b.completed === false
+    ? Number(a.completed === false) - Number(b.completed === false)
+    : compare(a, b);
 }
 
 type Ranked<S> = { isOver: (state: S) => GameResult | null; places: (state: S) => Record<PlayerId, number> };
@@ -183,7 +195,11 @@ type Score = { best: number; tie: number | null };
 
 /** Porównanie dwóch rekordów: ujemne, gdy `a` lepszy. Drugie kryterium liczy się tylko przy równym głównym wyniku. */
 export const compareRecords = (order: RecordOrder) => (a: Score, b: Score) =>
-  (order.lower ? a.best - b.best : b.best - a.best) || (order.tie && a.tie !== null && b.tie !== null ? (order.tie.lower ? a.tie - b.tie : b.tie - a.tie) : 0);
+  (order.lower ? a.best - b.best : b.best - a.best) || (order.tie ? compareTie(a.tie, b.tie, order.tie.lower) : 0);
+
+/** Drugie kryterium jak w SQL (`NULLS LAST`): znane przed brakiem, dwa braki równe, brak nigdy nie udaje zera. */
+const compareTie = (a: number | null, b: number | null, lower: boolean) =>
+  a === null || b === null ? Number(a === null) - Number(b === null) : lower ? a - b : b - a;
 
 /** Pozycja gracza w rankingu rekordów; `rows` od najlepszego (tak przychodzą z serwera). null, gdy gracz nie ma rekordu. */
 export function standing(rows: RecordRow[], nick: string, order: RecordOrder): RecordStanding | null {
@@ -235,13 +251,16 @@ export const dailyGame = (day: number, ids: readonly string[]) => shuffle(ids, c
 
 export const average = (times: number[]) => (times.length ? times.reduce((a, b) => a + b, 0) / times.length : Infinity);
 
+/** Średnia zaokrąglona do ms: ta sama w miejscach i w `record.tie`, więc ułamek ms nie rozstrzyga remisu. */
+export const averageMs = (times: number[]) => Math.round(average(times));
+
 /** Porównanie wyników „na trafienia”: więcej trafień wyżej, przy równej liczbie niższa średnia czasu. */
 export const byHitsThenAverage = (a: { times: number[] }, b: { times: number[] }) =>
   // Dwa puste wyniki to remis: Infinity - Infinity dałoby NaN, a NaN !== 0 robiło zwycięzcę z pierwszego gracza.
-  b.times.length - a.times.length || (a.times.length ? average(a.times) - average(b.times) : 0);
+  b.times.length - a.times.length || (a.times.length ? averageMs(a.times) - averageMs(b.times) : 0);
 
 /** Porównanie wyników „na punkty” (Stój!, Obrót): więcej punktów wyżej, przy równych niższa średnia czasu; dwa wyniki bez trafień to remis. */
 export const byScoreThenAverage =
   <R extends { times: number[] }>(score: (r: R) => number) =>
   (a: R, b: R) =>
-    score(b) - score(a) || (a.times.length || b.times.length ? average(a.times) - average(b.times) : 0);
+    score(b) - score(a) || (a.times.length || b.times.length ? averageMs(a.times) - averageMs(b.times) : 0);

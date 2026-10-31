@@ -6,7 +6,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 
 | Nazwa w UI | `id` / plik | Gracze | Limit tury | Typ |
 |---|---|---|---|---|
-| Kampus Tour | `kampus-tour` | 2-4 | 60 s | planszowa, po kolei |
+| Kampus Tour | `kampus-tour` | 2-4 | 60 s | planszowa, po kolei (wybór postaci naraz) |
 | Chińczyk | `chinczyk` | 2-4 | 60 s (Szybki 20 s) | planszowa, po kolei |
 | Statki | `statki` | 2 | 90 s rozstawianie, 60 s strzał | ukryty stan |
 | Gomoku | `piec-w-rzedzie` | 2 | 60 s | po kolei |
@@ -23,10 +23,10 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Narysuj koło | `kolo` | 1-6 | 120 s | mini-gra |
 | Odcień | `kolor` | 1-6 | 180 s | mini-gra |
 | Policz kropki | `kropki` | 1-6 | 120 s | mini-gra |
-| Który rok? | `rok` | 1-6 | 240 s | mini-gra |
+| Który rok? | `rok` | 1-6 | 270 s | mini-gra |
 | Środek | `srodek` | 1-6 | 60 s | mini-gra |
 | Stój! | `stoj` | 1-6 | 60 s | mini-gra |
-| Śledzenie | `sledzenie` | 1-6 | 300 s | mini-gra |
+| Śledzenie | `sledzenie` | 1-6 | 360 s | mini-gra |
 | Wieża | `wieza` | 1-6 | 180 s | mini-gra |
 | Rytm | `rytm` | 1-6 | 60 s | mini-gra |
 | Inny element | `inny` | 1-6 | 90 s | mini-gra |
@@ -39,7 +39,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | W pamięci | `w-pamieci` | 1-6 | 300 s | mini-gra |
 | Dziesiątki | `dziesiatki` | 1-6 | 90 s | mini-gra |
 | Tort | `tort` | 1-6 | 120 s | mini-gra |
-| Zakupy | `zakupy` | 1-6 | 60 s | mini-gra |
+| Zakupy | `zakupy` | 1-6 | 80 s | mini-gra |
 | Za zasłoną | `zaslona` | 1-6 | 120 s | mini-gra |
 | Nożyczki | `nozyczki` | 1-6 | 60 s | mini-gra |
 | Sudoku | `sudoku` | 1-6 | 120 s | mini-gra |
@@ -53,40 +53,80 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
 - Wyzwanie losuje serwer w `setup` (to samo dla wszystkich) i od razu wysyła w widoku. `playerView` zwraca cały stan,
   więc nic nie jest ukryte (da się podejrzeć; świadoma decyzja, komentarze `ponytail:`).
 - Partia toczy się na kliencie. Każdy gracz wysyła jeden ruch `{ type: "result", ... }`; drugi ruch tego samego gracza jest odrzucany.
-  Wyjątki: Narysuj koło (do 10 ruchów na gracza), Tabela Schultego, Policz kropki, Kąt, Który rok?, Wieża, Balon i Sudoku (dodatkowy ruch `progress` po każdym trafieniu, rundzie, klocku, balonie albo wpisanej cyfrze).
-- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon, W pamięci, Tort, Zakupy, Za zasłoną, Nożyczki, Trzy kubki),
+  Wyjątki: Narysuj koło (do 10 ruchów na gracza), Tabela Schultego, Policz kropki, Kąt, Który rok?, Wieża, Balon, Sudoku i Sekwencja (dodatkowy ruch `progress` po każdym trafieniu, rundzie, klocku, balonie albo wpisanej cyfrze).
+- Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Refleks, Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon, W pamięci, Tort, Zakupy, Za zasłoną, Nożyczki, Trzy kubki),
   w reszcie ufa klientowi.
 - Partia zaczyna się ekranem instrukcji (platforma, nie zasady gry): każdy klika „Start” osobno (wiadomość pokoju `begin`) i gra od razu,
   po `INTRO_SECONDS` (15 s) gra rusza sama. Limit tury startuje, gdy wystartują wszyscy albo minie 15 s; wynik oddany wcześniej go nie uruchamia.
 - `waitingFor` = gracze bez wyniku. Po limicie `timeoutMove` wpisuje najgorszy możliwy wynik.
 - Koniec, gdy wszyscy oddali wynik. Ranking liczy `rankResults` (core.ts): zwycięzca tylko przy 2+ graczach i bez remisu
   na pierwszym miejscu; gra solo nie ma zwycięzcy (nie nabija statystyk).
-- Odświeżenie strony w trakcie = partia od nowa na kliencie. `nonce` w stanie (Stoper, Narysuj koło, Rytm) służy tylko do tego,
+- Gry rozstrzygające remis średnim czasem (Kolor liter, Liczenie, Inny element, Obrót, Literówka, Dziesiątki, Stój!) porównują średnią
+  zaokrągloną do ms (`averageMs`), tą samą w miejscach partii i w `record.tie`; różnica ułamka ms to remis.
+  W rekordach brak drugiego kryterium (stare zapisy) stoi za znanym, dwa braki remisują, brak nigdy nie liczy się jak zero; SQL i `compareRecords` mają ten sam porządek.
+- Odświeżenie strony w trakcie = partia od nowa na kliencie. `nonce` w stanie (Stoper, Narysuj koło, Rytm, Sudoku) służy tylko do tego,
   żeby rewanż zamontował komponent od nowa.
+- Ranking, miejsca i rekord mini-gry składa `ranked` (core.ts). Wyjątek: Narysuj koło ma własne `isOver`, bo gracz oddaje do 10 wyników
+  i partia kończy się dopiero po próbach wszystkich (`waitingFor`), a nie po pierwszym wyniku każdego; komparator jest ten sam.
+- Policz kropki, Kąt i Który rok? mają trzy świadome kopie szkieletu zasad rund (pokaz, odpowiedź, `progress`, wynik po limicie).
+  Różnią się zakresem odpowiedzi, wynikiem po limicie i odsłoną, więc wspólny moduł zasad powstanie dopiero przy czwartej takiej grze
+  albo zmianie kształtu ruchu; wspólny jest już ekran (`Szacowanie.tsx` dla Policz kropki i Kąta).
 
 ### Refleks (`refleks`)
 - 12 rund (`ROUNDS`). W każdej pole zmienia kolor po losowym opóźnieniu 1-3 s (12 opóźnień z serwera), gracz dotyka jak najszybciej.
   Liczba rund jest stała, żeby losowe opóźnienia nie zmieniały tego, ile da się ugrać (dawniej 30 s i liczba trafień).
 - Każda runda daje jeden czas reakcji 100-1000 ms. Falstart (dotknięcie przed zmianą albo reakcja poniżej 100 ms) i reakcja ponad 1 s
-  liczą się jak 1000 ms (`PENALTY_MS`) i runda przepada; po falstarcie 0,8 s przerwy.
+  liczą się jak 1000 ms (`PENALTY_MS`) i runda przepada; po falstarcie 0,8 s przerwy. Falstart to pomyłka: wibracja 60,
+  „Falstart!” w kolorze ostrzeżenia i błysk pola jak przy błędzie w Stój!.
+- Czas reakcji liczy ekran od pierwszej klatki z bodźcem do znacznika dotyku (`stimulus.ts`, ZASADY §5); dotknięcie przed pierwszą klatką to falstart.
+  Rekordy sprzed zmiany (2026-10-31) liczone od zmiany stanu są o mniej więcej pół do jednej klatki wyższe i zostają bez przeliczania.
 - Jeden ruch z `times`: 12 czasów w ms (int). Wynik liczy serwer: zaokrąglona średnia w ms, mniej lepiej, równe to remis.
 - Walidacja: lista pusta albo dokładnie 12 liczb całkowitych 100-1000. Pusta lista = limit czasu = 1000 ms, czyli najgorszy możliwy wynik.
 - Stan trzyma też `times` każdego gracza (tabela i wykres na końcu; liczba kar to czasy równe 1000).
 
 ### Sekwencja (`simon`)
 - Sekwencja 100 kolorów (0-3). Klient pokazuje pierwsze n, gracz powtarza, potem n+1 itd. (pole świeci 450 ms, przerwa 150 ms).
-- Wynik: `score` = najdłuższa powtórzona seria, więcej lepiej. Walidacja: 0-100. Limit czasu: 0.
+- Wynik: `score` = najdłuższa powtórzona seria, więcej lepiej. Walidacja: liczba całkowita 0-100.
+- Po ukończeniu serii klient wysyła `{ type: "progress", score }`. Serwer zapisuje ostatnią zaliczoną serię w `progress`.
+  Postęp nie maleje, powtórzenie tej samej wartości nie dodaje serii; wynik końcowy nie może być mniejszy niż zapisany postęp.
+  Obcy gracz, ułamek, wartość poza zakresem i ruch po wyniku są odrzucane. Dotychczasowy model zaufania klientowi pozostaje.
+- Limit 300 s ma stały klucz `run`: postęp i wynik rywala nie odnawiają czasu, także przy jednym graczu.
+  Po limicie serwer oddaje ostatni zapisany postęp (0, jeśli gracz niczego nie ukończył).
+  To celowy wyjątek od najgorszego wyniku timeoutu, żeby nie gubić zdobytej serii; zaczęta, nieukończona seria nie daje punktu.
+- Odświeżenie zachowuje postęp serwera. Po Start klient pokazuje kolejną serię po ostatniej zaliczonej;
+  pomyłka i timeout oddają ten sam osiągnięty wynik. Po rewanżu nowa sekwencja i pusty postęp.
+- Pomyłka: wynik idzie na serwer od razu, wibracja 60, a przez 1 s widać złe pole (błysk) i podświetlone właściwe; potem tabela.
+- Limit jest skończony, niezależnie od bufora 100 kolorów. Model czasu `T(N) ≈ N + (0,6+d)·N(N+1)/2`,
+  gdzie `d` to założony średni czas decyzji na pole, a nie pomiar; nie obiecujemy ukończenia dowolnej serii w 300 s.
+  Nie dodajemy szybkości jako drugiego kryterium: równe serie to remis.
+- Stare rekordy i detail pozostają bez resetu/przeliczania. Historyczny detail bez `progress` pokazuje zapisany wynik;
+  nie odtwarzamy utraconych serii dawnych timeoutów.
 
 ### Stoper (`stoper`)
 - Po „Start” odliczanie 3, 2, 1 (dotknięcia ignorowane), potem licznik biegnie od 0, po 3 s znika, gracz dotyka przy celu. Klient sam kończy po dwukrotności celu.
-- Cel (`target`) losuje serwer: pełne sekundy 6-14 s, ten sam dla wszystkich w partii.
+- Cel (`target`, `TARGET_MS`) jest stały: 10 s w każdej partii, żeby wyniki dało się porównać. Dawne partie miały losowy cel
+  6-14 s; ich stan i rekordy zostają bez przeliczania, a walidacja, timeout i ekran zawsze czytają cel ze stanu. Historia rekordów
+  łączy więc partie o różnych celach (ZG4-v1 §3.2).
 - Grający nie widzi limitu tury po starcie (tykający pasek zdradzałby czas); po dotknięciu: odkryty czas i odchyłka ze znakiem.
 - Wynik: `deviation` = odchyłka w ms (int, od 0 do celu), mniej lepiej. Limit czasu: odchyłka równa celowi.
+- Ruch może też zawierać `stopped`: czas zatrzymania w pełnych ms, 0 do dwukrotności celu, zgodny z `deviation = abs(stopped − target)`.
+  Serwer zachowuje go w mapie `stops` na potrzeby kafla czasu i odchyłki ze znakiem po odświeżeniu oraz w rekordowej partii.
+  Dawne ruchy bez `stopped` i timeout pozostają dozwolone; dawny detail bez `stops` pokazuje samą bezwzględną odchyłkę, bez odtwarzania czasu ani znaku. Punktacja i rekordy nie zmieniają się.
 
 ### Tabela Schultego (`schulte`)
 - Siatka 5×5 z liczbami 1-25 w losowym układzie, dotykasz po kolei od 1.
 - Wynik: `ms` + 3000 ms za każdą pomyłkę (`total`), mniej lepiej.
-- Walidacja: `ms` od 3750 (25 × 150 ms) do 180000, `mistakes` int ≥ 0. Limit czasu: 180000 ms, 0 pomyłek.
+- Walidacja: `ms` od 3750 (25 × 150 ms) do 180000, `mistakes` int ≥ 0.
+- Nowy wynik ma `completed: boolean` w stanie. Klient zgłasza ukończenie (brak pola w ruchu oznacza `true`);
+  `completed: false` jest dozwolone tylko w zaufanym kontekście `{ source: "timeout" }`, nigdy z JSON klienta.
+  Timeout: 180000 ms, 0 pomyłek, puste `splits` i `completed: false`.
+- Każde ukończenie jest przed nieukończeniem, także 170 s + 4 pomyłki = 182 s. Ukończeni są porównywani po czasie z karami;
+  nieukończeni remisują ze sobą. Ten sam komparator ustala zwycięzcę, ranking i miejsca w turnieju.
+- Nowy timeout nie daje rekordu: `record.score` zwraca nieskończoność jako sygnał dla filtra serwera;
+  stan JSON i baza zawierają wyłącznie skończone liczby. Ekran pokazuje „Nieukończono”, bez panelu nowego rekordu.
+  Przewaga w sekundach jest pokazywana tylko między dwoma ukończonymi wynikami.
+- Stare rekordy i detail bez `completed` pozostają historyczne, bez dopisywania statusu i bez przeliczania.
+  Sam czas 180000 ms ani wynik z karami nie dowodzi timeoutu; dawny nierozpoznawalny timeout może nadal wyprzedzać nowe ukończenie.
 - Międzyczasy: wynik niesie `splits`, czyli 25 czasów szukania kolejnych liczb (int ≥ 0 ms, suma równa `ms`).
   Pusta lista jest dozwolona (limit czasu). Nie wpływają na ranking, służą tylko do ekranu końcowego.
 - Ekran końcowy: pod tabelą wyników wiersz z przewagą („Gracz 1 wygrywa o 0,3 s”, tylko gdy jest zwycięzca) i wykres międzyczasów
@@ -100,27 +140,37 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
 
 ### Kolor liter (`stroop`) i Liczenie (`liczenie`)
 Wspólne zasady w `quiz.ts`, wspólny ekran `Quiz.tsx` (dzielą je też Inny element, Obrót i Literówka).
-- 30 s pytań z czterema odpowiedziami; serwer losuje 200 pytań (starczy przy 150 ms na odpowiedź).
+- 30 s pytań z czterema odpowiedziami; serwer losuje pulę 200 pytań, powtarzaną po wyczerpaniu. Rozmiar puli nie ogranicza liczby trafień.
 - Pomyłka blokuje na 1 s (inaczej losowe klepanie byłoby szybsze niż myślenie).
 - Wynik: `times` (czasy poprawnych) i `errors`. Ranking jak w Refleksie: trafienia, potem niższa średnia. `errors` nie wpływa na ranking, ale jest widoczne w pasku statystyk i w wynikach.
 - Ekran końcowy: tabela z miejscem (puchar u zwycięzcy), trafieniami, średnim czasem (od 1 s w sekundach) i błędami; pod nią notka, jak liczony jest ranking.
-- Dotknięta odpowiedź błyska: zielono przy trafieniu, czerwono z potrząśnięciem przy pomyłce.
-- Walidacja: każdy czas 150-5000 ms, suma ≤ 30 s, najwyżej 200 czasów. Limit czasu: zero trafień.
+- Trafienie błyska na zielono licznikiem trafień (albo punktów), bo od razu jest nowe pytanie; pomyłka błyska czerwono z potrząśnięciem na dotkniętej odpowiedzi.
+- Walidacja wspólna sześciu quizów (także Inny element, Obrót, Literówka, Dziesiątki): każdy czas całkowity 0-30000 ms,
+  suma ≤ 30000 ms, `errors` całkowite 0-30. Pierwsza pomyłka może paść od razu, kolejne najwcześniej co 1000 ms:
+  trzydziesta przed końcem rundy, trzydziesta pierwsza dopiero po jej końcu. Suma czasów nie jest powiększana o blokady,
+  bo w Inny element i Dziesiątkach czasy trafień już zawierają blokady tego samego zadania.
+  Są to konieczne granice danych, nie dowód prawdziwości pomiaru klienta. Limit czasu: zero trafień.
+- Ekran zachowuje każde trafienie, także poniżej 150 ms, i cały czas ponad 5 s. Czasy to różnice zaokrąglonych
+  znaczników monotonicznego zegara w pełnych ms; 0 ms może wynikać z rozdzielczości zegara. Od końca 30000 ms
+  nowe odpowiedzi nie są przyjmowane, wynik jest wysyłany raz. Pula pytań i dostaw zapętla się jak dotychczas.
+  Historyczne rekordy/detail pozostają bez przeliczania; nowe wyniki używają poprawionego pomiaru.
 - **Kolor liter**: nazwa koloru (CZERWONY, NIEBIESKI, ŻÓŁTY, ZIELONY) napisana kolorem liter; odpowiedź to kolor liter, nie słowo.
   W 25% plansz słowo zgadza się z kolorem (żeby nie dało się grać „zawsze inny”): dokładnie jedna w każdej kolejnej czwórce plansz,
   na losowej pozycji. Zgodne plansze są szybsze, więc każda partia ma ich tyle samo.
-- **Liczenie**: działania losowane po równo z czterech typów: `a + b` (10-99), `a − b` (a 20-99, b 10-a, wynik ≥ 0),
+- **Liczenie**: działania losowane z czterech typów potasowanymi czwórkami (w każdej kolejnej czwórce po jednym, więc w puli po 50): `a + b` (10-99), `a − b` (a 20-99, b 10-a, wynik ≥ 0),
   `a × b` (2-9 × 2-12), `a : b` (dzielnik 2-9, wynik 2-12, zawsze bez reszty). Złe odpowiedzi to typowe pomyłki
   blisko poprawnej: ±1, ±2, ±10, ±20 przy dodawaniu i odejmowaniu, ±1, ±2, ±a, ±b przy mnożeniu, ±1, ±2, ±3 przy dzieleniu;
-  dodatnie i bez powtórek. Liczby z działania nie ma wśród opcji: działanie z wynikiem równym `a` albo `b` (49 : 7) jest losowane od nowa.
+  dodatnie i bez powtórek. Liczby z działania nie ma wśród opcji: działanie z wynikiem równym `a` albo `b` (49 : 7) jest losowane od nowa w tym samym rodzaju.
+  Dawne partie miały rodzaje losowane osobno; ich rekordy zostają bez przeliczania.
 
 ### Narysuj koło (`kolo`)
-- Limit przez `turn(state)`: 120 s na wszystkie próby gracza (także solo); licznik rusza od nowa tylko, gdy ktoś skończy próby.
+- Limit 120 s na wszystkie próby, wspólny termin od końca instrukcji: ani próba, ani koniec prób rywala go nie odnawia.
 - Do 10 prób palcem, liczy się najlepsza. Punkty rysunku w układzie 0-1 względem kwadratowego płótna.
 - Na środku płótna jest mała kropka (pomoc w wyobrażeniu sobie koła); ocena nie zależy od położenia rysunku.
 - Każda próba to osobny ruch `result` z `points` (20-1000 punktów, wszystkie w 0-1). Pusta lista kończy pozostałe próby
   (zostaje dotychczasowa najlepsza); to też ruch po limicie czasu.
 - Ocenę liczy serwer (`judge`), klient woła tę samą funkcję przed wysłaniem i niedokończonego koła nie wysyła, więc nie zużywa próby.
+  Odrzucony rysunek: potrząśnięcie płótna i powód pod nim, bez wibracji (ruch zignorowany, nie pomyłka).
 - `judge`: obcina rysunek po pełnym obrocie (zakładka nie liczy się), dopasowuje okrąg (metoda Kåsy), potem:
   - poniżej 0,9 obrotu albo mniej niż 20 punktów: `unfinished`, 0 pkt,
   - promień poniżej 0,15: `small`, 0 pkt,
@@ -130,7 +180,7 @@ Wspólne zasady w `quiz.ts`, wspólny ekran `Quiz.tsx` (dzielą je też Inny ele
   odchylenia od niego (zielony blisko, czerwony od 10% promienia), a na środku płótna wynik z porównaniem do najlepszej próby.
 - Wynik 0-1000 (dziesiąte części procenta), więcej lepiej. Stan trzyma `best` i `worst` każdego gracza.
 - Ekran końcowy: karta na gracza w kolejności rankingu (nick, duży najlepszy wynik), pod nią miniatury „Najlepsza” (z przerywanym idealnym okręgiem) i „Najgorsza”; bez osobnej tabeli wyników.
-- Koniec, gdy każdy ma 10 prób.
+- Koniec, gdy każdy ma 10 prób (pusta lista kończy pozostałe). Dlatego Koło nie używa `ranked`: koniec zależy od `waitingFor`, nie od pierwszego wyniku (ZASADY-GIER §1).
 
 ### Odcień (`kolor`)
 - 5 kolorów HSB; każdy widać 2 s, potem gracz odtwarza go suwakami barwy (0-359), nasycenia i jasności (0-100).
@@ -138,7 +188,7 @@ Wspólne zasady w `quiz.ts`, wspólny ekran `Quiz.tsx` (dzielą je też Inny ele
 - Jeden ruch z 5 kolorami (wszystkie składowe int). Wynik liczy serwer: suma ΔE (CIE76 w Lab), każda ucięta do 100,
   zapisana w dziesiątych częściach (int). Mniej lepiej.
 - Pusta lista = limit czasu = 5 × 100.
-- Ekran: wzór i podgląd mają ten sam rozmiar (duże pole wydaje się jaśniejsze i bardziej nasycone), suwaki startują losowo,
+- Ekran: licznik „Kolor 1/5” w pasku `Stats`, wzór i podgląd mają ten sam rozmiar (duże pole wydaje się jaśniejsze i bardziej nasycone), suwaki startują losowo,
   przycisk „Zatwierdź kolor” w kolorze gracza. Po zatwierdzeniu porównanie: wzór i odpowiedź obok siebie, zgodność w % (100 − ΔE)
   i podpowiedzi z `hints` („za ciemny”, „za mało nasycony”, „za bardzo w stronę żółci”; progi: jasność 8, nasycenie 10, barwa 10°).
   Po ostatnim kolorze nie ma porównania, od razu ekran wyników (pary wszystkich kolorów są tam).
@@ -149,7 +199,9 @@ Wspólne zasady w `quiz.ts`, wspólny ekran `Quiz.tsx` (dzielą je też Inny ele
 - 10 rund, w każdej 8-40 kropek (bez nakładania, odstęp środków ≥ 0,08) widocznych 1,5 s, potem gracz wpisuje liczbę.
   Razem w partii jest zawsze 240 kropek (`TOTAL`, losowanie do skutku przez `withSum`): błąd rośnie z liczbą kropek, więc każda partia jest równie trudna.
 - Jeden ruch z 10 odpowiedziami (int 0-99). Wynik liczy serwer: suma |odpowiedź − liczba kropek|, mniej lepiej.
-- Pusta lista = limit czasu, liczona jak same zera (czyli błąd = suma kropek).
+- Pusta lista = limit czasu: każda brakująca odpowiedź dostaje błąd `max(n, 99-n)`, gdzie `n` to liczba kropek.
+  Żadna dozwolona odpowiedź 0-99 nie daje większego błędu; przy tym samym błędzie obowiązuje remis.
+  Stare rekordy i detail z timeoutem liczonym jak zera pozostają bez przeliczania. Historia obejmuje obie metody.
 - Bez tolerancji: każda kropka różnicy to 1 punkt karny, w obie strony tak samo.
 - Ruch `progress` (`done` = liczba odpowiedzianych rund, int 1-9) po każdej odpowiedzi poza ostatnią: tylko do podglądu u rywali
   (pasek „3/10” w pigułce gracza), nie odnawia limitu (`turn` ma stały klucz), może spaść po odświeżeniu strony.
@@ -178,13 +230,19 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 - Jeden ruch z 10 odpowiedziami (int 1900-2025). Wynik liczy serwer: suma |odpowiedź − rok|, mniej lepiej.
 - Pusta lista = limit czasu partii = w każdej rundzie najgorszy możliwy błąd, czyli `max(rok − 1900, 2025 − rok)`.
 - Limit rundy 20 s jest na kliencie: po czasie zatwierdza się rok ustawiony na suwaku. Suwak startuje na środku (1962).
-  Limit partii 240 s = 10 × (20 s + 2,5 s odsłony) plus zapas.
+  Limit partii na serwerze: 270 s. Model pełnej partii: 10 × (20 s + 2,5 s odsłony) + 3 s na dostarczenie wyniku
+  = 228 s; zapas 42 s (około 18,4%), co przekracza minimum 10 s. To zatwierdzony wyjątek od progu 20%
+  z ZASADY §3, który wymagałby 273,6 s. Rundy i odsłony kończą się automatycznie, bez dodatkowych kliknięć;
+  3 s sieci to założenie modelu, nie pomiar ani gwarancja czasu rzeczywistego.
+- Limit zwiększono z 240 do 270 s; liczba rund, zakres lat i punktacja pozostają bez zmian. Dawne rekordy,
+  wygrane i zapisane partie pozostają bez przeliczania i kasowania. Nowe wyniki trafiają do tego samego rankingu,
+  który obejmuje partie o różnych limitach czasu; nie gwarantuje to pełnej porównywalności historii.
 - Ruch `progress` (`done` = liczba odpowiedzianych rund, int 1-9) po każdej odpowiedzi poza ostatnią: tylko do podglądu u rywali
   (pasek „3/10” w pigułce gracza), nie odnawia limitu (`turn` ma stały klucz), może spaść po odświeżeniu strony.
-- Ekran: kafel z tekstem wydarzenia, dużym rokiem, suwakiem i przyciskami −1 / +1, nad nim pasek czasu rundy (ostatnie 5 s ostrzegawczy).
+- Ekran: kafel z tekstem wydarzenia, dużym rokiem, suwakiem i przyciskami −1 / +1, nad nim pasek czasu rundy w kolorze gracza (ostatnie 10 s ostrzegawczy, jak pasek limitu).
   Po zatwierdzeniu przez 2,5 s ten sam kafel pokazuje prawdziwy rok, na torze własny rok (kolor gracza) i prawdziwy (pierścień)
   oraz różnicę ze znakiem; potem sama wskakuje następna runda, po dziesiątej wynik idzie na serwer.
-- Ekran końcowy: jedna lista 10 wydarzeń z prawdziwym rokiem i odpowiedziami graczy (w trakcie tylko własne, po końcu wszystkich).
+- Ekran końcowy: tabela rund (`RoundTable`) z wierszem prawdziwych lat i pomyłką ze znakiem u każdego gracza (w trakcie tylko własne, po końcu wszystkich), pod nią lista 10 wydarzeń z numerami kolumn.
 
 ### Środek (`srodek`)
 - 10 rund, w każdej odcinek pod losowym kątem na kwadratowym polu; gracz dotyka jego środka.
@@ -204,7 +262,7 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 - Pusta lista = limit czasu = 10 × 100% (więcej niż najgorsza uczciwa partia).
 - Ekran: kwadratowy kafel z odcinkiem (poprzeczne kreski na końcach). Liczy się miejsce podniesienia palca: punkt można przytrzymać
   i przesunąć. W trakcie celowania pierścień pokazuje rzut na odcinek
-  (tylko w strefie akceptacji). Puszczenie poza strefą: potrząśnięcie odcinka, wibracja 60 i „Dotknij bliżej odcinka”, runda trwa dalej.
+  (tylko w strefie akceptacji). Puszczenie poza strefą: potrząśnięcie odcinka i „Dotknij bliżej odcinka”, bez wibracji (to nie pomyłka), runda trwa dalej.
   Po puszczeniu przez 1 s widać własny punkt na odcinku (kolor gracza), prawdziwy środek (pierścień), odcinek błędu między nimi
   i błąd w %; kolor według celności: do 2% zielony z „Idealnie!”, do 8% zwykły, dalej ostrzegawczy.
   Potem sama wskakuje następna runda; po dziesiątej wynik idzie na serwer.
@@ -218,6 +276,7 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 - Losowe jest tylko to, które bodźce są czerwone: dokładnie co trzeci (`round(N / 3)`), w kolejności potasowanej na serwerze.
 - Jedno dotknięcie na bodziec. Zielony = trafienie, czerwony = błąd. Dotknięcie szybciej niż 100 ms od pojawienia się to zgadywanie:
   ekran je ignoruje. Przepuszczony zielony nic nie kosztuje (brak punktu).
+- Czas reakcji liczy ekran od pierwszej klatki z bodźcem do znacznika dotyku, jak w Refleksie; starsze rekordy zostają bez przeliczania.
 - Jeden ruch z `taps`: czas reakcji na każdy bodziec w ms (int) albo `null`, gdy nie było dotknięcia. Wynik liczy serwer:
   `times` (reakcje na zielone) i `errors` (dotknięte czerwone).
 - Wynik = trafienia − 2 × błędy, nie mniej niż 0, więcej lepiej. Przy remisie niższa średnia reakcji; dwa wyniki bez trafień to remis,
@@ -231,6 +290,13 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 ### Śledzenie (`sledzenie`)
 - Do 20 rund. W każdej 8 identycznych kulek na kwadratowym polu, 3 z nich (cele) są podświetlone przez 1,5 s, potem wszystkie
   ruszają się przez 5 s i stają; gracz wskazuje 3 kulki.
+- Limit serwera: 360 s. Model pełnej partii: 20 × (0,7 s oczekiwania + 1,5 s podświetlenia + 5 s ruchu
+  + 3 × 2 s wskazywania + 1 s odsłony) + 3 s na dostarczenie wyniku = 287 s. Zapas wynosi 73 s (około 25,4%),
+  co spełnia co najmniej 20% i 10 s. Czas wskazywania i budżet sieci są założeniami, nie pomiarem człowieka;
+  instrukcja poprzedza start limitu, a trzecie wskazanie zatwierdza bez dodatkowego kliknięcia.
+- Limit zwiększono z 300 do 360 s; liczba rund i punktacja pozostają takie same. Stare rekordy, `tie` i zapisane partie
+  pozostają bez przeliczania i kasowania. Nowe wyniki trafiają do tego samego rankingu, który obejmuje partie
+  o różnych limitach czasu; nie gwarantuje to pełnej porównywalności historii.
 - Pierwsza pomyłka kończy partię (jak w Sekwencji): runda jest zaliczona tylko z kompletem 3 celów.
 - Tempo rośnie: prędkość kulek to 0,3 boku pola na sekundę w pierwszej rundzie i o 0,06 więcej w każdej następnej (w dwudziestej ok. 1,45).
   Wszystkie kulki w rundzie mają tę samą prędkość.
@@ -246,8 +312,10 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 - Ranking: więcej rund wyżej, przy równych więcej `hits` („prawie się udało” wygrywa z pudłem); równe oba to remis.
 - Walidacja: najwyżej 20 rund, każda to 3 różne liczby całkowite 0-7. Pusta lista = limit czasu = 0 rund i 0 trafionych.
 - Bez ruchu `progress`: rywale nie widzą numeru rundy (jak w Sekwencji).
-- Ekran: kwadratowy kafel z kulkami; cele podświetlone kolorem gracza, w ruchu wszystkie jednakowe. Po zatrzymaniu dotknięcie zaznacza kulkę
-  (ponowne odznacza), trzecie zatwierdza. Potem przez 1 s widać prawdziwe cele; pomyłka to wibracja 60.
+- Ekran: kwadratowy kafel z kulkami; cele podświetlone kolorem gracza, w ruchu wszystkie jednakowe. Po zatrzymaniu kulki dostają numery 1-8
+  według końcowej pozycji (od góry, przy równym y od lewej; numer nie zależy od tego, która kulka jest celem), w ruchu numerów nie ma.
+  Wybór tylko panelem 8 przycisków 48 px pod planszą (dwa rzędy po cztery, działa też klawiatura); plansza jest podglądem.
+  Przycisk zaznacza kulkę (ponowny odznacza), trzeci wybór zatwierdza. Potem przez 1 s widać prawdziwe cele; pomyłka to wibracja 60.
   Ruch kulek jest treścią gry, więc działa także przy `prefers-reduced-motion`.
 
 ### Trzy kubki (`kubki`)
@@ -298,8 +366,9 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 ### Rytm (`rytm`)
 - Po „Start” 1 s ciszy, potem metronom gra 8 uderzeń (`BEATS`, 2 takty po 4) i cichnie, a gracz stuka dalej w tym samym tempie
   przez 10 s (`TAP_MS`), licząc od ostatniego uderzenia metronomu.
-- Tempo losuje serwer: 70-130 BPM co 5 (13 wartości), to samo dla wszystkich. W stanie jest `interval = round(60000 / BPM)` ms (462-857)
-  i `nonce` (rewanż może wylosować to samo tempo).
+- Tempo jest stałe: 100 BPM, w stanie `interval = 600` ms, oraz `nonce` (rewanż ma to samo tempo, nonce montuje grę od nowa).
+  Dawne partie miały losowe 70-130 BPM co 5 (`interval` 462-857); ich stan i rekordy zostają bez przeliczania, a wynik, walidacja
+  i ekran zawsze czytają `interval` ze stanu. Historia rekordów łączy partie o różnych tempach (ZG4-v1 §3.2).
 - Jeden ruch z `taps`: czasy stuknięć w ms (int) od ostatniego uderzenia metronomu. Stuknięcia przed nim i po 10 s ekran ignoruje.
 - Wynik liczy serwer (`deviation`): odstępy to różnice kolejnych czasów, pierwszy liczy się od ostatniego uderzenia metronomu.
   Błąd odstępu = różnica względem `interval`, ucięta do `interval`. Oczekiwana liczba odstępów to `floor(10 000 / interval) − 1`
@@ -317,6 +386,8 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 - Jedyna gra z dźwiękiem: metronom klika (WebAudio), błyska polem (pierwsze uderzenie taktu mocniej) i wibruje 30. Bez gestu
   (start sam po 15 s instrukcji) albo przy wyciszonym telefonie zostaje błysk i wibracja, więc gra jest grywalna z samym błyskiem.
 - Ekran: całe pole reaguje na dotyk i błyska kolorem gracza. Ekran końcowy: kafel z własnym tempem w BPM obok celu i tabela z odchyłkami.
+  Serwer zachowuje czasy stuknięć w mapie `taps` gracza; kafel czyta tę mapę również po odświeżeniu i w rekordowej partii.
+  Dawny detail bez mapy i wynik bez stuknięć pokazują tabelę z odchyłką, bez domniemanego tempa. Punktacja i rekordy pozostają bez zmian.
 
 ### Inny element (`inny`)
 Wynik, walidacja, ranking i ekran końcowy jak w Kolorze liter (`quiz.ts`, `Quiz.tsx`); inne jest tylko to, co widać na planszy.
@@ -336,7 +407,7 @@ Wynik, walidacja, ranking i ekran końcowy jak w Kolorze liter (`quiz.ts`, `Quiz
     dopóki siatka rośnie): inna liczba boków rzuca się w oczy nawet na 6×6, więc dalej zostają same subtelne różnice.
   Barwa bazowa, kąt bazowy, znak różnicy i pole `odd` są losowe.
 - Pomyłka blokuje na 1 s i plansza zostaje (numer planszy = liczba trafień). Czas trafienia liczy się od pierwszego pokazania planszy;
-  szukanie dłuższe niż 5 s liczy się jak 5 s.
+  zachowujemy cały czas szukania, także ponad 5 s.
 - Limit czasu: zero trafień.
 
 ### Obrót (`obrot`)
@@ -347,10 +418,12 @@ Przebieg, walidacja i ekran końcowy jak w Kolorze liter (`quiz.ts`, `Quiz.tsx`)
   ekran niczego nie liczy, tylko rysuje.
 - Figura `a` to losowo rosnące poliomino (każdy klocek styka się bokiem z innym) z `min(4 + floor(i / 3), 7)` klocków:
   4 w parach 0-2, potem o jeden więcej co 3 pary, od pary 9 zawsze 7 (`MIN_CELLS`, `MAX_CELLS`).
-- Figura jest zawsze chiralna (jej odbicie nie jest żadnym z jej czterech obrotów), inaczej pytanie nie miałoby odpowiedzi;
-  niechiralna jest losowana od nowa.
-- `b` to `a` (albo odbicie `a`, gdy `mirror`) obrócone o losowe 90, 180 albo 270°, zawsze tak, żeby wyglądało inaczej niż przed obrotem
-  (figura, która po 180° wygląda tak samo, dostaje 90 albo 270°). `mirror` losowane po równo.
+- Figura jest zawsze chiralna (jej odbicie nie jest żadnym z jej czterech obrotów), inaczej pytanie nie miałoby odpowiedzi,
+  i nie ma symetrii obrotowej (po 180° nie wygląda tak samo), inaczej obrót o 180° nic by nie zmieniał, a 90° i 270° wyglądałyby tak samo;
+  taka figura jest losowana od nowa.
+- `b` to `a` (albo odbicie `a`, gdy `mirror`) obrócone o 90, 180 albo 270°. Sześć rodzajów planszy (3 kąty × ta sama/lustro)
+  idzie potasowanymi szóstkami: w każdej kolejnej szóstce par każdy rodzaj raz, więc każda partia ma ich tyle samo.
+  Dawne partie miały kąt i `mirror` losowane osobno; ich rekordy zostają bez przeliczania.
 - Pomyłka blokuje na 1 s i zabiera punkt, potem przychodzi następna para (druga próba przy dwóch odpowiedziach byłaby darmowa).
   Sama kara punktowa nie wystarcza: klepanie na oślep daje średnio 0, ale z dużym rozrzutem, blokada go zmniejsza.
 - Wynik = trafienia − pomyłki, nie mniej niż 0, więcej lepiej. Przy remisie niższa średnia czasu trafień; dwa wyniki bez trafień to remis.
@@ -391,6 +464,7 @@ Przebieg, walidacja, punktacja i ekran końcowy jak w Obrocie (`quiz.ts`, `Quiz.
   „Zatwierdź” kończy rundę. Potem przez 1,5 s widać prawdziwe miejsce (pierścień), linię do znacznika i odległość w km:
   do 20 km na zielono z „Idealnie!”, ponad 150 km kolorem ostrzeżenia.
 - Ekran końcowy: suma każdego gracza i tabela rund (miasto, km każdego gracza, najlepszy w rundzie na tle w swoim kolorze).
+  Ponad 999 km komórka pokazuje „999+” (cztery cyfry nie mieszczą się na 360 px); pełna odległość jest w podpowiedzi komórki i w sumie.
 
 ### Przytrzymaj (`przytrzymaj`)
 - 5 rund (`ROUNDS`). W każdej po 1 s przerwy pole świeci się przez czas celu i gaśnie, potem gracz przykłada palec i trzyma go tak długo,
@@ -409,21 +483,22 @@ Przebieg, walidacja, punktacja i ekran końcowy jak w Obrocie (`quiz.ts`, `Quiz.
 
 ### Balon (`balon`)
 - 10 balonów po kolei (`BALLOONS`). Każde stuknięcie pompuje balon i dodaje do niego 1 punkt.
-- Serwer losuje dla każdego balonu wytrzymałość (`limits`, liczba całkowita 1-30; `MIN_SAFE`, `MAX_SAFE`), tę samą
-  dla wszystkich: tyle stuknięć balon wytrzymuje, następne go rozrywa. Pierwsze stuknięcie jest zawsze bezpieczne.
-  Suma wytrzymałości to zawsze 155 (`TOTAL`, losowanie do skutku przez `withSum`), więc w każdej partii jest tyle samo do zgarnięcia.
+- Wytrzymałości balonów (`limits`) to zawsze komplet 11, 12, …, 20 (`MIN_SAFE`, `MAX_SAFE`) w kolejności tasowanej przez serwer,
+  tej samej dla wszystkich: tyle stuknięć balon wytrzymuje, następne go rozrywa. Pierwsze 10 stuknięć jest zawsze bezpieczne.
+  Suma to zawsze 155 (`TOTAL`), a ta sama strategia stop daje w każdej partii ten sam wynik (stały komplet zamiast samej stałej sumy, ZASADY §3).
+  Dawne partie miały wytrzymałości 1-30 o sumie 155 (`withSum`); ich rekordy i tabele zostają bez przeliczania.
 - „Zgarnij” dopisuje punkty balonu do sumy i daje następny balon. Pęknięcie daje za ten balon 0 (zgarnięte wcześniej punkty zostają).
   Zgarnąć można też pusty balon (0 stuknięć, 0 punktów, bez pęknięcia).
-- Jeden ruch z `pumps`: liczba stuknięć w każdym z 10 balonów (int 0-31; 31 to zawsze pęknięcie). Wynik liczy serwer (`score`):
+- Jeden ruch z `pumps`: liczba stuknięć w każdym z 10 balonów (int 0-21; 21 to zawsze pęknięcie). Wynik liczy serwer (`score`):
   balon z `pumps[i] > limits[i]` jest pęknięty i daje 0, inaczej daje `pumps[i]`; `score` = suma (0-155), `popped` = liczba pękniętych.
 - Ranking: więcej punktów wyżej, przy równych mniej pękniętych balonów; równe oba to remis.
-- Walidacja: dokładnie 10 liczb całkowitych 0-31 albo pusta lista. Pusta lista = limit czasu = najgorszy wynik: 0 punktów i 10 pękniętych.
+- Walidacja: dokładnie 10 liczb całkowitych 0-21 albo pusta lista. Pusta lista = limit czasu = najgorszy wynik: 0 punktów i 10 pękniętych.
 - Ruch `progress` (`done` = liczba zakończonych balonów, int 1-9) po każdym balonie poza ostatnim: tylko do podglądu u rywali
   (pasek „3/10” w pigułce gracza), nie odnawia limitu (`turn` ma stały klucz), może spaść po odświeżeniu strony.
-  Punktów rywali w trakcie nie widać: zdradzałyby, ile balon wytrzymuje.
+  Punktów rywali w trakcie nie widać na ekranie: zdradzałyby, ile balon wytrzymuje (sam stan jest jawny, §1).
 - Ekran: kwadratowy kafel z balonem w kolorze gracza, dotknięcie kafla pompuje. Rozmiar balonu zależy tylko od liczby stuknięć,
-  nie od wytrzymałości. Pod kaflem „Zgarnij 12 pkt”. Po zgarnięciu „+12”, po pęknięciu „Pękł!” i wibracja 60, przez 0,8 s.
-  Na końcu tabela: ile każdy balon wytrzymywał i ile stuknięć zrobił każdy gracz (pęknięty: przekreślona czerwona liczba, pusty: kreska).
+  nie od wytrzymałości. Pod kaflem „Zgarnij 12 pkt”. Po zgarnięciu „+12”, po pęknięciu „Pękł!” i wibracja 60; następny balon po 0,8 s, a napis gaśnie w pełne 1,6 s.
+  Na końcu tabela: ile każdy balon wytrzymywał i ile stuknięć zrobił każdy gracz (pęknięty: przekreślona czerwona liczba, pusty: szare 0).
 
 ### W pamięci (`w-pamieci`)
 - Do 12 rund (`ROUNDS`). W każdej na ekranie pojawia się liczba startowa, a po niej kolejne działania („+7”, „−3”, „×2”), każda pozycja
@@ -432,6 +507,9 @@ Przebieg, walidacja, punktacja i ekran końcowy jak w Obrocie (`quiz.ts`, `Quiz.
 - Pierwsza zła odpowiedź kończy partię (jak w Sekwencji i Śledzeniu).
 - Serwer losuje `rounds` (`{ start, ops: { op, n }[] }`), te same dla wszystkich: start 1-9, działanie to +1..9, −1..9, ×2 albo ×3,
   losowane tak, żeby wartość po każdym kroku była w 1-99 (`MAX_VALUE`). Działania liczy się po kolei od lewej (`value(round)`).
+- Runda z `n` działaniami ma zawsze `floor(n / 3)` mnożeń (od 0 w pierwszej do 4 w ostatniej) na potasowanych miejscach,
+  pozostałe to + albo − po równo. Gdy przed mnożeniem wartość przekracza 49, ciąg losuje się od nowa (te same miejsca mnożeń).
+  Dawne partie miały rodzaj każdego działania losowany osobno; ich rekordy zostają bez przeliczania.
 - Jeden ruch z `answers`: odpowiedzi w kolejnych rozegranych rundach (int 0-999, `MAX_ANSWER`). Wynik liczy serwer:
   `rounds` = liczba poprawnych odpowiedzi od początku, `diff` = odchyłka odpowiedzi od wyniku w pierwszej rundzie niezaliczonej
   (brak odpowiedzi w tej rundzie = 999, komplet 12 rund = 0). Wszystko po pierwszym błędzie jest ignorowane.
@@ -439,13 +517,16 @@ Przebieg, walidacja, punktacja i ekran końcowy jak w Obrocie (`quiz.ts`, `Quiz.
 - Walidacja: najwyżej 12 liczb całkowitych 0-999. Pusta lista = limit czasu = 0 rund i odchyłka 999.
 - Bez ruchu `progress`: rywale nie widzą numeru rundy (jak w Śledzeniu).
 - Ekran: kwadratowy kafel, pozycje ciągu wskakują jedna po drugiej (dwa takie same działania z rzędu widać jako dwa), nad nim numer rundy
-  i działania. Po dobrej odpowiedzi od razu następna runda; po złej wibracja 60 i cały ciąg z prawdziwym wynikiem.
+  i działania. Po dobrej odpowiedzi kafel krótko błyska na zielono („Dobrze”, bez wibracji) i od razu następna runda; po złej wibracja 60 i cały ciąg z prawdziwym wynikiem.
+  Pomyłka albo komplet wysyła wynik natychmiast, bez dodatkowego potwierdzenia. Odsłona po pomyłce pozostaje
+  do obejrzenia również po odpowiedzi serwera; „Wyniki” tylko ją zamyka i nie wysyła kolejnego ruchu.
+  Odświeżenie po odsłonie pokazuje zapisany wynik. Odpowiedzi, punktacja, tie i limit pozostają bez zmian.
 
 ### Dziesiątki (`dziesiatki`)
 Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Results` z `Quiz.tsx`); inny jest przebieg planszy.
 - 30 s. Siatka 4×4 (`SIDE`) z liczbami 1-9. Gracz dotyka dwóch pól, które w sumie dają 10 (`TARGET`); pola nie muszą sąsiadować.
   Trafiona para znika, a w jej miejsce wchodzą dwie nowe liczby.
-- Serwer losuje to samo dla wszystkich: planszę startową `board` (16 liczb) i dostawy `refills` (400 liczb, starczy przy 150 ms na parę).
+- Serwer losuje to samo dla wszystkich: planszę startową `board` (16 liczb) i dostawy `refills` (400 liczb w zapętlanej puli dostaw).
   Para nr `n` (liczona od 0) dostaje `refills[2n]` w pierwszym dotkniętym polu i `refills[2n + 1]` w drugim.
   Dwie liczby jednej dostawy nigdy nie dają razem 10 (inaczej opłacałoby się klepać w te same dwa pola).
 - Na planszy zawsze jest co najmniej jedna para. Jeśli po dostawie żadnej nie ma, drugie nowe pole dostaje `10 − wartość` pierwszego pola
@@ -453,7 +534,7 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
   bo plansza gracza zależy od tego, które pary wybrał.
 - Pierwsze dotknięcie zaznacza pole, dotknięcie zaznaczonego pola je odznacza (bez kary). Drugie pole, które nie daje 10, to pomyłka:
   blokada 1 s, zaznaczenie znika, plansza zostaje.
-- Czas pary liczy się od poprzedniej pary (albo startu) do drugiego dotknięcia; szukanie dłuższe niż 5 s liczy się jak 5 s.
+- Czas pary liczy się od poprzedniej pary (albo startu) do drugiego dotknięcia; zachowujemy cały czas szukania, także ponad 5 s.
 - Wynik liczy klient (jak w Kolorze liter), serwer odrzuca tylko nierealne wartości. Limit czasu: zero par.
 
 ### Tort (`tort`)
@@ -470,8 +551,9 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 - Pusta lista = limit czasu = 5 × 100% (`MAX_ERROR`, więcej niż najgorsza uczciwa partia).
 - Bez ruchu `progress` (5 krótkich rund).
 - Ekran: kwadratowy kafel z tortem, nad nim liczba kawałków. Gotowe cięcie jest w kolorze tekstu, własne w kolorze gracza.
-  Dotknięcie tortu stawia cięcie pod kątem palca (dopóki brakuje) i można je od razu przeciągnąć; dotknięcie do 10° (`GRAB`) od własnego
-  cięcia łapie je i przesuwa. Gotowego cięcia nie da się ruszyć. Po komplecie cięć przycisk „Pokrój” (kolor gracza).
+  Dotknięcie tortu stawia cięcie pod kątem palca (dopóki brakuje) i można je od razu przeciągnąć; dotknięcie do 24 px ekranu (`GRAB_PX`) od odcinka
+  własnego cięcia łapie najbliższe z nich i przesuwa (odległość od odcinka, nie kąt, więc tak samo przy środku i przy brzegu);
+  dalsze dotknięcie nie rusza żadnego cięcia, tylko stawia nowe, jeśli brakuje. Gotowego cięcia nie da się ruszyć. Po komplecie cięć przycisk „Pokrój” (kolor gracza).
   Potem przez 1,5 s widać idealne cięcia (przerywane, liczone od gotowego) i błąd w %; kolor według celności: do 2% zielony z „Idealnie!”,
   do 8% zwykły, dalej ostrzegawczy. Potem sam wskakuje następny tort; po piątym wynik idzie na serwer.
 - Ekran końcowy: jedna tabela, torty 1-5 w kolumnach (z liczbą kawałków), gracze w wierszach. Najlepszy w rundzie (bez remisu) ma tło w kolorze gracza.
@@ -483,17 +565,26 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
   indeksów półki w kolejności na liście (inna niż na półce, żeby miejsce niczego nie podpowiadało). Przedmioty spoza listy są losowe
   z tej samej puli, bez dobierania podobnych.
 - Zaznaczyć można dowolnie wiele przedmiotów, od 0 do 20. Pustą półkę też można zatwierdzić (0 punktów z prawdziwym czasem).
-- Jeden ruch z `picked` (zaznaczone indeksy półki, różne, int 0-19, kolejność bez znaczenia) i `ms` (czas od pokazania półki do „Gotowe”,
+- Jeden ruch z `picked` (zaznaczone indeksy półki, różne, int 0-19, kolejność bez znaczenia) i `ms` (czas od pokazania półki do dotknięcia „Gotowe”,
   int 0-50 000, `MAX_MS`). Wynik liczy serwer (`score`): `hits` = zaznaczone z listy, `wrong` = zaznaczone spoza listy,
   `score` = `hits − wrong`, nie mniej niż 0 (dolna granica jak w Obrocie), czyli 0-10. Strzał w ciemno może więc kosztować punkt,
   a zaznaczenie całej półki daje 0.
 - Ranking: więcej punktów wyżej, przy równych krótszy czas zaznaczania (`ms`); równe oba to remis.
 - Limit czasu = pusta półka z `ms` = 50 000: 0 punktów z najgorszym czasem (przegrywa z uczciwie zatwierdzoną pustą półką).
-- Limit tury 60 s to 10 s pokazu i do 50 s zaznaczania.
+- Limit tury serwera: 80 s. Po 50 s wybierania (`MAX_MS`) klient automatycznie oddaje aktualne zaznaczenia
+  tym samym ruchem co „Gotowe”, z `ms` = 50 000; nie oddaje pustej półki zamiast wybranych produktów.
+  Serwerowy timeout jest zabezpieczeniem dla klienta, który nie dostarczył żadnego wyniku, i nadal wpisuje pustą półkę.
+- Ręczne „Gotowe” kończy pomiar przy `pointerdown`, niezależnie od chwili puszczenia palca.
+  Klawiatura działa przez `click` z `detail=0`. Wspólna blokada wysyłki pozwala wysłać wynik tylko raz,
+  także przy zbiegu dotknięcia, click i automatycznego oddania.
+- Model limitu: `T = 10 s` pokazu + `50 s` wyboru + `3 s` na dostarczenie wyniku = `63 s`.
+  Budżet sieci to założenie, nie pomiar. Limit 80 s daje 17 s zapasu (około 27%), spełnia co najmniej 20% i 10 s.
+- Dotychczasowe rekordy i detail pozostają bez przeliczania lub resetu. Historia obejmuje dotychczasowy pomiar click
+  i nowy pointerdown; pełna porównywalność dawnych czasów nie jest gwarantowana.
 - Bez ruchu `progress` (jedna runda).
 - Ekran: lista w siatce 5×2 z paskiem upływającego czasu, potem półka 5×4; dotknięcie kafla zaznacza i odznacza (obwódka w kolorze gracza),
   pod spodem „Gotowe”. W pasku statystyk liczba zaznaczonych i czas.
-- Ekran końcowy: wyniki („8 pkt (9 traf., 1 błąd) · 12,3 s”) i jedna półka z odpowiedzią: przedmioty z listy podświetlone,
+- Ekran końcowy: wyniki w jednym krótkim wierszu („8 pkt · 12,3 s”; trafienia i błędy widać na półce) i jedna półka z odpowiedzią: przedmioty z listy podświetlone,
   przy każdym kropki w kolorach graczy, którzy go zaznaczyli.
 
 ### Za zasłoną (`zaslona`)
@@ -512,7 +603,8 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
   Czas `visible` nie wchodzi do wyniku.
 - Walidacja: lista pusta albo dokładnie 8 czasów, każdy całkowity od 0 do 8000 (`2 × MAX_HIDDEN`). Pusta lista = limit czasu = suma `hidden`,
   czyli najgorszy możliwy wynik.
-- Dotknięcie, gdy kulkę jeszcze widać, jest ignorowane bez kary (jak dotknięcie poza strefą w Środku); liczy się pierwsze dotknięcie po zniknięciu.
+- Dotknięcie, gdy kulkę jeszcze widać, jest ignorowane bez kary i bez żadnego efektu (wyjątek od potrząśnięcia w Środku: to część zasad,
+  nie chybiony ruch); liczy się pierwsze dotknięcie po zniknięciu.
 - Ekran sam kończy rundę po dwukrotności `hidden` (dalej odchyłka i tak jest ucięta). Grający nie widzi limitu tury ani żadnego licznika
   sekund (podawałyby czas), jak w Stoperze, Rytmie i Przytrzymaj.
 - Bez ruchu `progress` (8 krótkich rund).
@@ -539,7 +631,7 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 - Pusta lista = limit czasu = 5 × 50% (`MAX_ERROR`, tyle co cięcie obok kształtu; każda uczciwa runda kosztuje mniej).
 - Bez ruchu `progress` (5 krótkich rund).
 - Ekran: kwadratowy kafel z kształtem. Przeciąganie pokazuje prostą przez cały kafel w kolorze gracza, puszczenie tnie.
-  Cięcie, które nie jest odpowiedzią: potrząśnięcie, wibracja 60 i „Przetnij kształt”, runda trwa dalej.
+  Cięcie, które nie jest odpowiedzią: potrząśnięcie i „Przetnij kształt”, bez wibracji (to nie pomyłka), runda trwa dalej.
   Po cięciu przez 1,5 s obie części mają kolor gracza o różnym kryciu, pod kaflem ich udziały („53,0% | 47,0%”); kolor według celności:
   do 1 zielony z „Idealnie!”, do 5 zwykły, dalej ostrzegawczy. Potem sam wskakuje następny kształt; po piątym wynik idzie na serwer.
 - Ekran końcowy: jedna tabela, kształty 1-5 w kolumnach, gracze w wierszach. Najlepszy w rundzie (bez remisu) ma tło w kolorze gracza.
@@ -550,11 +642,22 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 - Losowanie na serwerze w `setup`: pełna poprawna siatka (wzorzec bazowy z potasowanymi cyframi, wierszami w pasach, kolumnami w pasach
   i samymi pasami), potem usuwanie pól w wylosowanej kolejności, dopóki rozwiązanie zostaje jedno. Gdy usuwanie utknie powyżej 6 danych,
   losujemy od nowa.
-- Stan (= widok, nic nie jest ukryte): `puzzle` (16 pól wiersz po wierszu, 0 = puste) i `solution` (16 cyfr).
+- Stan (= widok, nic nie jest ukryte): `puzzle` (16 pól wiersz po wierszu, 0 = puste), `solution` (16 cyfr) i `nonce` (losowany po planszy).
+  Plansz jest mało, więc rewanż może wylosować tę samą; ekran montuje się od nowa po `nonce`, a dawne partie bez niego po planszy.
 - Przebieg: gracz dotyka pustego pola, potem jednej z cyfr 1-4. Dobra cyfra zostaje w polu, zła nie zostaje i liczy się jako pomyłka.
   Partia kończy się po wypełnieniu ostatniego pola. Pól danych i już wypełnionych nie da się zmienić.
 - Wynik: `ms` + 5000 ms za każdą pomyłkę (`PENALTY_MS`, `total`), mniej lepiej, bez drugiego kryterium; równe = remis bez zwycięzcy.
-- Walidacja: `ms` od 3000 (10 × 300 ms) do 120000, `mistakes` int ≥ 0. Limit czasu: 120000 ms, 0 pomyłek.
+- Walidacja: `ms` od 3000 (10 × 300 ms) do 120000, `mistakes` int ≥ 0.
+- Nowy wynik ma `completed: boolean` w stanie. Klient zgłasza ukończenie (brak pola w ruchu oznacza `true`);
+  `completed: false` jest dozwolone tylko w zaufanym kontekście `{ source: "timeout" }`, nigdy z JSON klienta.
+  Timeout: 120000 ms, 0 pomyłek i `completed: false`.
+- Każde ukończenie jest przed nieukończeniem, także 60 s + 13 pomyłek = 125 s. Ukończeni są porównywani po czasie z karami;
+  nieukończeni remisują ze sobą. Ten sam komparator ustala zwycięzcę, ranking i miejsca w turnieju.
+- Nowy timeout nie daje rekordu: `record.score` zwraca nieskończoność jako sygnał dla filtra serwera;
+  stan JSON i baza zawierają wyłącznie skończone liczby. Ekran pokazuje „Nieukończono”, bez panelu nowego rekordu.
+  Przewaga w sekundach jest pokazywana tylko między dwoma ukończonymi wynikami.
+- Stare rekordy i detail bez `completed` pozostają historyczne, bez dopisywania statusu i bez przeliczania.
+  Sam czas 120000 ms ani wynik z karami nie dowodzi timeoutu; dawny nierozpoznawalny timeout może nadal wyprzedzać nowe ukończenie.
   Serwer ufa klientowi co do czasu i pomyłek (jak w Tabeli Schultego), przebiegu nie sprawdza.
 - Postęp rywali: po każdej dobrej cyfrze (poza ostatnią) klient wysyła `{ type: "progress", filled }` (int 1-9, tylko gracz bez wyniku).
   Serwer zapisuje go w `progress` i pokazuje jako pierścień na kropkach graczy (po ich dotknięciu pasek i `4/10`). Wartość nie musi rosnąć
@@ -569,7 +672,7 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 
 - Plansza 15×15, dwóch graczy stawia na zmianę; zaczyna `players[0]`.
 - Wygrywa 5 lub więcej w linii (poziomo, pionowo, po skosie); dłuższa linia też wygrywa.
-- Pełna plansza bez linii = remis (`isOver` zwraca `{}` bez zwycięzcy).
+- Pełna plansza bez linii = jawny remis: `isOver` zwraca `{ ranking: [oba] }` bez zwycięzcy (wcześniej `{}`, jak gra przerwana).
 - Limit czasu: losowe wolne pole.
 
 ## 3. Statki (`statki`)
@@ -624,11 +727,13 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
   dalsze niż jego pozycja (gdy takiego nie ma, ruchu nie ma). Własne pionki w domku wolno przeskakiwać.
 - Zbicie daje dodatkowy rzut. Wejście pionka z toru do domku końcowego też (zawsze jeden dodatkowy rzut, także po szóstce).
 - Koniec: pierwszy gracz z 3 pionkami w domku końcowym wygrywa i partia kończy się od razu. Reszta rankingu:
-  więcej pionków w domku końcowym, potem większa suma pozycji.
+  więcej pionków w domku końcowym, potem większa suma pozycji. Równa para daje to samo miejsce: `isOver` zwraca wtedy
+  `places` (np. 1, 2, 2, 4), a `ranking` trzyma stabilną kolejność graczy. Klasyczny nie ma `places`, bo kończy się pełnym rankingiem.
 
 ## 5. Państwa-miasta (`panstwa-miasta`)
 
-- 2-6 graczy, 5 rund. Każda runda na inną literę z `ABCDEFGHIJKLŁMNOPRSTUWZ` (bez powtórek w partii).
+- 2-6 graczy, 5 rund. Każda runda na inną literę z `ABCDEFGHIJKLMNOPRSTUWZ` (bez powtórek w partii). Ł nie losuje się:
+  z państw jest na nią tylko Łotwa, więc kategoria Państwo byłaby w tej rundzie systemowo słabsza. Dawne partie z Ł zostają bez zmian.
   `playerView` wysyła litery przyszłych rund jako puste; `nonce` w stanie służy tylko do montowania komponentu od nowa przy rewanżu.
 - Kategorie: Państwo, Miasto, Zwierzę, Roślina, Rzecz, Imię. Odpowiedź do 30 znaków.
 - **Pisanie (`write`, 90 s)**: wszyscy naraz. Ruch `write` z `done: false` to szkic zapisywany w tle; `done: true` oddaje kartkę.
@@ -689,10 +794,12 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 - Tylko na polu, na którym gracz właśnie stoi. Jednym ruchem `build` można wskoczyć o kilka poziomów.
 - Poziomy 1-3 kosztują po P/2 (zaokrąglone), poziom 4 (landmark) kosztuje P.
 - Bez kompletu grupy najwyżej poziom 2; poziom 3 i landmark tylko z kompletem.
+- Utrata kompletu (wykup, sprzedaż pola z grupy) nie zrzuca poziomów: postawiony poziom 3 zostaje i daje swój czynsz,
+  ale wyżej można budować dopiero po odzyskaniu kompletu.
 
 ### Wykupienie (`buyout`)
 - Po zapłaceniu czynszu można wykupić cudze pole za 2 × wartość (cena + koszt postawionych budynków); pieniądze dostaje właściciel,
-  budynki zostają.
+  budynki zostają. Juwenalia na wykupionym polu też zostają (pole nie wraca do banku); przepadają dopiero przy sprzedaży bankowi albo bankructwie.
 - Nie dotyczy landmarków. Oferta jest tylko, gdy gracza stać, i nie ma jej, gdy na czynsz trzeba było sprzedawać pola.
 
 ### Dług, sprzedaż, bankructwo
@@ -717,7 +824,7 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 
 ### Karty Dziekanatu (18 kart, `CARDS`)
 - Talia tasowana w `setup`. Karta jest dobierana z wierzchu (faza `card`), efekt działa po ruchu `card` (odkrycie), karta wraca na spód.
-  „Zaliczenie” zostaje u gracza do użycia.
+  „Zaliczenie” zostaje u gracza do użycia; po bankructwie gracza jego Zaliczenia wracają na spód talii.
 - Gotówka z banku: +30, +20, +15, +25. Do banku: −30, −10, −20.
 - Korepetycje: każdy płaci graczowi 5 zł, ale najwyżej tyle, ile ma (nie wpędza w dług).
 - Składka na imprezę: gracz płaci każdemu po 5 zł.
@@ -738,7 +845,8 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 - `timeoutMove`: `pick` losowa wolna postać; `buy`, `build`, `buyout` pominięcie; `juwenalia` najdroższe własne pole;
   `card` odkrycie; `sell` najtańsze pole; w pozostałych rzut (czyli Bilet MPK przepada).
 - `playerView` ukrywa kolejność talii (zostaje `deckSize`). `events` to 4 ostatnie zdarzenia, UI zamienia je na tekst.
-- `stats` (majątek co rundę, zapłacony czynsz, dochód z pól, dublety) służy tylko ekranowi podsumowania.
+- `stats` (majątek co rundę, zapłacony czynsz, dochód z pól, dublety) służy tylko ekranowi podsumowania. Czynsz liczy się w kwocie faktycznie oddanej:
+  bankrut oddaje tylko swoją gotówkę i tyle trafia do statystyk (i zdarzenia `rent`); sama wypłata się nie zmienia.
 
 ## 7. Memory (`memory`)
 
@@ -780,6 +888,7 @@ Seria mini-gier puszczana po kolei w jednym pokoju. To nie jest gra z rejestru `
 - Punkty za grę (`gamePoints`): liczba graczy ze ściśle gorszym miejscem. Przy 4 graczach bez remisów 3/2/1/0, remisujący dostają tyle samo.
   Miejsca z remisami podaje `places` mini-gry (`rankPlaces` w core.ts). Gra przerwana (ktoś wyszedł, błąd) daje wszystkim 0.
 - Tabela (`standings`): suma punktów malejąco, potem liczba wygranych gier. Wygrana gra to samodzielne 1. miejsce przy 2+ graczach.
+  Numer miejsca (`tablePlaces`): identyczna para punkty/wygrane to to samo miejsce (np. remis po dogrywce: 1., 1.); punktów to nie zmienia.
 - Między grami: wyniki gry i tabela; następna gra rusza, gdy wszyscy grający klikną „Dalej”, najpóźniej po `NEXT_SECONDS` (15 s).
 - Koniec po ostatniej grze. Zwycięzcą jest samodzielny lider tabeli (punkty, potem wygrane gry). Przy remisie na szczycie dolosowywana jest
   jedna gra dogrywki: spoza rozegranych i wykluczonych, a gdy takich nie ma, dowolna niewykluczona. Po dogrywce remis zostaje bez zwycięzcy.
@@ -796,9 +905,12 @@ Seria mini-gier puszczana po kolei w jednym pokoju. To nie jest gra z rejestru `
   `nonce` w stanie służy tylko do montowania komponentu od nowa przy rewanżu.
 - **Wybór (`choose`, 15 s)**: rysujący wybiera jedno z trzech haseł rundy (`{ type: "choose", index }`, 0-2). Limit czasu: pierwsze hasło.
 - **Rysowanie (`draw`, 2 × 40 s)**: dwie połowy (`half` 0 i 1), każda z własnym limitem `HALF_SECONDS` (40 s).
-  - ekran pokazuje jeden pasek 80 s na całe rysowanie (w pierwszej połowie dolicza drugą); podział widać tylko po odsłoniętej literze,
-  - pierwsza połowa kończy się ruchem `{ type: "hint" }` rysującego (wykonuje go serwer po limicie; tylko rysujący, tylko raz):
-    odsłania jedną losową literę hasła (`rng`, indeks w `revealed`) i zaczyna drugą połowę,
+  - ekran pokazuje jeden pasek 80 s na całe rysowanie (w pierwszej połowie dolicza drugą); podział widać tylko po odsłoniętej literze (pojawia się od razu, bez animacji i bez wibracji),
+  - pierwsza połowa kończy się ruchem `{ type: "hint" }` wykonywanym przez serwer za rysującego po limicie.
+    `validateMove` dopuszcza go wyłącznie w `draw`, przy `half: 0`, za rysującego i z zaufanym kontekstem `source: "timeout"`.
+    Klient, także rysujący, nie może odsłonić litery wcześniej. Brak kontekstu oznacza klienta; `source` w treści ruchu
+    nie zmienia źródła walidacji. Hint odsłania jedną losową literę hasła (`rng`, indeks w `revealed`), ustawia `half: 1`
+    i zmienia klucz `turn` na drugą połowę. Kolejny hint odpada, także od timeoutu.
   - rysujący wysyła kreski: `{ type: "line", points, start, color }`, gdzie `points` to płaska lista par x, y (liczby całkowite 0-1000,
     parzysta długość, 2-200 liczb w ruchu); `start: true` zaczyna nową kreskę, `false` dokleja punkty do ostatniej (bez kreski odpada).
     `color` to indeks palety 0-5 (`INKS`: biały, żółty, zielony, niebieski, brązowy, gumka); liczy się tylko przy `start`, doklejone punkty
@@ -841,5 +953,8 @@ Seria mini-gier puszczana po kolei w jednym pokoju. To nie jest gra z rejestru `
   i nie może odciąć żadnemu graczowi drogi do celu (pionki nie zasłaniają drogi). Ścianki z puli się kończą.
 - `pass` tylko wtedy, gdy pionek nie ma żadnego kroku (możliwe przy 3-4 osobach).
 - Koniec: pierwszy, kto stanie na polu celu, wygrywa (także przy 3-4 osobach, bez pełnego rankingu). Remisu nie ma.
-- Limit czasu: krok w stronę celu (pole najbliższe celowi po ściankach), a gdy kroku nie ma, `pass`. Losowości w grze nie ma.
+- Limit czasu: przekazany `rng` losuje jeden z legalnych kroków pionka, w tym przeskok lub krok skośny.
+  Nie musi to być najkrótsza droga do celu. Po czasie nie stawia się ścianek; `pass` tylko wtedy, gdy nie ma żadnego kroku.
 - Nic nie jest ukryte: widok to cały stan.
+- Ekran: dotknięcie pola z kropką tylko wybiera krok (duch pionka); ruch wysyła „Idź w górę” / „Przeskocz w lewo” / „Idź w prawo i w dół”
+  (kierunek tak, jak widzi go gracz) albo drugie dotknięcie tego samego pola. Ścianka jak dotąd: podgląd, „Obróć”, „Postaw”.

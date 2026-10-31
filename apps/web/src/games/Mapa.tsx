@@ -1,6 +1,6 @@
-import { type LobbyPlayer, MAPA_ASPECT, MAPA_OUTLINE, MAPA_ROUNDS, mapaError, type MapaPoint, mapaPlace, type MapaView } from "@kwadrans/games";
+import { GAMES, type LobbyPlayer, MAPA_ASPECT, MAPA_OUTLINE, MAPA_ROUNDS, mapaError, type MapaPoint, mapaPlace, type MapaView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useState } from "react";
-import { grade as gradeBy, Intro, RoundTable, Scores, Stats } from "../screens/ui.tsx";
+import { grade as gradeBy, Intro, RoundTable, Scores, Stats, upTo } from "../screens/ui.tsx";
 
 interface Props {
   view: MapaView;
@@ -106,7 +106,8 @@ export function Mapa({ view, me, players, ranking, onMove }: Props) {
             perfect={PERFECT}
             close={CLOSE}
             unit="km"
-            format={(d) => `${d}`}
+            // Cztery cyfry nie mieszczą się w kolumnie rundy na 360 px; pełna odległość zostaje w podpowiedzi i w sumie.
+            format={(d) => (d > 999 ? <span title={`${d} km`}>{"999+"}</span> : `${d}`)}
             legend={`Zielony: do ${PERFECT} km, czerwony: ponad ${CLOSE} km.`}
           >
             <ol className="grid grid-cols-2 gap-x-3 text-xs text-fg-muted">
@@ -126,7 +127,7 @@ export function Mapa({ view, me, players, ranking, onMove }: Props) {
     return (
       <Intro
         preview={<Preview />}
-        time={`${MAPA_ROUNDS} rund, w każdej jedno miasto`}
+        time={`${MAPA_ROUNDS} miast, razem ${upTo(GAMES.mapa.turnSeconds!)}`}
         task="Dotknij mapy tam, gdzie leży miasto, popraw znacznik i zatwierdź"
         score="Liczy się suma odległości w km, mniej znaczy lepiej"
         onStart={() => setPhase("play")}
@@ -169,12 +170,12 @@ export function Mapa({ view, me, players, ranking, onMove }: Props) {
             <>
               <line x1={target.cx} y1={target.cy} x2={at(mine).cx} y2={at(mine).cy} className={grade(error).stroke} strokeWidth={0.8} />
               <circle {...at(mine)} r={1.4} fill={color} />
-              {/* Pierścień, nie pełna kropka: przy celnym wskazaniu oba punkty widać naraz. */}
+              {/* Pierścień, nie pełna kropka: przy celnym wskazaniu oba punkty widać naraz. Prawda neutralna i od razu, ocena na linii błędu. */}
               <circle
                 {...target}
                 r={2.6}
                 fill="none"
-                className={`origin-center animate-[stone-pop_0.35s_ease-out] [transform-box:fill-box] ${grade(error).stroke}`}
+                className="stroke-fg"
                 strokeWidth={0.8}
               />
             </>
@@ -188,7 +189,7 @@ export function Mapa({ view, me, players, ranking, onMove }: Props) {
             <span className={`font-mono text-3xl font-semibold tabular-nums ${grade(error).text}`}>{km(error)}</span>
           </>
         ) : (
-          <button type="button" className="btn w-full text-bg" style={{ backgroundColor: color }} disabled={!pin} onClick={confirm}>
+          <button type="button" className="btn w-full btn-player" style={{ backgroundColor: color }} disabled={!pin} onClick={confirm}>
             {pin ? "Zatwierdź" : "Dotknij mapy"}
           </button>
         )}

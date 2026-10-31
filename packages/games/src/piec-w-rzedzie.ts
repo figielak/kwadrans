@@ -102,7 +102,8 @@ export const piecWRzedzie: GameDefinition<State, Move> = {
   isOver(state) {
     if (!state.over) return null;
     // Wygrał ten, kto zrobił ostatni ruch, czyli poprzedni w kolejce.
-    return state.winLine ? { winner: state.players[state.turn === 0 ? 1 : 0] } : {};
+    // Pełna plansza bez linii to jawny remis: ranking obu graczy bez zwycięzcy.
+    return state.winLine ? { winner: state.players[state.turn === 0 ? 1 : 0] } : { ranking: state.players };
   },
 
   waitingFor: (state) => (state.over ? [] : [state.players[state.turn]]),

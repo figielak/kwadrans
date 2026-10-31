@@ -124,7 +124,7 @@ export const kalambury: GameDefinition<State, Move> = {
     return newRound({ players, nonce: Math.floor(rng() * 2 ** 32), rounds, words, totals } as unknown as State, 0);
   },
 
-  validateMove: (s, player, move) => {
+  validateMove: (s, player, move, context = { source: "client" }) => {
     if (!s.players.includes(player)) return false;
     const drawing = s.phase === "draw" && player === s.drawer;
     switch (move.type) {
@@ -143,7 +143,7 @@ export const kalambury: GameDefinition<State, Move> = {
       case "clear":
         return drawing && s.strokes.length > 0;
       case "hint":
-        return drawing && s.half === 0;
+        return context.source === "timeout" && drawing && s.half === 0;
       case "guess":
         return (
           s.phase === "draw" &&

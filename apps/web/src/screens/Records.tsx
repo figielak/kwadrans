@@ -26,7 +26,7 @@ const FORMAT: Record<string, { value: (n: number) => string; gap?: (n: number) =
   obrot: { value: points, tie: ms },
   literowka: { value: points, tie: ms },
   stoj: { value: points, tie: ms },
-  simon: { value: points },
+  simon: { value: (n) => `seria ${n}` },
   kubki: { value: (n) => plural(n, "runda", "rundy", "rund") },
   sledzenie: { value: (n) => plural(n, "runda", "rundy", "rund"), tie: (n) => plural(n, "cel", "cele", "celów") },
   "w-pamieci": { value: (n) => plural(n, "runda", "rundy", "rund"), tie: (n) => `o ${n}` },
@@ -153,7 +153,7 @@ export function RecordPanel({ gameId, before, after, nick, color, score }: Panel
 
       <div>
         <p className="flex items-baseline gap-2">
-          <span className="text-4xl font-semibold tabular-nums" style={{ color }}>
+          <span className="font-mono text-4xl font-semibold tabular-nums" style={{ color }}>
             {now.place}. miejsce
           </span>
           <span className="font-mono text-sm text-fg-muted tabular-nums">z {now.of}</span>
@@ -200,11 +200,14 @@ function TopGame({ gameId, nick, color }: { gameId: string; nick: string; color?
   useEffect(() => {
     fetchTopRecord(gameId).then(setTop);
   }, [gameId]);
-  if (top === undefined) return null;
   return (
     <section className="mt-3 flex flex-col gap-2 border-t border-line pt-3">
       <h3 className="text-sm text-fg-muted">Rekordowa partia · {nick}</h3>
-      {top === null ? (
+      {top === undefined || top === false ? (
+        <p role="status" className="text-sm text-fg-muted">
+          {top === undefined ? "Wczytywanie…" : "Nie udało się wczytać partii."}
+        </p>
+      ) : top === null ? (
         <p className="text-sm text-fg-muted">Rekord sprzed zapisu partii. Szczegóły pojawią się po następnym rekordzie.</p>
       ) : (
         <MiniGame
@@ -257,7 +260,8 @@ function GameCard({ game: { id, rows, mine }, nick, color, loaded, onOpen, onPla
         </span>
         {mine && (
           <span
-            className={`flex shrink-0 items-center gap-1 rounded-full bg-surface-inset px-2 py-0.5 font-mono text-sm tabular-nums ${lead ? "" : "text-fg-muted"}`}
+            role="img"
+            className={`flex shrink-0 items-center gap-1 rounded-full border border-line px-2 py-0.5 font-mono text-sm tabular-nums ${lead ? "" : "text-fg-muted"}`}
             style={lead ? { color } : undefined}
             aria-label={`${mine.place}. miejsce z ${mine.of}`}
           >
@@ -265,14 +269,14 @@ function GameCard({ game: { id, rows, mine }, nick, color, loaded, onOpen, onPla
             {mine.place}/{mine.of}
           </span>
         )}
-        <CaretDown size={14} className="shrink-0 text-fg-muted transition-transform group-open:rotate-180" aria-hidden />
+        <CaretDown size={14} className="shrink-0 text-fg-muted transition-transform duration-180 group-open:rotate-180" aria-hidden />
       </summary>
       <div className="border-t border-line px-3 pb-3">
         <RecordList gameId={id} rows={rows} me={nick} color={color} limit={10} />
         {loaded && <TopGame gameId={id} nick={rows[0].nick} color={lead ? color : undefined} />}
         {onPlay && (
           <button type="button" className="btn btn-ghost mt-3 w-full" onClick={() => onPlay(id)}>
-            <Play size={18} aria-hidden />
+            <Play size={18} weight="bold" aria-hidden />
             {lead ? "Zagraj ponownie" : "Pobij"}
           </button>
         )}
@@ -288,8 +292,22 @@ const FRESH_SHOWN = 8;
  * Ekran „Rekordy”: gry, w których prowadzę, cudze rekordy do pobicia i gry bez żadnego wyniku.
  * `onPlay` ma tylko gospodarz w pokoju: wybiera grę i wraca na listę mini-gier.
  */
-export function Records({ nick, color, onBack, onPlay }: { nick: string | null; color?: string; onBack: () => void; onPlay?: (gameId: string) => void }) {
-  const [records, setRecords] = useState<Record<string, RecordRow[]> | null>(null);
+export function Records({
+  nick,
+  color,
+  dropped = false,
+  onBack,
+  onPlay,
+}: {
+  nick: string | null;
+  color?: string;
+  /** Otwarte z pokoju: pasek „Łączenie ponownie…” jak na innych ekranach pokoju. */
+  dropped?: boolean;
+  onBack: () => void;
+  onPlay?: (gameId: string) => void;
+}) {
+  /** undefined do odpowiedzi serwera, null, gdy nie odpowie. */
+  const [records, setRecords] = useState<Record<string, RecordRow[]> | null>();
   /** Gry rozwinięte choć raz: dopiero wtedy pobieramy ich rekordową partię. */
   const [opened, setOpened] = useState<string[]>([]);
   const [allFresh, setAllFresh] = useState(false);
@@ -330,16 +348,16 @@ export function Records({ nick, color, onBack, onPlay }: { nick: string | null; 
     );
 
   return (
-    <Screen dropped={false}>
+    <Screen dropped={dropped}>
       <button type="button" className="-ml-2 flex min-h-12 items-center gap-1.5 self-start px-2 text-sm text-fg-muted" onClick={onBack}>
-        <ArrowLeft size={16} aria-hidden />
+        <ArrowLeft size={16} weight="bold" aria-hidden />
         Wróć
       </button>
       <h1 className="text-3xl font-semibold tracking-tight">Rekordy</h1>
 
-      {records === null ? (
-        <p className="text-fg-muted" aria-busy>
-          Wczytywanie…
+      {!records ? (
+        <p role="status" className="text-fg-muted" aria-busy={records === undefined}>
+          {records === undefined ? "Wczytywanie…" : "Nie udało się wczytać rekordów. Spróbuj za chwilę."}
         </p>
       ) : (
         <>
@@ -348,11 +366,11 @@ export function Records({ nick, color, onBack, onPlay }: { nick: string | null; 
               {[
                 { label: "Zagrane", value: played, of: games.length },
                 { label: "Pierwsze miejsca", value: led.length },
-                { label: "Do pobicia", value: toBeat.length, warn: toBeat.length > 0 },
+                { label: "Do pobicia", value: toBeat.length },
               ].map((item) => (
-                <div key={item.label} className="flex flex-col justify-between gap-1 rounded-inset bg-surface-inset p-3">
-                  <dt className="text-sm leading-tight text-fg-muted">{item.label}</dt>
-                  <dd className={`text-2xl leading-tight font-semibold tabular-nums ${item.warn ? "text-warning" : ""}`}>
+                <div key={item.label} className="flex flex-col justify-between gap-1 rounded-inset bg-surface p-3">
+                  <dt className="label leading-tight">{item.label}</dt>
+                  <dd className="font-mono text-2xl leading-tight font-semibold tabular-nums">
                     {item.value}
                     {item.of && <span className="text-sm font-normal text-fg-muted"> z {item.of}</span>}
                   </dd>
@@ -371,7 +389,7 @@ export function Records({ nick, color, onBack, onPlay }: { nick: string | null; 
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-sm text-fg-muted">Jeszcze nie grane ({fresh.length})</h2>
                 {fresh.length > FRESH_SHOWN && (
-                  <button type="button" className="-mr-2 min-h-12 px-2 text-sm" style={{ color }} onClick={() => setAllFresh(!allFresh)}>
+                  <button type="button" className="-mr-2 min-h-12 px-2 text-sm text-fg-muted underline underline-offset-4" onClick={() => setAllFresh(!allFresh)}>
                     {allFresh ? "Zwiń" : "Pokaż wszystkie"}
                   </button>
                 )}
@@ -384,7 +402,7 @@ export function Records({ nick, color, onBack, onPlay }: { nick: string | null; 
                     <li key={id}>
                       <Tile
                         {...(onPlay && { type: "button", onClick: () => onPlay(id) })}
-                        className="flex h-full min-h-16 w-full flex-col items-center justify-center gap-1 rounded-inset bg-surface-inset px-1 py-2 text-center text-xs leading-tight text-fg-muted"
+                        className="flex h-full min-h-16 w-full flex-col items-center justify-center gap-1 rounded-inset bg-surface px-1 py-2 text-center text-xs leading-tight text-fg-muted"
                       >
                         <GameIcon size={20} aria-hidden />
                         {GAMES[id].name}
@@ -434,7 +452,7 @@ function Wins({ ranking, me, color }: { ranking: Record<string, RankingRow[]>; m
                     {r.nick}
                     {mine && " (ty)"}
                   </span>
-                  <span className="font-mono tabular-nums" aria-label={`${r.wins} wygranych z ${r.played} partii`}>
+                  <span role="img" className="font-mono tabular-nums" aria-label={`${r.wins} wygranych z ${r.played} partii`}>
                     {r.wins} z {r.played}
                   </span>
                 </li>

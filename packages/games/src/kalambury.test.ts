@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { createRng, normalize } from "./core.ts";
+import { createRng, normalize, type MoveContext } from "./core.ts";
 import { WORDS } from "./kalambury-dane.ts";
 import {
   ANSWER_MAX,
@@ -22,6 +22,7 @@ import {
 // - kreski: pary x, y w 0-1000, do 200 liczb w ruchu, najwyżej 2000 punktów na rysunek, cofnij i wyczyść,
 // - kreska ma kolor z palety 5 kolorów i gumki, ustalany na jej początku; „wyczyść” da się cofnąć,
 // - rysowanie ma dwie połowy po 40 s; po pierwszej odsłania się jedna litera hasła,
+// - hint akceptuje tylko zaufane źródło timeout, nigdy klient ani source z treści ruchu,
 // - zgadujący piszą hasła; porównanie bez wielkości liter i polskich znaków, pudła widać na czacie, trafień nie,
 // - punkty: 10, 8, 6, 5, 4 według kolejności trafień, rysujący 3 za każdego, kto zgadł,
 // - hasło zna tylko rysujący aż do odsłony; obserwator dostaje tylko długość,
@@ -43,8 +44,8 @@ const hint: Move = { type: "hint" };
 const undo: Move = { type: "undo" };
 const clear: Move = { type: "clear" };
 
-function send(s: State, player: string, move: Move): State {
-  expect(game.validateMove(s, player, move), `${player}: ${JSON.stringify(move)}`).toBe(true);
+function send(s: State, player: string, move: Move, context?: MoveContext): State {
+  expect(game.validateMove(s, player, move, context), `${player}: ${JSON.stringify(move)}`).toBe(true);
   return game.applyMove(s, player, move, createRng(1));
 }
 
@@ -59,8 +60,8 @@ function drawing(players: string[], mode?: string, seed = 1): State {
   return send(s, drawer(s), choose());
 }
 
-/** Druga połowa rysowania: rysujący odsłania literę (jak po limicie pierwszej połowy). */
-const secondHalf = (s: State) => send(s, drawer(s), hint);
+/** Druga połowa rysowania: serwer odsłania literę po limicie pierwszej połowy. */
+const secondHalf = (s: State) => send(s, drawer(s), hint, { source: "timeout" });
 
 /** Kto jeszcze zgaduje, pasuje: runda się kończy (po trafieniach wszystkich już jest skończona). */
 function endRound(s: State): State {
@@ -481,11 +482,16 @@ describe("połowy rysowania", () => {
     expect(view(s, "").chat).toHaveLength(1);
   });
 
-  test("po limicie pierwszej połowy rysujący odsłania jedną literę hasła", () => {
+  test("po limicie pierwszej połowy serwer odsłania jedną literę hasła", () => {
     let s = drawing([A, B, C]);
+    const before = JSON.stringify(s);
+    expect(game.turn!(s)).toEqual({ key: "draw:0:0", seconds: HALF_SECONDS });
     const move = game.timeoutMove!(s, A, createRng(1));
     expect(move).toEqual(hint);
-    s = send(s, A, move);
+    const firstHalf = s;
+    s = send(s, A, move, { source: "timeout" });
+    expect(JSON.stringify(firstHalf)).toBe(before);
+    expect(s.half).toBe(1);
     expect(game.turn!(s)).toEqual({ key: "draw:0:1", seconds: HALF_SECONDS });
     expect(game.waitingFor(s)).toEqual([B, C]);
     const w = word(s);
@@ -497,12 +503,51 @@ describe("połowy rysowania", () => {
     expect(view(s, A).word).toBe(w);
   });
 
-  test("literę odsłania tylko rysujący, tylko raz i tylko w rysowaniu", () => {
-    let s = drawing([A, B]);
-    expect(game.validateMove(s, B, hint)).toBe(false);
+  test("klient nie może odsłonić litery, także rysujący i przy domyślnym kontekście", () => {
+    const s = drawing([A, B]);
+    for (const p of [A, B, "obcy", ""]) {
+      expect(game.validateMove(s, p, hint)).toBe(false);
+      expect(game.validateMove(s, p, hint, { source: "client" })).toBe(false);
+    }
+  });
+
+  test("source w JSON ruchu nie daje uprawnień serwerowego timeoutu", () => {
+    const s = drawing([A, B]);
+    const forged = { type: "hint" as const, source: "timeout", context: { source: "timeout" } };
+    expect(game.validateMove(s, A, forged)).toBe(false);
+    const parsed = game.moveSchema.parse(forged);
+    expect(parsed).toEqual(hint);
+    expect(game.validateMove(s, A, parsed)).toBe(false);
+    expect(game.validateMove(s, A, parsed, { source: "client" })).toBe(false);
+  });
+
+  test("timeout odsłania literę tylko za rysującego w pierwszej połowie rysowania", () => {
+    const s = drawing([A, B]);
+    expect(game.validateMove(s, A, hint, { source: "timeout" })).toBe(true);
+    for (const p of [B, "obcy", ""]) expect(game.validateMove(s, p, hint, { source: "timeout" })).toBe(false);
+    const second = secondHalf(s);
+    expect(game.validateMove(second, A, hint, { source: "timeout" })).toBe(false);
+    expect(second.half).toBe(1);
+    expect(second.revealed).toHaveLength(1);
+    for (const state of [game.setup([A, B], createRng(1)), endRound(s), round(round(game.setup([A, B], createRng(1))))]) {
+      expect(game.validateMove(state, state.drawer, hint, { source: "timeout" }), state.phase).toBe(false);
+    }
+  });
+
+  test("kreski i strzały nie zmieniają połowy, odsłoniętej litery ani klucza limitu", () => {
+    let s = drawing([A, B, C]);
+    s = send(s, A, line([1, 1]));
+    s = send(s, B, guess("zzz"));
+    expect(s.half).toBe(0);
+    expect(s.revealed).toEqual([]);
+    expect(game.turn!(s).key).toBe("draw:0:0");
     s = secondHalf(s);
-    expect(game.validateMove(s, A, hint)).toBe(false);
-    expect(game.validateMove(game.setup([A, B], createRng(1)), A, hint)).toBe(false);
+    const revealed = [...s.revealed];
+    s = send(s, A, line([2, 2]));
+    s = send(s, B, guess("zzz"));
+    expect(s.half).toBe(1);
+    expect(s.revealed).toEqual(revealed);
+    expect(game.turn!(s).key).toBe("draw:0:1");
   });
 
   test("runda może skończyć się już w pierwszej połowie", () => {
@@ -623,5 +668,23 @@ describe("schemat i stan", () => {
     send(s, B, guess(word(s)));
     expect(JSON.stringify(s)).toBe(before);
     expect(JSON.parse(before)).toEqual(s);
+  });
+});
+
+describe("P4-030: luki F4 Kalamburów", () => {
+  test("F4-040: różne seedy dają różny nonce rewanżu", () => {
+    expect(game.setup([A, B], createRng(1)).nonce).not.toBe(game.setup([A, B], createRng(2)).nonce);
+  });
+
+  test("F4-011: kreska, pudło i pas w tej samej połowie nie odnawiają klucza tury", () => {
+    let s = drawing([A, B, C]);
+    const key = game.turn!(s).key;
+    s = send(s, A, line([0, 0, 10, 10]));
+    expect(game.turn!(s).key).toBe(key);
+    s = send(s, B, guess("zzzzzz"));
+    expect(game.turn!(s).key).toBe(key);
+    s = send(s, B, pass);
+    expect(s.phase).toBe("draw");
+    expect(game.turn!(s).key).toBe(key);
   });
 });

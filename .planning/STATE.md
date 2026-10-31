@@ -1,18 +1,18 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 3
-current_phase_name: Audyt balansu rekordów i trudności
-status: ready_to_plan
-stopped_at: Faza 2 zamknięta (02-11, FINDINGS.md)
-last_updated: "2026-10-24T09:30:00.000Z"
-last_activity: 2026-10-24
-last_activity_desc: 02-11 scalenie fazy 2 w FINDINGS.md (102 wpisy, macierz sytuacji)
-state_head: d625d21e2897eb4036bc55fb4e8ab7a05bd76d02
+current_phase: 5
+current_phase_name: Poprawki zaakceptowanych rozbieżności
+status: complete
+stopped_at: 05-61/P4-061 zakończony; faza 5 zakończona (62/62), zostały odbiory na urządzeniach
+last_updated: "2026-10-31"
+last_activity: 2026-10-31
+last_activity_desc: "P4-061 odebrany; TDD 5852378, Zegar bodźca i dotyku; 62/62 pakietów, 267/267 części"
+state_head: 8d7c00a084b906e0551c7c669197035addf94510
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 21
-  completed_plans: 21
+  completed_phases: 5
+  total_plans: 84
+  completed_plans: 84
   percent: 100
 ---
 
@@ -20,26 +20,157 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-21)
+See: .planning/PROJECT.md (updated 2026-10-25)
 
 **Core value:** Każda gra działa i wygląda tak samo przewidywalnie: kod zgadza się z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
-**Current focus:** Phase 3: Audyt balansu rekordów i trudności (planowanie); faza 4 czeka na 3
+**Current focus:** Faza 5 zakończona (62/62 pakietów). Zostały odbiory na urządzeniach: U03/U04/U09, U14 (po fakcie), P11.
 
 ## Current Position
 
-Phase: 2 of 5 (Audyt wyglądu, animacji i wibracji), zamknięta
-Plan: 11 of 11 in current phase (fala 1: 02-01, 02-02; fala 2: 02-03..02-10; fala 3: 02-11, wszystkie gotowe)
-Status: Phase complete (faza 2 zamknięta; następna faza 3, plany TBD; faza 4 czeka na 3)
-Last activity: 2026-10-24: 02-11: FINDINGS.md fazy 2, 102 wpisy (wysokie 4, średnie 27, niskie 71), 300 wystąpień, macierz sytuacji A1-A17
+Phase: 5 of 5 (Poprawki zaakceptowanych rozbieżności), zakres ZG4-v1/S5-v1 zatwierdzony.
+Plan: 61 of 61 currently planned completed.
+Status: Complete. Fazy 1-5 zakończone, FIX-01 i FIX-02 zakończone; odbiory na urządzeniach otwarte.
+Wykonano 62/62 pakietów (P4-001, P4-027, P4-002..026, P4-028..033, P4-036..037, P4-041, P4-038, P4-039, P4-040, P4-042, P4-043, P4-044, P4-045, P4-046, P4-048, P4-050, P4-051, P4-052, P4-055, P4-056, P4-057, P4-058, P4-059, P4-060, P4-062, P4-034, P4-035, P4-047, P4-049, P4-054, P4-053, P4-061), 267/267 części poprawek.
+Last activity: 2026-10-31: zakończono 05-61/P4-061, Zegar bodźca i dotyku.
+Dowody w 05-61-SUMMARY.md.
 
-Progress: [██████████] 100% zaplanowanych planów (faza 1: 10/10, faza 2: 11/11; fazy 3-5 bez planów)
+Poprzednio zakończono 05-60. Dowody w 05-60-SUMMARY.md.
+
+Poprzednio zakończono 05-59. Dowody w 05-59-SUMMARY.md.
+
+Poprzednio zakończono 05-58. Dowody w 05-58-SUMMARY.md.
+
+Poprzednio zakończono 05-57. Dowody w 05-57-SUMMARY.md.
+
+Poprzednio zakończono 05-56. Dowody w 05-56-SUMMARY.md.
+
+Poprzednio zakończono 05-55. Dowody w 05-55-SUMMARY.md.
+
+Poprzednio zakończono 05-54. Dowody w 05-54-SUMMARY.md.
+
+Poprzednio zakończono 05-53. Dowody w 05-53-SUMMARY.md.
+
+Poprzednio zakończono 05-52. Dowody w 05-52-SUMMARY.md.
+
+Poprzednio zakończono 05-51. Dowody w 05-51-SUMMARY.md.
+
+Poprzednio zakończono 05-50. Dowody w 05-50-SUMMARY.md.
+
+Poprzednio zakończono 05-49. Dowody w 05-49-SUMMARY.md.
+
+Poprzednio zakończono 05-48. Dowody w 05-48-SUMMARY.md.
+
+Poprzednio zakończono 05-47. Dowody w 05-47-SUMMARY.md.
+
+Poprzednio zakończono 05-46. Dowody w 05-46-SUMMARY.md.
+
+Poprzednio zakończono 05-45/P4-050, role tokenów i drugi sygnał stanu. Dowody w 05-45-SUMMARY.md.
+
+Poprzednio zakończono 05-44/P4-048, wspólne tabele wyników i rund. Dowody w 05-44-SUMMARY.md.
+
+Poprzednio zakończono 05-43/P4-046, koniec partii, para i zastany stan. Dowody w 05-43-SUMMARY.md.
+
+Poprzednio zakończono 05-42/P4-045, zaznaczenie, okno i błysk trafienia. Dowody w 05-42-SUMMARY.md.
+
+Poprzednio zakończono 05-41/P4-044, odsłona prawdy. Dowody w 05-41-SUMMARY.md.
+
+Poprzednio zakończono 05-40/P4-043, wibracje i informacja zwrotna. Dowody w 05-40-SUMMARY.md.
+
+Poprzednio użytkownik zatwierdził na fizycznym Androidzie (U02) P4-014 (05-11 zamknięty) i P4-015 (bez zmian kodu).
+
+Poprzednio zakończono 05-27/P4-026. Kampus Tour: Zaliczenie bankruta wraca do talii,
+czynsz w statystyce w kwocie oddanej. Dowody w 05-27-SUMMARY.md.
+
+Poprzednio zakończono 05-26/P4-025. Jawny remis Gomoku, GameResult.places w Szybkim Chińczyku,
+wspólne miejsca w tabeli turnieju. Dowody w 05-26-SUMMARY.md.
+
+Poprzednio zakończono 05-25/P4-024. Jedna średnia zaokrąglona do ms w miejscach i record.tie,
+znany tie przed null w rekordach. Dowody w 05-25-SUMMARY.md.
+
+Poprzednio zakończono 05-24/P4-022. Mini-gra ma jeden termin od końca instrukcji,
+ruchy rywali go nie odnawiają; usunięte `kolo.turn`. Dowody w 05-24-SUMMARY.md.
+
+Poprzednio zakończono 05-23/P4-021. Który rok?: 270 s, T = 228 s, zapas 42 s (18,4%),
+nazwany wyjątek progu 20%. Pełna partia UI, timeout handlerów i rewanż PASS. Dowody w 05-23-SUMMARY.md.
+
+Poprzednio zakończono 05-22/P4-020. Śledzenie: 360 s, T = 287 s i zapas 73 s (25,4%).
+TDD 6421837, 20 rund i punktacja bez zmian; solo/6 graczy/turniej i timeout PASS. Dowody w 05-22-SUMMARY.md.
+
+Poprzednio zakończono 05-21/P4-019. Chińczyk: jeden przerywalny pokaz, pierwsze dotknięcie
+kończy go bez ruchu, wibracja zbicia raz na zdarzenie. Dowody w 05-21-SUMMARY.md.
+
+Poprzednio 2026-10-30: zakończono 05-20/P4-010. Labirynt: plansza równo z nagłówkiem,
+gracz w turze mieści się w 640 px. Dowody w 05-20-SUMMARY.md.
+
+Poprzednio zakończono 05-19/P4-009. Chińczyk: domki i kostka w 640 px,
+kafelek bez zdublowanej podpowiedzi. Dowody w 05-19-SUMMARY.md.
+
+Poprzednio zakończono 05-18/P4-008. Statki: rozstawianie w 640 px, obserwator
+z ostrzeliwaną planszą u góry. Dowody w 05-18-SUMMARY.md.
+
+Poprzednio zakończono 05-17/P4-007 bez zmian kodu. Gomoku mieści się na 360×640
+po P4-006; pomiar w DESIGN §6. Dowody w 05-17-SUMMARY.md.
+
+Poprzednio zakończono 05-16/P4-036. Gęste plansze: wybór i potwierdzenie 56 px
+z nazwą wyboru w Labiryncie, Chińczyku, Gomoku i Statkach; reguła w ZASADY §4/DESIGN §6.
+Typy/2049 testów/build i /dev 360×640 PASS. Dowody w 05-16-SUMMARY.md.
+
+Poprzednio zakończono 05-15/P4-023. Quizy: legalne szybkie/wolne trafienia,
+int czasu i limit 30 błędów, bez limitu 200 trafień. TDD f127c6c, typy/2049 testów/build PASS.
+UI oraz rzeczywisty rekord i turniej zgodne. Dowody w 05-15-SUMMARY.md.
+
+Poprzednio zakończono 05-14/P4-018. Kampus Tour: dotyk pomija pokaz,
+MPK/karta bez turlania; dublety, Kolokwium, refresh/reduced motion i sieć PASS.
+Typy, 1947 testów i build PASS. Dowody w 05-14-SUMMARY.md.
+
+Poprzednio zakończono 05-13/P4-017. Kampus Tour: środek, kontrolki,
+podsumowanie i statusy graczy; E13-E15, 2/4, obie orientacje PASS. Typy, 1947 testów i build PASS.
+Użytkownik odłożył pomiary telefonu i zlecił kontynuować pozostałe pakiety.
+Dowody w 05-13-SUMMARY.md.
+
+Poprzednio zakończono 05-12/P4-016, dostępne akcje wyników.
+Typy, 1947 testów, build i UI PASS. P4-015 oczekuje pomiaru telefonu przed zmianą kodu.
+Dowody w 05-12-SUMMARY.md.
+
+Poprzednio wdrożono 05-11/P4-014. Formularz i głosowanie przetestowane
+w przeglądarce; typy, 1947 testów i build PASS. Fizyczny U02 Android pozostaje otwarty.
+Dowody w 05-11-SUMMARY.md.
+
+Poprzednio zakończono 05-10/P4-013. Koło: widoczne zakończenie prób,
+solo/2/6, rzeczywisty refresh solo i rekord PASS. Typy, 1947 testów i build PASS.
+Dowody w 05-10-SUMMARY.md.
+
+Poprzednio zakończono 05-09/P4-012. Kalambury: zmierzone płótno obu ról,
+pełne partie i /dev 2/6 z odświeżeniem PASS; U02 fizyczny Android otwarty.
+Typy, 1947 testów i build PASS. Dowody w 05-09-SUMMARY.md.
+
+Poprzednio zakończono 05-08/P4-011. Memory: wszystkie tryby 360×640,
+2/6 osób i obserwator, karty minimum 48 px; typy, 1947 testów, build i UI PASS.
+Dowody w 05-08-SUMMARY.md.
+
+Poprzednio zakończono 05-07/P4-006. Wspólny nagłówek 106 px w E01-E06;
+2/4/6, długie nicki, obserwator, rozłączenie, klawiatura i ponowny montaż PASS.
+Typy, 1947 testów i build PASS. Dowody w 05-07-SUMMARY.md.
+
+Poprzednio zakończono Zakupy, Sekwencję i W pamięci. Osobne commity testów
+7045659, 76455c9 (odświeżenie snapshotu), f3e7958 i 28196b5; kod pozostaje lokalny.
+Typy, 1947 testów i build poprawne; odbiór UI solo/2/6, refresh, klawiatura/dotyk i autozapis Zakupów,
+postęp Sekwencji i wynik W pamięci przed Wyniki opisano w 05-04..06-SUMMARY.md.
+Użytkownik „Zapisz ten i kolejne commity testów” dał stałą zgodę na obowiązkowe osobne commity testów
+w kolejnych zatwierdzonych pakietach. Nie pytać o nie ponownie. Nowsza zgoda: użytkownik „Po każdym tasku rób commity, pozwalam na to” autoryzuje także
+commity implementacji po każdym zadaniu. Nie pytać ponownie; push wymaga osobnej prośby.
+
+Previous activity: 2026-10-24: 03-09 zamknął fazę 3: 16 wpisów z 44 częściowych, macierz 39 gier × 6 kryteriów, 14 przekazań D-02 i 22 pytania do partii. Faza 2 zakończona raportem 102 wpisów (300 wystąpień), faza 1 raportem 55 wpisów.
+
+Progress: 98% obecnie rozpisanych planów, 73/74 (fazy 1-4: 35/35; faza 5: 38/39).
+To nie jest procent ukończenia wdrożenia: wykonano 38/62 pakietów, dalsze plany będą dopisywane.
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
-- Average duration: ok. 38 min (01-01: 25 min, 01-02: 30 min, 01-03: 40 min, 01-04: 45 min, 01-05: 35 min, 01-06: 40 min, 01-07: 45 min, 01-08: 50 min, 01-09: 35 min, 01-10: 40 min, 02-01: 11 min, 02-02: 8 min, 02-03: 45 min, 02-04: 55 min, 02-05: 60 min, 02-06: 45 min, 02-07: 45 min, 02-08: 45 min, 02-09: 50 min, 02-10: 50 min, 02-11: 70 min)
-- Total execution time: ok. 14,5 h (fala 2 równolegle, ok. 1 h zegarowo bez przerwy na limit API)
+- Total plans completed: 49
+- Average duration (pierwsze 30 planów; 04-01..04-03 bez pomiaru): ok. 38 min (01-01: 25 min, 01-02: 30 min, 01-03: 40 min, 01-04: 45 min, 01-05: 35 min, 01-06: 40 min, 01-07: 45 min, 01-08: 50 min, 01-09: 35 min, 01-10: 40 min, 02-01: 11 min, 02-02: 8 min, 02-03: 45 min, 02-04: 55 min, 02-05: 60 min, 02-06: 45 min, 02-07: 45 min, 02-08: 45 min, 02-09: 50 min, 02-10: 50 min, 02-11: 70 min, 03-01: 35 min, 03-02: 25 min, 03-03: 45 min, 03-04: 60 min, 03-05: 50 min, 03-06: 45 min, 03-07: 40 min, 03-08: 45 min, 03-09: 40 min)
+- Total execution time (pierwsze 30 planów; 04-01..04-03 bez pomiaru): ok. 15,2 h (fala 2 równolegle, ok. 1 h zegarowo bez przerwy na limit API)
 
 **By Phase:**
 
@@ -47,9 +178,10 @@ Progress: [██████████] 100% zaplanowanych planów (faza 1: 1
 |-------|-------|-------|----------|
 | 1 | 10/10 | ok. 6,4 h | ok. 38 min |
 | 2 | 11/11 | ok. 8,1 h | ok. 44 min |
+| 3 | 9/9 | ok. 7,2 h | ok. 43 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-07, 02-08, 02-09, 02-10, 02-11
+- Last 5 plans: 03-05, 03-06, 03-07, 03-08, 03-09
 - Trend: fala 2 równolegle (8 agentów), plany per gra ok. 45-60 min
 
 *Updated after each plan completion*
@@ -65,9 +197,18 @@ Recent decisions affecting current work:
 - [Roadmap]: Fazy 1-3 są od siebie niezależne; faza 4 (raport i akceptacja) czeka na wszystkie trzy
 - [Faza 2]: Źródła reguł UI to `ZASADY.md` §4/§5, `DESIGN.md` i `AGENTS.md`; przy sprzeczności wygrywa `ZASADY.md` (D-13); wyjątki z `DESIGN.md` §6 idą na listę odstępstw z powodem
 - [Roadmap]: Zakres fazy 5 ustala zaakceptowany raport; przy dużym zakresie rozbić ją na kolejne fazy
+- [Faza 3, metoda, nie zatwierdzona nowa reguła]: Podział jak w fazach 1-2 (Kampus Tour osobno, gry główne, 4 grupy mini-gier); proponowany próg zapasu ≥ 20% i ≥ 10 s (D-07) oczekuje w D4-005; symulacje `setup` i botów w scratchpadzie, lokalna `games.db` tylko do odczytu, bez łączenia z Pi (D-10, D-11); każdy wpis z rekomendacją zostawić / zmienić / sprawdzić w partii
 
 ### Pending Todos
 
+- F4-046 / P4-031: zakresy Liczenia PASS; udział rodzajów naprawiony w P4-057 (05-50), test bez skip PASS, część domknięta. Dowody: 05-31-SUMMARY.md, 05-50-SUMMARY.md.
+
+- Faza 5: P4-014 wdrożony, pełny odbiór oczekuje U02; P4-015 wymaga pomiaru telefonu. 05-34/P4-037 zakończony; 33/62 pakietów, 152/267 części. Następny P4-038.
+  Stała zgoda użytkownika z 2026-10-29: „Zapisz ten i kolejne commity testów”. Obowiązkowe commity testów
+  przed kodem są już autoryzowane; nowsza stała zgoda obejmuje też commity implementacji po każdym zadaniu; push wymaga osobnej prośby.
+- Faza 3 zamknięta (2026-10-24): wejście do fazy 4 to `phases/03-audyt-balansu-rekord-w-i-trudno-ci/FINDINGS.md` (R1-R8 i wpisy pojedyncze B-*, cytowane z prefiksem F3:); styki z fazami 1-2: R1 = F1:Z2 (+ F2:ZK1), R2 = F1:Z3, R6 = F2:U28, B-KT4 = F1:K2, B-KT5 = F1:K11, B-KT6 z F2:U2; wysokie: R1 (Sekwencja, Zakupy, Środek, Tort), R3 (W pamięci, warunkowo); 22 pytania „sprawdzić w partii” w §11 (pozycje 9-13 może częściowo uzupełnić udostępniona kopia bazy; brak pełnych czasów/przebiegów), propozycje do dokumentów w §12
+- Do fali 2 fazy 3 z 03-01/03-02: liczby brać z `03-01-CHECKS.md` (§1 stałe, §2 symulacja, §2.1 krzywa Kubków), limit i progi z `03-02-BASELINE.md`; baza dev ma tylko 9 wyników Za zasłoną, więc remisy na szczycie ocenia się ze stałych; nowe do oceny: limit mini-gier bez `turn()` odnawia się po wyniku rywala (`LobbyRoom.ts:375-376`), a w 7 grach ze stałym `key` nie (różny czas wolnego gracza w grze wieloosobowej)
+- Faza 3 zaplanowana (2026-10-24): wpisy z faz 1-2 do zamknięcia wymienia D-02 w `03-CONTEXT.md`; poniższe listy „Do fazy 3” są w nim zebrane
 - Faza 2 zamknięta (2026-10-24): wejście do fazy 4 to `phases/02-audyt-wygl-du-animacji-i-wibracji/FINDINGS.md` (U1-U37, A1-A17 i wpisy pojedyncze, cytowane z prefiksem F2:); poniższe listy „Do 02-11” i „Do fazy 4 z fali 2” są w nim scalone (§5.0 ujednolicenia, §7 propozycje do dokumentów, §9 do potwierdzenia w przeglądarce)
 - Do fazy 4 z 02-11: wysokie U1 (ekran partii > 640 px w 11 grach, w tym nowy WP5), U2 (akcja po animacji: Chińczyk, Kampus Tour), KT10, F2:ZK1; nowy wpis A17 („Gotowe” w trzech rolach)
 - Faza 1 zamknięta: wejście do fazy 4 to `phases/01-audyt-zasad-test-w-i-podpi-cia/FINDINGS.md` (Z1-Z21 i wpisy pojedyncze; poniższe listy są już w nim scalone)
@@ -103,6 +244,212 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-24
-Stopped at: Faza 2 zamknięta (02-11), następna faza 3
-Resume file: .planning/ROADMAP.md (Phase 3, plany TBD)
+Last session: 2026-10-31
+Stopped at: 05-39 zakończony; następny P4-043; FIX-02 otwarte
+Resume file: .planning/phases/05-poprawki-zaakceptowanych-rozbieznosci/05-39-SUMMARY.md
+
+
+2026-10-29, 05-03/P4-002: dokumentacja i testy regresji przygotowane przed kodem. Typecheck PASS;
+pełny games 1864 PASS / 25 FAIL (oczekiwany RED), serwer 6 PASS / 8 FAIL, dotychczasowe Kalambury PASS.
+Przed implementacją wymagany osobny commit pięciu plików testów na prośbę użytkownika.
+Dowody: [05-03-TDD](phases/05-poprawki-zaakceptowanych-rozbieznosci/05-03-TDD.md).
+Nadal 2/62 pakietów i 6/267 części; FIX-02 otwarte. Starsze wpisy „05-03 gotowy, nie rozpoczęty” są historyczne.
+
+
+2026-10-29, 05-03/P4-002 zakończony po osobnym commicie testów e635dc9 na prośbę użytkownika.
+Typecheck, 1918 testów, build i odbiór UI 2/6+refresh/stare detail/remis/turniej poprawne.
+3/62 pakietów i 7/267 części; FIX-02 otwarte. Starszy wpis RED powyżej jest historyczny.
+
+
+2026-10-29, 05-04..06 zakończone. Wcześniejsze wpisy RED i pytania o commity są historyczne.
+Zakupy: 80 s, autozapis i pointerdown. Sekwencja: zaliczona seria po limicie i refresh.
+W pamięci: wynik natychmiast, niezależna odsłona. Typy, 1947 testów, build i UI PASS.
+6/62 pakietów, 11/267 części; FIX-02 otwarte. Stała zgoda na obowiązkowe commity testów obowiązuje.
+
+
+2026-10-29, 05-07/P4-006 zakończony: wspólny zwijany nagłówek aktywnej partii.
+Pomiar E01-E06: 106 px zamiast 142-274 px; 2/4/6 osób, długie nicki, obserwator,
+rozłączenie, rozwinięcie klawiaturą, ponowny montaż i koniec sprawdzone na komponencie.
+Typy, 1947 testów i build PASS. Bez zmian zasad i commitów; 7/62 pakietów, 12/267 części.
+FIX-02 otwarte, następny P4-011 (Memory). Dowody: 05-07-SUMMARY.md.
+
+
+2026-10-29, 05-08/P4-011 zakończony: Memory, odstęp plansza–instrukcja 8 zamiast 12 px.
+18 konfiguracji trzech trybów, 2/6 osób i ról gracz/rywal/obserwator: dokument 360×640,
+karty minimum 48 px. Pełne partie UI, ponowny montaż i rewanż PASS.
+Typy, 1947 testów i build PASS. 8/62 pakietów, 13/267 części, FIX-02 otwarte.
+Następny P4-012 (Kalambury). Dowody: 05-08-SUMMARY.md. Bez zmian zasad i commitów.
+
+
+2026-10-29, 05-09/P4-012: Kalambury, płótno mierzy rzeczywisty nagłówek i kontrolki obu ról.
+Zgadnij i Pasuję w 640 px, 2/6 osób, pełne partie obu trybów i /dev z WebSocket + refresh PASS.
+Typy, 1947 testów i build PASS. U02 fizyczny Android otwarty, symulacja viewportu PASS.
+9/62 pakietów, 14/267 części, FIX-02 otwarte; następny P4-013. Dowody: 05-09-SUMMARY.md.
+Stała zgoda użytkownika na commity po każdym zadaniu obowiązuje; push nadal wymaga prośby.
+
+
+2026-10-29, 05-10/P4-013 zakończony: Narysuj koło, płótno dopasowane do wolnej wysokości,
+48 px przycisku w oknie, bez skoku rozmiaru po pierwszej próbie. Solo/2/6, refresh, timeout,
+me="" i rewanż PASS; rzeczywisty pokój solo z reload i rekordem PASS.
+Typy, 1947 testów i build PASS. 10/62 pakietów, 15/267 części, FIX-02 otwarte.
+Następny P4-014 (Państwa-miasta). Dowody: 05-10-SUMMARY.md. Commit po zadaniu, bez push.
+
+
+2026-10-29, 05-11/P4-014 wdrożony: Państwa-miasta, przewijany formularz, dolna akcja,
+tabele kategorii z graczami w wierszach przy 4+, cele głosu minimum 48 px.
+Przeglądarka 2/6 i vote/summary 2/3/4/6, szkic, timeout i remis PASS; typy, 1947 testów, build PASS.
+Pełny odbiór oczekuje fizycznego U02 Android; 2/3 części odebrane. 10/62 pakietów, 17/267 części.
+05-11 w toku; następny niezależny pakiet P4-015. Dowody: 05-11-SUMMARY.md. Commit bez push.
+
+
+2026-10-29, 05-12/P4-016 zakończony: wyniki z OverActions/NextActions w StickyBar.
+Koło solo/4/6 z pełnym RecordPanel, awansem i rekordem; turniej między grami i finał oraz E08/E12 PASS.
+Typy, 1947 testów i build PASS. 11/62 pakietów, 18/267 części; FIX-02 otwarte.
+P4-014 oczekuje fizycznego U02; P4-015 wymaga pomiaru telefonu przed wyborem poprawki, bez zmian kodu.
+Następny niezależny P4-017. Dowody: 05-12-SUMMARY.md. Commit bez push.
+
+
+2026-10-29, 05-13/P4-017 zakończony: Kampus Tour, nieucinany środek i kontrolki >=48 px po zoom,
+budowa w szczegółach pola, pojedyncze akcje podsumowania, wygrane i Oglądasz.
+E13-E15, 2/4 i obserwator, obie orientacje, typy/1947 testów/build PASS. 4/4 części.
+12/62 pakietów, 22/267 części; FIX-02 otwarte. Następny P4-018; P4-014/015 oczekują U02.
+Użytkownik: „Zrobię pomiar później, kontynuuj pozostałe pakiety”. Dowody: 05-13-SUMMARY.md.
+
+
+2026-10-29, 05-14/P4-018 zakończony: Kampus Tour, dotyk kończy turlanie/marsz bez ruchu,
+MPK i karta bez fałszywego rzutu, nowy stan anuluje stary pokaz. Bez zmian kontraktu playerView.
+Rzut 12/dublety/Kolokwium, oba układy, refresh/reduced motion i /dev przez WebSocket PASS.
+Typy, 1947 testów i build PASS. 13/62 pakietów, 25/267 części; FIX-02 otwarte. Następny P4-023.
+P4-014/015 oczekują odłożonych pomiarów. Dowody: 05-14-SUMMARY.md. Commit bez push.
+
+
+2026-10-29, 05-15/P4-023 zakończony: quizy, czasy int 0-30000 i suma <=30000,
+pomyłki int 0-30; każdy szybki/wolny czas zachowany. 200 to pula plansz, nie limit trafień.
+ZASADY-GIER i testy przed kodem, commit TDD f127c6c. Typy/2049 testów/build PASS.
+UI Quiz/retry/Dziesiątki, 201 trafień i rzeczywisty rekord/turniej przez WebSocket PASS.
+14/62 pakietów, 27/267 części; FIX-02 otwarte. Następny P4-036; P4-014/015 oczekują pomiarów.
+Dowody: 05-15-SUMMARY.md. Historia bez przeliczania; commit implementacji bez push.
+
+
+2026-10-30, 05-16/P4-036 zakończony: gęste plansze z wyborem i potwierdzeniem 56 px z nazwą wyboru.
+Labirynt: krok przez wybór (duch pionka) i „Idź w górę”/„Przeskocz…”; Chińczyk: kostka obok „Rusz o 4 pola”;
+Gomoku: „Postaw na H8”; Statki bez zmian. ZASADY §4, DESIGN §6, ZASADY-GIER §10. Typy/2049 testów/build PASS.
+/dev 360×640: 9×9 i 7×7, obroty 0/90/180°, obserwator, przeskok PASS. 15/62 pakietów, 28/267 części; FIX-02 otwarte.
+Następny P4-007; P4-014/015 oczekują pomiarów. Dowody: 05-16-SUMMARY.md. Commit bez push.
+
+
+2026-10-30, 05-17/P4-007 zakończony bez zmian kodu: Gomoku po P4-006 mieści się na 360×640
+(plansza 150-487 px, „Postaw na O15” 514-570 px, dokument 640; obserwator, koniec, rewanż i odświeżenie PASS).
+Pomiar w DESIGN §6 zamiast „około 670 px”. 16/62 pakietów, 29/267 części; FIX-02 otwarte.
+Następny P4-008; P4-014/015 oczekują pomiarów. Dowody: 05-17-SUMMARY.md. Commit bez push.
+
+
+2026-10-30, 05-18/P4-008 zakończony: Statki, rozstawianie z Obróć/Losuj/Gotowe w jednym wierszu (640 px we wszystkich trybach),
+obserwator widzi ostrzeliwaną planszę dużą u góry. Mała plansza drugiej floty jako wyjątek DESIGN §6 (zgoda użytkownika).
+Cztery tryby, obie role, obserwator, koniec, odświeżenie i rewanż PASS; typy/2049 testów/build PASS.
+17/62 pakietów, 30/267 części; FIX-02 otwarte. Następny P4-009. Dowody: 05-18-SUMMARY.md. Commit bez push.
+
+
+2026-10-30, 05-19/P4-009 zakończony: Chińczyk po P4-006/P4-036 nie przykrywa domków; jedyne 641 px u obserwatora
+usunięte (podpowiedź „X rzuca kostką…” tylko bez komunikatu o rzucie). Klasyczny 4+obs, Szybki 2+obs do końca,
+długie nicki, odświeżenie i rewanż: 640 px. Typy/2049 testów/build PASS. 18/62 pakietów, 31/267 części; FIX-02 otwarte.
+Następny P4-010. Dowody: 05-19-SUMMARY.md. Commit bez push.
+
+2026-10-30, 05-20/P4-010 zakończony: Labirynt, gracz w turze 662→640 px (plansza równo z kafelkiem nagłówka, PAD 3→2,
+pole 9×9 ~34 px). Klasyczny 4+obs, ściana, partia do końca, rewanż, Szybki 2+obs i odświeżenie: 640 px w grze.
+Typy/2049 testów/build PASS. 19/62 pakietów, 32/267 części; FIX-02 otwarte.
+Następny P4-019. Dowody: 05-20-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-21/P4-019 wykonany: Chińczyk, przerywalny pokaz i ruch dostępny od razu po pominięciu.
+Typy/2049 testów/build PASS. 20/62 pakietów, 33/267 części; FIX-02 otwarte.
+Następny P4-020. Dowody: 05-21-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-22/P4-020 zakończony: Śledzenie, limit 360 s zamiast 300 s; 20 rund i punktacja bez zmian.
+TDD 6421837, T = 287 s, zapas 73 s (25,4%). Solo/6 graczy, samoistny timeout i turniej PASS.
+Typy/2050 testów/build PASS. Historia bez przeliczania. 21/62 pakietów, 34/267 części; FIX-02 otwarte.
+Następny P4-021, P4-014/015 nadal oczekują U02. Dowody: 05-22-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-23/P4-021 zakończony: Który rok?, limit 270 s zamiast 240 s; 10 rund, czasy i punktacja bez zmian.
+TDD 57a1785, T = 228 s, zapas 42 s (18,4%), zatwierdzony wyjątek 20%. Pełna partia UI 6 osób, timeout handlerów i rewanż PASS.
+Typy/2051 testów/build PASS; historia bez przeliczania. 22/62 pakietów, 35/267 części; FIX-02 otwarte.
+Następny P4-022, P4-014/015 nadal oczekują U02. Dowody: 05-23-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-24/P4-022 zakończony: mini-gra ma jeden termin od końca instrukcji; wynik, progress ani próby rywala go nie odnawiają.
+TDD 93ef04b, usunięte `kolo.turn`. Typy/2058 testów/build PASS. 23/62 pakietów, 36/267 części; FIX-02 otwarte.
+Następny P4-024, P4-014/015 nadal oczekują U02. Dowody: 05-24-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-25/P4-024 zakończony: jedna średnia zaokrąglona do ms w miejscach i record.tie; w rekordach znany tie przed null jak w SQL.
+TDD 18f979b. Typy/2063 testów/build PASS. 24/62 pakietów, 37/267 części; FIX-02 otwarte.
+Następny P4-025, P4-014/015 nadal oczekują U02. Dowody: 05-25-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-26/P4-025 zakończony: jawny remis Gomoku, opcjonalne GameResult.places dla równych dalszych miejsc Szybkiego Chińczyka, wspólne miejsca w tabeli turnieju.
+TDD 53201b6. Typy/2067 testów/build PASS. 25/62 pakietów, 39/267 części; FIX-02 otwarte.
+Następny P4-026, P4-014/015 nadal oczekują U02. Dowody: 05-26-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-27/P4-026 zakończony: Kampus Tour, Zaliczenie bankruta wraca do talii, czynsz w statystyce w kwocie oddanej; Juwenalia i poziom 3 po wykupie opisane i przypięte testami.
+TDD b4d749e. Typy/2072 testów/build PASS. 26/62 pakietów, 43/267 części; FIX-02 otwarte.
+Następny P4-028 (Codex), potem P4-029; P4-014/015 nadal oczekują U02. Dowody: 05-27-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-28/P4-028 zakończony (Codex, przegląd Claude): Labirynt po czasie losuje legalny krok, pass tylko bez kroku.
+TDD 74f0c54. Typy/2078 testów PASS. 27/62 pakietów, 43/267 części; FIX-02 otwarte.
+Następny P4-029; P4-014/015 nadal oczekują U02. Dowody: 05-28-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-29/P4-029: Testy: Kampus Tour; 11/11 części sprawdzone. Typy i pełne testy PASS. 28/62 pakietów, 54/267 części; FIX-02 otwarte. Następny P4-030; P4-014/015 oczekują U02. Dowody: 05-29-SUMMARY.md. Jeden commit, bez push.
+
+2026-10-31, 05-30/P4-030: Testy: gry główne i Turniej; 24/24 części sprawdzone. Typy i pełne testy PASS. 29/62 pakietów, 78/267 części; FIX-02 otwarte. Następny P4-031; P4-014/015 oczekują U02. Dowody: 05-30-SUMMARY.md. Jeden commit, bez push.
+
+2026-10-31, 05-31/P4-031: Testy: quizy i Stój!; 20/20 części sprawdzone, 19 odebranych; F4-046 częściowo, udział rodzajów SKIP → P4-057. Typy i pełne testy PASS. 30/62 pakietów, 97/267 części; FIX-02 otwarte. Następny P4-032; P4-014/015 oczekują U02. Dowody: 05-31-SUMMARY.md. Jeden commit, bez push.
+
+2026-10-31, 05-32/P4-032: Testy: pozostałe mini-gry; 52/52 części sprawdzone. Typy i pełne testy PASS. 31/62 pakietów, 149/267 części; FIX-02 otwarte. Następny P4-033; P4-014/015 oczekują U02. Dowody: 05-32-SUMMARY.md. Jeden commit, bez push.
+
+2026-10-31: 05-33/P4-033 rozpoczęty na zlecenie użytkownika; testy i opis danych przed kodem. Bez zmiany liczby odebranych pakietów/części. Następnie 05-34/P4-037.
+
+2026-10-31, 05-33/P4-033 zakończony: wynik i rekordowa partia ze stanu; typy/testy/build i odbiór UI PASS. 32/62 pakietów, 151/267 części. Następny P4-037; F4-046 częściowo SKIP → P4-057; P4-014/015 oczekują U02; FIX-02 otwarte. Dowody: 05-33-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-34/P4-037 zakończony: zwykłe kontrolki 48 px; typy/testy/build i odbiór UI PASS. 33/62 pakietów, 152/267 części. Następny P4-038; F4-046 częściowo SKIP → P4-057; P4-014/015 oczekują U02; FIX-02 otwarte. Dowody: 05-34-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-35/P4-041 zakończony: katalog 14 keyframes z rolą i czasami w ZASADY §5, komentarze index.css zgodne z użyciem, test animations.test.ts.
+TDD 4c1b835. Typy/2324 testów (1 SKIP)/build PASS. 34/62 pakietów, 155/267 części; FIX-02 otwarte.
+Następny P4-040 (warunek P4-042); P4-014/015 oczekują U02. Dowody: 05-35-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-36/P4-038 zakończony: Tort łapie najbliższe cięcie do 24 px od odcinka zamiast 10°.
+TDD 5d05002. Typy/testy/build PASS. 35/62 pakietów, 156/267 części; FIX-02 otwarte.
+Następny P4-039; P4-014/015 oczekują U02. Dowody: 05-36-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-37/P4-039 zakończony: Śledzenie wybiera kulki panelem 8 przycisków 48 px, numery według końcowej pozycji tylko po zatrzymaniu.
+TDD 05a0dfe. Typy/testy/build PASS. 36/62 pakietów, 157/267 części; FIX-02 otwarte.
+Następny P4-040; P4-014/015 oczekują U02. Dowody: 05-37-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-38/P4-040 zakończony: przy reduced motion ruch-zadanie zostaje, float-up zamienia się w nieruchome float-still, klatka bazowa podglądu opisana.
+TDD 4a535fb. Typy/testy/build PASS. 37/62 pakietów, 161/267 części; FIX-02 otwarte.
+Następny P4-042; P4-014/015 oczekują U02. Dowody: 05-38-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-39/P4-042 zakończony: ring-pulse 1,2 s, czekanie bez migania, jawne czasy przejść, paski czasu z zegara (TimeBar).
+TDD f156052. Typy/testy/build PASS. 38/62 pakietów, 169/267 części; FIX-02 otwarte.
+Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez push.
+
+2026-10-31, 05-50/P4-057 zakończony: Liczenie losuje rodzaje działań potasowanymi czwórkami (po 50 każdego w puli), zakresy liczb bez zmian; F4-046 domknięte (test z P4-031 bez skip, P4-031 20/20). 51/62 pakietów, 218/267 części; FIX-02 otwarte. Następny P4-058. Dowody: 05-50-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-51/P4-058 zakończony: Obrót losuje rodzaj planszy (90/180/270° × ta sama/lustro) potasowanymi szóstkami, figury bez symetrii obrotowej; stan i ekran bez zmian kształtu, rekordy bez przeliczania. 52/62 pakietów, 219/267 części; FIX-02 otwarte. Następny P4-059. Dowody: 05-51-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-52/P4-059 zakończony: W pamięci ma w rundzie z n działaniami zawsze floor(n/3) mnożeń na potasowanych miejscach, wartości 1-99; generator średnio 2 podejścia na ciąg, bez zawieszenia na 10 000 seedów; rekordy bez przeliczania. Odbiór wpływu na ludzi czeka na P11. 53/62 pakietów, 220/267 części; FIX-02 otwarte. Następny P4-060. Dowody: 05-52-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-53/P4-060 zakończony: Balon ma w każdej partii komplet wytrzymałości 11-20 w potasowanej kolejności (suma 155), ta sama strategia stop daje ten sam wynik; walidacja 0-21, rekordy bez przeliczania. 54/62 pakietów, 221/267 części; FIX-02 otwarte. Następny P4-062 (P4-061 czeka na U14). Dowody: 05-53-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-54/P4-062 zakończony: Państwa-miasta nie losują Ł (pula 22 liter), punktacja i głosowanie bez zmian. 55/62 pakietów, 222/267 części; FIX-02 otwarte. Następny P4-034; P4-061 czeka na U14. Dowody: 05-54-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-55/P4-034 zakończony: mini-gry z MINI_GAME_IDS w Game/Lobby (SIMULTANEOUS, OWN_RANKING z Kalamburami), nonce Sudoku z fallbackiem planszy, stałe SLEDZENIE_*, Turniej z podsumowaniem w StartBar bez drugiego sticky. 56/62 pakietów, 226/267 części; FIX-02 otwarte. Następny P4-035; P4-061 czeka na U14. Dowody: 05-55-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-56/P4-035 zakończony: talia Kampus Tour przez shuffle z core, swapsFor w Kubkach (te same talie i zamiany dla seedów 1-3), Koło bez ranked i trzy kopie szkieletu rund z powodem w ZASADY-GIER §1. 57/62 pakietów, 227/267 części; FIX-02 otwarte. Następny P4-047; P4-061 czeka na U14. Dowody: 05-56-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-57/P4-047 zakończony: Dalej po odsłonie, Wyniki do podsumowania, wspólne słowa nagłówka w Kampus Tour, Zgłaszam gotowość (neutralnie zamiast Jestem gotowy, wybór użytkownika), Czekamy na: {nicki}, Idealnie!, rysujesz, Dotknij symbolu; słownik ról w ZASADY §4, kolor Dalej w DESIGN §5. 58/62 pakietów, 233/267 części; FIX-02 otwarte. Następny P4-049; P4-061 czeka na U14. Dowody: 05-57-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-58/P4-049 zakończony: mono z tabular-nums dla odczytów (zdania Satoshi wg D4-096 B), .label dla podpisów, bold małych ikon, wspólne decimal, brak/0, oś Schultego, Odcień w Stats, Mapa 999+, Zakupy w jednym wierszu, pkt w nagłówku turnieju, nagłówek ustawień turnieju. 59/62 pakietów, 245/267 części; FIX-02 otwarte. Następny P4-053; P4-061 czeka na U14. Dowody: 05-58-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-59/P4-054 zakończony: tie W pamięci i karty Kampus Tour w KONCEPT, wybór postaci naraz, Refleks na serwerze, Balon na ekranie, Ć, nagłówek testów Kampus Tour, seria Sekwencji, limit partii w Intro pięciu gier (upTo). 60/62 pakietów, 255/267 części; FIX-02 otwarte. Następny P4-053 (P4-061 czeka na U14). Dowody: 05-59-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-60/P4-053 zakończony: jeden wypełniony akcent na Home, „Wszystkie” i trzy odpowiedzi w podglądzie Koloru liter po zmierzonych obcięciach przy 115%, tytuły Setup, tła i link Rekordów wg ról, minmax w siatkach, Preview Koła; podpisy Kampus Tour bez obcięć, czytelność do U04. 61/62 pakietów, 266/267 części; FIX-02 otwarte. Następny P4-061 (czeka na U14). Dowody: 05-60-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-61/P4-061 krok 1: narzędzie U14 `?zegar` (clock.ts) zapisuje obok obecnej metody e.timeStamp i pierwszą klatkę rAF w Refleksie, Stój!, Stoperze i Wieży; wynik bez zmian. Chromium 60 Hz: różnica 10-15 ms. Wybór użytkownika: pomiar, potem zmiana. 61/62 pakietów, 266/267 części; FIX-02 otwarte. Czeka na U14 użytkownika. Dowody: 05-61-SUMMARY.md.
+
+2026-10-31, 05-61/P4-061 zakończony: Refleks i Stój! liczą reakcję od pierwszej klatki z bodźcem (rAF) do e.timeStamp (stimulus.ts); Stoper i Wieża bez zmian z powodem; stare rekordy bez przeliczania. U14 uchylone przez użytkownika („Kontynuuj bez mojej weryfikacji”), odbiór po fakcie przez ?zegar. 62/62 pakietów, 267/267 części; FIX-02 i faza 5 zakończone, odbiory urządzeń (U03/U04/U09/U14, P11) zostają otwarte. Dowody: 05-61-SUMMARY.md. Commity bez push.

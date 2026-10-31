@@ -1,6 +1,6 @@
-import { type LobbyPlayer, ZAKUPY_LIST, ZAKUPY_MAX_MS, ZAKUPY_SHOW_MS, type ZakupyView } from "@kwadrans/games";
+import { initials, type LobbyPlayer, ZAKUPY_LIST, ZAKUPY_MAX_MS, ZAKUPY_SHOW_MS, type ZakupyView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
-import { Intro, Scores, Stats, tenth } from "../screens/ui.tsx";
+import { Intro, Scores, Stats, tenth, TimeBar } from "../screens/ui.tsx";
 
 interface Props {
   view: ZakupyView;
@@ -13,7 +13,6 @@ interface Props {
 type Phase = "intro" | "show" | "pick" | "sent";
 
 /** „1 błąd”, „2 błędy”, „5 błędów”. */
-const wrongLabel = (n: number) => `${n} ${n === 1 ? "błąd" : n % 10 >= 2 && n % 10 <= 4 && (n < 12 || n > 14) ? "błędy" : "błędów"}`;
 
 /** Podgląd na ekranie instrukcji: kilka przedmiotów, z których część migają jako „z listy”. */
 function Preview({ color }: { color?: string }) {
@@ -40,13 +39,14 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
   const [picked, setPicked] = useState<number[]>([]);
   const [elapsed, setElapsed] = useState(0);
   /** Pasek pokazu startuje od pełnego i po zamontowaniu przechodzi do zera. */
-  const [draining, setDraining] = useState(false);
   const start = useRef(0);
+  // Synchroniczne dane dla timera i zdarzeń z tej samej klatki, zanim React odmaluje ekran.
+  const selected = useRef<number[]>([]);
+  const submitted = useRef(false);
   const color = players.find((p) => p.id === me)?.color;
 
   useEffect(() => {
     if (phase !== "show") return;
-    setDraining(true);
     const id = setTimeout(() => {
       start.current = performance.now();
       setPhase("pick");
@@ -55,20 +55,27 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
   }, [phase]);
 
   useEffect(() => {
-    if (phase !== "pick") return;
+    if (phase !== "pick" || !playing) return;
     const id = setInterval(() => setElapsed(performance.now() - start.current), 200);
-    return () => clearInterval(id);
-  }, [phase]);
+    const deadline = setTimeout(() => done(), Math.max(0, ZAKUPY_MAX_MS - (performance.now() - start.current)));
+    return () => {
+      clearInterval(id);
+      clearTimeout(deadline);
+    };
+  }, [phase, playing]);
 
   function toggle(i: number) {
-    if (phase !== "pick") return;
-    setPicked((list) => (list.includes(i) ? list.filter((n) => n !== i) : [...list, i]));
+    if (phase !== "pick" || !playing || submitted.current) return;
+    const list = selected.current;
+    selected.current = list.includes(i) ? list.filter((n) => n !== i) : [...list, i];
+    setPicked(selected.current);
   }
 
   function done() {
-    if (phase !== "pick") return;
+    if (phase !== "pick" || !playing || submitted.current) return;
+    submitted.current = true;
     setPhase("sent");
-    onMove({ type: "result", picked, ms: Math.min(ZAKUPY_MAX_MS, Math.round(performance.now() - start.current)) });
+    onMove({ type: "result", picked: selected.current, ms: Math.min(ZAKUPY_MAX_MS, Math.round(performance.now() - start.current)) });
   }
 
   if (!playing || phase === "sent") {
@@ -80,21 +87,24 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
         nick: p?.nick ?? "Gracz",
         color: p?.color,
         me: id === me,
-        score: r ? `${r.score} pkt (${r.hits} traf., ${wrongLabel(r.wrong)}) · ${tenth(r.ms / 1000)} s` : null,
+        score: r ? `${r.score} pkt · ${tenth(r.ms / 1000)} s` : null,
       };
     });
-    const who = view.players.map((id) => ({ id, color: players.find((p) => p.id === id)?.color }));
+    // Kto zaznaczył: kropka z inicjałem (sam kolor nie wystarcza do rozpoznania gracza).
+    const labels = initials(view.players.map((id) => players.find((p) => p.id === id)?.nick ?? "?"));
+    const who = view.players.map((id, i) => ({ id, color: players.find((p) => p.id === id)?.color, label: labels[i] }));
     return (
       <>
         <Scores rows={all} />
         <p className="text-sm text-fg-muted">Trafienia minus zaznaczenia spoza listy. Przy remisie wygrywa szybszy.</p>
         <section className="tile flex flex-col gap-2 p-3">
-          <span className="text-sm text-fg-muted">Lista zakupów</span>
+          <span className="label">Lista zakupów</span>
           <div className="grid grid-cols-5 gap-1">
             {view.items.map((item, i) => {
               const onList = view.listed.includes(i);
               return (
                 <span
+                  role="img"
                   key={i}
                   className={`relative flex aspect-square items-center justify-center rounded-inset border text-2xl ${onList ? "border-success bg-surface" : "border-line opacity-60"}`}
                   aria-label={onList ? `${item}, z listy` : item}
@@ -102,14 +112,16 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
                   {item}
                   <span className="absolute bottom-0.5 flex gap-0.5">
                     {who.filter((w) => view.picked[w.id]?.includes(i)).map((w) => (
-                      <span key={w.id} className="size-1.5 rounded-full" style={{ backgroundColor: w.color }} aria-hidden />
+                      <span key={w.id} className="grid size-3.5 place-items-center rounded-full font-mono tabular-nums text-[8px] leading-none font-semibold text-bg" style={{ backgroundColor: w.color }} aria-hidden>
+                        {w.label}
+                      </span>
                     ))}
                   </span>
                 </span>
               );
             })}
           </div>
-          <p className="text-xs text-fg-muted">Zielona ramka: przedmiot był na liście. Kropki: kto go zaznaczył.</p>
+          <p className="text-xs text-fg-muted">Zielona ramka: przedmiot był na liście. Kropki z inicjałem: kto go zaznaczył.</p>
         </section>
       </>
     );
@@ -130,9 +142,7 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
   if (phase === "show") {
     return (
       <section className="flex flex-col gap-2">
-        <div className="h-1.5 overflow-hidden rounded-full bg-surface" aria-hidden>
-          <div className="h-full" style={{ width: draining ? "0%" : "100%", backgroundColor: color, transition: `width ${ZAKUPY_SHOW_MS}ms linear` }} />
-        </div>
+        <TimeBar ms={ZAKUPY_SHOW_MS} color={color} />
         <div className="tile grid grid-cols-5 gap-1 p-3">
           {view.listed.map((i) => (
             <span key={i} className="flex aspect-square items-center justify-center rounded-inset border border-line text-3xl">
@@ -172,7 +182,7 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
           );
         })}
       </div>
-      <button type="button" className="btn text-bg" style={{ backgroundColor: color }} onClick={done}>
+      <button type="button" className="btn btn-player" style={{ backgroundColor: color }} onPointerDown={done} onClick={(e) => e.detail === 0 && done()}>
         Gotowe
       </button>
       <p className="text-center text-sm text-fg-muted">Zaznacz przedmioty z listy. Każdy zły zabiera punkt.</p>

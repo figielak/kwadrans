@@ -6,24 +6,23 @@ import { ALLOWANCE, BOARD, buildCost, CARDS, CHARACTERS, kampusTour as game, typ
 // - 2-4 graczy, plansza 32 pól, wszyscy startują na polu 0 (Początek) z 200 zł, każde dalsze miejsce +20 zł
 //   (wyrównanie przewagi pierwszego ruchu),
 // - rzut dwiema kośćmi: Math.floor(rng() * 6) + 1 dwa razy, ruch o sumę,
-// - przejście przez pole 0 dolicza okrążenie i 20 zł kieszonkowego,
+// - przejście przez pole 0 dolicza okrążenie i 40 zł kieszonkowego,
 // - wolne pole można kupić (jeśli stać) albo pominąć; na cudzym płaci się czynsz P/10, za całą grupę ×2,
 // - Ksero i Stołówka (jak wodociągi): czynsz = suma oczek × 2 zł, a gdy właściciel ma oba × 5 zł,
 // - pole 28 (Opłata za akademik) kosztuje 15 zł,
-// - brak gotówki: sprzedaż pól bankowi za połowę ceny, a gdy to nie wystarczy, bankructwo,
+// - brak gotówki: sprzedaż pól bankowi za połowę wartości (cena + budynki), a gdy to nie wystarczy, bankructwo,
 // - dublet daje kolejny rzut; trzeci dublet z rzędu wysyła na Kolokwium (bez ruchu),
 // - Kolokwium: najwyżej 1 tura; w swojej turze dublet = wyjście i ruch (bez dodatkowego rzutu),
 //   bez dubletu tura przerwy; karta Zaliczenie wyprowadza automatycznie,
 // - Karty Dziekanatu: talia 18 kart, dobrana karta wraca na spód (Zaliczenie zostaje u gracza do użycia),
-// - budowa tylko na swoim polu po staniu na nim (także zaraz po kupnie), dowolnie wiele poziomów naraz;
-//   poziomy 1-3 kosztują P/2, landmark (4) P i wymaga kompletu; czynsz 0,4P / P / 2P / 4P,
-// - sprzedaż przy długu: pole z budynkami za połowę (cena + budynki),
+// - budowa tylko na swoim polu po staniu na nim (także zaraz po kupnie), kilka poziomów jednym ruchem;
+//   poziomy 1-3 kosztują P/2, landmark (4) P; bez kompletu grupy najwyżej poziom 2; czynsz 0,4P / P / 2P / 4P,
 // - Juwenalia: kto stanie na rogu, wybiera swoje pole; czynsz na nim ×2, przy kolejnych Juwenaliach ×3, ×4…
 //   (jedno pole naraz, nowy wybór przenosi Juwenalia),
 // - Bilet MPK: stanięcie kończy turę; w następnej zamiast rzutu można pojechać na dowolne pole,
 // - wykupienie: po zapłaceniu czynszu cudze pole można odkupić za 2× wartość (bez landmarków),
 // - monopol: 3 pełne grupy kolorów kończą grę wygraną,
-// - koniec, gdy zostanie jeden gracz albo po ROUNDS rundach (ranking wg majątku: gotówka + ceny pól),
+// - koniec, gdy zostanie jeden gracz albo po ROUNDS rundach (ranking wg majątku: gotówka + pola z budynkami; równy na górze to remis),
 // - na starcie każdy wybiera postać (pionek), wszyscy naraz; postaci się nie powtarzają; po limicie czasu losowa wolna.
 
 const A = "ania";
@@ -312,7 +311,7 @@ describe("czynsz i opłaty", () => {
 });
 
 describe("długi i bankructwo", () => {
-  test("brak gotówki: sprzedaż pól bankowi za połowę ceny, potem spłata", () => {
+  test("brak gotówki: sprzedaż pól bankowi za połowę wartości, potem spłata", () => {
     let s = with2(two(), { cash: { [A]: 3 }, owners: { 1: A, 29: A, 3: B, 4: B, 6: B } });
     s = roll(s, A, 1, 3); // czynsz 4 zł, A ma 3 zł
     expect(view(s).phase).toBe("sell");
@@ -351,6 +350,53 @@ describe("długi i bankructwo", () => {
     s = roll(s, C, 5, 6);
     expect(game.waitingFor(s)).toEqual([B]);
     expect(view(s).round).toBe(2);
+  });
+});
+
+// P4-026: obieg karty, Juwenalia i budynki po wykupie, faktycznie wypłacony czynsz.
+describe("bankructwo, wykup i statystyka (P4-026)", () => {
+  const PASS = card("Zaliczenie w pierwszym terminie");
+  // Czynsz za pełną grupę 50 zł to 10 zł; A ma 1 zł i pole warte 5 zł przy sprzedaży, więc bankrutuje.
+  const broke = (patch: Parameters<typeof with2>[1] = {}) =>
+    roll(with2(three(), { cash: { [A]: 1 }, owners: { 1: A, 30: B, 31: B }, positions: { [A]: 26 }, ...patch }), A, 1, 3);
+
+  test("Zaliczenie bankruta wraca na spód talii i krąży dalej", () => {
+    const s = broke({ passes: { [A]: 1 }, deck: two().deck.filter((c) => c !== PASS) });
+    expect(view(s).bankrupt).toEqual([A]);
+    expect(view(s).passes[A] ?? 0).toBe(0);
+    expect(s.deck.at(-1)).toBe(PASS);
+    expect(s.deck).toHaveLength(CARDS.length);
+    expect(new Set(s.deck).size).toBe(CARDS.length);
+  });
+
+  test("statystyka czynszu bankruta: tylko faktycznie oddana gotówka", () => {
+    const s = broke();
+    expect(view(s).bankrupt).toEqual([A]);
+    expect(view(s).cash[B]).toBe(START_CASH + 1);
+    expect(view(s).stats.rentPaid[A]).toBe(1);
+    expect(view(s).stats.tileIncome[30]).toBe(1);
+  });
+
+  test("Juwenalia przepadają, gdy pole bankruta wraca do banku", () => {
+    const s = broke({ juwenalia: { tile: 1, factor: 2 } });
+    expect(view(s).owners[1]).toBeUndefined();
+    expect(view(s).juwenalia).toBeNull();
+  });
+
+  test("Juwenalia zostają na polu po wykupie", () => {
+    let s = roll(with2(two(), { owners: { 4: B }, juwenalia: { tile: 4, factor: 2 } }), A, 1, 3);
+    s = play(s, A, { type: "buyout" });
+    expect(view(s).owners[4]).toBe(A);
+    expect(view(s).juwenalia).toEqual({ tile: 4, factor: 2 });
+  });
+
+  test("poziom 3 zostaje bez kompletu po wykupie i utracie grupy; dalej budować nie można", () => {
+    let s = roll(with2(two(), { owners: { 3: B, 4: B, 6: B }, levels: { 3: 3, 4: 3 } }), A, 1, 3);
+    s = play(s, A, { type: "buyout" });
+    expect(view(s).owners[4]).toBe(A);
+    expect(view(s).levels).toMatchObject({ 3: 3, 4: 3 });
+    expect(view(s).phase).not.toBe("build");
+    expect(game.validateMove({ ...s, phase: "build", turn: 0 }, A, { type: "build", level: 4 })).toBe(false);
   });
 });
 
@@ -755,7 +801,7 @@ describe("limit czasu", () => {
 });
 
 describe("koniec gry", () => {
-  test(`po ${ROUNDS} rundach koniec, ranking wg majątku (gotówka + ceny pól)`, () => {
+  test(`po ${ROUNDS} rundach koniec, ranking wg majątku (gotówka + pola z budynkami)`, () => {
     let s = with2(three(), {
       round: ROUNDS,
       cash: { [A]: 50, [B]: 30, [C]: 60 },
@@ -1070,4 +1116,10 @@ describe("statystyki do podsumowania partii", () => {
     expect(view(s).stats.wealth[B].at(-1)).toBe(view(s).cash[B]);
     expect(view(s).stats.wealth[A]).toHaveLength(2);
   });
+});
+
+test("P4-035/F4-019: talia z ustalonego seedu taka sama jak przed przejściem na shuffle z core", () => {
+  expect(game.setup([A, "bartek"], createRng(1)).deck).toEqual([1, 9, 6, 5, 2, 16, 10, 12, 15, 4, 17, 7, 3, 13, 14, 8, 0, 11]);
+  expect(game.setup([A, "bartek"], createRng(2)).deck).toEqual([10, 9, 0, 11, 15, 2, 17, 6, 1, 7, 3, 16, 14, 12, 8, 4, 5, 13]);
+  expect(game.setup([A, "bartek"], createRng(3)).deck).toEqual([15, 17, 11, 3, 9, 8, 16, 13, 4, 2, 14, 5, 6, 10, 1, 7, 0, 12]);
 });

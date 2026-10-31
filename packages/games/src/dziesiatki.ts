@@ -1,4 +1,4 @@
-import { average, byHitsThenAverage, type GameDefinition, type PlayerId, ranked } from "./core.ts";
+import { averageMs, byHitsThenAverage, type GameDefinition, type PlayerId, ranked } from "./core.ts";
 import { QUESTIONS, type QuizMove, quizMoveSchema, type QuizResult, validQuiz } from "./quiz.ts";
 
 /** Bok siatki: przy 360 px szerokości kafel ma ok. 78 px. */
@@ -64,7 +64,7 @@ export const dziesiatki: GameDefinition<State, Move> = {
 
   playerView: (state): View => state,
 
-  ...ranked((state: State) => state.results, byHitsThenAverage, { lower: false, score: (r) => r.times.length, tie: { lower: true, score: (r) => Math.round(average(r.times)) } }),
+  ...ranked((state: State) => state.results, byHitsThenAverage, { lower: false, score: (r) => r.times.length, tie: { lower: true, score: (r) => averageMs(r.times) } }),
 
   waitingFor: (state) => state.players.filter((p) => !(p in state.results)),
 

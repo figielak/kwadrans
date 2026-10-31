@@ -1,6 +1,6 @@
-import { type LobbyPlayer, SRODEK_ACCEPT_PX, srodekError, srodekOffset, srodekProject, SRODEK_ROUNDS, type SrodekPoint, type SrodekView } from "@kwadrans/games";
+import { GAMES, type LobbyPlayer, SRODEK_ACCEPT_PX, srodekError, srodekOffset, srodekProject, SRODEK_ROUNDS, type SrodekPoint, type SrodekView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useState } from "react";
-import { grade as gradeBy, Intro, RoundTable, Scores, Stats } from "../screens/ui.tsx";
+import { grade as gradeBy, Intro, RoundTable, Scores, Stats, upTo } from "../screens/ui.tsx";
 
 interface Props {
   view: SrodekView;
@@ -88,7 +88,6 @@ export function Srodek({ view, me, players, ranking, onMove }: Props) {
     setAim(null);
     // Poza strefą to nie odpowiedź (serwer też by ją odrzucił): runda trwa dalej, bez kary.
     if (srodekOffset(view.segments[index], p) > SRODEK_ACCEPT_PX) {
-      navigator.vibrate?.(60);
       return setMiss(miss + 1);
     }
     setMiss(0);
@@ -128,7 +127,7 @@ export function Srodek({ view, me, players, ranking, onMove }: Props) {
     return (
       <Intro
         preview={<Preview />}
-        time={`${SRODEK_ROUNDS} rund, w każdej jeden odcinek`}
+        time={`${SRODEK_ROUNDS} odcinków, razem ${upTo(GAMES.srodek.turnSeconds!)}`}
         task="Wskaż połowę odcinka. Możesz dotknąć obok i przesunąć palec, liczy się miejsce puszczenia"
         score="Liczy się suma błędów w % długości odcinka, mniej znaczy lepiej"
         onStart={() => setPhase("play")}
@@ -167,8 +166,8 @@ export function Srodek({ view, me, players, ranking, onMove }: Props) {
               {/* Błąd biegnie wzdłuż odcinka: od środka do miejsca rzutu. */}
               <line x1={mid.x * 100} y1={mid.y * 100} x2={mine.x * 100} y2={mine.y * 100} className={grade(error).stroke} strokeWidth={1.8} />
               <circle cx={mine.x * 100} cy={mine.y * 100} r={1.6} fill={color} />
-              {/* Pierścień, nie pełna kropka: przy celnym dotknięciu oba punkty widać naraz. */}
-              <circle cx={mid.x * 100} cy={mid.y * 100} r={2.6} fill="none" className={grade(error).stroke} strokeWidth={0.6} />
+              {/* Pierścień, nie pełna kropka: przy celnym dotknięciu oba punkty widać naraz. Prawda neutralna, ocena na linii błędu. */}
+              <circle cx={mid.x * 100} cy={mid.y * 100} r={2.6} fill="none" className="stroke-fg" strokeWidth={0.6} />
             </>
           )}
         </svg>

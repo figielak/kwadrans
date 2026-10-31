@@ -5,7 +5,7 @@ import { DURATION_MS, liczenie as game, type Move, type State, type View } from 
 // Testy napisane przed implementacją. Ustalają zasady:
 // - wszyscy dostają te same działania (+, −, ×, :) z czterema różnymi, nieujemnymi odpowiedziami, jedna poprawna,
 // - działań wystarczy na 30 s,
-// - wynik i ranking jak w Stroopie: czasy trafień (150-5000 ms, razem max 30 s), pomyłki, remis rozstrzyga średnia.
+// - wynik i ranking jak w Stroopie: czasy trafień (całkowite 0-30000 ms, razem max 30 s), pomyłki, remis rozstrzyga średnia.
 
 const A = "ania";
 const B = "bartek";
@@ -60,7 +60,7 @@ test("złe odpowiedzi: blisko poprawnej, a liczby z działania nie ma wśród op
 describe("walidacja", () => {
   const s = game.setup([A, B], createRng(1));
   test.each([
-    ["za szybko", result([149])],
+    ["ujemny czas", result([-1])],
     ["ponad 30 s", result(Array(11).fill(3000))],
     ["ujemne pomyłki", result([500], -1)],
   ])("%s", (_, move) => expect(game.validateMove(s, A, move)).toBe(false));
@@ -98,4 +98,113 @@ describe("koniec", () => {
     expect(game.isOver(s)).toEqual({ ranking: [A, B] });
     expect(game.waitingFor(s)).toEqual([]);
   });
+});
+
+
+describe("P4-031: brakujące kontrakty F4", () => {
+  test.each([[A], [A, B, C, "darek", "ela", "filip"]])("F4-004/F4-005: definicja i start dla %j", (...players) => {
+    expect([game.minPlayers, game.maxPlayers, game.turnSeconds]).toEqual([1, 6, 90]);
+    const s = game.setup(players, createRng(7));
+    expect(game.isOver(s)).toBeNull();
+    expect(game.waitingFor(s)).toEqual(players);
+    expect(s.results).toEqual({});
+  });
+
+  test("F4-005: ten sam seed odtwarza stan, inny zmienia wyzwanie", () => {
+    const s = game.setup([A, B], createRng(7));
+    expect(game.setup([A, B], createRng(7))).toEqual(s);
+    const other = game.setup([A, B], createRng(8));
+    expect(other).not.toEqual(s);
+  });
+
+  test("F4-006: po końcu wynik odrzucony dla każdego gracza i obcego", () => {
+    let s = game.setup([A, B], createRng(1));
+    for (const p of [A, B]) s = send(s, p, result([500]));
+    expect(game.isOver(s)).not.toBeNull();
+    for (const p of [A, B, "obcy"]) expect(game.validateMove(s, p, result([400]))).toBe(false);
+  });
+
+  test("F4-007: czasy 150 i 5000 ms przechodzą (wewnątrz obecnego zakresu 0-30000)", () => {
+    expect(game.validateMove(game.setup([A, B], createRng(1)), A, result([150, 5000]))).toBe(true);
+  });
+
+  test.each([
+    { type: "nieznany", times: [], errors: 0 },
+    { type: "result", errors: 0 },
+    { type: "result", times: [] },
+    { type: "result", times: ["500"], errors: 0 },
+  ])("F4-008: schemat odrzuca %j", (move) => {
+    expect(game.moveSchema.safeParse(move).success).toBe(false);
+  });
+
+  test.each([A, C])("F4-009: wygrywa także %s", (winner) => {
+    let s = game.setup([A, B, C], createRng(1));
+    for (const p of [A, B, C]) s = send(s, p, result(p === winner ? [400, 400] : [500]));
+    expect(game.isOver(s)?.winner).toBe(winner);
+    expect(game.waitingFor(s)).toEqual([]);
+  });
+
+  test("F4-010: wynik na zamrożonym wejściu bez mutacji, JSON zachowuje stan", () => {
+    function freeze(value: unknown): void {
+      if (value && typeof value === "object") {
+        Object.values(value).forEach(freeze);
+        Object.freeze(value);
+      }
+    }
+    let s = game.setup([A, B], createRng(1));
+    for (const p of [A, B]) {
+      const before = structuredClone(s);
+      freeze(s);
+      const next = send(s, p, result([500, 700], 2));
+      expect(s).toEqual(before);
+      expect(JSON.parse(JSON.stringify(next))).toEqual(next);
+      s = next;
+    }
+  });
+});
+
+
+test("P4-031/F4-046: zakresy operandów i całkowity iloraz zgodne z zasadami", () => {
+  for (const seed of [1, 7, 42]) for (const { text } of game.setup([A], createRng(seed)).problems) {
+    const [left, op, right] = text.split(" ");
+    const a = Number(left), b = Number(right);
+    const within = (n: number, min: number, max: number) => {
+      expect(Number.isInteger(n), text).toBe(true);
+      expect(n, text).toBeGreaterThanOrEqual(min);
+      expect(n, text).toBeLessThanOrEqual(max);
+    };
+    if (op === "+") { within(a, 10, 99); within(b, 10, 99); }
+    else if (op === "−") { within(a, 20, 99); within(b, 10, a); }
+    else if (op === "×") { within(a, 2, 9); within(b, 2, 12); }
+    else { expect(op).toBe(":"); within(b, 2, 9); within(a / b, 2, 12); expect(a % b).toBe(0); }
+  }
+});
+
+test("P4-031/F4-046: rodzaje działań występują po równo", () => {
+  const { problems } = game.setup([A], createRng(1));
+  const counts = ["+", "−", "×", ":"].map((op) => problems.filter((p) => p.text.split(" ")[1] === op).length);
+  expect(counts).toEqual([50, 50, 50, 50]);
+});
+
+test("P4-057: każda kolejna czwórka działań ma wszystkie cztery rodzaje, dla 1000 seedów", () => {
+  for (let seed = 1; seed <= 1000; seed++) {
+    const { problems } = game.setup([A], createRng(seed));
+    expect(problems.length % 4).toBe(0);
+    for (let i = 0; i < problems.length; i += 4) {
+      const ops = problems.slice(i, i + 4).map((p) => p.text.split(" ")[1]);
+      expect(new Set(ops), `seed ${seed}, czwórka od ${i}`).toEqual(new Set(["+", "−", "×", ":"]));
+    }
+    for (const p of problems) {
+      const [a, , b] = p.text.split(" ").map(Number);
+      expect(p.options[p.answer], p.text).toBe(evaluate(p.text));
+      expect(new Set(p.options).size, p.text).toBe(4);
+      // Wynik odejmowania może być 0 (33 − 33), złe odpowiedzi są dodatnie.
+      expect(p.options.every((o, i) => Number.isInteger(o) && o >= (i === p.answer ? 0 : 1) && o !== a && o !== b), p.text).toBe(true);
+    }
+  }
+});
+
+test("P4-057: kolejność rodzajów w czwórkach jest tasowana, nie stała", () => {
+  const orders = new Set(game.setup([A], createRng(1)).problems.map((p) => p.text.split(" ")[1]).join("").match(/.{4}/gu));
+  expect(orders.size).toBeGreaterThan(1);
 });

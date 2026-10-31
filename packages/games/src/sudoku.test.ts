@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { createRng } from "./core.ts";
+import { createRng, soloState } from "./core.ts";
 import { BLANKS, type Move, PENALTY_MS, type State, sudoku as game, type View } from "./sudoku.ts";
 
 // Testy napisane przed implementacją. Ustalają zasady:
@@ -19,8 +19,8 @@ const SEEDS = Array.from({ length: 50 }, (_, i) => i + 1);
 const result = (ms: number, mistakes = 0): Move => ({ type: "result", ms, mistakes });
 const progress = (filled: number): Move => ({ type: "progress", filled });
 
-function send(s: State, player: string, move: Move): State {
-  expect(game.validateMove(s, player, move), `${player}: ${JSON.stringify(move)}`).toBe(true);
+function send(s: State, player: string, move: Move, source: "client" | "timeout" = "client"): State {
+  expect(game.validateMove(s, player, move, { source }), `${player}: ${JSON.stringify(move)}`).toBe(true);
   return game.applyMove(s, player, move, createRng(1));
 }
 
@@ -180,8 +180,8 @@ describe("koniec", () => {
 
   test("wynik trafia do widoku wszystkich", () => {
     const s = send(game.setup([A, B], createRng(1)), A, result(20_000, 1));
-    expect(view(s, B).results).toEqual({ [A]: { ms: 20_000, mistakes: 1 } });
-    expect(view(s, "").results).toEqual({ [A]: { ms: 20_000, mistakes: 1 } });
+    expect(view(s, B).results).toEqual({ [A]: { ms: 20_000, mistakes: 1, completed: true } });
+    expect(view(s, "").results).toEqual({ [A]: { ms: 20_000, mistakes: 1, completed: true } });
   });
 
   test("kara wyrównuje czas: remis bez zwycięzcy (nie ma drugiego kryterium)", () => {
@@ -209,12 +209,12 @@ describe("koniec", () => {
 describe("limit czasu", () => {
   const s = game.setup([A, B], createRng(1));
 
-  test("wpisuje najdłuższy czas bez pomyłek", () => {
-    expect(game.timeoutMove!(s, A, createRng(1))).toEqual({ type: "result", ms: 120_000, mistakes: 0 });
+  test("oznacza nieukończenie przy najdłuższym czasie bez pomyłek", () => {
+    expect(game.timeoutMove!(s, A, createRng(1))).toEqual({ type: "result", ms: 120_000, mistakes: 0, completed: false });
   });
 
   test("daje ostatnie miejsce", () => {
-    let after = send(s, A, game.timeoutMove!(s, A, createRng(1)));
+    let after = send(s, A, game.timeoutMove!(s, A, createRng(1)), "timeout");
     after = send(after, B, result(game.turnSeconds! * 1000 - 1000));
     expect(game.isOver(after)).toEqual({ winner: B, ranking: [B, A] });
   });
@@ -272,5 +272,100 @@ describe("stan", () => {
   test("stan przeżywa zapis do JSON", () => {
     const s = send(send(game.setup([A, B], createRng(1)), A, progress(3)), B, result(20_000, 1));
     expect(JSON.parse(JSON.stringify(s))).toEqual(s);
+  });
+});
+
+// P4-002: ukończenie przed timeoutem, wspólny porządek miejsc i rekordów, zachowanie starego detail.
+describe("ukończenie i timeout", () => {
+  test("ukończona partia z karami ponad limit wygrywa z timeoutem", () => {
+    let s = game.setup([A, B], createRng(1));
+    s = send(s, A, game.timeoutMove!(s, A, createRng(1)), "timeout");
+    s = send(s, B, result(60_000, 13));
+    expect(game.isOver(s)).toEqual({ winner: B, ranking: [B, A] });
+    expect(game.places!(s)).toEqual({ [A]: 2, [B]: 1 });
+    expect(game.record!.score(s, B)).toBe(125_000);
+    expect(Number.isFinite(game.record!.score(s, A))).toBe(false);
+    expect(s.results[A]).toMatchObject({ completed: false });
+    expect(s.results[B]).toMatchObject({ completed: true });
+  });
+
+  test.each([1, 2, 6])("%i nieukończonych remisuje bez zwycięzcy i bez rekordów", (n) => {
+    const players = [A, B, C, "darek", "ewa", "filip"].slice(0, n);
+    let s = game.setup(players, createRng(1));
+    for (const player of players) s = send(s, player, game.timeoutMove!(s, player, createRng(1)), "timeout");
+    expect(game.isOver(s)).toEqual({ ranking: players });
+    expect(game.places!(s)).toEqual(Object.fromEntries(players.map((p) => [p, 1])));
+    expect(game.waitingFor(s)).toEqual([]);
+    for (const player of players) {
+      expect(Number.isFinite(game.record!.score(s, player))).toBe(false);
+      expect(game.validateMove(s, player, result(20_000))).toBe(false);
+      expect(game.validateMove(s, player, game.timeoutMove!(s, player, createRng(1)), { source: "timeout" })).toBe(false);
+    }
+    expect(JSON.parse(JSON.stringify(s))).toEqual(s);
+    expect(JSON.stringify(s)).not.toMatch(/Infinity|NaN|null/);
+    const solo = soloState(s, A);
+    expect(solo.results["1"]).toMatchObject({ completed: false });
+    expect(Number.isFinite(game.record!.score(solo, "1"))).toBe(false);
+  });
+
+  test("timeout wymaga zaufanego źródła, także po parsowaniu schematu", () => {
+    const s = game.setup([A, B], createRng(1));
+    const move = game.timeoutMove!(s, A, createRng(1));
+    const parsed = game.moveSchema.parse({ ...move, source: "timeout", context: { source: "timeout" } });
+    expect(game.validateMove(s, A, parsed)).toBe(false);
+    expect(game.validateMove(s, A, parsed, { source: "client" })).toBe(false);
+    expect(game.validateMove(s, A, parsed, { source: "timeout" })).toBe(true);
+    expect(game.validateMove(s, C, parsed, { source: "timeout" })).toBe(false);
+    expect(game.validateMove(s, A, result(20_000), { source: "timeout" })).toBe(false);
+  });
+
+  test("klient może zgłosić ukończenie, ale nie nieukończenie", () => {
+    const s = game.setup([A], createRng(1));
+    for (const completed of [true, false]) {
+      const move = game.moveSchema.parse({ ...result(20_000), completed });
+      expect(game.validateMove(s, A, move)).toBe(completed);
+    }
+    expect(game.moveSchema.safeParse({ ...result(20_000), completed: "false" }).success).toBe(false);
+    expect(send(s, A, result(20_000)).results[A]).toMatchObject({ completed: true });
+  });
+
+  test("timeout nie zmienia poprzedniego stanu ani postępu", () => {
+    const s = send(game.setup([A, B], createRng(1)), A, progress(3));
+    const before = structuredClone(s);
+    const after = send(s, A, game.timeoutMove!(s, A, createRng(1)), "timeout");
+    expect(s).toEqual(before);
+    expect(after.progress).toEqual(before.progress);
+    expect(game.waitingFor(after)).toEqual([B]);
+    expect(JSON.parse(JSON.stringify(after))).toEqual(after);
+  });
+
+  test("stary detail bez completed zachowuje czas i nie dostaje domniemanego statusu", () => {
+    // To zapis historyczny, nie nowa partia; także czas równy limitowi nie dowodzi timeoutu.
+    let s = send(game.setup([A], createRng(1)), A, result(game.turnSeconds! * 1000));
+    const legacy = JSON.parse(JSON.stringify(s)) as State;
+    Reflect.deleteProperty(legacy.results[A], "completed");
+    const before = JSON.stringify(legacy);
+    const solo = soloState(legacy, A);
+    expect(game.record!.score(solo, "1")).toBe(game.turnSeconds! * 1000);
+    expect(game.isOver(solo)).toEqual({ ranking: ["1"] });
+    expect(game.playerView(solo, "")).toEqual(solo);
+    expect(solo.results["1"]).not.toHaveProperty("completed");
+    expect(JSON.stringify(legacy)).toBe(before);
+  });
+});
+
+describe("P4-034/F4-048: nonce odróżnia partie z tą samą planszą", () => {
+  test("seedy 557 i 566 dają tę samą planszę, ale inny nonce (rewanż montuje nową partię)", () => {
+    const a = game.setup(["ania"], createRng(557));
+    const b = game.setup(["ania"], createRng(566));
+    expect(a.puzzle).toEqual(b.puzzle);
+    expect(Number.isInteger(a.nonce)).toBe(true);
+    expect(a.nonce).not.toBe(b.nonce);
+  });
+
+  test("ten sam seed: ta sama plansza i ten sam nonce; plansza z seedu bez zmian względem dawnego losowania", () => {
+    expect(game.setup(["ania"], createRng(7))).toEqual(game.setup(["ania"], createRng(7)));
+    // Nonce losowany po planszy: seedy 557 i 566 wciąż dają tę samą planszę co przed zmianą.
+    expect(game.setup(["ania"], createRng(557)).puzzle).toEqual(game.setup(["ania"], createRng(566)).puzzle);
   });
 });

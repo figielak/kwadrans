@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { byHitsThenAverage, createRng, dailyGame, initials, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing, withSum } from "./core.ts";
+import { byHitsThenAverage, byScoreThenAverage, compareRecords, createRng, dailyGame, initials, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing, withSum } from "./core.ts";
 
 test("ten sam seed daje ten sam ciąg", () => {
   const a = createRng(42);
@@ -91,6 +91,42 @@ describe("byHitsThenAverage", () => {
 
   test("pusty wynik przegrywa z każdym trafieniem", () => {
     expect(byHitsThenAverage(r(), r(5000))).toBeGreaterThan(0);
+  });
+});
+
+// P4-024: miejsca i record.tie porównują tę samą średnią zaokrągloną do ms; brak tie zawsze za znanym.
+describe("jeden komparator średniego czasu", () => {
+  const r = (...times: number[]) => ({ times });
+
+  test("średnie różniące się ułamkiem ms remisują w miejscach", () => {
+    expect(byHitsThenAverage(r(100, 100, 101), r(100, 100, 100))).toBe(0);
+    expect(byScoreThenAverage(() => 3)(r(100, 100, 101), r(100, 100, 100))).toBe(0);
+    expect(rankPlaces(["a", "b"], { a: r(100, 100, 101), b: r(100, 100, 100) }, byHitsThenAverage)).toEqual({ a: 1, b: 1 });
+    expect(byHitsThenAverage(r(100, 101), r(100, 100))).toBeGreaterThan(0);
+  });
+
+  test("dokładnie równy wynik nie daje zwycięzcy", () => {
+    expect(rankResults(["a", "b"], { a: r(250, 251), b: r(251, 250) }, byHitsThenAverage)?.winner).toBeUndefined();
+  });
+
+  test("rekordy: znany tie przed null, dwa null równe, null nie jest zerem", () => {
+    const compare = compareRecords({ lower: false, tie: { lower: true } });
+    expect(compare({ best: 5, tie: 900 }, { best: 5, tie: null })).toBeLessThan(0);
+    expect(compare({ best: 5, tie: null }, { best: 5, tie: 900 })).toBeGreaterThan(0);
+    expect(compare({ best: 5, tie: null }, { best: 5, tie: null })).toBe(0);
+    expect(compare({ best: 5, tie: null }, { best: 5, tie: 0 })).toBeGreaterThan(0);
+    const higher = compareRecords({ lower: false, tie: { lower: false } });
+    expect(higher({ best: 5, tie: 0 }, { best: 5, tie: null })).toBeLessThan(0);
+  });
+
+  test("standing: gracz bez tie stoi za graczem z tie przy tym samym wyniku", () => {
+    const order = { lower: false, tie: { lower: true } };
+    const rows = [
+      { nick: "Ola", best: 5, tie: 900, played: 1 },
+      { nick: "Ala", best: 5, tie: null, played: 1 },
+    ];
+    expect(standing(rows, "Ala", order)?.place).toBe(2);
+    expect(standing(rows, "Ola", order)?.place).toBe(1);
   });
 });
 

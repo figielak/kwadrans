@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it, vi } from "vitest";
+import { compareRecords } from "@kwadrans/games";
 import { openStats } from "./stats.ts";
 
 describe("statystyki", () => {
@@ -117,6 +118,18 @@ describe("rekordy mini-gier", () => {
     const records = stats.records(GAMES);
     expect(records.stoper).toHaveLength(15);
     expect(records.simon).toEqual([]);
+  });
+});
+
+// P4-024: SQL i compareRecords układają rekordy tak samo, także ze starym tie = null.
+describe("rekordy: ten sam porządek w SQL i core", () => {
+  it("znany tie przed null przy równym wyniku, kolejność jak compareRecords", () => {
+    const stats = openStats(":memory:");
+    const order = { lower: false, tie: { lower: true } };
+    stats.recordScores("stoj", [{ nick: "Ala", score: 5, tie: null }, { nick: "Ola", score: 5, tie: 900 }, { nick: "Ela", score: 5, tie: 0 }, { nick: "Ula", score: 6, tie: null }], order);
+    const rows = stats.records([{ id: "stoj", ...order }]).stoj;
+    expect(rows.map((r) => r.nick)).toEqual(["Ula", "Ela", "Ola", "Ala"]);
+    expect([...rows].sort(compareRecords(order))).toEqual(rows);
   });
 });
 

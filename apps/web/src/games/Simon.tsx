@@ -2,13 +2,14 @@ import { Circle, type Icon, Square, Star, Triangle } from "@phosphor-icons/react
 import type { LobbyPlayer, SimonView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: SimonView;
   me: string;
   players: LobbyPlayer[];
   ranking?: string[];
-  onMove: (move: { type: "result"; score: number }) => void;
+  onMove: (move: { type: "result" | "progress"; score: number }) => void;
 }
 
 /** Kolor i kształt, żeby dało się grać bez rozróżniania kolorów. */
@@ -20,6 +21,8 @@ const PADS: { color: string; icon: Icon }[] = [
 ];
 const LIT_MS = 450;
 const GAP_MS = 150;
+/** Po pomyłce: tyle widać złe i właściwe pole, zanim pojawi się tabela (wynik jest już wysłany). */
+const REVEAL_MS = 1000;
 
 /** Podgląd na ekranie instrukcji: pola zapalają się po kolei. */
 const PREVIEW_ORDER = [0, 3, 1, 2];
@@ -39,14 +42,18 @@ function Preview() {
   );
 }
 
-type Phase = "intro" | "show" | "input" | "sent";
+type Phase = "intro" | "show" | "input" | "wrong" | "sent";
 
 export function Simon({ view, me, players, ranking, onMove }: Props) {
   const playing = view.players.includes(me) && !(me in view.results);
   const [phase, setPhase] = useState<Phase>("intro");
-  const [length, setLength] = useState(1);
+  const [length, setLength] = useState((view.progress?.[me] ?? 0) + 1);
   const [lit, setLit] = useState<number | null>(null);
+  // Pomyłka: dotknięte złe pole i to, które było właściwe.
+  const [wrong, setWrong] = useState<{ pressed: number; right: number } | null>(null);
   const step = useRef(0);
+  const accepting = useRef(false);
+  const sent = useRef(false);
   const timers = useRef<number[]>([]);
 
   const later = (ms: number, fn: () => void) => timers.current.push(window.setTimeout(fn, ms));
@@ -54,6 +61,7 @@ export function Simon({ view, me, players, ranking, onMove }: Props) {
 
   /** Odtwarza n pierwszych kroków, potem oddaje głos graczowi. */
   function show(n: number) {
+    accepting.current = false;
     setLength(n);
     setPhase("show");
     step.current = 0;
@@ -61,20 +69,32 @@ export function Simon({ view, me, players, ranking, onMove }: Props) {
       later(600 + i * (LIT_MS + GAP_MS), () => setLit(view.sequence[i]));
       later(600 + i * (LIT_MS + GAP_MS) + LIT_MS, () => setLit(null));
     }
-    later(600 + n * (LIT_MS + GAP_MS), () => setPhase("input"));
+    later(600 + n * (LIT_MS + GAP_MS), () => { accepting.current = true; setPhase("input"); });
   }
 
-  function finish(score: number) {
-    setPhase("sent");
+  function finish(score: number, reveal = false) {
+    if (!playing || sent.current) return;
+    sent.current = true;
+    accepting.current = false;
+    // Wynik idzie od razu, żeby odsłona nie przesunęła go za limit; tabela dopiero po odsłonie.
     onMove({ type: "result", score });
+    if (!reveal) return setPhase("sent");
+    setPhase("wrong");
+    later(REVEAL_MS, () => setPhase("sent"));
   }
 
   function press(pad: number) {
-    if (phase !== "input") return;
+    if (phase !== "input" || !playing || !accepting.current) return;
     setLit(pad);
     later(200, () => setLit(null));
-    if (pad !== view.sequence[step.current]) return finish(length - 1);
+    if (pad !== view.sequence[step.current]) {
+      navigator.vibrate?.(VIBRATE.mistake);
+      setWrong({ pressed: pad, right: view.sequence[step.current] });
+      return finish(length - 1, true);
+    }
     if (++step.current < length) return;
+    accepting.current = false;
+    onMove({ type: "progress", score: length });
     if (length === view.sequence.length) return finish(length);
     setPhase("show");
     later(400, () => show(length + 1));
@@ -85,7 +105,7 @@ export function Simon({ view, me, players, ranking, onMove }: Props) {
     return { id, nick: p?.nick ?? "Gracz", color: p?.color, me: id === me, score: id in view.results ? String(view.results[id]) : null };
   });
 
-  if (!playing || phase === "sent") return <Scores rows={rows} />;
+  if ((!playing && phase !== "wrong") || phase === "sent") return <Scores rows={rows} />;
 
   if (phase === "intro") {
     return (
@@ -94,7 +114,11 @@ export function Simon({ view, me, players, ranking, onMove }: Props) {
         time="Bez pośpiechu: co rundę dochodzi jeden krok"
         task="Zapamiętaj sekwencję i powtórz ją"
         score="Liczy się najdłuższa seria, pierwsza pomyłka kończy grę"
-        onStart={() => show(1)}
+        onStart={() => {
+          const completed = view.progress?.[me] ?? 0;
+          if (completed === view.sequence.length) finish(completed);
+          else show(completed + 1);
+        }}
       />
     );
   }
@@ -104,26 +128,31 @@ export function Simon({ view, me, players, ranking, onMove }: Props) {
       <Stats
         items={[
           { label: "Seria", value: length - 1 },
-          { label: "Teraz", value: phase === "show" ? "Patrz" : "Powtórz" },
+          { label: "Teraz", value: phase === "show" ? "Patrz" : phase === "wrong" ? "Pomyłka" : "Powtórz", warn: phase === "wrong" },
         ]}
       />
       <div className="grid aspect-square grid-cols-2 gap-3">
-        {PADS.map(({ color, icon: PadIcon }, i) => (
+        {PADS.map(({ color, icon: PadIcon }, i) => {
+          // W odsłonie pomyłki świeci właściwe pole, a złe trzęsie się bez podświetlenia.
+          const on = phase === "wrong" ? wrong?.right === i : lit === i;
+          const missed = phase === "wrong" && wrong?.pressed === i && wrong.right !== i;
+          return (
           <button
             key={color}
             type="button"
             aria-label={`Pole ${i + 1}`}
             disabled={phase !== "input"}
             onPointerDown={() => press(i)}
-            className="flex touch-none select-none items-center justify-center rounded-tile transition-colors duration-100"
+            className={`flex touch-none select-none items-center justify-center rounded-tile transition-colors duration-100 ${missed ? "animate-[tile-miss_0.35s_ease-out]" : ""}`}
             style={{
-              backgroundColor: lit === i ? color : `color-mix(in srgb, ${color} 22%, var(--color-bg))`,
-              color: lit === i ? "var(--color-accent-fg)" : color,
+              backgroundColor: on ? color : `color-mix(in srgb, ${color} 22%, var(--color-bg))`,
+              color: on ? "var(--color-bg)" : color,
             }}
           >
             <PadIcon size={48} weight="fill" aria-hidden />
           </button>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

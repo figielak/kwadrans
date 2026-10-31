@@ -54,7 +54,8 @@ import {
   type GameResult,
   type LobbyPlayer,
 } from "@kwadrans/games";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
+import { useHarm } from "../vibrate.ts";
 import { KampusSummary } from "./KampusSummary.tsx";
 
 interface Props {
@@ -62,6 +63,8 @@ interface Props {
   me: string;
   players: LobbyPlayer[];
   dropped: boolean;
+  scores: Record<string, number>;
+  seated: boolean;
   canMove: boolean;
   /** Wynik partii (także walkower bez rankingu); null w trakcie gry. */
   result: GameResult | null;
@@ -148,7 +151,7 @@ const UTILITY_ICONS: Record<string, Icon> = { Ksero: Printer, Stołówka: ForkKn
 
 /** Kwota: liczba w mono, „zł” mniejsze i tuż przy niej. */
 const zl = (n: number | string) => (
-  <span className="font-mono whitespace-nowrap">
+  <span className="font-mono tabular-nums whitespace-nowrap">
     {n}
     <span className="ml-px text-[0.75em]">zł</span>
   </span>
@@ -236,40 +239,54 @@ function useStage() {
   return stage;
 }
 
-function useWalk(target: Record<string, number>, paused: boolean): Record<string, number> {
-  const [shown, setShown] = useState(target);
-  useEffect(() => {
-    if (paused) return;
-    const behind = Object.keys(target).filter((p) => shown[p] !== target[p]);
-    if (behind.length === 0) return;
-    const far = behind.some((p) => shown[p] === undefined || (target[p] - shown[p] + BOARD.length) % BOARD.length > 12);
-    if (reducedMotion || far) return setShown(target);
-    const t = setTimeout(() => {
-      setShown((prev) => {
-        const next = { ...prev };
-        for (const p of behind) next[p] = (prev[p] + 1) % BOARD.length;
-        return next;
-      });
-    }, STEP_MS);
-    return () => clearTimeout(t);
-  }, [shown, target, paused]);
-  return shown;
+/** Istniejący widok wystarcza do odróżnienia rzutu od podróży i efektu karty. */
+function isRoll(before: KampusTourView, after: KampusTourView): boolean {
+  if (before.phase !== "roll" || !before.turn || !after.dice) return false;
+  const oldEvents = before.events.map((e) => JSON.stringify(e));
+  const newEvents = after.events.map((e) => JSON.stringify(e));
+  let overlap = Math.min(oldEvents.length, newEvents.length);
+  while (overlap && oldEvents.slice(-overlap).join("|") !== newEvents.slice(0, overlap).join("|")) overlap--;
+  if (after.events.slice(overlap).some((e) => e.type === "travel")) return false;
+  return JSON.stringify(before.positions) !== JSON.stringify(after.positions)
+    || JSON.stringify(before.dice) !== JSON.stringify(after.dice)
+    || before.stats.doubles[before.turn] !== after.stats.doubles[before.turn]
+    || (before.kolokwium.includes(before.turn) && !after.kolokwium.includes(before.turn));
 }
 
-/** Czy kostki się właśnie turlają: przez chwilę po każdym rzucie (rzut zawsze przesuwa jakiś pionek). */
-function useRolling(positions: Record<string, number>): boolean {
-  const key = JSON.stringify(positions);
-  const last = useRef(key);
-  const [rolling, setRolling] = useState(false);
+/** Jeden przerywalny pokaz: kostki, potem krok po kroku; nowa wiadomość zastępuje poprzedni pokaz. */
+function useMoveAnimation(view: KampusTourView) {
+  const [frame, setFrame] = useState({ view, shown: view.positions, rolling: false });
+  if (frame.view !== view) {
+    const rolling = !reducedMotion && isRoll(frame.view, view);
+    // Nowy rzut zaczyna się w ostatniej pozycji serwera, nawet gdy poprzedni pokaz jeszcze trwał.
+    setFrame({ view, shown: rolling ? frame.view.positions : view.positions, rolling });
+  }
   useEffect(() => {
-    if (last.current === key) return;
-    last.current = key;
-    if (reducedMotion) return;
-    setRolling(true);
-    const t = setTimeout(() => setRolling(false), ROLL_MS);
-    return () => clearTimeout(t);
-  }, [key]);
-  return rolling;
+    if (frame.view !== view) return;
+    if (frame.rolling) {
+      const id = setTimeout(() => setFrame({ ...frame, rolling: false }), ROLL_MS);
+      return () => clearTimeout(id);
+    }
+    const behind = view.players.filter((p) => frame.shown[p] !== view.positions[p]);
+    if (!behind.length) return;
+    const far = behind.some((p) => frame.shown[p] === undefined || (view.positions[p] - frame.shown[p] + BOARD.length) % BOARD.length > 12);
+    if (reducedMotion || far) {
+      setFrame({ view, shown: view.positions, rolling: false });
+      return;
+    }
+    const id = setTimeout(() => {
+      const shown = { ...frame.shown };
+      for (const p of behind) shown[p] = (shown[p] + 1) % BOARD.length;
+      setFrame({ view, shown, rolling: false });
+    }, STEP_MS);
+    return () => clearTimeout(id);
+  }, [frame, view]);
+  return {
+    shown: frame.shown,
+    rolling: frame.rolling,
+    settled: !frame.rolling && view.players.every((p) => frame.shown[p] === view.positions[p]),
+    finish: () => setFrame({ view, shown: view.positions, rolling: false }),
+  };
 }
 
 /** Kostki: w trakcie turlania co chwilę losowe oczka i podskakiwanie, potem wynik z serwera. */
@@ -282,7 +299,7 @@ function Dice({ values, rolling }: { values: [number, number]; rolling: boolean 
   }, [rolling]);
   const shown = rolling ? faces : values;
   return (
-    <span className="flex gap-1" aria-label={rolling ? "Rzut kośćmi" : `Wyrzucono ${values[0]} i ${values[1]}`}>
+    <span role="img" className="flex gap-1" aria-label={rolling ? "Rzut kośćmi" : `Wyrzucono ${values[0]} i ${values[1]}`}>
       {shown.map((d, i) => {
         const Die = DICE[d - 1];
         return (
@@ -342,14 +359,19 @@ function cell(i: number): [number, number] {
   return [0, 32 - i];
 }
 
-export function KampusTour({ view, me, players, dropped, canMove, result, onMove, timer, actions }: Props) {
+/** Pola, które były moje, a teraz ma je inny gracz (wykupienie); sprzedaż bankowi zostawia pole bez właściciela. */
+export function boughtOut(before: Record<number, string>, after: Record<number, string>, me: string): number[] {
+  return Object.keys(before)
+    .map(Number)
+    .filter((t) => before[t] === me && after[t] !== undefined && after[t] !== me);
+}
+
+export function KampusTour({ view, me, players, dropped, scores, seated, canMove, result, onMove, timer, actions }: Props) {
   const [selected, setSelected] = useState<number | null>(null);
   const stage = useStage();
-  const rolling = useRolling(view.positions);
-  // Pionek rusza dopiero, gdy kostki się zatrzymają.
-  const shown = useWalk(view.positions, rolling);
-  // Komunikaty i decyzje dopiero, gdy pionek dojdzie na pole, żeby nie zdradzać wyniku przed animacją.
-  const settled = !rolling && view.players.every((p) => shown[p] === view.positions[p]);
+  const { shown, rolling, settled, finish: finishAnimation } = useMoveAnimation(view);
+  // Szczegóły starego pola nie mogą zostać nad decyzją z nowej wiadomości.
+  useEffect(() => setSelected(null), [view]);
   // Podczas animacji widać zdarzenia sprzed rzutu; nowe pojawiają się po dojściu pionka.
   const settledEvents = useRef(view.events);
   if (settled) settledEvents.current = view.events;
@@ -366,9 +388,17 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
   const owners = settledOwners.current;
   const levels = settledLevels.current;
   const cash = settledCash.current;
+  // Wykupienie mojego pola to szkoda od rywala: wibruje raz, po dojściu pionka, licząc od chwili wejścia do gry.
+  const ownersBefore = useRef(owners);
+  const losses = useRef(0);
+  if (owners !== ownersBefore.current) {
+    if (boughtOut(ownersBefore.current, owners, me).length) losses.current++;
+    ownersBefore.current = owners;
+  }
+  useHarm(losses.current ? String(losses.current) : null);
   const floats = useFloats(view.players, cash);
   const warning = useMonopolyWarning(view.players, owners, view.monopoly);
-  const recent = settledEvents.current.slice(-3);
+  const recent = settledEvents.current.slice(-1);
   // Świeżo zebrany komplet: jego pola chwilę pulsują w kolorze gracza.
   const lastEvent = settledEvents.current.at(-1);
   const fresh = lastEvent?.type === "set" ? setOf(lastEvent.tile!) : [];
@@ -403,10 +433,12 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
       ? `Wygrywasz${view.monopoly ? " przez monopol" : ""}!`
       : result.winner
         ? `Wygrywa ${nick(result.winner)}${view.monopoly ? " (monopol)" : ""}`
-        : "Koniec gry"
+        : result.ranking?.length === 1
+          ? "Koniec"
+          : "Remis"
     : canMove
-      ? "Twoja tura"
-      : `Tura: ${nick(view.turn!)}`;
+      ? "Twój ruch"
+      : `Ruch: ${nick(view.turn!)}`;
 
   const describe = (e: KampusEvent) => {
     const who = nick(e.player);
@@ -471,7 +503,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
     if (t.kind === "utility") {
       const count = BOARD.filter((b, j) => b.kind === "utility" && owners[j] === owner).length;
       return (
-        <span className="inline-flex items-center gap-px font-mono">
+        <span className="inline-flex items-center gap-px font-mono tabular-nums">
           <DiceFive size={12} weight="fill" aria-label="oczka" />×{UTILITY_RATES[count - 1]}
         </span>
       );
@@ -516,7 +548,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
         key={p}
         role="img"
         aria-label={nick(p)}
-        className="grid shrink-0 place-items-center rounded-full border-2 border-white text-bg shadow-[0_2px_4px_rgb(0_0_0/0.8)]"
+        className="grid shrink-0 place-items-center rounded-full border-2 border-fg text-bg shadow-[0_2px_4px_rgb(0_0_0/0.8)]"
         style={{ width: size, height: size, marginLeft: first ? 0 : -size * 0.45, backgroundColor: color(p) }}
       >
         <Pawn size={size * 0.6} weight="fill" />
@@ -581,7 +613,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
               <Buildings size={11} weight="fill" aria-label="Landmark" />
             ) : (
               level(i) > 0 && (
-                <span className="flex gap-[2px]" aria-label={`Poziom ${level(i)}`}>
+                <span role="img" className="flex gap-[2px]" aria-label={`Poziom ${level(i)}`}>
                   {Array.from({ length: level(i) }, (_, k) => (
                     <span key={k} className="size-[5px] rounded-[1px] bg-bg" />
                   ))}
@@ -647,17 +679,19 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
 
     return (
       <div
+        role="dialog"
+        aria-label={`Szczegóły: ${tile.name}`}
         className="absolute inset-x-0 top-1/2 z-10 flex max-h-[calc(100cqh-1rem)] -translate-y-1/2 flex-col gap-2 overflow-auto rounded-inset border border-line bg-surface p-3 shadow-[0_12px_32px_rgb(0_0_0/0.6)]"
         style={{ borderTop: `6px solid ${accent}` }}
       >
-        <div className="flex items-start justify-between gap-2">
+        <div className="sticky -top-3 z-10 flex items-start justify-between gap-2 bg-surface py-1">
           <div>
             <h2 className="font-semibold">{tile.name}</h2>
             {tile.kind === "property" && <p className="text-xs text-fg-muted">{groupChip(tile.group)}</p>}
             {SPECIAL_KINDS[tile.kind] && <p className="text-xs text-fg-muted">{SPECIAL_KINDS[tile.kind]}</p>}
           </div>
-          <button type="button" className="-m-1 p-1 text-fg-muted" aria-label="Zamknij" onClick={() => setSelected(null)}>
-            <X size={18} />
+          <button type="button" className="btn btn-ghost shrink-0 px-2 text-fg-muted" aria-label="Zamknij" onClick={() => setSelected(null)}>
+            <X size={18} weight="bold" aria-hidden />
           </button>
         </div>
         {text && <p className="text-sm">{text}</p>}
@@ -666,12 +700,22 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
             {rows.map(([k, v]) => (
               <div key={k} className="contents">
                 <dt className="text-fg-muted">{k}</dt>
-                <dd className="font-mono">{v}</dd>
+                <dd className="font-mono tabular-nums">{v}</dd>
               </div>
             ))}
             <dt className="text-fg-muted">Właściciel</dt>
             <dd>{owner ? `${nick(owner)}${owner === me ? " (ty)" : ""}` : "wolne"}</dd>
           </dl>
+        )}
+        {canMove && settled && view.phase === "build" && i === here && (
+          <div className="grid grid-cols-2 gap-2">
+            {buildChoices().map((l) => (
+              <button key={l} type="button" className="btn flex-col gap-0 px-2 text-sm" style={mine} onClick={() => { onMove({ type: "build", level: l }); setSelected(null); }}>
+                {l === LANDMARK ? "Landmark" : `Poziom ${l}`}
+                <span className="text-xs">{buildCost(here, level(here), l)} zł · czynsz {levelRent(here, l)}</span>
+              </button>
+            ))}
+          </div>
         )}
         {sellable && (
           <button
@@ -716,8 +760,8 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
   return (
     <main className="landscape grid place-items-center overflow-hidden">
       <div
-        className="relative flex items-center justify-center p-2 px-21"
-        style={{ width: stage.width, height: STAGE_H, zoom: stage.scale }}
+        className="relative flex items-center justify-center p-2 px-21 [&_.btn]:min-h-[var(--kampus-touch)] [&_.btn]:min-w-[var(--kampus-touch)]"
+        style={{ width: stage.width, height: STAGE_H, zoom: stage.scale, "--kampus-touch": `${Math.ceil(48 / stage.scale) + 1}px` } as CSSProperties}
       >
         {view.players.map((id, i) => {
           const Pawn = CHARACTER_ICONS[character(id)];
@@ -737,6 +781,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                 {nick(id)}
                 {id === me && " (ty)"}
               </span>
+              <span className="font-mono text-[10px] tabular-nums">wygrane {scores[id] ?? 0}</span>
               <span className="text-sm">{out ? "bankrut" : zl(cash[id])}</span>
               {!out && (
                 <span className="text-fg-muted" title="Majątek: gotówka + ceny pól + koszt budynków">
@@ -747,13 +792,13 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
               {view.kolokwium.includes(id) && badge(Exam, "Kolokwium", CORNERS.kolokwium.color)}
               {(view.passes[id] ?? 0) > 0 && badge(Cards, view.passes[id] > 1 ? `Zaliczenie ×${view.passes[id]}` : "Zaliczenie", SPECIAL_COLOR)}
               {view.mpk.includes(id) && badge(Bus, "Bilet MPK", CORNERS.mpk.color)}
-              {ranking.includes(id) && <span className="font-mono">{ranking.indexOf(id) + 1}. miejsce</span>}
+              {ranking.includes(id) && <span className="font-mono tabular-nums">{ranking.indexOf(id) + 1}. miejsce</span>}
               {floats
                 .filter((f) => f.player === id)
                 .map((f) => (
                   <span
                     key={f.key}
-                    className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono text-base font-semibold whitespace-nowrap drop-shadow-[0_1px_2px_rgb(0_0_0/0.9)]"
+                    className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono tabular-nums text-base font-semibold whitespace-nowrap drop-shadow-[0_1px_2px_rgb(0_0_0/0.9)]"
                     style={{ color: f.amount > 0 ? "var(--color-success)" : "var(--color-warning)" }}
                     aria-hidden
                   >
@@ -798,8 +843,8 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                   type="button"
                   aria-label={tile.name}
                   aria-pressed={selected === i}
-                  className={`relative flex min-h-0 min-w-0 flex-col items-center justify-center rounded-sm bg-[color-mix(in_srgb,var(--color-fg)_12%,var(--color-bg))] transition-[opacity,translate] ${
-                    sellable ? "z-10 outline-2 outline-accent" : deciding === i ? "z-10 -translate-y-0.5 outline-2" : selected === i ? "outline-2 outline-fg" : ""
+                  className={`relative flex min-h-0 min-w-0 flex-col items-center justify-center rounded-sm bg-[color-mix(in_srgb,var(--color-fg)_12%,var(--color-bg))] transition-[opacity,translate] duration-180 ${
+                    sellable ? "z-10 outline-2" : deciding === i ? "z-10 -translate-y-0.5 outline-2" : selected === i ? "outline-2 outline-fg" : ""
                   } ${pickable(i) === false ? "opacity-40" : ""} ${fresh.includes(i) ? "animate-[set-glow_0.9s_ease-in-out_4]" : ""}`}
                   style={{
                     gridColumn: x + 1,
@@ -808,7 +853,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                     ["--glow" as string]: owner ? color(owner) : undefined,
                     // Grubość pola (krawędź od spodu); poświata tylko dla pola, na którym dzieje się akcja.
                     // Pole decyzji świeci kolorem gracza, który decyduje (czerwień to akcent i dług).
-                    outlineColor: deciding === i ? color(view.turn!) : undefined,
+                    outlineColor: sellable ? color(me) : deciding === i ? color(view.turn!) : undefined,
                     boxShadow: edges,
                   }}
                   onClick={() => setSelected(selected === i ? null : i)}
@@ -816,7 +861,8 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                   {tileFace(i)}
                   {view.juwenalia?.tile === i && (
                     <span
-                      className="absolute top-0 left-0 flex items-center rounded-br-sm bg-bg/80 px-0.5 font-mono text-[10px] leading-none font-semibold"
+                      role="img"
+                      className="absolute top-0 left-0 flex items-center rounded-br-sm bg-bg/80 px-0.5 font-mono tabular-nums text-[10px] leading-none font-semibold"
                       style={{ color: CORNERS.juwenalia.color }}
                       aria-label={`Juwenalia: czynsz ×${view.juwenalia.factor}`}
                     >
@@ -834,7 +880,8 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                         aria-label={`Komplet: ${nick(owner)}`}
                       />
                     ) : (
-                      <span className="sr-only">Właściciel: {nick(owner)}</span>
+                      // Drugi znak oprócz koloru paska: mała ikona postaci właściciela (z nickiem w etykiecie).
+                      <span className="absolute -top-1 -right-1">{token(owner, 14, true)}</span>
                     ))}
                 </button>
               );
@@ -846,17 +893,21 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
 
           <div className="pointer-events-none absolute inset-0 grid place-items-center">
             <div className="pointer-events-auto relative" style={{ width: CENTER_WIDTH, height: CENTER_HEIGHT }}>
-              <div className="flex h-full flex-col items-center justify-center gap-1.5 overflow-hidden p-2">
-                <div className="flex w-full max-w-sm items-center gap-3">
+              <div className="flex h-full min-h-0 flex-col items-center gap-1 p-1">
+                <div className="flex w-full shrink-0 items-center gap-2">
                   <span className="label shrink-0">
                     Runda {view.round}/{ROUNDS}
                   </span>
                   {timer && <div className="flex-1">{timer}</div>}
                 </div>
-                {/* Kto jest na turze: duży nagłówek w jego kolorze. */}
-                <h1 className="flex items-center gap-2 text-xl font-semibold" style={over ? undefined : { color: color(view.turn!) }}>
-                  {!over && token(view.turn!, 28, true)}
-                  {status}
+                {/* Kto jest na turze: duży nagłówek w jego kolorze. Koniec: kolor zwycięzcy, podbicie tylko u niego (jak w Game.tsx). */}
+                <h1
+                  className={`flex w-full shrink-0 items-center justify-center gap-2 text-base leading-tight font-semibold ${over && result?.winner === me ? "animate-[title-pop_0.5s_cubic-bezier(0.2,0.8,0.4,1)]" : ""}`}
+                  style={over ? (result?.winner ? { color: color(result.winner) } : undefined) : { color: color(view.turn!) }}
+                >
+                  {!over && token(view.turn!, 20, true)}
+                  <span className="min-w-0 truncate" title={status}>{status}</span>
+                  {!seated && <span className="text-xs font-normal text-fg-muted">Oglądasz</span>}
                 </h1>
                 {dropped && (
                   <p role="status" className="flex items-center gap-2 rounded-inset bg-accent-soft px-3 py-1.5 text-sm">
@@ -865,7 +916,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                   </p>
                 )}
 
-                <div className="flex items-center gap-3">
+                <div className={`shrink-0 items-center gap-2 ${selected !== null ? "hidden" : "flex"}`}>
                   {/* Przy budowie kostki ustępują miejsca przyciskom poziomów. */}
                   {view.dice && !over && !(settled && canMove && view.phase === "build") && <Dice values={view.dice} rolling={rolling} />}
                   {settled && canMove && view.phase === "roll" && (
@@ -890,19 +941,9 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                   {settled && !over && !canMove && view.phase === "roll" && <p className="text-sm text-fg-muted">{nick(view.turn!)} rzuca kośćmi…</p>}
                   {settled && canMove && view.phase === "build" && (
                     <>
-                      {buildChoices().map((l) => (
-                        <button
-                          key={l}
-                          type="button"
-                          style={mine} className="btn min-h-11 flex-col gap-0 px-3 text-sm leading-tight"
-                          onClick={() => onMove({ type: "build", level: l })}
-                        >
-                          {l === LANDMARK ? "Landmark" : `Poziom ${l}`}
-                          <span className="text-[11px] font-normal">
-                            {buildCost(here, level(here), l)} zł · czynsz {levelRent(here, l)}
-                          </span>
-                        </button>
-                      ))}
+                      <button type="button" style={mine} className="btn px-3" onClick={() => setSelected(here)}>
+                        Rozbuduj pole
+                      </button>
                       <button type="button" className="btn btn-ghost min-h-11 px-4" onClick={() => onMove({ type: "skip" })}>
                         Pomiń
                       </button>
@@ -929,35 +970,37 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                   )}
                   {settled && !over && !canMove && view.phase === "build" && <p className="text-sm text-fg-muted">{nick(view.turn!)} decyduje o budowie</p>}
                 </div>
-                {settled && canMove && view.phase === "buy" && <p className="text-center text-sm font-medium">{buyInfo(here)}</p>}
-                {settled && canMove && view.phase === "buyout" && (
-                  <p className="text-center text-sm font-medium">
-                    2× wartość pola · pieniądze dostaje {nick(owners[here])}
-                  </p>
-                )}
-                {traveling && <p className="text-center text-sm font-medium">Masz Bilet MPK: dotknij dowolne pole i jedź albo rzuć kośćmi</p>}
-                {settled && canMove && view.phase === "build" && (
-                  <p className="text-center text-sm font-medium">
-                    Budujesz: {BOARD[here].name}
-                    {maxLevel(owners, here) < LANDMARK && " · wyższe poziomy po zebraniu kompletu"}
-                  </p>
-                )}
+                <div className="min-h-0 w-full flex-1 overflow-y-auto">
+                  {settled && canMove && view.phase === "buy" && <p className="text-center text-sm font-medium">{buyInfo(here)}</p>}
+                  {settled && canMove && view.phase === "buyout" && (
+                    <p className="text-center text-sm font-medium">
+                      2× wartość pola · pieniądze dostaje {nick(owners[here])}
+                    </p>
+                  )}
+                  {traveling && <p className="text-center text-sm font-medium">MPK: dotknij pole i jedź albo rzuć kośćmi</p>}
+                  {settled && canMove && view.phase === "build" && (
+                    <p className="text-center text-sm font-medium">
+                      Budujesz: {BOARD[here].name}
+                      {maxLevel(owners, here) < LANDMARK && " · wyższe poziomy po zebraniu kompletu"}
+                    </p>
+                  )}
 
-                {!over && view.phase === "sell" && view.debt && (
-                  <p className="text-center text-sm">
-                    {selling
-                      ? `Brakuje ${view.debt.amount - view.cash[me]} zł. Dotknij swoje pole i sprzedaj je za pół ceny.`
-                      : `${nick(view.turn!)} sprzedaje pola, żeby spłacić ${view.debt.amount} zł`}
-                  </p>
-                )}
-                {/* Log: najnowszy wpis na dole, starsze coraz bledsze. */}
+                  {!over && view.phase === "sell" && view.debt && (
+                    <p className="text-center text-sm">
+                      {selling
+                        ? `Brakuje ${view.debt.amount - view.cash[me]} zł. Dotknij swoje pole i sprzedaj je za pół ceny.`
+                        : `${nick(view.turn!)} sprzedaje pola, żeby spłacić ${view.debt.amount} zł`}
+                    </p>
+                  )}
+                </div>
+                {/* Ostatnie zdarzenie pozostaje widoczne poza przewijanym opisem. */}
                 {recent.length > 0 && (
-                  <ul className="flex flex-col items-center text-xs">
+                  <ul className="flex w-full shrink-0 flex-col items-center text-xs" aria-label="Ostatnie zdarzenia">
                     {recent.map((e, i) => (
                       <li
                         key={i}
                         className={`flex items-center gap-1.5 ${e.type === "set" ? "font-semibold" : ""}`}
-                        style={{ opacity: [0.4, 0.65, 1][i + 3 - recent.length], color: e.type === "set" ? color(e.player) : undefined }}
+                        style={{ color: e.type === "set" ? color(e.player) : undefined }}
                       >
                         <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: color(e.player) }} aria-hidden />
                         {describe(e)}
@@ -965,11 +1008,15 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                     ))}
                   </ul>
                 )}
-                {actions && <div className="flex w-full max-w-xs flex-wrap gap-2">{actions}</div>}
-                {over && summaryHidden && view.stats && (
-                  <button type="button" className="btn btn-ghost min-h-11 px-4 text-sm" onClick={() => setSummaryHidden(false)}>
-                    Podsumowanie
-                  </button>
+                {over && (summaryHidden || !view.stats) && selected === null && (
+                  <div className="flex w-full shrink-0 items-center justify-center gap-2">
+                    {actions}
+                    {over && summaryHidden && view.stats && (
+                      <button type="button" className="btn btn-ghost px-3 text-sm" onClick={() => setSummaryHidden(false)}>
+                        Podsumowanie
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -977,6 +1024,19 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
             </div>
           </div>
         </div>
+
+        {!settled && (
+          <button
+            type="button"
+            className="absolute inset-0 z-40 cursor-pointer"
+            aria-label="Pomiń animację"
+            onClick={(e) => { e.stopPropagation(); finishAnimation(); }}
+          >
+            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full bg-bg/90 px-3 py-1 text-xs whitespace-nowrap text-fg-muted">
+              Dotknij, aby przejść do decyzji
+            </span>
+          </button>
+        )}
 
         {/* Wybór postaci na starcie: wszyscy naraz, zajęte postaci w kolorze i z nickiem właściciela. */}
         {!over && view.phase === "pick" && (
@@ -1004,7 +1064,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                         className="grid size-14 place-items-center rounded-full border-2"
                         style={
                           owner
-                            ? { backgroundColor: color(owner), borderColor: "white", color: "var(--color-bg)" }
+                            ? { backgroundColor: color(owner), borderColor: "var(--color-fg)", color: "var(--color-bg)" }
                             : { borderColor: "var(--color-line-hover)", color: canMove ? color(me) : "var(--color-fg-muted)" }
                         }
                       >
@@ -1034,14 +1094,14 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
             >
               <div className="flex items-center gap-2 px-4 py-2.5 text-bg" style={{ backgroundColor: SPECIAL_COLOR }}>
                 <Cards size={22} weight="fill" aria-hidden />
-                <span className="text-xs font-semibold tracking-wide uppercase">Karta Dziekanatu · {nick(view.turn!)}</span>
+                <span className="label text-bg">Karta Dziekanatu · {nick(view.turn!)}</span>
               </div>
               <div className="flex flex-col gap-2 p-4 text-center">
                 <h2 className="text-lg font-semibold">{CARDS[view.card].title}</h2>
                 <p className="text-sm text-fg-muted">{CARDS[view.card].text}</p>
                 {canMove ? (
                   <button type="button" style={mine} className="btn mt-2" autoFocus onClick={() => onMove({ type: "card" })}>
-                    OK
+                    Dalej
                   </button>
                 ) : (
                   <p className="mt-2 text-sm text-fg-muted">{nick(view.turn!)} czyta kartę…</p>
@@ -1053,7 +1113,8 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
 
         {over && settled && !summaryHidden && view.stats && (
           <KampusSummary
-            title={status}
+            title={seated ? status : `${status} · Oglądasz`}
+            winner={result?.winner}
             stats={view.stats}
             players={ranking.length ? ranking : view.players}
             nick={nick}
@@ -1074,7 +1135,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
             >
               <div className="flex items-center gap-2 px-4 py-2.5 text-bg" style={{ backgroundColor: color(warning.player) }}>
                 <Warning size={22} weight="fill" aria-hidden />
-                <span className="text-xs font-semibold tracking-wide uppercase">Groźba monopolu</span>
+                <span className="label text-bg">Groźba monopolu</span>
               </div>
               <div className="flex flex-col gap-2 p-4 text-center">
                 <h2 className="text-lg font-semibold">
@@ -1094,7 +1155,7 @@ export function KampusTour({ view, me, players, dropped, canMove, result, onMove
                     ))}
                 </ul>
                 <button type="button" style={mine} className="btn mt-2" autoFocus onClick={warning.dismiss}>
-                  OK
+                  Dalej
                 </button>
               </div>
             </div>

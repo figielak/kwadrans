@@ -548,3 +548,34 @@ describe("stan", () => {
     expect(game.moveSchema.safeParse({ type: "place", ships: "dużo" }).success).toBe(false);
   });
 });
+
+describe("P4-030: luki F4 Statków", () => {
+  test.each(MODES.map((m) => m.id))("F4-004/F4-005: %s, świeża gra, bitwa 60 s i powtarzalny setup", (mode) => {
+    let s = game.setup([A, B], createRng(71), mode);
+    expect(game.isOver(s)).toBeNull();
+    expect(s).toEqual(game.setup([A, B], createRng(71), mode));
+    s = apply(apply(s, A, { type: "ready" }), B, { type: "ready" });
+    expect(game.turn!(s).seconds).toBe(60);
+    expect(game.turnSeconds).toBe(60);
+  });
+
+  test.each([
+    { type: "shoot", x: 1.5, y: 0 }, { type: "shoot", x: 1 },
+    { type: "place", ships: [{ x: 0, y: 0, length: 1.5, vertical: true }] },
+    { type: "place", ships: [{ x: 0, y: 0, length: 1 }] },
+  ])("F4-008: schemat odrzuca %j", (move) => {
+    expect(game.moveSchema.safeParse(move).success).toBe(false);
+  });
+
+  test("F4-012: obserwator w rozstawianiu nie widzi żadnej floty", () => {
+    const s = game.setup([A, B], createRng(1));
+    for (const p of [A, B]) expect(view(s, "").boards[p].ships).toEqual([]);
+  });
+
+  test("F4-012: obserwator po końcu widzi zatopioną flotę, pozostała jest ukryta", () => {
+    const s = sinkAll(battle());
+    expect(game.isOver(s)).not.toBeNull();
+    expect(view(s, "").boards[B].ships).toEqual(FLEET_B);
+    expect(view(s, "").boards[A].ships).toEqual([]);
+  });
+});

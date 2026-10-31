@@ -1,6 +1,6 @@
-import { type LobbyPlayer, nozyczkiAccepts, type NozyczkiCut, nozyczkiError, type NozyczkiPoint, NOZYCZKI_SHAPES, nozyczkiShare, nozyczkiSplit, type NozyczkiView } from "@kwadrans/games";
+import { GAMES, type LobbyPlayer, nozyczkiAccepts, type NozyczkiCut, nozyczkiError, type NozyczkiPoint, NOZYCZKI_SHAPES, nozyczkiShare, nozyczkiSplit, type NozyczkiView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useState } from "react";
-import { grade, Intro, RoundTable, Scores, Stats, tenth } from "../screens/ui.tsx";
+import { grade, Intro, RoundTable, Scores, Stats, tenth, upTo } from "../screens/ui.tsx";
 
 interface Props {
   view: NozyczkiView;
@@ -77,7 +77,6 @@ export function Nozyczki({ view, me, players, ranking, onMove }: Props) {
     setAim(null);
     // Za krótki ruch albo prosta obok kształtu to nie odpowiedź (serwer też by ją odrzucił): runda trwa dalej, bez kary.
     if (!nozyczkiAccepts(view.shapes[index], cut)) {
-      navigator.vibrate?.(60);
       return setMiss(miss + 1);
     }
     setMiss(0);
@@ -107,7 +106,7 @@ export function Nozyczki({ view, me, players, ranking, onMove }: Props) {
     return (
       <Intro
         preview={<Preview />}
-        time={`${NOZYCZKI_SHAPES} kształtów, każdy na jedno cięcie`}
+        time={`${NOZYCZKI_SHAPES} kształtów po jednym cięciu, razem ${upTo(GAMES.nozyczki.turnSeconds!)}`}
         task="Przeciągnij palcem przez kształt tak, żeby obie części były równe. Liczy się prosta w chwili puszczenia"
         score="Liczy się, o ile części odbiegają od połowy. Mniej znaczy lepiej"
         onStart={() => setPhase("play")}

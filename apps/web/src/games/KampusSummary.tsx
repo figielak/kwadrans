@@ -1,8 +1,10 @@
 import { KAMPUS_BOARD as BOARD, type KampusStats } from "@kwadrans/games";
-import { type ReactNode, useState } from "react";
+import { type PointerEvent, type ReactNode, useState } from "react";
 
 interface Props {
   title: string;
+  /** Zwycięzca: tytuł w jego kolorze; remis i koniec bez zwycięzcy zostają neutralne. */
+  winner?: string;
   stats: KampusStats;
   /** Gracze w kolejności rankingu. */
   players: string[];
@@ -15,7 +17,7 @@ interface Props {
 }
 
 /** Podsumowanie partii: wykres majątku po rundach i kilka ciekawostek. */
-export function KampusSummary({ title, stats, players, nick, color, finalWealth, actions, onClose }: Props) {
+export function KampusSummary({ title, winner, stats, players, nick, color, finalWealth, actions, onClose }: Props) {
   // Ostatni punkt: majątek końcowy, chyba że koniec rundy już go zapisał (koniec po limicie rund).
   const series = players.map((id) => {
     const history = stats.wealth[id] ?? [];
@@ -38,15 +40,18 @@ export function KampusSummary({ title, stats, players, nick, color, finalWealth,
       <div
         role="dialog"
         aria-label="Podsumowanie partii"
-        className="flex w-[36rem] animate-[card-in_0.35s_ease-out] flex-col gap-2 rounded-inset border border-line bg-surface p-4 shadow-[0_16px_48px_rgb(0_0_0/0.7)]"
+        className="flex max-h-[calc(100%-1rem)] w-[36rem] animate-[card-in_0.35s_ease-out] flex-col gap-2 overflow-hidden rounded-inset border border-line bg-surface p-4 shadow-[0_16px_48px_rgb(0_0_0/0.7)]"
       >
-        <h2 className="text-center text-lg font-semibold">{title}</h2>
-        <div className="flex gap-4">
+        <h2 className="text-center text-lg font-semibold" style={winner ? { color: color(winner) } : undefined}>
+          {title}
+        </h2>
+        <div className="flex min-h-0 gap-4 overflow-y-auto">
           <WealthChart series={series} nick={nick} color={color} />
-          <dl className="flex w-40 shrink-0 flex-col gap-2 text-xs">
+          {!rent && !tile && !doubles && <p className="w-40 shrink-0 text-xs text-fg-muted">Za krótka partia na ciekawostki.</p>}
+          <dl className="flex w-40 shrink-0 flex-col gap-2 text-xs empty:hidden">
             {rent && (
               <div>
-                <dt className="text-fg-muted">Najwięcej czynszu zapłacił(a)</dt>
+                <dt className="label">Najwięcej czynszu zapłacił(a)</dt>
                 <dd>
                   {who(rent[0])} · {rent[1]} zł
                 </dd>
@@ -54,7 +59,7 @@ export function KampusSummary({ title, stats, players, nick, color, finalWealth,
             )}
             {tile && (
               <div>
-                <dt className="text-fg-muted">Najbardziej dochodowe pole</dt>
+                <dt className="label">Najbardziej dochodowe pole</dt>
                 <dd>
                   <span className="font-semibold">{BOARD[Number(tile[0])].name}</span> · {tile[1]} zł
                 </dd>
@@ -62,7 +67,7 @@ export function KampusSummary({ title, stats, players, nick, color, finalWealth,
             )}
             {doubles && (
               <div>
-                <dt className="text-fg-muted">Najwięcej dubletów</dt>
+                <dt className="label">Najwięcej dubletów</dt>
                 <dd>
                   {who(doubles[0])} · {doubles[1]}
                 </dd>
@@ -70,7 +75,7 @@ export function KampusSummary({ title, stats, players, nick, color, finalWealth,
             )}
           </dl>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex shrink-0 flex-wrap gap-2">
           {actions}
           <button type="button" className="btn btn-ghost" onClick={onClose}>
             Plansza
@@ -96,6 +101,13 @@ function WealthChart({
   color: (id: string) => string;
 }) {
   const [hover, setHover] = useState<number | null>(null);
+  const pointAt = (e: PointerEvent<SVGSVGElement>) => {
+    // Współrzędne w układzie SVG (uwzględniają obrót .landscape w pionie i zoom sceny).
+    const ctm = e.currentTarget.getScreenCTM();
+    if (!ctm) return;
+    const px = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse()).x;
+    setHover(step ? Math.min(count - 1, Math.max(0, Math.round((px - PAD.left) / step))) : 0);
+  };
   const count = Math.max(...series.map((s) => s.points.length));
   // Wykres zmian w czasie: oś od minimum do maksimum (co 50 zł), nie od zera, żeby linie nie ściskały się u góry.
   const values = series.flatMap((s) => s.points);
@@ -130,19 +142,15 @@ function WealthChart({
         className="w-full touch-none overflow-visible"
         role="img"
         aria-label={`Majątek graczy po rundach. ${series.map((s) => `${nick(s.id)}: ${s.points.at(-1)} zł na koniec`).join(", ")}.`}
-        onPointerMove={(e) => {
-          // Współrzędne w układzie SVG (uwzględniają obrót .landscape w pionie i zoom sceny).
-          const ctm = e.currentTarget.getScreenCTM();
-          if (!ctm) return;
-          const px = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse()).x;
-          setHover(step ? Math.min(count - 1, Math.max(0, Math.round((px - PAD.left) / step))) : 0);
-        }}
-        onPointerLeave={() => setHover(null)}
+        onPointerMove={pointAt}
+        // Dotyk: dotknięcie wybiera rundę i podpowiedź zostaje po podniesieniu palca; mysz chowa ją po zjechaniu z wykresu.
+        onPointerDown={pointAt}
+        onPointerLeave={(e) => e.pointerType === "mouse" && setHover(null)}
       >
         {ticks.map((t) => (
           <g key={t}>
             <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} stroke="var(--color-line)" />
-            <text x={PAD.left - 4} y={y(t) + 3} textAnchor="end" className="fill-fg-muted font-mono text-[9px]">
+            <text x={PAD.left - 4} y={y(t) + 3} textAnchor="end" className="fill-fg-muted font-mono tabular-nums text-[9px]">
               {t}
             </text>
           </g>
@@ -170,7 +178,8 @@ function WealthChart({
         ))}
         {ends.map((e) => (
           <text key={e.id} x={W - PAD.right + 8} y={e.y + 3} className="fill-fg text-[10px] font-medium">
-            {nick(e.id)}
+            <title>{nick(e.id)}</title>
+            {nick(e.id).length > 8 ? `${nick(e.id).slice(0, 7)}…` : nick(e.id)}
           </text>
         ))}
 

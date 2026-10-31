@@ -47,8 +47,8 @@ import {
   Timer,
   Trophy,
 } from "@phosphor-icons/react";
-import { DEFAULT_LENGTH, GAMES, type LobbyPlayer, MAX_PLAYERS, PLAYER_COLORS, type RoomView } from "@kwadrans/games";
-import { useState } from "react";
+import { DEFAULT_LENGTH, GAMES, type LobbyPlayer, MAX_PLAYERS, MINI_GAME_IDS, PLAYER_COLORS, type RoomView } from "@kwadrans/games";
+import { type ReactNode, useState } from "react";
 import { Screen, type Send, StickyBar } from "./ui.tsx";
 
 
@@ -65,8 +65,9 @@ export function Lobby({ view, me, dropped, send, onLeave, onMini }: Props) {
   if (!view) {
     return (
       <Screen dropped={dropped}>
-        <div className="tile h-36 animate-pulse" aria-label="Wczytywanie" />
-        <div className="tile h-24 animate-pulse" />
+        <p role="status" className="py-6 text-center text-fg-muted">
+          Wczytywanie…
+        </p>
       </Screen>
     );
   }
@@ -134,7 +135,7 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
                 const seated = view.seats.includes(p.id);
                 const row = (
                   <>
-                    <span className="size-3 shrink-0 rounded-full" style={{ backgroundColor: p.color }} aria-hidden />
+                    <span className={`size-3 shrink-0 rounded-full transition-opacity duration-180 ${p.connected ? "" : "opacity-40"}`} style={{ backgroundColor: p.color }} aria-hidden />
                     <span className="truncate">
                       {p.nick}
                       {p.id === me && <span className="text-fg-muted"> (ty)</span>}
@@ -155,7 +156,8 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
                     </span>
                   </>
                 );
-                const className = `flex w-full min-h-11 items-center gap-3 rounded-inset px-3 text-left transition-opacity ${p.connected ? "" : "opacity-50"}`;
+                // Rozłączenie mówią przygaszona kropka i słowo; nick zostaje czytelny.
+                const className = "flex w-full min-h-12 items-center gap-3 rounded-inset px-3 text-left";
                 const style = { backgroundColor: `color-mix(in srgb, ${p.color} ${seated || !def ? 10 : 4}%, transparent)` };
                 return (
                   <li key={p.id}>
@@ -189,7 +191,8 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
 }
 
 /** Dolny pasek: start u gospodarza, gotowość u gościa z miejscem, informacja u oglądających. */
-export function StartBar({ view, me, send }: { view: RoomView; me: string; send: Send }) {
+/** `note` to linia nad przyciskiem w tym samym pasku (podsumowanie Turnieju); bez niej pasek ma tylko akcję. */
+export function StartBar({ view, me, send, note }: { view: RoomView; me: string; send: Send; note?: ReactNode }) {
   const isHost = view.hostId === me;
   const def = picked(view);
   const hostNick = view.players.find((p) => p.id === view.hostId)?.nick ?? "gospodarz";
@@ -207,30 +210,40 @@ export function StartBar({ view, me, send }: { view: RoomView; me: string; send:
           ? `Czekamy na gotowość (${guests.length - unready.length}/${guests.length})`
           : null;
 
+  const action =
+    isHost && !startBlocker ? (
+      <button type="button" className="btn btn-primary w-full" onClick={() => send("start")}>
+        <Play size={18} weight="fill" aria-hidden />
+        <span className="truncate">Zagraj: {def!.name}</span>
+      </button>
+    ) : isHost ? (
+      // Zwykły podpis zamiast wyszarzonego przycisku: nie udaje czegoś, co da się nacisnąć.
+      <p className="flex min-h-12 w-full items-center justify-center text-center text-sm text-fg-muted">{startBlocker}</p>
+    ) : def && meSeated ? (
+      <button
+        type="button"
+        className={`btn w-full ${meReady ? "btn-ghost" : "btn-primary"}`}
+        aria-pressed={meReady}
+        onClick={() => send("ready", { ready: !meReady })}
+      >
+        {meReady ? <Check size={18} weight="bold" aria-hidden /> : <HandWaving size={18} weight="fill" aria-hidden />}
+        <span className="truncate">{meReady ? `Gotowość zgłoszona, czekamy na ${hostNick}` : `Zgłaszam gotowość: ${def.name}`}</span>
+      </button>
+    ) : (
+      <p className="flex min-h-12 w-full items-center justify-center text-center text-sm text-fg-muted">
+        {def ? `Oglądasz. Czekamy, aż ${hostNick} zacznie` : `Czekamy, aż ${hostNick} wybierze grę`}
+      </p>
+    );
+
   return (
-    <StickyBar>
-      {isHost && !startBlocker ? (
-        <button type="button" className="btn btn-primary w-full" onClick={() => send("start")}>
-          <Play size={18} weight="fill" aria-hidden />
-          <span className="truncate">Zagraj: {def!.name}</span>
-        </button>
-      ) : isHost ? (
-        // Zwykły podpis zamiast wyszarzonego przycisku: nie udaje czegoś, co da się nacisnąć.
-        <p className="flex min-h-12 w-full items-center justify-center text-center text-sm text-fg-muted">{startBlocker}</p>
-      ) : def && meSeated ? (
-        <button
-          type="button"
-          className={`btn w-full ${meReady ? "btn-ghost" : "btn-primary"}`}
-          aria-pressed={meReady}
-          onClick={() => send("ready", { ready: !meReady })}
-        >
-          {meReady ? <Check size={18} weight="bold" aria-hidden /> : <HandWaving size={18} weight="fill" aria-hidden />}
-          <span className="truncate">{meReady ? `Gotowe, czekamy na ${hostNick}` : `Zgłaszam gotowość: ${def.name}`}</span>
-        </button>
+    <StickyBar className={note ? "mt-auto" : ""}>
+      {note ? (
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          {note}
+          {action}
+        </div>
       ) : (
-        <p className="flex min-h-12 w-full items-center justify-center text-center text-sm text-fg-muted">
-          {def ? `Oglądasz. Czekamy, aż ${hostNick} zacznie` : `Czekamy, aż ${hostNick} wybierze grę`}
-        </p>
+        action
       )}
     </StickyBar>
   );
@@ -242,8 +255,8 @@ export function picked(view: RoomView): { name: string; minPlayers: number; maxP
   return view.gameId ? GAMES[view.gameId] : undefined;
 }
 
-/** Mini-gry to gry, w które da się grać solo (minPlayers 1); reszta to gry główne. */
-export const MINI_GAMES = Object.values(GAMES).filter((g) => g.minPlayers === 1);
+/** Mini-gry z rejestru (gry solo, minPlayers 1); reszta to gry główne. */
+export const MINI_GAMES = MINI_GAME_IDS.map((id) => GAMES[id]);
 
 /** Kafel w siatce gier: ikona, nazwa i jedna linijka pod spodem; `wide` to wiersz na całą szerokość, `dim` przygasza bez blokowania. */
 export function Tile({ icon: TileIcon, name, hint, picked, disabled, dim, wide, onClick }: { icon: Icon; name: string; hint: string; picked?: boolean; disabled?: boolean; dim?: boolean; wide?: boolean; onClick: () => void }) {
@@ -252,7 +265,7 @@ export function Tile({ icon: TileIcon, name, hint, picked, disabled, dim, wide, 
       type="button"
       aria-pressed={picked}
       disabled={disabled}
-      className={`flex rounded-inset border p-3 text-left transition-[color,border-color,opacity] ${wide ? "min-h-14 items-center gap-3" : "min-h-20 flex-col items-start gap-1"} ${
+      className={`flex rounded-inset border p-3 text-left transition-[color,background-color,border-color,opacity] duration-180 ${wide ? "min-h-14 items-center gap-3" : "min-h-20 flex-col items-start gap-1"} ${
         picked ? "border-accent bg-accent-soft" : "border-line enabled:hover:border-line-hover"
       } ${disabled ? "opacity-40" : dim ? "opacity-60" : ""}`}
       onClick={onClick}
@@ -338,7 +351,7 @@ export const BLURBS: Record<string, string> = {
   kalambury: "Po kolei rysujecie palcem hasło wybrane z trzech, reszta zgaduje na czacie. Im szybciej trafisz, tym więcej punktów.",
   refleks: "Dotknij pola, gdy zmieni kolor. 12 zmian, liczy się średni czas reakcji, falstart to 1000 ms.",
   simon: "Powtarzasz coraz dłuższą sekwencję 4 kolorów. Liczy się najdłuższa seria.",
-  stoper: "Licznik znika po 3 s. Dotknij dokładnie w wylosowanej sekundzie, wygrywa najmniejsza odchyłka.",
+  stoper: "Licznik znika po 3 s. Dotknij dokładnie po 10 sekundach, wygrywa najmniejsza odchyłka.",
   sudoku: "Plansza 4×4 do uzupełnienia cyframi 1-4, w każdym wierszu, kolumnie i bloku raz. Liczy się czas, zła cyfra dodaje 5 s.",
   schulte: "Siatka 5×5 z liczbami 1-25, dotykasz po kolei. Liczy się czas, pomyłka dodaje 3 s.",
   stroop: "Nazwa koloru napisana innym kolorem. Wybierasz kolor liter, nie słowo. 30 s.",
@@ -376,8 +389,8 @@ function ColorPicker({ view, me, send }: { view: RoomView; me: string; send: Sen
   const mine = view.players.find((p) => p.id === me)?.color;
   return (
     <div className="mt-4 flex flex-col gap-1">
-      <span className="text-sm text-fg-muted">Twój kolor</span>
-      <div className="flex justify-between" role="radiogroup" aria-label="Twój kolor">
+      <span className="label">Twój kolor</span>
+      <div className="-mx-1 flex justify-between" role="radiogroup" aria-label="Twój kolor">
         {PLAYER_COLORS.map((color, i) => {
           const owner = view.players.find((p) => p.color === color);
           const taken = !!owner && owner.id !== me;
@@ -389,11 +402,11 @@ function ColorPicker({ view, me, send }: { view: RoomView; me: string; send: Sen
               aria-checked={color === mine}
               aria-label={taken ? `${COLOR_NAMES[i]}, zajęty: ${owner.nick}` : COLOR_NAMES[i]}
               disabled={taken}
-              className="grid size-10 place-items-center rounded-full"
+              className="grid size-12 shrink-0 place-items-center rounded-full"
               onClick={() => send("pickColor", { color })}
             >
               <span
-                className={`grid size-7 place-items-center rounded-full font-mono text-xs text-fg-muted ${color === mine ? "outline-2 outline-offset-2 outline-fg" : ""}`}
+                className={`grid size-7 place-items-center rounded-full font-mono tabular-nums text-xs text-fg-muted ${color === mine ? "outline-2 outline-offset-2 outline-fg" : ""}`}
                 style={{ backgroundColor: taken ? `color-mix(in srgb, ${color} 25%, transparent)` : color }}
               >
                 {color === mine && <Check size={14} weight="bold" className="text-bg" aria-hidden />}
@@ -432,14 +445,14 @@ function Code({ code, alone, onLeave }: { code: string; alone: boolean; onLeave:
     <section className="tile">
       <div className="flex items-center justify-between">
         <h2 className="label">{copied ? "Skopiowano!" : "Kod pokoju"}</h2>
-        <button type="button" className="-m-2 flex items-center gap-1.5 p-2 text-sm text-fg-muted" onClick={onLeave}>
-          <SignOut size={16} aria-hidden />
+        <button type="button" className="-mt-2 -mr-2 flex min-h-12 min-w-12 items-center gap-1.5 px-2 text-sm text-fg-muted" onClick={onLeave}>
+          <SignOut size={16} weight="bold" aria-hidden />
           Wyjdź
         </button>
       </div>
       <div className="mt-1 flex items-end justify-between gap-4">
         <button type="button" className="text-left" onClick={copy} aria-label={`Kod pokoju ${code}, kopiuj`}>
-          <span className="font-mono text-6xl font-medium tracking-[0.12em]">{code}</span>
+          <span className="font-mono tabular-nums text-6xl font-medium tracking-[0.12em]">{code}</span>
         </button>
         <button type="button" className="btn btn-ghost size-12 shrink-0 p-0" onClick={share} aria-label="Udostępnij link">
           {copied ? <Check size={20} weight="bold" aria-hidden /> : <ShareNetwork size={20} weight="bold" aria-hidden />}

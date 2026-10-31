@@ -251,3 +251,10 @@ describe("stan", () => {
     expect(game.isOver(send(copy, B, play(s, 3)))).toEqual({ winner: B, ranking: [B, A] });
   });
 });
+
+test("P4-035/F4-019: zamiany z ustalonych seedów takie same jak przed zmianą nazwy na swapsFor", () => {
+  const hash = (t: string) => [...t].reduce((x, c) => (Math.imul(x, 31) + c.charCodeAt(0)) | 0, 7);
+  const rounds = (seed: number) => game.setup([A], createRng(seed)).rounds;
+  expect(rounds(1)[0]).toEqual({ ball: 1, swaps: [[2, 1], [1, 0], [2, 1], [0, 1]] });
+  expect([1, 2, 3].map((seed) => hash(JSON.stringify(rounds(seed))))).toEqual([2087188642, -879307560, -1565113317]);
+});

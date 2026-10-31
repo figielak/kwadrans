@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { createRng } from "./core.ts";
-import { BALLS, MOVE_MS, type Move, position, RADIUS, ROUNDS, sledzenie as game, type State, TARGETS, type View } from "./sledzenie.ts";
+import { BALLS, MOVE_MS, type Move, position, RADIUS, ROUNDS, SHOW_MS, sledzenie as game, type State, TARGETS, type View } from "./sledzenie.ts";
 
 // Testy napisane przed implementacją. Ustalają zasady:
 // - 1-6 graczy grają naraz u siebie te same rundy: 8 kulek, cele to kulki o indeksach 0-2, najwyżej 20 rund,
@@ -8,6 +8,7 @@ import { BALLS, MOVE_MS, type Move, position, RADIUS, ROUNDS, sledzenie as game,
 //   na starcie i po zatrzymaniu kulki się nie nakładają,
 // - klient oddaje jeden wynik: wskazania z kolejnych rund (po 3 różne indeksy 0-7),
 // - serwer liczy rundy z kompletem celów do pierwszej pomyłki i trafione cele w rundzie z pomyłką,
+// - limit 360 s mieści 20 rund z pokazami, wskazywaniem i siecią oraz zapasem co najmniej 20% i 10 s,
 // - ranking: więcej rund wyżej, przy równych więcej trafionych; zwycięzca tylko przy 2+ graczach i bez remisu.
 
 const A = "ania";
@@ -48,13 +49,30 @@ function speed(s: State, round: number) {
 }
 
 describe("definicja", () => {
-  test("1-6 graczy, limit 300 s, świeża gra trwa", () => {
-    expect([game.id, game.minPlayers, game.maxPlayers, game.turnSeconds]).toEqual(["sledzenie", 1, 6, 300]);
+  test("1-6 graczy, limit 360 s, świeża gra trwa", () => {
+    expect([game.id, game.minPlayers, game.maxPlayers, game.turnSeconds]).toEqual(["sledzenie", 1, 6, 360]);
     expect(game.isOver(fresh())).toBeNull();
   });
 
   test("8 kulek, 3 cele, najwyżej 20 rund, ruch trwa 5 s", () => {
     expect([BALLS, TARGETS, ROUNDS, MOVE_MS]).toEqual([8, 3, 20, 5000]);
+  });
+
+  test("20 rund z odsłonami i wskazywaniem mieści się z zapasem co najmniej 20% i 10 s", () => {
+    // Model z audytu 03-08 i ZASADY §3, nie pomiar człowieka.
+    // Sledzenie.tsx: TIMED.wait = 700 ms i TIMED.reveal = 1000 ms w każdej rundzie.
+    // Założenia: 2 s na każde z 3 wskazań, 3 s łącznie na dostarczenie wyniku.
+    // Intro poprzedza start limitu; trzecie wskazanie zatwierdza, bez dodatkowego kliknięcia.
+    const waitMs = 700;
+    const revealMs = 1000;
+    const pickMs = 2000;
+    const networkMs = 3000;
+    const fullGameMs = ROUNDS * (waitMs + SHOW_MS + MOVE_MS + TARGETS * pickMs + revealMs) + networkMs;
+    const limitMs = game.turnSeconds! * 1000;
+
+    expect(fullGameMs).toBe(287000);
+    expect(limitMs).toBeGreaterThanOrEqual(fullGameMs * 1.2);
+    expect(limitMs - fullGameMs).toBeGreaterThanOrEqual(10000);
   });
 });
 
@@ -266,5 +284,27 @@ describe("stan", () => {
     const copy = JSON.parse(JSON.stringify(next)) as State;
     expect(copy).toEqual(next);
     expect(game.isOver(send(copy, B, play(3)))).toEqual({ winner: B, ranking: [B, A] });
+  });
+});
+
+describe("P4-032/F4-050: pełne gwarancje ruchu kulek", () => {
+  test("każda kulka osobno ma prędkość 0,3 + 0,06 × numer rundy", () => {
+    for (const seed of [1, 7, 42]) {
+      const { rounds } = fresh([A], seed);
+      rounds.forEach((balls, r) => balls.forEach((ball, i) => {
+        // Krok zawierający odbicie jest krótszy. Maksimum próbek bez odbicia mierzy prędkość tej kulki.
+        const speed = Math.max(...[0, 1000, 2000].map((t) => distance(position(ball, r, t), position(ball, r, t + 10)))) * 100;
+        expect(speed, `seed ${seed}, runda ${r}, kulka ${i}`).toBeCloseTo(0.3 + 0.06 * r, 5);
+      }));
+    }
+  });
+
+  test.each([0, MOVE_MS])("odstęp środków co najmniej 0,14 po %i ms", (t) => {
+    for (const seed of [1, 7, 42]) {
+      fresh([A], seed).rounds.forEach((balls, r) => {
+        const at = balls.map((ball) => position(ball, r, t));
+        at.forEach((a, i) => at.slice(i + 1).forEach((b) => expect(distance(a, b), `seed ${seed}, runda ${r}`).toBeGreaterThanOrEqual(0.14)));
+      });
+    }
   });
 });

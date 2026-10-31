@@ -1,6 +1,7 @@
 import { KUBKI_ROUNDS, KUBKI_SHOW_MS, kubkiBallAt, kubkiSwapMs, type KubkiView, type LobbyPlayer } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: KubkiView;
@@ -115,7 +116,7 @@ export function Kubki({ view, me, players, ranking, onMove }: Props) {
     const slot = Math.min(CUPS.length - 1, Math.max(0, Math.floor(((e.clientX - rect.left) / rect.width) * CUPS.length)));
     setPicks([...picks, slot]);
     setPhase("reveal");
-    if (slot !== ballSlot) navigator.vibrate?.(60);
+    if (slot !== ballSlot) navigator.vibrate?.(VIBRATE.mistake);
   }
 
   if (!playing || phase === "sent") {
@@ -170,7 +171,7 @@ export function Kubki({ view, me, players, ranking, onMove }: Props) {
             >
               {hasBall && <span className="absolute bottom-0 left-1/2 aspect-square w-[40%] -translate-x-1/2 rounded-full" style={{ backgroundColor: color }} />}
               <span
-                className="absolute inset-0 bg-fg transition-transform duration-150"
+                className="absolute inset-0 bg-fg transition-transform duration-180"
                 style={{
                   clipPath: CUP_SHAPE,
                   transform: lifted ? "translateY(-55%)" : undefined,

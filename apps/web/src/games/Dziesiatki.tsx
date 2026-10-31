@@ -1,7 +1,8 @@
 import { DZIESIATKI_SIDE, DZIESIATKI_TARGET, type DziesiatkiView, dziesiatkiTake, type LobbyPlayer, QUIZ_DURATION_MS, type QuizMove } from "@kwadrans/games";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
-import { BLOCK_MS, MAX_ANSWER, MIN_ANSWER, Results } from "./Quiz.tsx";
+import { BLOCK_MS, Results } from "./Quiz.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: DziesiatkiView;
@@ -21,7 +22,7 @@ function Preview() {
   return (
     <div className="flex gap-2">
       {[3, 6, 7, 2].map((n, i) => (
-        <span key={i} className="relative flex size-12 items-center justify-center rounded-inset border border-line bg-surface font-mono text-xl font-semibold">
+        <span key={i} className="relative flex size-12 items-center justify-center rounded-inset border border-line bg-surface font-mono tabular-nums text-xl font-semibold">
           {n}
           {n !== 6 && n !== 2 && (
             <span className="absolute -inset-px animate-[preview-half_2.4s_linear_infinite] rounded-inset border-2 border-success opacity-0 [animation-delay:-1.2s]" />
@@ -40,27 +41,43 @@ export function Dziesiatki({ view, me, players, ranking, winner, onMove, onRound
   const [selected, setSelected] = useState<number | null>(null);
   /** Ostatnia dwójka: zielony błysk przy parze, czerwony z potrząśnięciem przy pomyłce. */
   const [flash, setFlash] = useState<{ cells: number[]; ok: boolean; id: number } | null>(null);
-  const run = useRef({ start: 0, shownAt: 0, pairs: 0, times: [] as number[], errors: 0, streak: 0, timer: 0 });
+  const run = useRef({ start: 0, shownAt: 0, pairs: 0, times: [] as number[], errors: 0, streak: 0, timer: 0, accepting: false, blockedUntil: 0, sent: false });
 
   function start() {
-    const t = performance.now();
-    run.current = { start: t, shownAt: t, pairs: 0, times: [], errors: 0, streak: 0, timer: 0 };
+    const t = Math.round(performance.now());
+    run.current = { start: t, shownAt: t, pairs: 0, times: [], errors: 0, streak: 0, timer: 0, accepting: false, blockedUntil: 0, sent: false };
     setPhase("play");
   }
 
+  useLayoutEffect(() => {
+    run.current.accepting = phase === "play" && playing;
+  }, [phase, selected, board, playing]);
+
+  function finish() {
+    const r = run.current;
+    if (r.sent || !playing) return;
+    r.sent = true;
+    r.accepting = false;
+    clearTimeout(r.timer);
+    setPhase("sent");
+    onMove({ type: "result", times: [...r.times], errors: r.errors });
+  }
+
   function tap(cell: number) {
-    if (phase !== "play") return;
+    const r = run.current;
+    if (phase !== "play" || !playing || !r.accepting || r.sent) return;
+    const now = Math.round(performance.now());
+    if (now - r.start >= QUIZ_DURATION_MS) return finish();
+    if (now < r.blockedUntil) return;
+    r.accepting = false;
     if (selected === null) return setSelected(cell);
     setSelected(null);
     if (selected === cell) return;
-    const r = run.current;
-    const now = performance.now();
     const ok = board[selected] + board[cell] === DZIESIATKI_TARGET;
     setFlash((f) => ({ cells: [selected, cell], ok, id: (f?.id ?? 0) + 1 }));
     if (ok) {
-      const took = Math.round(now - r.shownAt);
-      // ponytail: para po 5 s liczona jako 5 s, szybsza niż 150 ms przepada (serwer by ją odrzucił), jak w Quiz.tsx
-      if (took >= MIN_ANSWER) r.times.push(Math.min(took, MAX_ANSWER));
+      const took = now - r.shownAt;
+      r.times.push(took);
       r.streak++;
       r.shownAt = now;
       const at = (2 * r.pairs++) % view.refills.length;
@@ -68,28 +85,30 @@ export function Dziesiatki({ view, me, players, ranking, winner, onMove, onRound
     } else {
       r.errors++;
       r.streak = 0;
-      navigator.vibrate?.(60);
+      navigator.vibrate?.(VIBRATE.mistake);
+      r.blockedUntil = now + BLOCK_MS;
       setPhase("wrong");
-      r.timer = window.setTimeout(() => setPhase("play"), BLOCK_MS);
+      r.timer = window.setTimeout(() => {
+        if (Math.round(performance.now()) - r.start >= QUIZ_DURATION_MS) return finish();
+        setPhase("play");
+      }, BLOCK_MS);
     }
   }
 
   // Zegar gry: kończy partię po 30 s (czas do końca pokazuje nagłówek).
   useEffect(() => {
-    if (phase === "intro" || phase === "sent") return;
+    if (phase === "intro" || phase === "sent" || !playing) return;
     const id = setInterval(() => {
       const r = run.current;
-      if (performance.now() - r.start < QUIZ_DURATION_MS) return;
-      clearTimeout(r.timer);
-      setPhase("sent");
-      onMove({ type: "result", times: r.times, errors: r.errors });
+      if (Math.round(performance.now()) - r.start < QUIZ_DURATION_MS) return;
+      finish();
     }, 100);
     return () => clearInterval(id);
-  }, [phase === "intro" || phase === "sent"]);
+  }, [phase === "intro" || phase === "sent", playing]);
 
   useEffect(() => () => clearTimeout(run.current.timer), []);
 
-  const idle = phase === "intro" || phase === "sent";
+  const idle = phase === "intro" || phase === "sent" || !playing;
   useEffect(() => onRound?.(idle ? null : QUIZ_DURATION_MS), [idle]);
 
   if (!playing || phase === "sent") {
@@ -127,7 +146,7 @@ export function Dziesiatki({ view, me, players, ranking, winner, onMove, onRound
           { label: "Seria", value: run.current.streak },
         ]}
       />
-      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${DZIESIATKI_SIDE}, 1fr)` }}>
+      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${DZIESIATKI_SIDE}, minmax(0, 1fr))` }}>
         {board.map((n, i) => {
           const flashed = flash?.cells.includes(i);
           return (
@@ -135,12 +154,14 @@ export function Dziesiatki({ view, me, players, ranking, winner, onMove, onRound
               // Klucz z błysku: przycisk montuje się od nowa i animacja startuje jeszcze raz.
               key={flashed ? `${i}-${flash!.id}` : i}
               type="button"
+              aria-pressed={i === selected}
               disabled={phase !== "play"}
               onPointerDown={() => tap(i)}
               className={`flex aspect-square touch-none select-none items-center justify-center rounded-inset border bg-surface font-mono text-3xl font-semibold tabular-nums ${
                 phase !== "wrong" ? "border-line" : flashed ? "border-warning" : "border-line opacity-40"
               } ${flashed ? (flash!.ok ? "animate-[tile-hit_0.35s_ease-out]" : "animate-[tile-miss_0.35s_ease-out]") : ""}`}
-              style={i === selected ? { borderColor: color, backgroundColor: `color-mix(in srgb, ${color} 25%, transparent)` } : undefined}
+              // Zaznaczenie jak w Sudoku i Zakupach: pierścień 2 px w kolorze gracza, od razu, bez przejścia.
+              style={i === selected ? { borderColor: color, boxShadow: `0 0 0 2px ${color}` } : undefined}
             >
               {n}
             </button>

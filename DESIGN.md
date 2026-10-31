@@ -3,8 +3,10 @@
 Styl wizualny Kwadransa: jak strona wygląda i dlaczego. Opis powstał z przeglądu ekranów na 360×640
 (ekran główny, lobby, lista mini-gier, rekordy, ekran instrukcji, partia).
 
-Źródłem wartości jest kod: tokeny i klasy w `apps/web/src/index.css`, wspólne komponenty w `apps/web/src/screens/ui.tsx`.
-Reguły odbioru nowej gry (pola dotykowe, czasy animacji, wibracje) są w `ZASADY.md`, sekcje 4 i 5; tutaj ich nie powtarzamy.
+Jedynym katalogiem tokenów, ich ról i skali promieni w dokumentacji jest sekcja 2 tego pliku.
+Ich implementacja to `apps/web/src/index.css`, a wspólne komponenty są w `apps/web/src/screens/ui.tsx`.
+Reguły odbioru nowej gry (pola dotykowe, czasy animacji, wibracje) są w [ZASADY.md](ZASADY.md), sekcje 4 i 5;
+przy sprzeczności obowiązują ZASADY. Opis zatwierdzonej klasy przed wdrożeniem jest jawnie oznaczony w §5.
 
 ## 1. Charakter
 
@@ -16,7 +18,8 @@ Trzy rzeczy budują cały styl:
 1. **Prawie czarne tło z jedną poświatą.** W prawym górnym rogu leży nieruchomy gradient radialny (16% koloru, 60vmax).
    Domyślnie ma kolor akcentu, a w partii kolor gracza, na którego wszyscy czekają (`--ambient`), więc o turze mówi całe tło.
    W Kalamburach to zawsze kolor rysującego.
-2. **Jedna czerwień na ekran.** Akcent `#ff2445` dostaje jeden wypełniony przycisk, czyli najważniejsza akcja ekranu. Reszta to obrysy.
+2. **Jedna główna akcja na ekran.** Akcent dostaje jeden wypełniony przycisk, czyli najważniejsza akcja platformy. Reszta to obrysy.
+   Akcent w znaku aplikacji identyfikuje markę i nie jest drugą akcją.
 3. **Dwa kroje o dwóch rolach.** Satoshi mówi (nazwy, zdania, przyciski), Geist Mono liczy (kody, wyniki, czasy, podpisy sekcji).
 
 ## 2. Tokeny
@@ -34,10 +37,11 @@ Trzy rzeczy budują cały styl:
 | `fg` | `#ededef` | tekst |
 | `fg-muted` | `#8b8b92` | opisy, podpisy, ikony pomocnicze |
 | `fg-subtle` | `#5c5c63` | tylko nieistotne detale (kontrast poniżej 4,5:1) |
-| `accent` | `#ff2445` | główna akcja, focus, zaznaczony kafel |
+| `accent` | `#ff2445` | główna akcja platformy, focus, zaznaczony kafel, znak aplikacji |
+| `accent-hover` | `#ff4560` | akcent pod kursorem, tylko `.btn-primary` |
 | `accent-soft` | akcent 12% | tło ikony wyzwania dnia, pasek „Łączenie ponownie…” |
 | `accent-fg` | `#0e0e10` | tekst na akcencie (grafit ma 5,1:1, biały tylko 3,8:1) |
-| `warning` | `#ff6369` | ostatnie 10 s limitu, pomyłka, kara, błąd formularza, bodziec „nie wolno” w Stój! (zawsze z ikoną i tekstem) |
+| `warning` | `#ff6369` | ostatnie 10 s limitu, pomyłka, kara, błąd formularza, bodziec „nie wolno” w Stój!, ostrzeżenie przed skutkiem ruchu (strefa zakazana i zły duch w Statkach, cel zbicia w Chińczyku z „i zbij”); zawsze z ikoną albo tekstem |
 | `success` | `#3dd68c` | trafienie, bodziec „dotknij” (Refleks, Stój!) |
 
 Kolory graczy to dane, nie dekoracja (`PLAYER_COLORS` w `lobby.ts`): `#3b9eff`, `#ffc53d`, `#46a758`, `#8e7cff`, `#0ac5b3`, `#f76fbe`.
@@ -45,7 +49,8 @@ Kolory graczy to dane, nie dekoracja (`PLAYER_COLORS` w `lobby.ts`): `#3b9eff`, 
 „1. miejsce” na kaflu mini-gry), ma kolor gracza.
 
 Głębię robią obrys 1 px i przezroczystość, nie cienie. Cień mają tylko rzeczy, które naprawdę leżą nad planszą
-(okna i pionki w Kampus Tour) oraz animacja `set-glow`.
+(okna i pionki w Kampus Tour, plansza 2.5D i poświata tury tamże, patrz §6) oraz animacja `set-glow` (także zwycięska linia Gomoku).
+Kamienie Gomoku i karty Memory nie mają cienia ani poświaty: wystarcza obrys.
 
 ### Typografia
 
@@ -76,7 +81,7 @@ Te fragmenty najlepiej oddają styl. Nowy ekran powinien wyglądać jak ich rodz
 
 Najlepszy przykład hierarchii. Od góry: ikona gry w kwadracie `accent-soft`, nazwa pogrubiona i jedna linia stanu,
 potem jedyny wypełniony przycisk ekranu („Zagraj”) na pełną szerokość, pod nim dwa równe przyciski z obrysem.
-Wzrok ląduje na czerwieni bez żadnego nagłówka, a „Dołącz” w sąsiedniej karcie dostaje akcent dopiero po wpisaniu pełnego kodu.
+Wzrok ląduje na czerwieni bez żadnego nagłówka, a „Dołącz” w sąsiedniej karcie przejmuje wypełnienie dopiero po wpisaniu pełnego kodu (wtedy „Zagraj” ma obrys, D4-066).
 
 Do skopiowania: jedna akcja wypełniona, pozostałe `btn-ghost`; podpis sekcji z małą ikoną leży nad kaflem, nie w nim.
 
@@ -96,7 +101,7 @@ Do skopiowania: stały szkielet zamiast dowolnego opisu; ikony `fg-muted` w roli
 
 ### 3.4 Nagłówek partii i pasek statystyk (`Game.tsx`, `Stats` w `ui.tsx`)
 
-Tytuł gry w kolorze gracza, pod nim cienki pasek limitu (6 px, pigułka) w tym samym kolorze i sekundy mono;
+Status gry w kolorze gracza, pod nim kropki graczy, cienki pasek limitu (6 px, pigułka) i sekundy mono;
 tło strony przyjmuje ten sam odcień przez `--ambient`. Niżej `Stats`: trzy liczby mono 18 px, każda pod własnym `.label`,
 skrajne wyrównane do krawędzi. Pole gry zajmuje całą resztę ekranu i jest jedyną dużą plamą koloru.
 
@@ -112,6 +117,9 @@ Do skopiowania: przy dużej liczbie elementów kolor zostaje dla wyjątków, a p
 ## 4. Stany
 
 Stan pokazują obrys, przezroczystość i waga ikony, nie nowy kolor. Opis odpowiada temu, co jest w kodzie.
+Natywne kontrolki są ciemne (`color-scheme: dark` w `html` i w `index.html`). Liczba albo ikona z opisem dla czytnika to `span`
+z `role="img"` i `aria-label`; ozdoby mają `aria-hidden`; pole gry bez tekstu (Balon, Za zasłoną, siatki) to przycisk z nazwą.
+Podpowiedź wykresu zostaje po dotknięciu, mysz chowa ją po zjechaniu z wykresu.
 
 | Stan | Wygląd | Przykład |
 |---|---|---|
@@ -123,34 +131,46 @@ Stan pokazują obrys, przezroczystość i waga ikony, nie nowy kolor. Opis odpow
 | kafel nieaktywny | krycie 40%, `disabled`, podpis mówi dlaczego („max 2 os.”) | gra, do której jest za dużo osób |
 | turniej: losowo | zwykły kafel | stan domyślny każdej gry |
 | turniej: na pewno | jak kafel zaznaczony, plus znaczek i podpis „na pewno” | pierwsze dotknięcie |
-| turniej: bez | ramka `line`, krycie 50% | drugie dotknięcie |
+| turniej: bez | ramka `line`, krycie 60%, ikona i podpis „bez”, nazwa przekreślona | drugie dotknięcie |
 | wybrany kolor gracza | obrys 2 px `fg`, odsunięty o 2 px | próbki koloru w lobby |
-| ładowanie | tekst przycisku zmienia się na czasownik z wielokropkiem, wszystkie akcje ekranu nieaktywne; bez spinnera | „Łączenie…”, „Tworzenie…” |
+| ładowanie | tekst przycisku zmienia się na czasownik z wielokropkiem, wszystkie akcje ekranu nieaktywne; bez spinnera. Ekran bez przycisku pokazuje sam czasownik w `fg-muted` (`role="status"`) | „Łączenie…”, „Tworzenie…”, „Uruchamianie…”, „Wczytywanie…” |
+| brak odpowiedzi serwera | jedno zdanie `fg-muted` zamiast listy; nigdy pusta lista ani „nie grane” | „Nie udało się wczytać rekordów.” |
+| pokój zamknięty | kafel z ikoną `Info` nad sekcjami ekranu głównego (`role="status"`), nie błąd pola kodu; znika przy następnej próbie | „Połączenie z pokojem zostało zamknięte.” |
 | stan pusty | jedno zdanie `fg-muted` w miejscu treści, bez ilustracji | „Dziś nikt jeszcze nie grał”, „nie grane” |
 | błąd formularza | ikona i tekst 14 px w `warning` pod polem (`role="alert"`); ramka i obrys focusu pola też w `warning`, zamiast akcentu | zły kod pokoju (`Problem` w `Home.tsx`) |
 | lider rankingu | korona `fill`: w `fg` przy cudzym rekordzie, w kolorze gracza przy własnym | ekran „Rekordy” |
 | bodziec w grze na refleks | przed sygnałem pole `surface` z szarym napisem, sygnał to `success` z ciemnym napisem, bez przejścia | „Czekaj…” i „Teraz!” w Refleksie |
 | utrata połączenia (ja) | pasek `accent-soft` z ikoną na górze ekranu | „Łączenie ponownie…” |
-| gracz rozłączony | kropka z kryciem 40%; w partii przerywany obrys zamiast pierścienia | `PlayerDots`, `GameDots` |
+| gracz rozłączony | kropka z kryciem 40% i słowo „rozłączony”; w partii przerywany obrys zamiast pierścienia (pigułka gracza: przerywana ramka); nick zostaje w pełnym kolorze | `PlayerDots`, `GameDots`, lista graczy w lobby |
 | gracz czyta zasady | kropka z kryciem 40%, pierścień zostaje | `GameDots` na ekranie instrukcji |
 | gracz gotowy | znaczek w kropce | `PlayerDots` w górnym pasku |
 | postęp gracza | pierścień wokół kropki w jego kolorze, pełny po oddaniu wyniku | `GameDots` w partii |
 | to ja | kreska pod kropką, „(ty)” przy nicku | `GameDots`, tabele wyników |
 | koniec czasu | sekundy w `warning` przez ostatnie 10 s | pasek limitu |
 
-Każdy stan, który coś blokuje, tłumaczy się podpisem; samo przygaszenie nie wystarcza.
+Każdy stan, który coś blokuje, tłumaczy się podpisem; samo przygaszenie nie wystarcza. Przykłady: „Tryb wybiera gospodarz.” u gościa,
+„Najmniej 3 gry w turnieju.” przy granicy liczby gier, „Najwyżej 180°” pod polem odpowiedzi (`aria-invalid`), „Wybierz puste pole” nad nieaktywną
+klawiaturą Sudoku, powód braku ruchu po dotknięciu pionka w Chińczyku, „Swoich nie oceniasz.” przy własnych odpowiedziach w Państwach-miastach (krycie 60%).
+Stan pusty mówi, czemu jest pusto: „Za krótka partia na ciekawostki.”, w turnieju solo „Rozegrane gry: N/M” zamiast tabeli punktów.
 
 ## 5. Zasady, które z tego wynikają
 
-- **Akcent jest rzadki.** Jeśli na ekranie są dwa czerwone elementy, jeden z nich jest zbędny. Link w tekście („zmień”) to `fg-muted` z podkreśleniem.
+- **Akcent jest rzadki.** Jeden wypełniony przycisk platformy na ekranie; znak aplikacji może zachować akcent,
+  bo identyfikuje markę, nie proponuje kolejnej czynności. Link w tekście („zmień”) to `fg-muted` z podkreśleniem.
 - **Akcent należy do platformy, kolor gracza do partii.** Wypełniony akcentem jest przycisk, który prowadzi przez aplikację
-  („Zagraj”, „Start”, gotowość, „Rewanż”, „Dalej”, „Jeszcze raz”). Akcja w trakcie partii („Zatwierdź”, „Gotowe”, „Rzuć”, „Zgarnij”)
-  jest wypełniona kolorem gracza z tekstem `bg`: `btn text-bg` i `backgroundColor` z koloru gracza.
+  („Zagraj”, „Start”, gotowość, „Rewanż”, „Dalej” między grami turnieju, „Jeszcze raz”). Akcja w trakcie partii („Zatwierdź”, „Gotowe”,
+  „Rzuć”, „Zgarnij”, „Dalej” między rundami partii, gotowość rozstawienia w Statkach) jest wypełniona kolorem gracza z tekstem `bg`.
+  Zatwierdzony wspólny kontrakt to `.btn` + `.btn-player`: kolor gracza przekazany przez komponent stanowi tło,
+  tekst korzysta z `bg`, a rozmiar, focus, stan nieaktywny i reakcja na dotyk pochodzą z `.btn`.
+  Klasa współdzieli wygląd, nie zmienia znaczenia akcji ani ról tokenów.
+  **Stan przejściowy:** `.btn-player` nie jest jeszcze zaimplementowana; obecne użycia to `btn text-bg`
+  i `backgroundColor` z koloru gracza. Dodanie klasy i migracja stylów należą do P4-050.
 - **Kolor nigdy nie jest jedynym sygnałem.** Błąd ma ikonę i tekst, bodziec ma napis i skok jasności, stan nieaktywny ma podpis.
-- **Kolor znaczy.** `accent`: zrób to, tu jesteś (focus) albo to wybrane. `warning`: problem (czas, pomyłka, kara). Kolor gracza: to czyjeś. Zieleń: dobrze. Szarości: wszystko inne.
+- **Kolor znaczy.** Role tokenów określa tabela w §2; kolor gracza wskazuje właściciela lub jego akcję.
 - **Obrys przed wypełnieniem.** Karty, przyciski drugorzędne i pola mają obrys 1 px w `line`; pełne tło dostaje tylko to, co ma przyciągać.
 - **Liczby są mono.** Kod, wynik, czas, miejsce i licznik idą Geist Mono z `tabular-nums`, żeby nie skakały przy zmianie.
-  Liczby nad polem gry to zawsze pasek `Stats`, tabela rund po partii to `RoundTable` (oba w `ui.tsx`).
+  Wyjątek: liczba w zdaniu narracji może zostać Satoshi (ZASADY §4). Jednostka wspólna dla kolumny idzie do nagłówka („pkt” w tabeli turnieju).
+  Liczby nad polem gry to zawsze pasek `Stats`, tabela rund po partii to `RoundTable`, wyniki z kolumnami to `ScoreTable` (wszystkie w `ui.tsx`; Odcień z parami próbek to wyjątek).
 - **Podpis to `.label`.** Nagłówek nad blokiem (kaflem, sekcją ekranu) i etykieta liczby to małe wersaliki mono, nigdy pogrubiony Satoshi.
   Wyjątek: grupy wewnątrz jednej listy (kategorie w siatce mini-gier, sekcje ekranu „Rekordy”) mają zwykły Satoshi 14 px `fg-muted`,
   bo `.label` nad każdą grupą konkurowałby z podpisami mono na kaflach.
@@ -159,16 +179,98 @@ Każdy stan, który coś blokuje, tłumaczy się podpisem; samo przygaszenie nie
 
 ## 6. Wyjątki i rozbieżności
 
+**Listy poza partią** (np. ekran główny, wybór gry, ustawienia i rekordy) mogą przewijać się pionowo.
+Nie muszą w całości mieścić się w 640 px; dolna akcja pozostaje dostępna w `StickyBar`, a edytowane pole nie znika
+pod klawiaturą. Wymóg 360×640 dotyczy ekranu partii. Nie znosi to zakazu poziomego przewijania ani wymogów pól dotykowych
+z [ZASADY.md §4](ZASADY.md#4-spójność-wyglądu); lokalne wyjątki formularzy i wyników w partii są rozliczane osobno.
+
 Świadome wyjątki od zasad z sekcji 5:
 
-- **Kolory będące treścią gry** nie są interfejsem i nie muszą pochodzić z tokenów: pola Sekwencji, napisy Koloru liter,
-  figury Innego elementu, próbki Odcienia, grupy pól w Kampus Tour.
+- **Gęste plansze** mają pola poniżej 48 px tylko z wyborem i potwierdzeniem (ZASADY §4). Pierwsze dotknięcie wybiera,
+  przycisk min. 48 px w kolorze gracza nazywa wybór i wysyła ruch, drugie dotknięcie tego samego pola też wysyła.
+  Gomoku (15×15, pole ~22 px): „Postaw na H8”. Statki (do 12×12, ~23 px): „Strzel w G3”.
+  Chińczyk (11×11, ~29 px): kostka obok „Wyjdź na start” / „Rusz o 4 pola” / „Wejdź do domku”, przy biciu „… i zbij”.
+  Labirynt (do 9×9, ~34 px, plansza równo z kafelkiem nagłówka, żeby dwurzędowy pasek akcji zmieścił się w 640 px):
+  duch pionka i „Idź w górę” / „Przeskocz w lewo”; ścianka: podgląd i „Postaw”.
+  Pomiar 360×640 (P4-036): każdy przycisk potwierdzenia ma 56 px, obserwator nie ma aktywnych pól.
+  Memory, pola Kampus Tour i gry na czas tego wyjątku nie dostają.
+- **Kolory i kształty będące treścią gry** nie są interfejsem i nie muszą pochodzić z tokenów ani skali: pola Sekwencji, napisy Koloru liter,
+  figury Innego elementu, figury Obrotu, próbki Odcienia, grupy i rogi pól w Kampus Tour (`CORNERS`, jedno źródło kolorów rogów),
+  gradient oceny odcinków w Kole (zielony → czerwony). Wyjątek dotyczy tylko tej treści, nie dowolnych ozdób wokół niej.
+- **Suwaki Odcienia i Roku**: uchwyt suwaka ma promień 6 px, obwódkę `fg` i obrys `bg`, żeby był widoczny na każdej barwie toru.
+- **Promień 4 px**: odznaka turnieju przy kropce gracza i pola planszy Kampus Tour (32 pola w małej skali); poza tym tylko 20 / 10 / 999 px.
 - **Statki**: trafienie i zatopiony statek są w `accent`. To utrwalony znak tej gry, czerwień nie oznacza tam akcji.
 - **Państwa-miasta i Kalambury** mają własny nagłówek: gracze w jednej linii z punktami obok nicku zamiast paska `Stats`,
   bo graczy może być 6, a `Stats` mieści trzy liczby. Każdy ma jedną liczbę, więc zapis w linii zostaje czytelny.
-- **Kampus Tour** ma własny układ poziomy, cienie pod oknami i pionkami oraz przyciski budowy o wysokości 44 px (plansza nie zostawia miejsca na 48).
+- **Kampus Tour** ma własny układ poziomy, planszę 2.5D (krawędź i cień „stołu”), poświatę pola gracza na turze oraz cienie pod oknami i pionkami. Przyciski decyzji i zamknięcia mają minimum 48 px po skalowaniu sceny; dawne 44 px budowy nie jest już wyjątkiem.
+
+Zwykłe kontrolki (P4-037, pomiar Chromium 360×640) nie korzystają z wyjątku gęstych plansz:
+suwnice Odcienia mają 328×48 px, suwak Roku 182×48 px, wyjście z Lobby około 75×48 px,
+a wiersze graczy w Lobby/Setup 286×48 px. Sześć próbek koloru ma osobne cele 48×48 px;
+widoczne kropki pozostają 28 px. Hitboxy zajmują po 4 px dotychczasowego bocznego paddingu kafla,
+dzięki czemu środki kropek nie przesuwają się, cele nie nachodzą na siebie i nie ma przewijania poziomego.
+Dotyk działa również poza widoczną kropką i przy krawędziach toru; suwaki zachowują natywną klawiaturę i focus.
+Na ekranach Odcienia/Roku z sześcioma graczami przyciski zatwierdzania kończą się odpowiednio na 616/502 px;
+dokument ma 640 px. Listy graczy poza partią mogą przewijać się pionowo według reguły na początku tej sekcji.
+
+W aktywnej partii wspólny nagłówek pokazuje status oraz jeden wiersz kropek graczy i limitu czasu.
+Dotknięcie kropek rozwija pełne nicki, wygrane i statystyki gry; rozłączenie pozostaje oznaczone także w zwiniętym widoku.
+Przy kilku oczekujących zwinięty status podaje ich liczbę, rozwinięty pełne nicki. Własne nagłówki pozostają bez zmian.
+Zmniejszenie nagłówka nie zastępuje osobnego odbioru geometrii plansz.
 
 Rozbieżności do decyzji (nie są wzorem dla nowych ekranów):
 
-- **Gry główne na 360×640.** Rozstawianie w Statkach (około 770 px), Gomoku (około 670 px) i Państwa-miasta wymagają przewinięcia;
-  mini-gry i pozostałe ekrany mieszczą się w 640 px.
+- **Gry główne na 360×640.** Państwa-miasta wymagają przewinięcia;
+  jest to rozbieżność do poprawy, a nie zgoda na przewijanie plansz.
+  Statki (P4-008, wszystkie tryby): rozstawianie mieści się (flota 142-482 px, „Obróć”/„Losuj”/„Zgłaszam gotowość” w jednym wierszu 534-590 px).
+  W bitwie aktywna plansza jest duża u góry razem z akcją (cel 142-482 px i „Wybierz pole” 502-558 px; obrońca i obserwator: ostrzeliwana plansza).
+  Wyjątek: mała plansza drugiej floty (3/5 szerokości) może leżeć poniżej 640 px i dochodzi się do niej przewinięciem,
+  bo przy obu planszach naraz miałaby pole około 6 px; pasek bitwy nie jest przyklejony, więc nic jej nie zasłania.
+  Chińczyk (P4-009, Klasyczny i Szybki, 2 i 4 graczy, obserwator): plansza 142-470 px (u obserwatora do 498 px),
+  „Rzuć” albo kostka z „Rusz…” pod nią, dokument 640 px; dolne domki co najmniej 26 px nad paskiem, także z 16-znakowymi nickami.
+  Kafelek pokazuje najwyżej linię rzutu i komunikat; „X rzuca kostką…” tylko bez komunikatu, bo kto ma ruch, mówi nagłówek.
+  Gomoku mieści się po zmniejszeniu nagłówka (P4-007): plansza 150-487 px (pole 22,5 px), akcja 514-570 px, dokument 640 px,
+  u obserwatora plansza 178-515 px; po końcu cała plansza zostaje nad „Rewanż”, a wyniki przewijają się jak w ZASADY §4. Także mini-gry wymagają osobnego odbioru;
+  nie zakładamy, że każda mieści się w 640 px. Przewijanie list poza partią jest dopuszczone powyżej.
+
+Odbiór Memory po P4-006/P4-011: Mała, Średnia i Duża mieszczą planszę oraz instrukcję na 360×640
+przy 2/6 graczach, także u obserwatora i z długimi nickami. Odstęp plansza–instrukcja to 8 px;
+karty mają odpowiednio 76×76, 76×60,8 i 48×48 px przy szerokości 360 px. To pomiar zwiniętego nagłówka.
+
+Kalambury (P4-012): w fazie rysowania rozmiar kwadratowego płótna wynika z rzeczywistego miejsca
+pod własnym nagłówkiem i listą graczy, z zachowaniem miejsca na kontrolki danej roli i dolny margines.
+Zmiany wysokości nagłówka, czatu i widocznego obszaru aktualizują pomiar. Przy otwartej klawiaturze
+zgadujący może przewinąć do pola i przycisków; minimalny bok płótna to 48 px. Czat i potwierdzenie
+„Pasuję” pozostają obecne. Odsłona i wyniki zachowują dotychczasowy układ.
+
+Narysuj koło (P4-013): aktywne płótno pozostaje kwadratowe i mieści się w wysokości pozostałej
+po nagłówku, statystykach, komunikacie i dolnym marginesie. Miejsce na zakończenie prób jest
+zarezerwowane od startu, dzięki czemu pierwsza oceniona próba nie zmienia rozmiaru pola.
+Na 360×640 przycisk ma 48 px i kończy się na 616 px; bok płótna wynosi 261 px solo lub 293 px
+w pokoju 2/6 osób ze zwiniętym nagłówkiem. Współrzędne i ocena rysunku pozostają niezależne od rozmiaru.
+
+Państwa-miasta (P4-014, wdrożone, fizyczny odbiór U02 otwarty): sześć kategorii formularza przewija
+się wewnątrz listy, a dolne Oddaj/Dalej/STOP pozostają poza tą listą. Po zmianie widocznej wysokości
+aktywne pole jest przewijane po przeliczeniu układu. Głosowanie i podsumowanie mają osobną tabelę
+na kategorię przy 4+ osobach, z graczami w wierszach; przy 2/3 zachowują zwartą tabelę.
+Pełne nicki i odpowiedzi mogą łamać się w wierszach; brak poziomego przewijania, cele głosu minimum 48 px.
+Jest to lokalny wyjątek przewijania formularza i odpowiedzi opisany w ZASADY §4.
+
+Wyniki (P4-016): wspólny ekran końcowy umieszcza OverActions/NextActions w StickyBar.
+Rysunki, rekordy i tabela turnieju mogą przewijać się pionowo w naturalnych rozmiarach;
+przyciski są dostępne od razu, a na końcu przewijania ostatni wiersz leży nad paskiem.
+Solo ma Jeszcze raz/Wyjdź; między grami turnieju Dalej/Zakończ turniej (dla gospodarza),
+a finał Rewanż/Do lobby. Własny poziomy układ Kampus Tour pozostaje osobny.
+
+Kampus Tour (P4-017): środek ma stały wiersz rundy i limitu, status, akcje oraz ostatni wpis logu.
+Dłuższy opis może przewijać się w pozostałym miejscu. „Rozbuduj pole” otwiera szczegóły bieżącego pola
+z poziomami w dwóch kolumnach, żeby decyzje miały 48 px na ekranie po zoom sceny.
+Podsumowanie ma ograniczoną wysokość, przewijaną treść i stałe akcje; po jego otwarciu akcje planszy
+nie są renderowane drugi raz. Panele pokazują wygrane, obserwator ma „Oglądasz”. Pełne nicki wykresu
+pozostają w legendzie i tytułach etykiet; krótkie etykiety przy końcach linii nie nachodzą na statystyki.
+
+Kampus Tour (P4-018): turlanie rozpoczyna rzeczywisty rzut rozpoznany w istniejącym widoku,
+łącznie z kolejnym dubletem o identycznych oczkach i rzutem w Kolokwium bez przesunięcia.
+MPK i karta przestawiają pionek bez turlania. Nakładka „Dotknij, aby przejść do decyzji”
+kończy pokaz jednym dotknięciem, bez wysyłania ruchu; decyzję wybiera dopiero następne.
+Nowa wiadomość zastępuje poprzedni pokaz; refresh i reduced motion pokazują od razu stan serwera.

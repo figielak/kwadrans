@@ -5,7 +5,7 @@ import { GAP, kropki as game, MAX, MIN, type Move, ROUNDS, type State, TOTAL, ty
 // Testy napisane przed implementacją. Ustalają zasady:
 // - 1-6 graczy naraz, każdy liczy te same 10 układów kropek (MIN-MAX kropek, razem zawsze 240, pozycje 0-1 z odstępem),
 // - odpowiedź to 10 liczb całkowitych 0-99; wynik = suma błędów |odpowiedź − liczba|,
-// - mniejsza suma wyżej; pusta odpowiedź (limit czasu) liczy się jak same zera,
+// - mniejsza suma wyżej; pusta odpowiedź (limit czasu) dostaje w każdej rundzie max(n, 99-n),
 // - ruch progress zgłasza liczbę odpowiedzianych rund (1-9) do podglądu u rywali i nie odnawia limitu.
 
 const A = "ania";
@@ -64,11 +64,11 @@ describe("walidacja", () => {
 });
 
 describe("koniec", () => {
-  test("bezbłędnie = 0, pusta = suma kropek, odpowiedzi zostają w stanie", () => {
+  test("bezbłędnie = 0, pusta = najgorszy błąd, odpowiedzi zostają w stanie", () => {
     let s = game.setup([A, B], createRng(1));
     s = send(s, A, result(counts(s)));
     s = send(s, B, result([]));
-    expect(s.results).toEqual({ [A]: 0, [B]: counts(s).reduce((a, b) => a + b, 0) });
+    expect(s.results).toEqual({ [A]: 0, [B]: counts(s).reduce((sum, n) => sum + Math.max(n, 99 - n), 0) });
     expect(s.answers[A]).toEqual(counts(s));
     expect(game.isOver(s)).toEqual({ winner: A, ranking: [A, B] });
   });
@@ -141,4 +141,71 @@ describe("postęp", () => {
     expect(ok({ type: "result", answers: Array(ROUNDS + 1).fill(1) })).toBe(false);
     expect(ok({ type: "skok" })).toBe(false);
   });
+});
+
+// P4-002: timeout nie może być lepszy od żadnej dozwolonej odpowiedzi.
+describe("najgorszy błąd po limicie", () => {
+  test.each([1, 2, 7, 42])("seed %i: każda odpowiedź 0-99 ma błąd nie większy od timeoutu", (seed) => {
+    const initial = game.setup([A], createRng(seed));
+    const timeout = send(initial, A, game.timeoutMove!(initial, A, createRng(1)));
+    const worst = counts(initial).reduce((sum, n) => sum + Math.max(n, 99 - n), 0);
+    expect(timeout.results[A]).toBe(worst);
+    expect(game.record!.score(timeout, A)).toBe(worst);
+    expect(timeout.answers[A]).toEqual([]);
+    for (let answer = 0; answer <= 99; answer++) {
+      const s = send(initial, A, result(Array(ROUNDS).fill(answer)));
+      expect(s.results[A]).toBeLessThanOrEqual(worst);
+    }
+    const extremes = counts(initial).map((n) => n >= 99 - n ? 0 : 99);
+    expect(send(initial, A, result(extremes)).results[A]).toBe(worst);
+    expect(JSON.parse(JSON.stringify(timeout))).toEqual(timeout);
+    expect(initial.results).toEqual({});
+  });
+
+  test("same 99 remisują z timeoutem, a same zera go pokonują", () => {
+    let s = game.setup([A, B, C], createRng(1));
+    s = send(s, A, game.timeoutMove!(s, A, createRng(1)));
+    s = send(s, B, result(Array(ROUNDS).fill(99)));
+    s = send(s, C, result(Array(ROUNDS).fill(0)));
+    expect(game.isOver(s)).toEqual({ winner: C, ranking: [C, A, B] });
+    expect(game.places!(s)).toEqual({ [A]: 2, [B]: 2, [C]: 1 });
+  });
+});
+
+
+// P4-032: nazwane luki istniejących zasad z F4.
+test("P4-032/F4-004: definicja 1-6 graczy", () => {
+  expect([game.minPlayers, game.maxPlayers, game.turnSeconds]).toEqual([1, 6, 120]);
+});
+
+test("P4-032/F4-005: ten sam seed daje ten sam setup", () => {
+  const s = game.setup([A, B], createRng(7));
+  expect(game.setup([A, B], createRng(7))).toEqual(s);
+});
+
+
+test("P4-032/F4-006: po końcu każdy typ ruchu jest odrzucony dla graczy i obcego", () => {
+  let s = game.setup([A, B], createRng(1));
+  for (const p of [A, B]) s = send(s, p, result(counts(s)));
+  expect(game.isOver(s)).not.toBeNull();
+  for (const p of [A, B, "obcy"]) for (const move of [result(counts(s)), progress(1)]) expect(game.validateMove(s, p, move)).toBe(false);
+});
+
+test("P4-032/F4-010: każdy typ ruchu bez mutacji zamrożonego wejścia i z JSON round-trip", () => {
+  function freeze(value: unknown): void {
+    if (value && typeof value === "object") {
+      Object.values(value).forEach(freeze);
+      Object.freeze(value);
+    }
+  }
+  let s = game.setup([A, B], createRng(1));
+  const moves: Move[] = [progress(3), result(counts(s))];
+  for (const move of moves) {
+    const before = structuredClone(s);
+    freeze(s);
+    const after = send(s, A, move);
+    expect(s).toEqual(before);
+    expect(JSON.parse(JSON.stringify(after))).toEqual(after);
+    s = after;
+  }
 });

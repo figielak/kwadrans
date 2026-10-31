@@ -1,6 +1,6 @@
 import { type LobbyPlayer, ROK_MAX_YEAR as MAX_YEAR, ROK_MIN_YEAR as MIN_YEAR, ROK_REVEAL_MS, ROK_ROUND_MS, ROK_ROUNDS, type RokView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
-import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { Intro, RoundTable, Scores, Stats } from "../screens/ui.tsx";
 
 interface Props {
   view: RokView;
@@ -13,7 +13,7 @@ interface Props {
 /** Suwak startuje na środku zakresu. */
 const MIDDLE = Math.floor((MIN_YEAR + MAX_YEAR) / 2);
 /** Ostatnie sekundy rundy: pasek czasu w kolorze ostrzeżenia. */
-const HURRY_MS = 5000;
+const HURRY_MS = 10_000;
 
 /** Różnica ze znakiem: „−4”, „+3”. */
 const signed = (n: number) => (n < 0 ? `−${-n}` : `+${n}`);
@@ -112,27 +112,27 @@ export function Rok({ view, me, players, ranking, onMove }: Props) {
         <Scores rows={rows} />
         <p className="text-sm text-fg-muted">Suma pomyłek w latach z {ROK_ROUNDS} rund, mniej znaczy lepiej.</p>
         {shown.length > 0 && (
-          <ol className="tile flex flex-col px-3">
-            {view.events.map((event, i) => (
-              <li key={event.text} className="flex flex-col gap-1 border-t border-line py-2 text-sm first:border-t-0">
-                <div className="flex items-start justify-between gap-3">
-                  <span>{event.text}</span>
-                  <span className="font-mono font-semibold tabular-nums">{event.year}</span>
-                </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-fg-muted">
-                  {shown.map((r) => (
-                    <span key={r.id} className="flex items-center gap-1.5">
-                      <span className="size-2 rounded-full" style={{ backgroundColor: r.color }} aria-hidden />
-                      {r.nick}
-                      <span className={`font-mono tabular-nums ${view.answers[r.id][i] === event.year ? "text-success" : "text-fg"}`}>
-                        {view.answers[r.id][i]}
-                      </span>
-                    </span>
-                  ))}
-                </div>
-              </li>
-            ))}
-          </ol>
+          <RoundTable
+            heads={view.events.map((_, i) => i + 1)}
+            goal={{ label: "Rok", values: view.events.map((e) => e.year) }}
+            rows={shown.map((r) => ({ id: r.id, nick: r.nick, color: r.color, me: r.me, errors: view.answers[r.id].map((a, i) => Math.abs(a - view.events[i].year)) }))}
+            perfect={0}
+            close={Infinity}
+            unit="lata"
+            format={(d, i, id) => (d === 0 ? "0" : signed(view.answers[id][i] - view.events[i].year))}
+            caption="Pomyłka w latach w każdej rundzie: plus to za późno, minus za wcześnie. Zielony: dokładnie."
+          >
+            {/* Wydarzenia pod tabelą, z numerem kolumny (wzór: lista miast w Mapie). */}
+            <ol className="flex flex-col gap-1 text-xs text-fg-muted">
+              {view.events.map((event, i) => (
+                <li key={event.text} className="flex gap-2">
+                  <span className="w-5 shrink-0 text-right font-mono tabular-nums">{i + 1}.</span>
+                  <span className="flex-1">{event.text}</span>
+                  <span className="font-mono text-fg tabular-nums">{event.year}</span>
+                </li>
+              ))}
+            </ol>
+          </RoundTable>
         )}
       </>
     );
@@ -165,8 +165,8 @@ export function Rok({ view, me, players, ranking, onMove }: Props) {
       />
       <div className={`h-1.5 overflow-hidden rounded-full bg-line ${reveal ? "invisible" : ""}`} role="progressbar" aria-label="Czas rundy" aria-valuenow={Math.ceil(left / 1000)}>
         <div
-          className={`h-full rounded-full transition-[width] duration-250 ease-linear ${left <= HURRY_MS ? "bg-warning" : "bg-fg-muted"}`}
-          style={{ width: `${(left / ROK_ROUND_MS) * 100}%` }}
+          className={`h-full rounded-full transition-[width] duration-250 ease-linear ${left <= HURRY_MS ? "bg-warning" : ""}`}
+          style={{ width: `${(left / ROK_ROUND_MS) * 100}%`, backgroundColor: left > HURRY_MS ? color : undefined }}
         />
       </div>
       <div className="tile flex flex-col gap-4 p-4">
@@ -177,15 +177,15 @@ export function Rok({ view, me, players, ranking, onMove }: Props) {
           <div className="relative h-12">
             <div className="absolute inset-x-0 top-1/2 h-9 -translate-y-1/2 rounded-inset border border-line" />
             <span className="absolute top-1/2 h-9 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ left: at(answers[index]), backgroundColor: color }} />
-            <span className="absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-success" style={{ left: at(event.year) }} />
+            <span className="absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-fg" style={{ left: at(event.year) }} />
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <button type="button" className="btn btn-ghost size-12 shrink-0 p-0 font-mono" aria-label="Rok wcześniej" onClick={() => setYear(Math.max(MIN_YEAR, year - 1))}>
+            <button type="button" className="btn btn-ghost size-12 shrink-0 p-0 font-mono tabular-nums" aria-label="Rok wcześniej" onClick={() => setYear(Math.max(MIN_YEAR, year - 1))}>
               −1
             </button>
             <input type="range" min={MIN_YEAR} max={MAX_YEAR} value={year} onChange={(e) => setYear(Number(e.target.value))} className="swatch-range bg-bg" aria-label="Rok" />
-            <button type="button" className="btn btn-ghost size-12 shrink-0 p-0 font-mono" aria-label="Rok później" onClick={() => setYear(Math.min(MAX_YEAR, year + 1))}>
+            <button type="button" className="btn btn-ghost size-12 shrink-0 p-0 font-mono tabular-nums" aria-label="Rok później" onClick={() => setYear(Math.min(MAX_YEAR, year + 1))}>
               +1
             </button>
           </div>
@@ -195,10 +195,10 @@ export function Rok({ view, me, players, ranking, onMove }: Props) {
             <p>
               Ustawiłeś <span className="font-mono font-semibold tabular-nums">{answers[index]}</span>
             </p>
-            <span className={`font-mono text-3xl font-semibold tabular-nums ${diff === 0 ? "text-success" : ""}`}>{diff === 0 ? "Idealnie" : signed(diff)}</span>
+            <span className={`font-mono text-3xl font-semibold tabular-nums ${diff === 0 ? "text-success" : ""}`}>{diff === 0 ? "Idealnie!" : signed(diff)}</span>
           </div>
         ) : (
-          <button type="button" className="btn w-full text-bg" style={{ backgroundColor: color }} onClick={submit}>
+          <button type="button" className="btn w-full btn-player" style={{ backgroundColor: color }} onClick={submit}>
             Zatwierdź
           </button>
         )}

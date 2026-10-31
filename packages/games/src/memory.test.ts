@@ -309,3 +309,7 @@ describe("stan", () => {
     expect(JSON.parse(JSON.stringify(state))).toEqual(state);
   });
 });
+
+test("P4-030/F4-038: pula zawiera 18 symboli", () => {
+  expect(SYMBOLS).toBe(18);
+});

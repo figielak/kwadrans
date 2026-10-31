@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, CaretRight, Play, Plus, Shuffle, SquaresFour, Trophy, User, UsersThree, Warning } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, CaretRight, Info, Play, Plus, Shuffle, SquaresFour, Trophy, User, UsersThree, Warning } from "@phosphor-icons/react";
 import { cleanNick, GAMES, MINI_GAME_IDS, NICK_MAX, type RecordRow, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, standing } from "@kwadrans/games";
 import { useEffect, useState } from "react";
 import type { Room } from "@colyseus/sdk";
@@ -43,13 +43,15 @@ const Problem = ({ id, children }: { id?: string; children: string }) => (
 
 type Busy = "create" | "join" | "solo" | null;
 
-export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?: string }) {
+export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) => void; notice?: string }) {
   const [nick, setNick] = useState(savedNick);
   // Zapamiętany nick to jedna linijka; pole widać tylko za pierwszym razem albo po „zmień”.
   const [editing, setEditing] = useState(() => !savedNick());
   const [code, setCode] = useState(() => onlyCodeChars(codeFromUrl()));
   const [nickError, setNickError] = useState("");
-  const [roomError, setRoomError] = useState(notice ?? "");
+  const [roomError, setRoomError] = useState("");
+  // Pokój zamknięty po drodze to informacja o tym, co się stało, a nie błąd wpisanego kodu; znika przy następnej próbie.
+  const [notice, setNotice] = useState(closedNotice);
   const [soloError, setSoloError] = useState("");
   const [busy, setBusy] = useState<Busy>(null);
   const [screen, setScreen] = useState<"records" | "all" | null>(null);
@@ -57,7 +59,8 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
   /** Które z ostatnich pokoi jeszcze istnieją (kod → liczba graczy); dopóki serwer nie odpowie, sekcji nie ma. */
   const [alive, setAlive] = useState<Record<string, number>>({});
   const [daily, setDaily] = useState<{ gameId: string; rows: RecordRow[] } | null>(null);
-  const [records, setRecords] = useState<Record<string, RecordRow[]>>({});
+  /** Rekordy do podpowiedzi i kafli; undefined do odpowiedzi serwera, null, gdy nie odpowie. */
+  const [records, setRecords] = useState<Record<string, RecordRow[]> | null>();
 
   useEffect(() => {
     fetchDaily().then(setDaily);
@@ -79,6 +82,7 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
     const clean = checkNick();
     setRoomError("");
     setSoloError("");
+    setNotice(undefined);
     if (!clean) return;
     setBusy(action);
     try {
@@ -104,11 +108,14 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
     return (
       <Screen dropped={false}>
         <button type="button" className="-ml-2 flex min-h-12 items-center gap-1.5 self-start px-2 text-sm text-fg-muted" onClick={() => setScreen(null)}>
-          <ArrowLeft size={16} aria-hidden />
+          <ArrowLeft size={16} weight="bold" aria-hidden />
           Wróć
         </button>
         <h1 className="text-3xl font-semibold tracking-tight">Mini-gry</h1>
-        <p className="text-sm text-fg-muted">Dotknij gry, żeby zagrać {busy === "solo" ? "…" : "samemu."}</p>
+        <p role="status" className="text-sm text-fg-muted">
+          {busy === "solo" ? "Uruchamianie…" : "Dotknij gry, żeby zagrać samemu."}
+        </p>
+        {records === null && <p className="text-sm text-fg-muted">Nie udało się wczytać rekordów.</p>}
         <MiniGameGrid records={records} nick={me} disabled={!!busy} onPick={play} />
       </Screen>
     );
@@ -117,7 +124,7 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
   // Dwie gry pod rekordy: cudzy rekord, do którego mam najbliżej (najwyższe miejsce poza pierwszym), i mój, którego broni się przed największą liczbą rywali.
   // ponytail: bliskość liczona miejscem, nie różnicą wyniku (gry mają różne jednostki); do zmiany, gdyby podpowiedzi były nietrafione
   const mine = MINI_GAME_IDS.filter((id) => id !== daily?.gameId).flatMap((id) => {
-    const rows = records[id] ?? [];
+    const rows = records?.[id] ?? [];
     const at = me ? standing(rows, me, GAMES[id].record!) : null;
     return at ? [{ id, at, top: rows[0] }] : [];
   });
@@ -157,9 +164,15 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
                 </span>
               </p>
             </div>
-            <button type="button" className="btn btn-primary w-full" disabled={!!busy} onClick={() => play(daily.gameId)}>
-              <Play size={18} weight="fill" aria-hidden />
-              Zagraj
+            <button type="button" className={`btn w-full ${full ? "btn-ghost" : "btn-primary"}`} disabled={!!busy} onClick={() => play(daily.gameId)}>
+              {busy === "solo" ? (
+                "Uruchamianie…"
+              ) : (
+                <>
+                  <Play size={18} weight="fill" aria-hidden />
+                  Zagraj
+                </>
+              )}
             </button>
           </>
         )}
@@ -193,8 +206,8 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
             Losowa gra
           </button>
           <button type="button" className="btn btn-ghost px-2 whitespace-nowrap" disabled={!!busy} onClick={() => setScreen("all")}>
-            <SquaresFour size={18} className="shrink-0" aria-hidden />
-            Wszystkie ({MINI_GAME_IDS.length})
+            <SquaresFour size={18} weight="bold" className="shrink-0" aria-hidden />
+            Wszystkie
           </button>
         </div>
         <Problem>{soloError}</Problem>
@@ -218,7 +231,7 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
         >
           <div className="flex gap-2">
             <input
-              className="field font-mono text-xl tracking-[0.4em] uppercase"
+              className="field font-mono tabular-nums text-xl tracking-[0.4em] uppercase"
               value={code}
               placeholder="KOD"
               aria-label="Kod pokoju"
@@ -237,7 +250,7 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
                 if (next.length === ROOM_CODE_LENGTH && next !== code && !busy) go("join", next);
               }}
             />
-            {/* Jedyny wypełniony przycisk ekranu to „Zagraj”; „Dołącz” dostaje akcent dopiero z pełnym kodem. */}
+            {/* Jeden wypełniony przycisk na ekranie: „Zagraj”, a z pełnym kodem „Dołącz” (wtedy „Zagraj” to obrys). */}
             <button type="submit" className={`btn shrink-0 ${full ? "btn-primary" : "btn-ghost"}`} disabled={!!busy || !full}>
               {busy === "join" ? "Łączenie…" : "Dołącz"}
               {busy !== "join" && <ArrowRight size={18} weight="bold" aria-hidden />}
@@ -267,7 +280,7 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
       <header className="flex items-center gap-3">
         <Logo />
         <h1 className="flex-1 text-3xl font-semibold tracking-tight">Kwadrans</h1>
-        <button type="button" className="btn btn-ghost size-12 p-0" aria-label="Rekordy i rankingi" onClick={() => setScreen("records")}>
+        <button type="button" className="btn btn-ghost size-12 p-0" aria-label="Rekordy i rankingi" disabled={!!busy} onClick={() => setScreen("records")}>
           <Trophy size={20} aria-hidden />
         </button>
       </header>
@@ -309,9 +322,21 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
         <p className="flex items-center gap-1.5 text-fg-muted">
           Grasz jako <span className="truncate font-semibold text-fg">{nick}</span>
           <span aria-hidden>·</span>
-          <button type="button" className="-mx-2 min-h-12 shrink-0 px-2 text-fg-muted underline underline-offset-4" onClick={() => setEditing(true)}>
+          <button
+            type="button"
+            className="-mx-2 min-h-12 shrink-0 px-2 text-fg-muted underline underline-offset-4 disabled:opacity-40"
+            disabled={!!busy}
+            onClick={() => setEditing(true)}
+          >
             zmień
           </button>
+        </p>
+      )}
+
+      {notice && (
+        <p role="status" className="tile flex items-center gap-2 text-sm">
+          <Info size={18} className="shrink-0 text-fg-muted" aria-hidden />
+          {notice}
         </p>
       )}
 
@@ -327,7 +352,7 @@ export function Home({ onRoom, notice }: { onRoom: (room: Room) => void; notice?
             {back.map((r) => (
               <li key={r.code}>
                 <button type="button" className="flex min-h-12 w-full items-center gap-3 text-left" disabled={!!busy} onClick={() => go("join", r.code)}>
-                  <span className="font-mono font-medium tracking-[0.12em]">{r.code}</span>
+                  <span className="font-mono tabular-nums font-medium tracking-[0.12em]">{r.code}</span>
                   <span className="flex-1 truncate text-sm text-fg-muted">
                     {(r.gameId && GAMES[r.gameId]?.name) || "Lobby"} · {alive[r.code]} {alive[r.code] === 1 ? "gracz" : "graczy"}
                   </span>

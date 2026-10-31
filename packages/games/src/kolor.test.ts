@@ -115,3 +115,66 @@ describe("Odcień: podpowiedzi po zatwierdzeniu", () => {
     expect(hints({ ...t, h: 350 }, { ...t, h: 20 })).toEqual(["za bardzo w stronę czerwieni"]);
   });
 });
+
+
+// P4-032: nazwane luki istniejących zasad z F4.
+test("P4-032/F4-004: definicja 1-6 graczy", () => {
+  expect([game.minPlayers, game.maxPlayers, game.turnSeconds]).toEqual([1, 6, 180]);
+});
+
+test("P4-032/F4-005: ten sam seed daje ten sam setup", () => {
+  const s = game.setup([A, B], createRng(7));
+  expect(game.setup([A, B], createRng(7))).toEqual(s);
+});
+
+
+test("P4-032/F4-006: po końcu każdy typ ruchu jest odrzucony dla graczy i obcego", () => {
+  let s = game.setup([A, B], createRng(1));
+  for (const p of [A, B]) s = send(s, p, result(s.targets));
+  expect(game.isOver(s)).not.toBeNull();
+  for (const p of [A, B, "obcy"]) for (const move of [result(s.targets)]) expect(game.validateMove(s, p, move)).toBe(false);
+});
+
+test.each([null, {}, { type: "nieznany", guesses: [] }, { type: "result" }, { type: "result", guesses: "kolor" }, { type: "result", guesses: [{ h: 0, s: 0 }] }, { type: "result", guesses: [{ h: "0", s: 0, b: 0 }] }])("P4-032/F4-008: schemat odrzuca %j", (move) => {
+  expect(game.moveSchema.safeParse(move).success).toBe(false);
+});
+
+test.each([C])("P4-032/F4-009: wygrywa także %s", (winner) => {
+  let s = game.setup([A, B, C], createRng(1));
+  for (const p of [A, B, C]) {
+    s = send(s, p, result(p === winner ? s.targets : []));
+  }
+  expect(game.isOver(s)?.winner).toBe(winner);
+  expect(game.waitingFor(s)).toEqual([]);
+});
+
+test("P4-032/F4-010: każdy typ ruchu bez mutacji zamrożonego wejścia i z JSON round-trip", () => {
+  function freeze(value: unknown): void {
+    if (value && typeof value === "object") {
+      Object.values(value).forEach(freeze);
+      Object.freeze(value);
+    }
+  }
+  let s = game.setup([A, B], createRng(1));
+  const moves: Move[] = [result(s.targets)];
+  for (const move of moves) {
+    const before = structuredClone(s);
+    freeze(s);
+    const after = send(s, A, move);
+    expect(s).toEqual(before);
+    expect(JSON.parse(JSON.stringify(after))).toEqual(after);
+    s = after;
+  }
+});
+
+test.each([
+  { h: 0, s: 0, b: 0 }, { h: 359, s: 100, b: 100 },
+])("P4-032/F4-007: skrajne HSB przechodzą %j", (edge) => {
+  const s = game.setup([A, B], createRng(1));
+  expect(game.validateMove(s, A, result(Array.from({ length: COUNT }, () => edge)))).toBe(true);
+});
+
+test("P4-032/F4-007: barwa -1 odpada", () => {
+  const s = game.setup([A, B], createRng(1));
+  expect(game.validateMove(s, A, result([...s.targets.slice(0, 4), { h: -1, s: 50, b: 50 }]))).toBe(false);
+});

@@ -1,6 +1,6 @@
 import { ArrowCounterClockwise, Check, Eraser, PencilSimple, Trash } from "@phosphor-icons/react";
 import { KALAMBURY_ANSWER_MAX, KALAMBURY_BATCH_POINTS, KALAMBURY_ERASER, KALAMBURY_MAX_POINTS, KALAMBURY_SIDE, type KalamburyMove, type KalamburyStroke, type KalamburyView, type LobbyPlayer } from "@kwadrans/games";
-import { type FormEvent, type PointerEvent, type ReactNode, useEffect, useRef, useState } from "react";
+import { type FormEvent, type PointerEvent, type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Scores, StickyBar } from "../screens/ui.tsx";
 
 interface Props {
@@ -32,8 +32,6 @@ const ERASER_WIDTH = 40;
 const CONFIRM_MS = 3000;
 /** Ile ostatnich pudeł widać pod rysunkiem. */
 const CHAT_LINES = 3;
-/** Miejsce na czat, pole tekstowe i „Pasuję” pod płótnem, gdy klawiatura zabiera pół ekranu. */
-const BELOW_CANVAS_PX = 210;
 
 export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) {
   const player = (id: string) => players.find((p) => p.id === id);
@@ -47,7 +45,7 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
       {timer && (
         <header className="flex flex-col gap-2">
           <span className="label">
-            Runda {view.round + 1}/{view.rounds} · rysuje {drawing ? "ty" : nick(view.drawer)}
+            Runda {view.round + 1}/{view.rounds} · {drawing ? "rysujesz" : `rysuje ${nick(view.drawer)}`}
           </span>
           {/* Tytuł w kolorze gracza tylko u rysującego: to jego tura, jak „Twój ruch” w innych grach. */}
           <h1 className="text-xl leading-tight font-semibold" style={drawing && live ? { color: player(me)?.color } : undefined}>
@@ -56,7 +54,7 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
             ) : view.word ? (
               view.word
             ) : (
-              <span className="font-mono tracking-[0.3em]" aria-label={`Hasło, liter: ${view.hint.length}${view.revealed.length ? `, odsłonięta: ${view.hint.replace(/_/g, "")}` : ""}`}>
+              <span role="img" className="font-mono tabular-nums tracking-[0.3em]" aria-label={`Hasło, liter: ${view.hint.length}${view.revealed.length ? `, odsłonięta: ${view.hint.replace(/_/g, "")}` : ""}`}>
                 {view.hint}
               </span>
             )}
@@ -136,8 +134,8 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
           />
           {view.phase === "reveal" && view.players.includes(me) && (
             <StickyBar>
-              <button type="button" className="btn w-full text-bg" style={{ backgroundColor: player(me)?.color }} disabled={view.ready.includes(me)} onClick={() => onMove({ type: "next" })}>
-                {view.ready.includes(me) ? "Czekamy na resztę" : "Dalej"}
+              <button type="button" className="btn w-full btn-player" style={{ backgroundColor: player(me)?.color }} disabled={view.ready.includes(me)} onClick={() => onMove({ type: "next" })}>
+                {view.ready.includes(me) ? `Czekamy na: ${view.players.filter((p) => !view.ready.includes(p)).map(nick).join(", ")}…` : "Dalej"}
               </button>
             </StickyBar>
           )}
@@ -154,6 +152,8 @@ function Canvas({ strokes, size, children, ...pointer }: { strokes: KalamburyStr
       viewBox={`0 0 ${KALAMBURY_SIDE} ${KALAMBURY_SIDE}`}
       className="mx-auto block aspect-square w-full touch-none select-none rounded-tile border border-line bg-surface [-webkit-touch-callout:none]"
       style={{ maxWidth: size }}
+      role="img"
+      aria-label="Rysunek"
       {...pointer}
     >
       {strokes.map((s, i) => (
@@ -189,6 +189,9 @@ function Pad({ view, onMove }: { view: KalamburyView; onMove: Props["onMove"] })
   /** Punkty jeszcze niewysłane, czy zaczynają nową kreskę i jej kolor. */
   const pending = useRef<{ points: number[]; start: boolean; color: number } | null>(null);
   const count = (all: KalamburyStroke[]) => all.reduce((n, s) => n + s.points.length / 2, 0);
+  const top = useRef<HTMLDivElement>(null);
+  const controls = useRef<HTMLDivElement>(null);
+  const size = useCanvasSize(top, controls);
   const full = count(strokes) >= KALAMBURY_MAX_POINTS;
   const draw = (next: KalamburyStroke[]) => setStrokes((local.current = next));
 
@@ -262,35 +265,37 @@ function Pad({ view, onMove }: { view: KalamburyView; onMove: Props["onMove"] })
 
   return (
     <>
-      <div className="relative">
-        <Canvas strokes={strokes} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} />
+      <div ref={top} className="relative">
+        <Canvas size={size} strokes={strokes} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} />
         {full && <span className="pointer-events-none absolute top-2 left-3 text-xs text-fg-muted">Rysunek pełny: cofnij albo wyczyść</span>}
       </div>
-      <div className="flex justify-between" role="radiogroup" aria-label="Kolor">
-        {PALETTE.map((p, i) => (
-          <button
-            key={p.name}
-            type="button"
-            role="radio"
-            aria-checked={ink === i}
-            aria-label={p.name}
-            className={`flex size-12 items-center justify-center rounded-full border border-line-hover transition-colors ${ink === i ? "ring-2 ring-fg ring-offset-2 ring-offset-bg" : ""}`}
-            style={{ backgroundColor: p.color }}
-            onClick={() => setInk(i)}
-          >
-            {i === KALAMBURY_ERASER && <Eraser size={22} aria-hidden />}
+      <div ref={controls} className="flex flex-col gap-3">
+        <div className="flex justify-between" role="radiogroup" aria-label="Kolor">
+          {PALETTE.map((p, i) => (
+            <button
+              key={p.name}
+              type="button"
+              role="radio"
+              aria-checked={ink === i}
+              aria-label={p.name}
+              className={`flex size-12 items-center justify-center rounded-full border border-line-hover transition-colors duration-100 ${ink === i ? "ring-2 ring-fg ring-offset-2 ring-offset-bg" : ""}`}
+              style={{ backgroundColor: p.color }}
+              onClick={() => setInk(i)}
+            >
+              {i === KALAMBURY_ERASER && <Eraser size={22} aria-hidden />}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-3">
+          <button type="button" className="btn btn-ghost flex-1" disabled={strokes.length === 0 && cleared.length === 0} onClick={() => edit("undo")}>
+            <ArrowCounterClockwise size={18} weight="bold" aria-hidden />
+            Cofnij
           </button>
-        ))}
-      </div>
-      <div className="flex gap-3">
-        <button type="button" className="btn btn-ghost flex-1" disabled={strokes.length === 0 && cleared.length === 0} onClick={() => edit("undo")}>
-          <ArrowCounterClockwise size={18} aria-hidden />
-          Cofnij
-        </button>
-        <button type="button" className="btn btn-ghost flex-1" disabled={strokes.length === 0} onClick={() => edit("clear")}>
-          <Trash size={18} aria-hidden />
-          Wyczyść
-        </button>
+          <button type="button" className="btn btn-ghost flex-1" disabled={strokes.length === 0} onClick={() => edit("clear")}>
+            <Trash size={18} weight="bold" aria-hidden />
+            Wyczyść
+          </button>
+        </div>
       </div>
     </>
   );
@@ -301,12 +306,40 @@ function useViewportHeight() {
   const [h, setH] = useState(() => window.visualViewport?.height ?? window.innerHeight);
   useEffect(() => {
     const vv = window.visualViewport;
-    if (!vv) return;
-    const on = () => setH(vv.height);
-    vv.addEventListener("resize", on);
-    return () => vv.removeEventListener("resize", on);
+    const on = () => setH(vv?.height ?? window.innerHeight);
+    window.addEventListener("resize", on);
+    vv?.addEventListener("resize", on);
+    return () => {
+      window.removeEventListener("resize", on);
+      vv?.removeEventListener("resize", on);
+    };
   }, []);
   return h;
+}
+
+/** Mierzymy nagłówek nad płótnem i kontrolki pod nim zamiast zgadywać ich wysokość. */
+function useCanvasSize(top: RefObject<HTMLDivElement | null>, controls: RefObject<HTMLDivElement | null>) {
+  const height = useViewportHeight();
+  const [size, setSize] = useState<number>();
+  useLayoutEffect(() => {
+    const canvas = top.current;
+    const footer = controls.current;
+    if (!canvas || !footer) return;
+    const measure = () => {
+      const bottomPadding = parseFloat(getComputedStyle(canvas.closest("main")!).paddingBottom);
+      const gap = parseFloat(getComputedStyle(canvas.parentElement!).rowGap) || 0;
+      const y = canvas.getBoundingClientRect().top + window.scrollY;
+      setSize(Math.max(48, Math.floor(height - y - footer.getBoundingClientRect().height - gap - bottomPadding)));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(canvas.parentElement!);
+    for (const sibling of canvas.parentElement!.children) {
+      if (sibling !== canvas) observer.observe(sibling);
+    }
+    return () => observer.disconnect();
+  }, [height, top, controls]);
+  return size;
 }
 
 /** Rysunek z serwera, ostatnie pudła i pole do zgadywania. Płótno maleje przy klawiaturze, żeby pole zostało widoczne. */
@@ -320,6 +353,8 @@ function Guess({ view, me, color, canGuess, nick, onMove }: { view: KalamburyVie
     return () => clearTimeout(id);
   }, [sure]);
   const top = useRef<HTMLDivElement>(null);
+  const controls = useRef<HTMLDivElement>(null);
+  const size = useCanvasSize(top, controls);
   const height = useViewportHeight();
   const hit = view.guessed.includes(me);
   const passed = view.passed.includes(me);
@@ -327,7 +362,7 @@ function Guess({ view, me, color, canGuess, nick, onMove }: { view: KalamburyVie
   // Klawiatura się otworzyła: płótno na górę widocznej części, pole tekstowe zostaje pod nim.
   useEffect(() => {
     if (document.activeElement?.id === "kalambury-guess") top.current?.scrollIntoView({ block: "start" });
-  }, [height]);
+  }, [height, size]);
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -339,7 +374,7 @@ function Guess({ view, me, color, canGuess, nick, onMove }: { view: KalamburyVie
   return (
     <>
       <div ref={top} className="relative scroll-mt-2">
-        <Canvas strokes={view.strokes} size={height - BELOW_CANVAS_PX} />
+        <Canvas strokes={view.strokes} size={size} />
         {/* Stan pusty: zanim padnie pierwsza kreska, płótno mówi, na co czekamy. */}
         {view.strokes.length === 0 && (
           <p className="pointer-events-none absolute inset-0 grid place-items-center px-6 text-center text-sm text-fg-muted">
@@ -347,42 +382,44 @@ function Guess({ view, me, color, canGuess, nick, onMove }: { view: KalamburyVie
           </p>
         )}
       </div>
-      <ul className="flex min-h-[4.5rem] flex-col justify-end text-sm" aria-live="polite" aria-label="Strzały">
-        {view.chat.slice(-CHAT_LINES).map((m, i) => (
-          <li key={view.chat.length - CHAT_LINES + i} className="truncate">
-            <span className="text-fg-muted">{nick(m.player)}:</span> {m.text}
-          </li>
-        ))}
-        {view.guessed.length > 0 && <li className="truncate text-success">Trafione: {view.guessed.map(nick).join(", ")}</li>}
-      </ul>
-      {canGuess && !hit && !passed && (
-        <form className="flex flex-col gap-2" onSubmit={submit}>
-          <div className="flex gap-2">
-          <input
-            id="kalambury-guess"
-            className="field min-w-0 flex-1"
-            value={text}
-            placeholder="Co to jest?"
-            maxLength={KALAMBURY_ANSWER_MAX}
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-            enterKeyHint="send"
-            aria-label="Twój strzał"
-            onChange={(e) => setText(e.target.value)}
-          />
-          {/* onPointerDown bez utraty fokusu: klawiatura zostaje otwarta między strzałami */}
-          <button type="submit" className="btn text-bg" style={{ backgroundColor: color }} onPointerDown={(e) => e.preventDefault()}>
-            Zgadnij
-          </button>
-          </div>
-          <button type="button" className={`btn btn-ghost w-full ${sure ? "border-fg" : ""}`} onClick={() => (sure ? onMove({ type: "pass" }) : setSure(true))}>
-            {sure ? "Dotknij jeszcze raz, żeby spasować" : "Pasuję"}
-          </button>
-        </form>
-      )}
-      {hit && <p className="tile p-4 text-success">Trafione! Czekamy na resztę.</p>}
-      {passed && <p className="tile p-4 text-fg-muted">Pasujesz. Czekamy na resztę.</p>}
+      <div ref={controls} className="flex flex-col gap-3">
+        <ul className="flex min-h-[4.5rem] flex-col justify-end text-sm" aria-live="polite" aria-label="Strzały">
+          {view.chat.slice(-CHAT_LINES).map((m, i) => (
+            <li key={view.chat.length - CHAT_LINES + i} className="truncate">
+              <span className="text-fg-muted">{nick(m.player)}:</span> {m.text}
+            </li>
+          ))}
+          {view.guessed.length > 0 && <li className="truncate text-success">Trafione: {view.guessed.map(nick).join(", ")}</li>}
+        </ul>
+        {canGuess && !hit && !passed && (
+          <form className="flex flex-col gap-2" onSubmit={submit}>
+            <div className="flex gap-2">
+              <input
+                id="kalambury-guess"
+                className="field min-w-0 flex-1"
+                value={text}
+                placeholder="Co to jest?"
+                maxLength={KALAMBURY_ANSWER_MAX}
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
+                enterKeyHint="send"
+                aria-label="Twój strzał"
+                onChange={(e) => setText(e.target.value)}
+              />
+              {/* onPointerDown bez utraty fokusu: klawiatura zostaje otwarta między strzałami */}
+              <button type="submit" className="btn btn-player" style={{ backgroundColor: color }} onPointerDown={(e) => e.preventDefault()}>
+                Zgadnij
+              </button>
+            </div>
+            <button type="button" className={`btn btn-ghost w-full ${sure ? "border-fg" : ""}`} onClick={() => (sure ? onMove({ type: "pass" }) : setSure(true))}>
+              {sure ? "Dotknij jeszcze raz, żeby spasować" : "Pasuję"}
+            </button>
+          </form>
+        )}
+        {hit && <p className="tile p-4 text-success">Trafione! Czekamy na resztę.</p>}
+        {passed && <p className="tile p-4 text-fg-muted">Pasujesz. Czekamy na resztę.</p>}
+      </div>
     </>
   );
 }

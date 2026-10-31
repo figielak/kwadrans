@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { GameDefinition, PlayerId, Rng } from "./core.ts";
+import { type GameDefinition, type PlayerId, type Rng, shuffle } from "./core.ts";
 
 export const SIZE = 32;
 export const ROUNDS = 20;
@@ -322,11 +322,15 @@ function goBankrupt(s: State, player: PlayerId, to: PlayerId[]): State {
   for (const q of to) cash[q] += Math.floor(s.cash[player] / to.length);
   const owners = Object.fromEntries(Object.entries(s.owners).filter(([, p]) => p !== player));
   const levels = Object.fromEntries(Object.entries(s.levels).filter(([tile]) => owners[Number(tile)]));
+  // Zaliczenia bankruta wracają na spód talii, żeby karta dalej krążyła.
+  const returned = Array<number>(s.passes[player] ?? 0).fill(PASS_CARD);
   const next: State = {
     ...dropFestival(s, owners),
     cash,
     owners,
     levels,
+    deck: [...s.deck, ...returned],
+    passes: { ...s.passes, [player]: 0 },
     debt: null,
     bankrupt: [...s.bankrupt, player],
     kolokwium: s.kolokwium.filter((p) => p !== player),
@@ -457,7 +461,10 @@ function land(s: State, player: PlayerId, rentFactor = 1): State {
   if (!owner) return s.cash[player] >= tile.price ? { ...s, phase: "buy" } : finish(s);
   if (owner === player) return offerBuild(s, player);
   const amount = rentWithFestival(s, pos) * rentFactor;
-  const charged = log(s, { type: "rent", player, amount, tile: pos, to: owner });
+  // Statystyka liczy faktycznie oddaną kwotę: bankrut oddaje tylko gotówkę (sprzedaż pól pokrywa dług w całości).
+  const assets = owned(s, player).reduce((sum, i) => sum + saleValue(s, i), 0);
+  const paid = s.cash[player] + assets >= amount ? amount : s.cash[player];
+  const charged = log(s, { type: "rent", player, amount: paid, tile: pos, to: owner });
   // ponytail: po przymusowej sprzedaży pól nie ma oferty wykupu (i tak nie byłoby za co)
   if (s.cash[player] < amount) return pay(charged, player, amount, [owner]);
   return offerBuyout({ ...charged, cash: { ...s.cash, [player]: s.cash[player] - amount, [owner]: s.cash[owner] + amount } }, player);
@@ -472,11 +479,7 @@ export const kampusTour: GameDefinition<State, Move> = {
   moveSchema,
 
   setup(players, rng) {
-    const deck = CARDS.map((_, i) => i);
-    for (let i = deck.length - 1; i > 0; i--) {
-      const j = Math.floor(rng() * (i + 1));
-      [deck[i], deck[j]] = [deck[j], deck[i]];
-    }
+    const deck = shuffle(CARDS.map((_, i) => i), rng);
     return {
       players,
       positions: Object.fromEntries(players.map((p) => [p, 0])),

@@ -1,6 +1,6 @@
 import type { LobbyPlayer } from "@kwadrans/games";
 import { type FormEvent, type ReactNode, useEffect, useState } from "react";
-import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { Intro, RoundTable, Scores, Stats } from "../screens/ui.tsx";
 
 /** Wspólny ekran gier „zobacz przez chwilę, wpisz liczbę”: Policz kropki i Kąt. */
 interface Props {
@@ -28,27 +28,6 @@ interface Props {
 /** Pusta plansza przed pokazem, żeby wzrok zdążył wrócić z przycisku. */
 const WAIT_MS = 800;
 
-/** Prawdziwa wartość | odpowiedź w każdej rundzie. */
-function Answers({ truths, answers, unit }: { truths: number[]; answers: number[]; unit: string }) {
-  return (
-    <div className="grid grid-cols-5 gap-2">
-      <span className="col-span-5 text-xs text-fg-muted">u góry było, niżej wpisane</span>
-      {truths.map((n, i) => (
-        <div key={i} className="flex flex-col items-center rounded-inset border border-line py-1 font-mono">
-          <span>
-            {n}
-            {unit}
-          </span>
-          <span className={answers[i] === n ? "text-success" : "text-fg-muted"}>
-            {answers[i]}
-            {unit}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 /** Różnica ze znakiem: „−4”, „+3”. */
 const signed = (n: number) => (n < 0 ? `−${-n}` : `+${n}`);
 
@@ -62,7 +41,8 @@ export function Szacowanie({ view, me, players, ranking, onMove, truths, draw, s
   const [input, setInput] = useState("");
   const index = phase === "reveal" ? answers.length - 1 : answers.length;
   const color = players.find((p) => p.id === me)?.color;
-  const valid = input !== "" && Number(input) <= maxAnswer;
+  const tooBig = Number(input) > maxAnswer;
+  const valid = input !== "" && !tooBig;
 
   useEffect(() => {
     if (phase !== "wait" && phase !== "show") return;
@@ -99,19 +79,22 @@ export function Szacowanie({ view, me, players, ranking, onMove, truths, draw, s
       <>
         <Scores rows={rows} />
         <p className="text-sm text-fg-muted">Suma pomyłek z {rounds} rund, mniej znaczy lepiej.</p>
-        {shown.map((id) => (
-          <section key={id} className="tile flex flex-col gap-2 p-3">
-            <span className="text-sm">
-              {rows.find((r) => r.id === id)?.nick}
-              {id === me && <span className="text-fg-muted"> (ty)</span>}
-            </span>
-            {view.answers[id].length ? (
-              <Answers truths={truths} answers={view.answers[id]} unit={unit} />
-            ) : (
-              <span className="text-sm text-fg-muted">Bez odpowiedzi</span>
-            )}
-          </section>
-        ))}
+        {shown.length > 0 && (
+          <RoundTable
+            heads={truths.map((_, i) => i + 1)}
+            goal={{ label: "Było", values: truths.map((n) => `${n}${unit}`) }}
+            rows={shown.map((id) => {
+              const r = rows.find((row) => row.id === id)!;
+              return { id, nick: r.nick, color: r.color, me: r.me, errors: view.answers[id].map((a, i) => Math.abs(a - truths[i])) };
+            })}
+            perfect={0}
+            close={Infinity}
+            unit={unit}
+            // Znak mówi, czy za dużo, czy za mało; w komórce sama różnica, bo prawdziwe wartości są w wierszu „Było”.
+            format={(d, i, id) => (d === 0 ? "0" : `${signed(view.answers[id][i] - truths[i])}${unit}`)}
+            caption="Pomyłka w każdej rundzie: plus to za dużo, minus za mało. Zielony: dokładnie."
+          />
+        )}
       </>
     );
   }
@@ -145,16 +128,23 @@ export function Szacowanie({ view, me, players, ranking, onMove, truths, draw, s
             <label className="flex flex-col gap-1">
               <span className="text-sm text-fg-muted">{question}</span>
               <input
-                className="field text-center font-mono text-3xl"
+                className="field text-center font-mono tabular-nums text-3xl"
                 inputMode="numeric"
                 enterKeyHint="done"
                 autoComplete="off"
                 autoFocus
+                aria-invalid={tooBig}
+                aria-describedby="answer-limit"
                 value={input}
                 onChange={(e) => setInput(e.target.value.replace(/\D/g, "").slice(0, String(maxAnswer).length))}
               />
+              {/* Powód nieaktywnego „Zatwierdź”; miejsce zarezerwowane, żeby przycisk nie skakał. */}
+              <span id="answer-limit" role="alert" className={`text-sm ${tooBig ? "text-warning" : "invisible"}`}>
+                Najwyżej {maxAnswer}
+                {unit}
+              </span>
             </label>
-            <button type="submit" className="btn w-full text-bg" style={{ backgroundColor: color }} disabled={!valid}>
+            <button type="submit" className="btn w-full btn-player" style={{ backgroundColor: color }} disabled={!valid}>
               Zatwierdź
             </button>
           </form>
@@ -176,11 +166,11 @@ export function Szacowanie({ view, me, players, ranking, onMove, truths, draw, s
               </span>
             </p>
             <span className={`font-mono text-3xl font-semibold tabular-nums ${diff === 0 ? "text-success" : ""}`}>
-              {diff === 0 ? "Idealnie" : signed(diff)}
+              {diff === 0 ? "Idealnie!" : signed(diff)}
             </span>
           </div>
-          <button type="button" className="btn w-full text-bg" style={{ backgroundColor: color }} autoFocus onClick={next}>
-            {answers.length < rounds ? "Następna runda" : "Wyniki"}
+          <button type="button" className="btn w-full btn-player" style={{ backgroundColor: color }} autoFocus onClick={next}>
+            {answers.length < rounds ? "Dalej" : "Wyniki"}
           </button>
         </>
       )}

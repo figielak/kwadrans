@@ -7,7 +7,7 @@ import { DURATION_MS } from "./quiz.ts";
 // - wszyscy dostają te same pary figur z klocków: `a`, `b` i `mirror` (czy `b` to lustrzane odbicie `a`),
 // - figura to spójne poliomino dosunięte do rogu (0, 0), klocków przybywa co 3 pary od 4 do 7,
 // - `b` to `a` (albo jej odbicie) obrócona o 90, 180 albo 270°; figura jest chiralna, więc odpowiedź jest jedna,
-// - klient oddaje czasy trafień (150-5000 ms, razem max 30 s) i liczbę pomyłek,
+// - klient oddaje czasy trafień (całkowite 0-30000 ms, razem max 30 s) i liczbę pomyłek,
 // - wynik = trafienia − pomyłki, nie mniej niż 0; ranking: więcej punktów wyżej, remis rozstrzyga niższa średnia.
 
 const A = "ania";
@@ -135,8 +135,8 @@ describe("punktacja", () => {
 describe("walidacja", () => {
   const s = game.setup([A, B], createRng(1));
   test.each([
-    ["za szybko", result([149])],
-    ["za wolno", result([5001])],
+    ["ujemny czas", result([-1])],
+    ["czas ponad długość rundy", result([30001])],
     ["ponad 30 s", result(Array(11).fill(3000))],
     ["ujemne pomyłki", result([500], -1)],
     ["niecałkowite pomyłki", result([500], 1.5)],
@@ -153,7 +153,7 @@ describe("schemat", () => {
     ["zły typ ruchu", { type: "tap", times: [], errors: 0 }],
     ["brak czasów", { type: "result", errors: 0 }],
     ["czas tekstem", { type: "result", times: ["500"], errors: 0 }],
-    ["za dużo czasów", { type: "result", times: Array(201).fill(150), errors: 0 }],
+    ["suma czasów ponad 30 s", { type: "result", times: Array(201).fill(150), errors: 0 }],
     ["niecałkowite pomyłki", { type: "result", times: [], errors: 0.5 }],
   ])("%s", (_, move) => expect(game.moveSchema.safeParse(move).success).toBe(false));
   test("poprawny ruch", () => expect(game.moveSchema.safeParse(result([500], 2)).success).toBe(true));
@@ -206,4 +206,36 @@ test("applyMove nie zmienia poprzedniego stanu, stan przeżywa JSON", () => {
   const next = send(s, A, result([500]));
   expect(JSON.stringify(s)).toBe(before);
   expect(JSON.parse(JSON.stringify(next))).toEqual(next);
+});
+
+describe("P4-058: komplet sześciu rodzajów planszy", () => {
+  /** Rodzaj planszy: kąt (1-3 × 90°) i lustro; -1, gdy kąta nie da się jednoznacznie odczytać. */
+  function kind(t: { a: Cells; b: Cells; mirror: boolean }) {
+    const all = turns(t.mirror ? flip(t.a) : t.a);
+    // Figura symetryczna względem 180° wygląda tak samo po 90 i 270°, więc kąt byłby niejednoznaczny.
+    if (new Set(all).size !== 4) return -1;
+    return all.indexOf(key(t.b)) * 2 + Number(t.mirror);
+  }
+
+  test("w każdej kolejnej szóstce par każdy rodzaj (90/180/270° × ta sama/lustro) raz, dla 1000 seedów", () => {
+    for (let seed = 1; seed <= 1000; seed++) {
+      const trials = game.setup([A], createRng(seed)).trials;
+      for (let i = 0; i < trials.length; i += 6) {
+        const kinds = trials.slice(i, i + 6).map(kind);
+        expect(kinds.every((k) => k >= 2 && k <= 7), `seed ${seed}, szóstka od ${i}: ${kinds}`).toBe(true);
+        expect(new Set(kinds).size, `seed ${seed}, szóstka od ${i}: ${kinds}`).toBe(kinds.length);
+      }
+      for (const t of trials) {
+        expect(turns(flip(t.b)).includes(key(t.a)), `seed ${seed}: lustro`).toBe(t.mirror);
+        expect(turns(t.a).includes(key(flip(t.a))), `seed ${seed}: figura chiralna`).toBe(false);
+      }
+    }
+    // 1000 partii po 200 figur to około 10 s losowania.
+  }, 60_000);
+
+  test("kolejność rodzajów w szóstkach jest tasowana, nie stała", () => {
+    const trials = trialsOf(1);
+    const orders = new Set(Array.from({ length: Math.floor(trials.length / 6) }, (_, i) => trials.slice(i * 6, i * 6 + 6).map(kind).join()));
+    expect(orders.size).toBeGreaterThan(1);
+  });
 });

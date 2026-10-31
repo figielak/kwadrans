@@ -101,7 +101,7 @@ export { BALLOONS as BALON_BALLOONS, MAX_SAFE as BALON_MAX_SAFE, score as balonS
 export { MAX_ANSWER as W_PAMIECI_MAX_ANSWER, ROUNDS as W_PAMIECI_ROUNDS, type Round as WPamieciRound, SHOW_MS as W_PAMIECI_SHOW_MS, value as wPamieciValue, type View as WPamieciView } from "./w-pamieci.ts";
 export { ROUNDS as KROPKI_ROUNDS, SHOW_MS as KROPKI_SHOW_MS, type View as KropkiView } from "./kropki.ts";
 export { MAX_YEAR as ROK_MAX_YEAR, MIN_YEAR as ROK_MIN_YEAR, REVEAL_MS as ROK_REVEAL_MS, ROUND_MS as ROK_ROUND_MS, ROUNDS as ROK_ROUNDS, type Event as RokEvent, type View as RokView } from "./rok.ts";
-export { BALLS, MOVE_MS, RADIUS, ROUNDS, SHOW_MS, SPEED_START, SPEED_STEP, TARGETS, position as sledzeniePosition, type Ball as SledzenieBall, type Move as SledzenieMove, type Result as SledzenieResult, type State as SledzenieState, type View as SledzenieView } from "./sledzenie.ts";
+export { BALLS as SLEDZENIE_BALLS, MOVE_MS as SLEDZENIE_MOVE_MS, RADIUS as SLEDZENIE_RADIUS, ROUNDS as SLEDZENIE_ROUNDS, SHOW_MS as SLEDZENIE_SHOW_MS, SPEED_START as SLEDZENIE_SPEED_START, SPEED_STEP as SLEDZENIE_SPEED_STEP, TARGETS as SLEDZENIE_TARGETS, position as sledzeniePosition, type Ball as SledzenieBall, type Move as SledzenieMove, type Result as SledzenieResult, type State as SledzenieState, type View as SledzenieView } from "./sledzenie.ts";
 export { BASE as WIEZA_BASE, build as wiezaBuild, left as wiezaLeft, LEVELS as WIEZA_LEVELS, MAX_STOP_MS as WIEZA_MAX_STOP_MS, START_WIDTH as WIEZA_START_WIDTH, type View as WiezaView } from "./wieza.ts";
 export { ACCEPT_PX as SRODEK_ACCEPT_PX, error as srodekError, offset as srodekOffset, type Point as SrodekPoint, project as srodekProject, ROUNDS as SRODEK_ROUNDS, type View as SrodekView } from "./srodek.ts";
 export { ASPECT as MAPA_ASPECT, distance as mapaDistance, error as mapaError, locate as mapaLocate, place as mapaPlace, type Point as MapaPoint, ROUNDS as MAPA_ROUNDS, type View as MapaView } from "./mapa.ts";
@@ -115,7 +115,7 @@ export { type Cake as TortCake, CAKES as TORT_CAKES, error as tortError, type Vi
 export { ballAt as kubkiBallAt, ROUNDS as KUBKI_ROUNDS, SHOW_MS as KUBKI_SHOW_MS, swapMs as kubkiSwapMs, type Round as KubkiRound, type View as KubkiView } from "./kubki.ts";
 export { BLANKS as SUDOKU_BLANKS, PENALTY_MS as SUDOKU_PENALTY_MS, total as sudokuTotal, type View as SudokuView } from "./sudoku.ts";
 export { accepts as nozyczkiAccepts, type Cut as NozyczkiCut, error as nozyczkiError, type Point as NozyczkiPoint, share as nozyczkiShare, SHAPES as NOZYCZKI_SHAPES, split as nozyczkiSplit, type View as NozyczkiView } from "./nozyczki.ts";
-export { DURATION_MS as QUIZ_DURATION_MS, type QuizMove } from "./quiz.ts";
+export { DURATION_MS as QUIZ_DURATION_MS, BLOCK_MS as QUIZ_BLOCK_MS, type QuizMove } from "./quiz.ts";
 export { around as shipAround, isValidFleet, MODES as STATKI_MODES, randomFleet, type Rules as StatkiRules, type Ship, shipCells, type Shot, type View as StatkiView } from "./statki.ts";
 
 // ponytail: `any`, bo każda gra ma inny stan i ruch; platforma rozmawia z nimi tylko przez GameDefinition

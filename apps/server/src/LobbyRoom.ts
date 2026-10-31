@@ -17,6 +17,7 @@ import {
   mark,
   MAX_PLAYERS,
   MINI_GAME_IDS,
+  type MoveContext,
   NEXT_SECONDS,
   type Phase,
   PLAYER_COLORS,
@@ -175,7 +176,7 @@ export class LobbyRoom extends Room {
     this.on("move", (client, raw) => {
       if (this.phase !== "playing" || !this.match) return;
       const move = this.match.def.moveSchema.safeParse(raw);
-      if (move.success) this.play(client.sessionId, move.data);
+      if (move.success) this.play(client.sessionId, move.data, { source: "client" });
     });
 
     // Po partii `ready` znaczy „chcę rewanż”; rewanż rusza, gdy chcą wszyscy grający.
@@ -358,14 +359,16 @@ export class LobbyRoom extends Room {
     this.startTurnTimer();
   }
 
-  private play(player: string, move: unknown) {
+  private play(player: string, move: unknown, context: MoveContext) {
     const match = this.match!;
-    if (!match.def.validateMove(match.state, player, move)) return;
+    if (!match.def.validateMove(match.state, player, move, context)) return;
     const before = match.def.waitingFor(match.state).join();
     const keyBefore = match.def.turn?.(match.state).key;
     match.state = match.def.applyMove(match.state, player, move, match.rng);
     const result = match.def.isOver(match.state);
     if (result) return this.finish(result);
+    // Mini-gra ma jeden termin od końca instrukcji: wynik ani próba nikomu go nie przesuwa.
+    if (match.def.minPlayers === 1) return;
     if (match.def.turn) {
       if (match.def.turn(match.state).key !== keyBefore) this.startTurnTimer();
       return;
@@ -439,7 +442,7 @@ export class LobbyRoom extends Room {
       try {
         for (const player of def.waitingFor(this.match!.state)) {
           if (this.phase !== "playing") break;
-          this.play(player, def.timeoutMove!(this.match!.state, player, rng));
+          this.play(player, def.timeoutMove!(this.match!.state, player, rng), { source: "timeout" });
         }
       } catch (error) {
         // Bez ruchu zastępczego nie ruszyłby kolejny limit i partia wisiałaby bez końca, więc kończy się bez zwycięzcy.

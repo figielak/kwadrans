@@ -9,7 +9,7 @@ import { DURATION_MS } from "./quiz.ts";
 // - `other` różni się od `base` dokładnie jednym: obrotem (trójkąt), jasnością, rozmiarem albo liczbą boków (±1),
 // - kształt jest losowany tylko dopóki siatka rośnie (plansze 0-7), potem zostają subtelne różnice,
 // - różnica maleje liniowo od planszy 0 do HARD, dalej jest stała,
-// - klient oddaje czasy trafień (150-5000 ms, razem max 30 s) i liczbę pomyłek,
+// - klient oddaje czasy trafień (całkowite 0-30000 ms, razem max 30 s) i liczbę pomyłek,
 // - ranking: więcej trafień wyżej, remis rozstrzyga niższa średnia.
 
 const A = "ania";
@@ -143,8 +143,8 @@ describe("plansze", () => {
 describe("walidacja", () => {
   const s = game.setup([A, B], createRng(1));
   test.each([
-    ["za szybko", result([149])],
-    ["za wolno", result([5001])],
+    ["ujemny czas", result([-1])],
+    ["czas ponad długość rundy", result([30001])],
     ["ponad 30 s", result(Array(11).fill(3000))],
     ["ujemne pomyłki", result([500], -1)],
     ["niecałkowite pomyłki", result([500], 1.5)],
@@ -161,7 +161,7 @@ describe("schemat", () => {
     ["zły typ ruchu", { type: "tap", times: [], errors: 0 }],
     ["brak czasów", { type: "result", errors: 0 }],
     ["czas tekstem", { type: "result", times: ["500"], errors: 0 }],
-    ["za dużo czasów", { type: "result", times: Array(201).fill(150), errors: 0 }],
+    ["suma czasów ponad 30 s", { type: "result", times: Array(201).fill(150), errors: 0 }],
     ["niecałkowite pomyłki", { type: "result", times: [], errors: 0.5 }],
   ])("%s", (_, move) => expect(game.moveSchema.safeParse(move).success).toBe(false));
   test("poprawny ruch", () => expect(game.moveSchema.safeParse(result([500], 2)).success).toBe(true));

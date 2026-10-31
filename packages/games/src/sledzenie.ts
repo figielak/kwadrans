@@ -67,7 +67,7 @@ export const sledzenie: GameDefinition<State, Move> = {
   name: "Śledzenie",
   minPlayers: 1,
   maxPlayers: 6,
-  turnSeconds: 300,
+  turnSeconds: 360,
   moveSchema: z.object({
     type: z.literal("result"),
     picks: z.array(z.array(z.number().int()).length(TARGETS)).max(ROUNDS),

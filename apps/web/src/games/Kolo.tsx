@@ -1,6 +1,6 @@
-import { KOLO_ATTEMPTS, KOLO_MAX_POINTS, koloJudge, type KoloPoint, type KoloView, type LobbyPlayer } from "@kwadrans/games";
-import { type PointerEvent, useRef, useState } from "react";
-import { Intro, Stats } from "../screens/ui.tsx";
+import { GAMES, KOLO_ATTEMPTS, KOLO_MAX_POINTS, koloJudge, type KoloPoint, type KoloView, type LobbyPlayer } from "@kwadrans/games";
+import { type PointerEvent, useLayoutEffect, useRef, useState } from "react";
+import { Intro, Stats, upTo } from "../screens/ui.tsx";
 
 interface Props {
   view: KoloView;
@@ -78,6 +78,25 @@ function Judged({ points, circle: { cx, cy, r } }: { points: KoloPoint[]; circle
   );
 }
 
+function Preview({ color }: { color?: string }) {
+  return (
+    <svg viewBox="0 0 1 1" className="h-28">
+        <circle
+          cx={0.5}
+          cy={0.5}
+          r={0.4}
+          fill="none"
+          stroke={color}
+          strokeWidth={0.04}
+          strokeLinecap="round"
+          pathLength={1}
+          strokeDasharray={1}
+          className="animate-[line-draw_2.5s_ease-in-out_infinite]"
+        />
+    </svg>
+  );
+}
+
 export function Kolo({ view, me, players, ranking, onMove }: Props) {
   const attempts = view.attempts[me] ?? 0;
   const playing = view.players.includes(me) && attempts < KOLO_ATTEMPTS;
@@ -86,12 +105,43 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
   const [started, setStarted] = useState(attempts > 0);
   const [points, setPoints] = useState<KoloPoint[]>([]);
   const [hint, setHint] = useState<string | null>(null);
+  // Licznik odrzuconych rysunków: nowy klucz płótna odpala shake od nowa.
+  const [miss, setMiss] = useState(0);
   /** Ostatnia oceniona próba, widoczna na płótnie do następnego dotknięcia. */
   const [last, setLast] = useState<{ points: KoloPoint[]; circle: Circle; score: number; note: string; record: boolean } | null>(null);
   const drawn = useRef<KoloPoint[]>([]);
   /** Rysuje tylko pierwszy palec, kolejne są ignorowane. */
   const finger = useRef<number | null>(null);
   const color = (id: string) => players.find((p) => p.id === id)?.color;
+
+  const canvas = useRef<HTMLDivElement>(null);
+  const controls = useRef<HTMLDivElement>(null);
+  const [canvasSize, setCanvasSize] = useState<number>();
+  useLayoutEffect(() => {
+    const field = canvas.current;
+    const footer = controls.current;
+    if (!field || !footer) return;
+    const main = field.closest("main")!;
+    const viewport = window.visualViewport;
+    const measure = () => {
+      const y = field.getBoundingClientRect().top + window.scrollY;
+      const gap = parseFloat(getComputedStyle(field.parentElement!).rowGap) || 0;
+      const padding = parseFloat(getComputedStyle(main).paddingBottom);
+      const height = viewport?.height ?? window.innerHeight;
+      setCanvasSize(Math.max(48, Math.floor(height - y - footer.getBoundingClientRect().height - gap - padding)));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    // Nagłówek, statystyki i komunikaty mogą zmienić wysokość niezależnie od płótna.
+    for (const element of [...main.children, ...field.parentElement!.children]) observer.observe(element);
+    viewport?.addEventListener("resize", measure);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      viewport?.removeEventListener("resize", measure);
+      window.removeEventListener("resize", measure);
+    };
+  }, [playing, started]);
 
   function at(e: { clientX: number; clientY: number }, r: DOMRect): KoloPoint {
     return [clamp((e.clientX - r.left) / r.width), clamp((e.clientY - r.top) / r.height)];
@@ -130,13 +180,16 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
     const sent = drawn.current.filter((_, i) => i % step === 0);
     // Niedokończone koło nie idzie na serwer, więc przypadkowe dotknięcie nie spala próby.
     const { status, score, points: cut, circle } = koloJudge(sent);
-    if (status !== "ok" || !circle) return setHint(HINTS[status === "small" ? "small" : "unfinished"]);
+    if (status !== "ok" || !circle) {
+      setMiss(miss + 1);
+      return setHint(HINTS[status === "small" ? "small" : "unfinished"]);
+    }
     onMove({ type: "result", points: sent });
     // Oceniony rysunek zostaje do następnego dotknięcia, potem w tle wraca przygaszona najlepsza próba (z serwera).
     drawn.current = [];
     setPoints([]);
     const diff = best ? score - best.score : 0;
-    const note = !best ? "" : diff > 0 ? "Nowy rekord!" : diff === 0 ? "Tyle co najlepsza" : `−${tenths(-diff)} pkt od najlepszej`;
+    const note = !best ? "" : diff > 0 ? "Najlepsza próba!" : diff === 0 ? "Tyle co najlepsza" : `−${tenths(-diff)} pkt od najlepszej`;
     setLast({ points: cut, circle, score, note, record: diff > 0 });
   }
 
@@ -151,23 +204,8 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
   if (playing && !started) {
     return (
       <Intro
-        preview={
-          <svg viewBox="0 0 1 1" className="h-24">
-            <circle
-              cx={0.5}
-              cy={0.5}
-              r={0.4}
-              fill="none"
-              stroke={color(me)}
-              strokeWidth={0.04}
-              strokeLinecap="round"
-              pathLength={1}
-              strokeDasharray={1}
-              className="animate-[line-draw_2.5s_ease-in-out_infinite]"
-            />
-          </svg>
-        }
-        time={`${KOLO_ATTEMPTS} prób, możesz zakończyć wcześniej`}
+        preview={<Preview color={color(me)} />}
+        time={`${KOLO_ATTEMPTS} prób, razem ${upTo(GAMES.kolo.turnSeconds!)}, możesz zakończyć wcześniej`}
         task="Narysuj palcem jednym ruchem jak najdoskonalszy okrąg"
         score="Liczy się najlepsza próba, w procentach idealności"
         onStart={() => setStarted(true)}
@@ -181,13 +219,14 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
         <Stats
           items={[
             { label: "Próba", value: `${attempts + 1}/${KOLO_ATTEMPTS}` },
-            { label: "Najlepsza", value: best ? percent(best.score) : "-" },
+            { label: "Najlepsza", value: best ? percent(best.score) : "brak" },
           ]}
         />
-        <div className="relative">
+        <div ref={canvas} className="relative mx-auto w-full" style={{ maxWidth: canvasSize }}>
           <svg
+            key={miss}
             viewBox="0 0 1 1"
-            className="block aspect-square w-full touch-none select-none rounded-tile border border-line bg-surface [-webkit-touch-callout:none]"
+            className={`block aspect-square w-full touch-none select-none rounded-tile border border-line bg-surface [-webkit-touch-callout:none] ${miss && hint ? "animate-[shake_0.3s_ease-out]" : ""}`}
             onPointerDown={down}
             onPointerMove={move}
             onPointerUp={up}
@@ -213,15 +252,19 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
             best && <span className="pointer-events-none absolute left-3 top-2 text-xs text-fg-muted">Przygaszony ślad: najlepsza próba</span>
           )}
         </div>
-        {/* Stała wysokość (dwie linijki), żeby przycisk pod spodem nie skakał. */}
-        <p className={`min-h-10 text-center text-sm ${hint ? "text-warning" : "text-fg-muted"}`}>
-          {hint ?? (last && "Przerywana linia to idealne koło. Zielony: blisko niego, czerwony: daleko.")}
-        </p>
-        {best && (
-          <button type="button" className="btn btn-ghost w-full" onClick={() => onMove({ type: "result", points: [] })}>
-            Zostaw najlepszą i zakończ
-          </button>
-        )}
+        <div ref={controls} className="flex flex-col gap-3">
+          {/* Stała wysokość (dwie linijki), żeby przycisk pod spodem nie skakał. */}
+          <p className={`min-h-10 text-center text-sm ${hint ? "text-warning" : "text-fg-muted"}`}>
+            {hint ?? (last && "Przerywana linia to idealne koło. Zielony: blisko niego, czerwony: daleko.")}
+          </p>
+          <div className="min-h-12">
+            {best && (
+              <button type="button" className="btn btn-ghost w-full" onClick={() => onMove({ type: "result", points: [] })}>
+                Zostaw najlepszą i zakończ
+              </button>
+            )}
+          </div>
+        </div>
       </section>
     );
   }

@@ -1,6 +1,7 @@
 import { type LobbyPlayer, SUDOKU_BLANKS, SUDOKU_PENALTY_MS, type SudokuView, sudokuTotal } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
-import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { decimal, Intro, Scores, Stats, tenth } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: SudokuView;
@@ -10,7 +11,7 @@ interface Props {
   onMove: (move: { type: "result"; ms: number; mistakes: number } | { type: "progress"; filled: number }) => void;
 }
 
-const seconds = (ms: number) => (ms / 1000).toFixed(1).replace(".", ",");
+const seconds = (ms: number) => tenth(ms / 1000);
 
 /** Podgląd na ekranie instrukcji: trzy puste pola wypełniają się po kolei. */
 function Preview() {
@@ -24,7 +25,7 @@ function Preview() {
         return (
           <span
             key={i}
-            className={`relative flex size-6 items-center justify-center rounded-inset border border-line bg-surface font-mono text-xs font-semibold ${i % 4 === 1 ? "mr-1" : ""} ${Math.floor(i / 4) === 1 ? "mb-1" : ""}`}
+            className={`relative flex size-6 items-center justify-center rounded-inset border border-line bg-surface font-mono tabular-nums text-xs font-semibold ${i % 4 === 1 ? "mr-1" : ""} ${Math.floor(i / 4) === 1 ? "mb-1" : ""}`}
           >
             {!blank && n}
             {order >= 0 && (
@@ -74,7 +75,7 @@ export function Sudoku({ view, me, players, ranking, onMove }: Props) {
     setFlash((f) => ({ i: selected, ok, id: (f?.id ?? 0) + 1 }));
     if (!ok) {
       setMistakes((m) => m + 1);
-      navigator.vibrate?.(60);
+      navigator.vibrate?.(VIBRATE.mistake);
       return;
     }
     setCells(cells.map((v, i) => (i === selected ? digit : v)));
@@ -92,14 +93,16 @@ export function Sudoku({ view, me, players, ranking, onMove }: Props) {
       nick: p?.nick ?? "Gracz",
       color: p?.color,
       me: id === me,
-      score: res ? `${seconds(sudokuTotal(res))} s${res.mistakes ? ` (+${(res.mistakes * SUDOKU_PENALTY_MS) / 1000} s kary)` : ""}` : null,
+      score: res?.completed === false ? "Nieukończono" : res ? `${seconds(sudokuTotal(res))} s${res.mistakes ? ` (+${decimal((res.mistakes * SUDOKU_PENALTY_MS) / 1000, 0)} s kary)` : ""}` : null,
     };
   });
 
   if (!playing || phase === "sent") {
     // Przewaga zwycięzcy nad drugim miejscem; przy remisie i w grze solo nie ma czego pokazywać.
-    const [first, second] = (ranking ?? []).map((id) => sudokuTotal(view.results[id]));
-    const lead = second - first;
+    const [first, second] = (ranking ?? []).map((id) => view.results[id]);
+    const lead = first && second && first.completed !== false && second.completed !== false
+      ? sudokuTotal(second) - sudokuTotal(first)
+      : 0;
     return (
       <>
         <Scores rows={rows} />
@@ -120,7 +123,7 @@ export function Sudoku({ view, me, players, ranking, onMove }: Props) {
         preview={<Preview />}
         time="Stoper rusza po Starcie"
         task="Uzupełnij planszę 4×4: w każdym wierszu, kolumnie i bloku 2×2 cyfry 1-4"
-        score={`Wygrywa najkrótszy czas, każda zła cyfra to +${SUDOKU_PENALTY_MS / 1000} s`}
+        score={`Wygrywa najkrótszy czas, każda zła cyfra to +${decimal(SUDOKU_PENALTY_MS / 1000, 0)} s`}
         onStart={() => {
           start.current = performance.now();
           setNow(start.current);
@@ -135,11 +138,11 @@ export function Sudoku({ view, me, players, ranking, onMove }: Props) {
       <Stats
         items={[
           { label: "Zostało", value: left },
-          { label: "Kara", value: `+${(mistakes * SUDOKU_PENALTY_MS) / 1000} s`, warn: mistakes > 0 },
+          { label: "Kara", value: `+${decimal((mistakes * SUDOKU_PENALTY_MS) / 1000, 0)} s`, warn: mistakes > 0 },
           { label: "Twój czas", value: `${seconds(now - start.current)} s` },
         ]}
       />
-      <div className="mx-auto grid w-64 grid-cols-2 gap-2">
+      <div className="mx-auto grid w-full max-w-64 grid-cols-2 gap-2">
         {[0, 1, 2, 3].map((b) => (
           <div key={b} className="grid grid-cols-2 gap-1">
             {[0, 1, 2, 3].map((k) => {
@@ -151,10 +154,12 @@ export function Sudoku({ view, me, players, ranking, onMove }: Props) {
                   // Klucz z błysku: pole montuje się od nowa i animacja startuje jeszcze raz.
                   key={hit ? `${i}-${flash.id}` : i}
                   type="button"
+                  aria-pressed={selected === i}
+                  aria-label={`Wiersz ${Math.floor(i / 4) + 1}, kolumna ${(i % 4) + 1}: ${n || "puste"}`}
                   disabled={view.puzzle[i] !== 0 || n !== 0}
                   onPointerDown={() => pick(i)}
                   style={selected === i ? { borderColor: color, boxShadow: `0 0 0 2px ${color}` } : undefined}
-                  className={`aspect-square touch-none select-none rounded-inset border border-line font-mono text-3xl font-semibold ${view.puzzle[i] !== 0 ? "bg-bg text-fg-muted" : "bg-surface"} ${hit ? (flash.ok ? "animate-[tile-hit_0.35s_ease-out]" : "animate-[tile-miss_0.35s_ease-out]") : ""}`}
+                  className={`aspect-square touch-none select-none rounded-inset border border-line font-mono tabular-nums text-3xl font-semibold ${view.puzzle[i] !== 0 ? "bg-bg text-fg-muted" : "bg-surface"} ${hit ? (flash.ok ? "animate-[tile-hit_0.35s_ease-out]" : "animate-[tile-miss_0.35s_ease-out]") : ""}`}
                 >
                   {n || ""}
                 </button>
@@ -163,13 +168,16 @@ export function Sudoku({ view, me, players, ranking, onMove }: Props) {
           </div>
         ))}
       </div>
+      {/* Klawiatura bez wybranego pola nie udaje aktywnej; podpis stoi stale, żeby układ nie skakał. */}
+      <p className="-mb-1 text-center text-sm text-fg-muted">{selected === null ? "Wybierz puste pole" : "Wpisz cyfrę"}</p>
       <div className="grid grid-cols-4 gap-2">
         {[1, 2, 3, 4].map((d) => (
           <button
             key={d}
             type="button"
+            disabled={selected === null}
             onPointerDown={() => enter(d)}
-            className="h-14 touch-none select-none rounded-inset border border-line bg-surface font-mono text-2xl font-semibold"
+            className="h-14 touch-none select-none rounded-inset border border-line bg-surface font-mono tabular-nums text-2xl font-semibold disabled:opacity-40"
           >
             {d}
           </button>

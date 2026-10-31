@@ -38,7 +38,7 @@ function Preview() {
   return (
     <>
       <Angle angle={65} rotation={-80} className="animate-[preview-half_3s_linear_infinite]" />
-      <span className="animate-[preview-half_3s_linear_infinite] font-mono text-3xl font-semibold opacity-0 [animation-delay:-1.5s]">Ile°?</span>
+      <span className="animate-[preview-half_3s_linear_infinite] font-mono tabular-nums text-3xl font-semibold opacity-0 [animation-delay:-1.5s]">Ile°?</span>
     </>
   );
 }

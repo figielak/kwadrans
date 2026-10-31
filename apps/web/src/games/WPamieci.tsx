@@ -1,6 +1,7 @@
 import { type LobbyPlayer, W_PAMIECI_MAX_ANSWER, W_PAMIECI_ROUNDS, W_PAMIECI_SHOW_MS, type WPamieciRound, type WPamieciView, wPamieciValue } from "@kwadrans/games";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: WPamieciView;
@@ -28,7 +29,7 @@ function Preview() {
       {["5", "+7", "×2", "= ?"].map((text, i) => (
         <span
           key={text}
-          className={`absolute inset-0 flex animate-[preview-quarter_4s_linear_infinite] items-center justify-center font-mono text-3xl font-semibold ${i ? "opacity-0" : ""}`}
+          className={`absolute inset-0 flex animate-[preview-quarter_4s_linear_infinite] items-center justify-center font-mono tabular-nums text-3xl font-semibold ${i ? "opacity-0" : ""}`}
           style={{ animationDelay: `${i ? i - 4 : 0}s` }}
         >
           {text}
@@ -45,6 +46,7 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
   /** Pokazywana pozycja ciągu: 0 to liczba startowa. */
   const [pos, setPos] = useState(0);
   const [input, setInput] = useState("");
+  const submitted = useRef(false);
   const color = players.find((p) => p.id === me)?.color;
 
   const index = phase === "reveal" ? answers.length - 1 : answers.length;
@@ -66,25 +68,28 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
   }, [phase, pos]);
 
   function send(all: number[]) {
-    setPhase("sent");
+    if (submitted.current || !playing) return;
+    submitted.current = true;
     onMove({ type: "result", answers: all });
   }
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    if (input === "") return;
+    if (phase !== "answer" || input === "" || submitted.current || !playing) return;
     const all = [...answers, Number(input)];
     setAnswers(all);
     setInput("");
     if (all.at(-1) !== wPamieciValue(round)) {
-      navigator.vibrate?.(60);
+      navigator.vibrate?.(VIBRATE.mistake);
+      send(all);
       return setPhase("reveal");
     }
     if (all.length < W_PAMIECI_ROUNDS) return setPhase("wait");
     send(all);
+    setPhase("sent");
   }
 
-  if (!playing || phase === "sent") {
+  if (phase !== "reveal" && (!playing || phase === "sent")) {
     const rows = (ranking ?? view.players).map((id) => {
       const p = players.find((pl) => pl.id === id);
       const r = view.results[id];
@@ -113,6 +118,7 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
   }
 
   const shown = phase === "show" ? pos : phase === "wait" ? 0 : round.ops.length;
+  const passed = phase === "wait" && answers.length > 0;
 
   // Kafel stoi w tym samym miejscu we wszystkich fazach, żeby układ nie skakał.
   return (
@@ -123,10 +129,14 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
           { label: "Działanie", value: `${shown}/${round.ops.length}` },
         ]}
       />
-      <div className="tile relative mx-auto flex aspect-square w-full max-w-[calc(100dvh-23.5rem)] items-center justify-center select-none">
-        {phase === "wait" && answers.length > 0 && <span className="text-lg text-success">Dobrze</span>}
+      {/* Zaliczona runda: krótki zielony błysk kafla (klucz z liczby odpowiedzi), bez wibracji i bez dodatkowego czekania. */}
+      <div
+        key={passed ? `ok-${answers.length}` : "tile"}
+        className={`tile relative mx-auto flex aspect-square w-full max-w-[calc(100dvh-23.5rem)] items-center justify-center select-none ${passed ? "animate-[tile-hit_0.35s_ease-out]" : ""}`}
+      >
+        {passed && <span className="text-lg text-success">Dobrze</span>}
         {phase === "show" && (
-          // Klucz z pozycji: dwa takie same działania z rzędu wskakują osobno.
+          // Klucz z pozycji: dwa takie same działania z rzędu wskakują osobno. 180 ms zamiast 350: pokaz trwa 1,5 s (wyjątek w ZASADY §5).
           <span key={pos} className="animate-[stone-pop_180ms_ease-out] font-mono text-6xl font-semibold tabular-nums">
             {items(round)[pos]}
           </span>
@@ -137,7 +147,7 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
             <label className="flex flex-col gap-1">
               <span className="text-sm text-fg-muted">Ile wyszło?</span>
               <input
-                className="field text-center font-mono text-3xl"
+                className="field text-center font-mono tabular-nums text-3xl"
                 inputMode="numeric"
                 enterKeyHint="done"
                 autoComplete="off"
@@ -146,7 +156,7 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
                 onChange={(e) => setInput(e.target.value.replace(/\D/g, "").slice(0, String(W_PAMIECI_MAX_ANSWER).length))}
               />
             </label>
-            <button type="submit" className="btn w-full text-bg" style={{ backgroundColor: color }} disabled={input === ""}>
+            <button type="submit" className="btn w-full btn-player" style={{ backgroundColor: color }} disabled={input === ""}>
               Zatwierdź
             </button>
           </form>
@@ -166,7 +176,7 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
         )}
       </div>
       {phase === "reveal" && (
-        <button type="button" className="btn w-full text-bg" style={{ backgroundColor: color }} autoFocus onClick={() => send(answers)}>
+        <button type="button" className="btn w-full btn-player" style={{ backgroundColor: color }} autoFocus onClick={() => setPhase("sent")}>
           Wyniki
         </button>
       )}

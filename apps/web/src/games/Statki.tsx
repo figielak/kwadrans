@@ -13,7 +13,8 @@ import {
 } from "@kwadrans/games";
 import { type CSSProperties, type PointerEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { StickyBar } from "../screens/ui.tsx";
+import { StickyBar, useFresh } from "../screens/ui.tsx";
+import { useHarm, VIBRATE } from "../vibrate.ts";
 
 type Move = { type: "place"; ships: Ship[] } | { type: "ready" } | { type: "unready" } | { type: "shoot"; x: number; y: number };
 type Board = StatkiView["boards"][string];
@@ -58,7 +59,8 @@ export function Statki({ view, me, players, canMove, onMove }: Props) {
   const rules = STATKI_MODES.find((m) => m.id === view.mode) ?? STATKI_MODES[0];
 
   // W turze przeciwnika liczy się własna flota: idzie na górę, duża, z komunikatem tuż nad nią.
-  const turn = seated && view.phase === "battle" && view.shooter === enemyId;
+  // Obserwator widzi tak samo planszę, w którą właśnie się strzela (`ownId` to wtedy pierwszy gracz).
+  const turn = view.phase === "battle" && view.shooter === enemyId;
   // Układ goni stan: zamiana plansz to view transition, w którym duża i mała plansza przelatują na swoje miejsca.
   const [defending, setDefending] = useState(turn);
   // Tura przechodzi w bitwie tylko po pudle; start bitwy i koniec partii zamieniają układ od razu.
@@ -74,11 +76,14 @@ export function Statki({ view, me, players, canMove, onMove }: Props) {
     return () => clearTimeout(id);
   }, [turn]);
 
+  const incoming = seated ? lastShot(view.boards[me].shots) : undefined;
+  // Trafienie albo zatopienie mojej floty to szkoda od rywala; pudło nie. Pole strzału jest kluczem zdarzenia.
+  useHarm(incoming && incoming.result !== "miss" ? `${incoming.x},${incoming.y}` : null);
+
   if (view.phase === "placing" && seated) {
     return <Placement rules={rules} board={view.boards[me]} color={color(me)} enemyNick={nick(enemyId)} onMove={onMove} />;
   }
 
-  const incoming = seated ? lastShot(view.boards[me].shots) : undefined;
   const spot = incoming && name(incoming);
   const news =
     incoming &&
@@ -112,12 +117,12 @@ export function Statki({ view, me, players, canMove, onMove }: Props) {
         board={view.boards[ownId]}
         color={color(ownId)}
         last={incoming}
-        compact={seated && !defending}
+        compact={!defending}
       />
     </div>
   );
   const small = (node: ReactNode, key: string) => (
-    <div key={key} className={seated ? "mx-auto w-3/5" : ""}>
+    <div key={key} className="mx-auto w-3/5">
       {node}
     </div>
   );
@@ -158,11 +163,11 @@ export function FleetLeft({ board, color, lengths: all }: { board: Board; color:
   );
   const afloat = fleet.filter((f) => !f.sunk).length;
   return (
-    <span className="ml-2 flex flex-1 flex-wrap items-center justify-end gap-1" aria-label={`Statki na wodzie: ${afloat} z ${fleet.length}`}>
+    <span role="img" className="ml-2 flex flex-1 flex-wrap items-center justify-end gap-1" aria-label={`Statki na wodzie: ${afloat} z ${fleet.length}`}>
       {fleet.map((ship, i) => (
         <span key={i} className={`relative flex gap-px ${ship.sunk ? "opacity-40" : ""}`} aria-hidden>
           {ship.hits.map((h, j) => (
-            <span key={j} className="size-1.5 rounded-[1px]" style={{ backgroundColor: h ? RED : color }} />
+            <span key={j} className="size-1.5 rounded-none" style={{ backgroundColor: h ? RED : color }} />
           ))}
           {ship.sunk && <span className="absolute inset-x-[-1px] top-1/2 h-px bg-fg" />}
         </span>
@@ -172,6 +177,8 @@ export function FleetLeft({ board, color, lengths: all }: { board: Board; color:
 }
 
 const RED = "var(--color-accent)";
+/** Niedozwolone ustawienie (strefa wokół statku, zły duch): ostrzeżenie przed skutkiem ruchu, nie trafienie. */
+const WARN = "var(--color-warning)";
 
 /** Rozstawianie: przeciągnij statek albo dotknij go, a potem pola, gdzie ma się zaczynać. */
 function Placement({
@@ -192,7 +199,7 @@ function Placement({
   const label = `Twoja flota · ${rules.name}`;
   const [ships, setShips] = useState(board.ships);
   const [selected, setSelected] = useState<number | null>(null);
-  // Niedozwolona pozycja: przez chwilę czerwony statek tam, gdzie miał stanąć.
+  // Niedozwolona pozycja: przez chwilę statek w kolorze ostrzeżenia tam, gdzie miał stanąć.
   const [ghost, setGhost] = useState<Ship | null>(null);
   // Przeciągany statek w miejscu pod palcem (jeszcze niezatwierdzony).
   const [drag, setDrag] = useState<{ index: number; ship: Ship } | null>(null);
@@ -208,7 +215,7 @@ function Placement({
 
   function commit(next: Ship[], index?: number) {
     if (!isValidFleet(next, rules)) {
-      navigator.vibrate?.(60);
+      navigator.vibrate?.(VIBRATE.mistake);
       if (index !== undefined) setGhost(next[index]);
       setTimeout(() => setGhost(null), 600);
       return;
@@ -263,17 +270,17 @@ function Placement({
 
   const shapes: Shape[] = shown.map((ship, i) => ({
     ship,
-    style: drag?.index === i && !isValidFleet(shown, rules) ? hull(RED, true) : hull(color, i === active),
+    style: drag?.index === i && !isValidFleet(shown, rules) ? hull(WARN, true) : hull(color, i === active),
     outline: i === active,
   }));
-  if (ghost) shapes.push({ ship: ghost, style: hull(RED, true) });
+  if (ghost) shapes.push({ ship: ghost, style: hull(WARN, true) });
 
   if (board.ready) {
     return (
       <div className="flex flex-col gap-3">
         <Grid size={SIZE} label={label} color={color} shapes={ships.map((ship) => ({ ship, style: hull(color) }))} cell={() => ({})} />
         <p role="status" className="flex items-center justify-center gap-2 text-center text-sm text-fg-muted">
-          <span className="size-2.5 animate-pulse rounded-full" style={{ backgroundColor: color }} aria-hidden />
+          <span className="size-2.5 rounded-full" style={{ backgroundColor: color }} aria-hidden />
           Czekamy, aż {enemyNick} ustawi flotę…
         </p>
         <button type="button" className="btn btn-ghost" onClick={() => onMove({ type: "unready" })}>
@@ -291,48 +298,50 @@ function Placement({
         label={label}
         color={color}
         shapes={shapes}
-        cell={(i) => ({ background: blocked.has(i) ? "var(--color-accent-soft)" : undefined })}
+        cell={(i) => ({ background: blocked.has(i) ? "color-mix(in srgb, var(--color-warning) 12%, transparent)" : undefined })}
         onTap={tap}
         pointer={pointer}
       />
       <p className="text-center text-sm text-fg-muted">
-        {selected === null ? "Przeciągnij statek albo dotknij go, żeby przenieść." : `Dotknij pola, gdzie ma zacząć się statek.${rules.touching ? "" : " Czerwone pola są za blisko innych."}`}
+        {selected === null ? "Przeciągnij statek albo dotknij go, żeby przenieść." : `Dotknij nowego miejsca.${rules.touching ? "" : " Czerwone są za blisko."}`}
       </p>
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          className="btn btn-ghost"
-          disabled={selected === null}
-          onClick={() => selected !== null && commit(replaced(selected, { ...ships[selected], vertical: !ships[selected].vertical }), selected)}
-        >
-          <ArrowsClockwise size={18} aria-hidden />
-          Obróć
-        </button>
-        <button
-          type="button"
-          className="btn btn-ghost"
-          onClick={() => {
-            setSelected(null);
-            commit(randomFleet(Math.random, rules));
-          }}
-        >
-          <Shuffle size={18} aria-hidden />
-          Losuj
-        </button>
-      </div>
+      {/* Wszystkie akcje w jednym wierszu paska: dwa rzędy nie mieściły się pod flotą na 360×640. */}
       <StickyBar>
-        <button
-          type="button"
-          className="btn h-14 w-full text-lg font-semibold text-bg"
-          style={{ backgroundColor: color }}
-          onClick={() => {
-            setSelected(null);
-            onMove({ type: "ready" });
-          }}
-        >
-          <Check size={20} weight="bold" aria-hidden />
-          Gotowe
-        </button>
+        <div className="flex w-full gap-2">
+          <button
+            type="button"
+            className="btn btn-ghost h-14 gap-1 px-3 text-sm"
+            disabled={selected === null}
+            onClick={() => selected !== null && commit(replaced(selected, { ...ships[selected], vertical: !ships[selected].vertical }), selected)}
+          >
+            <ArrowsClockwise size={18} aria-hidden />
+            Obróć
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost h-14 gap-1 px-3 text-sm"
+            onClick={() => {
+              setSelected(null);
+              commit(randomFleet(Math.random, rules));
+            }}
+          >
+            <Shuffle size={18} aria-hidden />
+            Losuj
+          </button>
+          <button
+            type="button"
+            className="btn h-14 min-w-0 flex-1 px-4 text-lg font-semibold btn-player"
+            style={{ backgroundColor: color }}
+            onClick={() => {
+              setSelected(null);
+              onMove({ type: "ready" });
+            }}
+          >
+            <Check size={20} weight="bold" aria-hidden />
+            {/* Na 360 px obok „Obróć” i „Losuj” napis łamie się na dwie linie w przycisku 56 px zamiast się ucinać. */}
+            <span className="min-w-0 text-center leading-tight">Zgłaszam gotowość</span>
+          </button>
+        </div>
       </StickyBar>
     </div>
   );
@@ -370,7 +379,9 @@ function Battle({
   const lastIndex = last && last.y * SIZE + last.x;
   // Najświeższy strzał w tę planszę wskakuje na pole: widać, gdzie padł, nie tylko w tekście.
   const fresh = lastShot(board.shots);
-  const pop = (i: number) => (fresh && fresh.y * SIZE + fresh.x === i ? "animate-[stone-pop_0.35s_ease-out]" : "");
+  // Strzały zastane po odświeżeniu stoją od razu; wskakuje tylko strzał oddany po wejściu.
+  const { isNew } = useFresh(board.shots.map((s) => s.y * SIZE + s.x));
+  const pop = (i: number) => (fresh && fresh.y * SIZE + fresh.x === i && isNew(i) ? "animate-[stone-pop_0.35s_ease-out]" : "");
 
   function fire(i: number) {
     setPicked(null);
@@ -393,10 +404,11 @@ function Battle({
           const shot = shotAt(board.shots, x, y);
           const ring = pickedFree === i || lastIndex === i;
           // Trafienie to płomień, pudło to kropka: różnią się kształtem, a płomień nie krzyczy tak jak pełne czerwone pole.
-          if (shot?.result === "hit") return { content: <Fire size={compact ? 10 : 18} weight="fill" className={`text-accent ${pop(i)}`} aria-hidden />, ring };
-          if (shot?.result === "miss") return { content: <span className={`size-1.5 rounded-full bg-fg-muted ${pop(i)}`} />, ring };
+          if (shot?.result === "hit") return { content: <Fire size={compact ? 10 : 18} weight="fill" className={`text-accent ${pop(i)}`} aria-hidden />, ring, state: "trafiony" };
+          if (shot?.result === "miss") return { content: <span className={`size-1.5 rounded-full bg-fg-muted ${pop(i)}`} aria-hidden />, ring, state: "pudło" };
           // Pole wykluczone wokół zatopionego: przygaszony ×.
-          if (shot?.result === "around") return { content: <X size={compact ? 8 : 12} className="text-fg-subtle" aria-hidden /> };
+          if (shot?.result === "around") return { content: <X size={compact ? 8 : 12} className="text-fg-subtle" aria-hidden />, state: "obok zatopionego" };
+          if (shot?.result === "sunk") return { ring, state: "zatopiony" };
           return { ring };
         }}
         onTap={canShoot ? (x, y) => (pickedFree === y * SIZE + x ? fire(pickedFree) : setPicked(y * SIZE + x)) : undefined}
@@ -406,7 +418,7 @@ function Battle({
         <StickyBar>
           <button
             type="button"
-            className="btn h-14 w-full text-lg font-semibold text-bg disabled:opacity-40"
+            className="btn h-14 w-full text-lg font-semibold btn-player disabled:opacity-40"
             style={{ backgroundColor: shooterColor }}
             disabled={pickedFree === null}
             onClick={() => pickedFree !== null && fire(pickedFree)}
@@ -455,7 +467,8 @@ function Grid({
   vt?: string;
   /** Wybrane pole: celownik z wiersza i kolumny (jak w Gomoku) i pogrubione opisy osi. */
   cross?: number | null;
-  cell: (i: number) => { background?: string; content?: ReactNode; ring?: boolean };
+  /** `state`: stan pola dla czytnika („pudło”, „trafiony”…), dopisywany do nazwy pola. */
+  cell: (i: number) => { background?: string; content?: ReactNode; ring?: boolean; state?: string };
   shapes: Shape[];
   onTap?: (x: number, y: number) => void;
   /** Przeciąganie (rozstawianie): pole pod wskaźnikiem; `move` zwraca true, gdy plansza ma przejąć wskaźnik. */
@@ -464,13 +477,13 @@ function Grid({
   compact?: boolean;
 }) {
   const at = cellAt(SIZE);
-  const text = `font-mono ${compact ? "text-[9px]" : "text-[11px]"}`;
+  const text = `font-mono tabular-nums ${compact ? "text-[9px]" : "text-[11px]"}`;
   const axis = (on: boolean) => `${text} ${on ? "font-semibold text-fg" : "text-fg-muted"}`;
   const px = cross === null ? null : at(cross).x;
   const py = cross === null ? null : at(cross).y;
   return (
     <section aria-label={label} style={{ viewTransitionName: vt }}>
-      <h2 className={`mb-2 font-semibold ${compact ? "text-xs" : "text-sm"}`} style={{ color }}>
+      <h2 className={`label mb-2`} style={{ color }}>
         {label}
       </h2>
       <div
@@ -509,7 +522,8 @@ function Grid({
         })}
         {Array.from({ length: SIZE * SIZE }, (_, i) => {
           const { x, y } = at(i);
-          const { background, content, ring } = cell(i);
+          const { background, content, ring, state } = cell(i);
+          const label = `${name({ x, y })}${state ? `, ${state}` : ""}`;
           const crossed = x === px || y === py ? "color-mix(in srgb, var(--color-fg) 6%, transparent)" : undefined;
           const style = { gridColumn: x + 2, gridRow: y + 2, background: background ?? crossed };
           const className = `grid aspect-square place-items-center border-r border-b border-line-hover ${x === 0 ? "border-l" : ""} ${
@@ -520,7 +534,7 @@ function Grid({
               key={i}
               type="button"
               data-cell={i}
-              aria-label={name({ x, y })}
+              aria-label={label}
               className={className}
               style={style}
               disabled={disabled?.(i)}
@@ -529,7 +543,7 @@ function Grid({
               {content}
             </button>
           ) : (
-            <span key={i} aria-label={name({ x, y })} className={className} style={style}>
+            <span role="img" key={i} aria-label={label} className={className} style={style}>
               {content}
             </span>
           );

@@ -1,8 +1,11 @@
 import { type LobbyPlayer, STOJ_DURATION_MS, STOJ_SCHEDULE, STOJ_VISIBLE, stojScore, type StojView } from "@kwadrans/games";
 import { HandPalm } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
+import * as clock from "../clock.ts";
+import { markFrame, reaction } from "../stimulus.ts";
 import { Intro, Stats } from "../screens/ui.tsx";
 import { Results } from "./Quiz.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 type Move = { type: "result"; taps: (number | null)[] };
 
@@ -25,7 +28,7 @@ function Preview() {
   return (
     <>
       <span className="absolute inset-0 flex items-center justify-center bg-success font-semibold text-bg">Dotknij</span>
-      <span className="absolute inset-0 flex animate-[preview-half_2.4s_linear_infinite] items-center justify-center gap-2 bg-warning font-semibold text-accent-fg opacity-0 [animation-delay:-1.2s]">
+      <span className="absolute inset-0 flex animate-[preview-half_2.4s_linear_infinite] items-center justify-center gap-2 bg-warning font-semibold text-bg opacity-0 [animation-delay:-1.2s]">
         <HandPalm size={20} weight="fill" />
         Stój!
       </span>
@@ -50,7 +53,9 @@ export function Stoj({ view, me, players, ranking, winner, onMove }: Props) {
   function show(i: number) {
     if (i >= STOJ_SCHEDULE.length) return setShown(null);
     const { at, window: span } = STOJ_SCHEDULE[i];
-    run.current.shownAt = performance.now();
+    const r = run.current;
+    markFrame((t) => (r.shownAt = t));
+    clock.stimulus("stoj");
     setShown({ i, lit: true, tapped: false });
     after(at + span * STOJ_VISIBLE, () => {
       setShown((s) => s && { ...s, lit: false });
@@ -65,16 +70,16 @@ export function Stoj({ view, me, players, ranking, winner, onMove }: Props) {
     show(0);
   }
 
-  function tap() {
+  function tap(e: { timeStamp: number }) {
     if (!shown || shown.tapped) return;
     const r = run.current;
-    const reaction = Math.round(performance.now() - r.shownAt);
-    if (reaction < MIN_REACTION) return;
+    const took = reaction(r.shownAt, e);
+    if (took < MIN_REACTION) return;
     // Spóźniony timer następnego bodźca mógłby wydłużyć okno ponad to, co przyjmie serwer.
-    r.taps[shown.i] = Math.min(reaction, STOJ_SCHEDULE[shown.i].window);
+    r.taps[shown.i] = Math.min(took, STOJ_SCHEDULE[shown.i].window);
     setShown({ ...shown, tapped: true });
-    if (view.reds[shown.i]) navigator.vibrate?.(60);
-    else setLast(reaction);
+    if (view.reds[shown.i]) navigator.vibrate?.(VIBRATE.mistake);
+    else setLast(took);
   }
 
   // Zegar gry: odświeża licznik i kończy partię po 30 s.
@@ -139,14 +144,17 @@ export function Stoj({ view, me, players, ranking, winner, onMove }: Props) {
         // Klucz z błędu: przycisk montuje się od nowa i animacja startuje jeszcze raz.
         key={missed ? `miss-${shown.i}` : "field"}
         type="button"
-        onPointerDown={tap}
+        onPointerDown={(e) => {
+          clock.input("stoj", e);
+          tap(e);
+        }}
         className={`flex min-h-80 flex-1 touch-none select-none items-center justify-center gap-3 rounded-tile border border-line text-2xl font-semibold ${
           missed
             ? "animate-[tile-miss_0.35s_ease-out] bg-surface text-warning"
             : !lit
               ? "bg-surface text-fg-muted"
               : red
-                ? "bg-warning text-accent-fg"
+                ? "bg-warning text-bg"
                 : "bg-success text-bg"
         }`}
       >

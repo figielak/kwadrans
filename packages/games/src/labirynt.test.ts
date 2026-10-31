@@ -12,7 +12,7 @@ import { labirynt as game, type Move, pawnMoves, type State, wallError } from ".
 //   i nie odcina nikomu drogi do celu; ścianki z puli się kończą,
 // - `pass` tylko bez żadnego kroku,
 // - pierwszy na polu celu wygrywa, remisu nie ma,
-// - limit czasu: krok w stronę celu po ściankach. Losowości nie ma, więc test seedów odpada.
+// - limit czasu: rng losuje spośród legalnych kroków, także skoków i skosów; bez zużycia ścianek, pass tylko bez kroku.
 
 const A = "ania";
 const B = "bartek";
@@ -214,12 +214,18 @@ describe("ścianki", () => {
 });
 
 describe("koniec gry", () => {
-  /** Każdy gracz robi ruch po limicie czasu, aż ktoś wygra. */
+  /** Scenariusz zwycięstwa prowadzi pionki do celu niezależnie od losowego timeoutu. */
   function race(state: State, stall: (s: State, player: string) => Move | undefined = () => undefined) {
     for (let i = 0; !game.isOver(state); i++) {
       if (i > 500) throw new Error("partia się nie kończy");
       const player = game.waitingFor(state)[0];
-      state = send(state, player, stall(state, player) ?? game.timeoutMove!(state, player, rng));
+      const distance = ({ x, y }: { x: number; y: number }) => {
+        const side = state.sides[state.turn];
+        return side === "bottom" ? y : side === "top" ? state.size - 1 - y : side === "left" ? state.size - 1 - x : x;
+      };
+      const towardGoal = pawnMoves(state, state.turn).sort((a, b) => distance(a) - distance(b))[0];
+      const move = towardGoal ? step(towardGoal.x, towardGoal.y) : { type: "pass" } as const;
+      state = send(state, player, stall(state, player) ?? move);
     }
     return state;
   }
@@ -260,13 +266,88 @@ describe("koniec gry", () => {
 });
 
 describe("limit czasu", () => {
-  test("krok prosto w stronę celu", () => {
-    expect(game.timeoutMove!(duel(), A, rng)).toEqual(step(4, 7));
+  test("rng może wybrać każdy legalny krok, także oddalający od najkrótszej drogi", () => {
+    const state = duel();
+    const legal = pawnMoves(state, state.turn);
+    let calls = 0;
+    const moves = [0, 0.5, 1 - Number.EPSILON].map((value) => {
+      const move = game.timeoutMove!(state, A, () => { calls++; return value; });
+      expect(game.validateMove(state, A, move)).toBe(true);
+      return move;
+    });
+    expect(calls).toBeGreaterThan(0);
+    expect(new Set(moves.map((move) => JSON.stringify(move)))).toEqual(new Set(legal.map((c) => JSON.stringify(step(c.x, c.y)))));
   });
 
-  test("krok obchodzi ściankę najkrótszą drogą", () => {
-    const state = play(duel(), [wall(0, 0, "h"), wall(3, 7, "h")]);
-    expect(game.timeoutMove!(state, A, rng)).toEqual(step(5, 8));
+  test("ten sam seed odtwarza ruch, różne seedy dają różne legalne kroki", () => {
+    const state = duel();
+    const moves = Array.from({ length: 32 }, (_, seed) => {
+      const move = game.timeoutMove!(state, A, createRng(seed));
+      expect(game.timeoutMove!(state, A, createRng(seed))).toEqual(move);
+      expect(game.validateMove(state, A, move)).toBe(true);
+      return JSON.stringify(move);
+    });
+    expect(new Set(moves).size).toBeGreaterThan(1);
+  });
+
+  test.each(["klasyczny", "szybki"])("%s: 2 i 4 osoby, po czasie tylko legalny krok, bez zużycia ścianek i zmiany poprzedniego stanu", (mode) => {
+    for (const players of [[A, B], [A, B, C, D]]) {
+      let state = game.setup(players, createRng(1), mode);
+      for (let turn = 0; turn < 24; turn++) {
+        const before = JSON.stringify(state);
+        const player = game.waitingFor(state)[0];
+        const move = game.timeoutMove!(state, player, createRng(turn));
+        expect(move.type).toBe("step");
+        expect(game.moveSchema.safeParse(move).success).toBe(true);
+        const next = send(state, player, move);
+        expect(next.walls).toEqual(state.walls);
+        expect(next.wallsLeft).toEqual(state.wallsLeft);
+        expect(JSON.stringify(state)).toBe(before);
+        state = next;
+        if (game.isOver(state)) break;
+      }
+    }
+  });
+
+  test.each([
+    ["przed ścianką", () => play(duel(), [wall(0, 0, "h"), wall(3, 7, "h")])],
+    ["przy przeskoku", faceToFace],
+    ["przy skosie za pionkiem", () => play(faceToFace(), [wall(3, 4, "h"), wall(0, 0, "h")])],
+  ])("losowanie obejmuje wszystkie legalne kroki %s", (_, setup) => {
+    const state = setup();
+    const legal = pawnMoves(state, state.turn);
+    const chosen = Array.from({ length: 64 }, (_, seed) => {
+      const move = game.timeoutMove!(state, game.waitingFor(state)[0], createRng(seed));
+      expect(game.validateMove(state, game.waitingFor(state)[0], move)).toBe(true);
+      return JSON.stringify(move);
+    });
+    expect(new Set(chosen)).toEqual(new Set(legal.map((c) => JSON.stringify(step(c.x, c.y)))));
+  });
+
+  test("pass tylko bez legalnego kroku: pionki blokują korytarz, choć droga po ściankach istnieje", () => {
+    // A dochodzi do lewego dolnego rogu. B i D stają obok na (1,8) i (2,8).
+    // Ścianka nad A i B blokuje wyjście i skos; D uniemożliwia przeskoczenie B.
+    // Każda pozycja i ścianka powstaje legalnymi ruchami; C zostaje u góry.
+    let state = game.setup([A, B, C, D], createRng(1));
+    for (let round = 0; round < 10; round++) {
+      const a = round < 4 ? step(3 - round, 8) : step(0, round % 2 === 0 ? 7 : 8);
+      const b = round === 0 ? wall(7, 0, "h") : step(1, round < 6 ? round + 3 : round % 2 === 0 ? 7 : 8);
+      const c = round === 9 ? wall(0, 7, "h") : step(round % 2 === 0 ? 3 : 4, 0);
+      const d = round < 4 ? step(8, round + 5) : step(11 - round, 8);
+      state = play(state, [a, b, c, d]);
+    }
+    expect(game.waitingFor(state)).toEqual([A]);
+    expect(pawnMoves(state, state.turn)).toEqual([]);
+    const before = JSON.stringify(state);
+    const move = game.timeoutMove!(state, A, createRng(1));
+    expect(move).toEqual({ type: "pass" });
+    expect(game.validateMove(state, A, move)).toBe(true);
+    const next = send(state, A, move);
+    expect(next.pawns).toEqual(state.pawns);
+    expect(next.walls).toEqual(state.walls);
+    expect(next.wallsLeft).toEqual(state.wallsLeft);
+    expect(game.waitingFor(next)).toEqual([B]);
+    expect(JSON.stringify(state)).toBe(before);
   });
 });
 
@@ -285,5 +366,32 @@ describe("stan", () => {
     expect(copy).toEqual(state);
     expect(game.playerView(state, "")).toEqual(state);
     expect(game.validateMove(copy, A, step(4, 7))).toBe(true);
+  });
+});
+
+describe("P4-030/F4-042: skos przy trzech pionkach", () => {
+  function corridor(blockDiagonal: boolean) {
+    return play(game.setup([A, B, C], createRng(1)), [
+      step(4, 7), step(1, 4), step(4, 1),
+      step(4, 6), step(2, 4), step(4, 2),
+      step(4, 5), step(3, 4), step(4, 3),
+      wall(7, 7, "h"), step(4, 4), blockDiagonal ? wall(3, 3, "v") : wall(0, 0, "h"),
+    ]);
+  }
+
+  test("za sąsiadem stoi trzeci pionek: dozwolone skosy, zabroniony podwójny skok", () => {
+    const s = corridor(false);
+    expect(game.validateMove(s, A, step(4, 2))).toBe(false);
+    for (const x of [3, 5]) {
+      expect(game.validateMove(s, A, step(x, 4))).toBe(true);
+      expect(send(s, A, step(x, 4)).pawns[0]).toEqual({ x, y: 4 });
+    }
+  });
+
+  test("skos omija sąsiada tylko po stronie bez ścianki", () => {
+    const s = corridor(true);
+    expect(game.validateMove(s, A, step(3, 4))).toBe(false);
+    expect(game.validateMove(s, A, step(5, 4))).toBe(true);
+    expect(send(s, A, step(5, 4)).pawns[0]).toEqual({ x: 5, y: 4 });
   });
 });

@@ -7,7 +7,7 @@ import { createRng, GAMES, MINI_GAME_IDS, ROOM_MESSAGES, soloState } from "./ind
 // - partia się kończy, po końcu nikt nie może już nic zrobić, a wynik wskazuje tylko graczy tej partii,
 // - widok każdego gracza i obserwatora ("") da się wysłać jako JSON na każdym etapie,
 // - mini-gra podaje po końcu miejsca z remisami (`places`), zgodne z rankingiem i zwycięzcą,
-// - mini-gra podaje wynik każdego gracza do rankingu rekordów (`record`) jako liczbę skończoną.
+// - rekord jest skończony poza jawnym wyjątkiem: nowy timeout Schultego/Sudoku nie daje rekordu.
 
 const STRANGER = "obcy";
 const SEEDS = [1, 2, 3];
@@ -54,6 +54,15 @@ const CASES = Object.values(GAMES).flatMap((game) =>
 );
 
 describe.each(CASES)("$name: kontrakt", ({ game, mode }) => {
+  test("walidacja z trzema argumentami zachowuje kontekst klienta", () => {
+    const rng = createRng(1);
+    const state = game.setup(["p1", "p2"].slice(0, game.minPlayers), rng, mode);
+    const player = game.waitingFor(state)[0];
+    const move = game.timeoutMove!(state, player, rng);
+    expect(game.validateMove(state, player, move)).toBe(game.validateMove(state, player, move, { source: "client" }));
+    expect(game.validateMove(state, STRANGER, move)).toBe(false);
+  });
+
   test.each([...new Set([game.minPlayers, game.maxPlayers])])("%i graczy: losowa partia do końca", (n) => {
     for (const seed of SEEDS) {
       const players = ["p1", "p2", "p3", "p4", "p5", "p6"].slice(0, n);
@@ -70,19 +79,20 @@ describe.each(CASES)("$name: kontrakt", ({ game, mode }) => {
         for (const p of waiting) {
           const fallback = game.timeoutMove!(s, p, rng);
           expect(game.moveSchema.safeParse(fallback).success, `seed ${seed}, ruch ${steps}: schemat ${JSON.stringify(fallback)}`).toBe(true);
-          expect(game.validateMove(s, p, fallback), `seed ${seed}, ruch ${steps}: timeoutMove ${p} ${JSON.stringify(fallback)}`).toBe(true);
+          expect(game.validateMove(s, p, fallback, { source: "timeout" }), `seed ${seed}, ruch ${steps}: timeoutMove ${p} ${JSON.stringify(fallback)}`).toBe(true);
         }
         const player = waiting[Math.floor(rng() * waiting.length)];
         const eager = rng() < 0.7 ? EAGER[game.id]?.(rng).find((m) => game.validateMove(s, player, m)) : undefined;
         const move = eager ?? game.timeoutMove!(s, player, rng);
+        const context = { source: eager === undefined ? "timeout" : "client" } as const;
         phases.add((s as { phase?: string }).phase ?? "");
         const label = `seed ${seed}, ruch ${steps}: ${JSON.stringify(move).slice(0, 80)}`;
 
         expect(game.moveSchema.safeParse(move).success, label).toBe(true);
-        expect(game.validateMove(s, player, move), label).toBe(true);
-        expect(game.validateMove(s, STRANGER, move), `${label} (obcy)`).toBe(false);
+        expect(game.validateMove(s, player, move, context), label).toBe(true);
+        expect(game.validateMove(s, STRANGER, move, context), `${label} (obcy)`).toBe(false);
         for (const other of players) {
-          if (!waiting.includes(other)) expect(game.validateMove(s, other, move), `${label} (${other} poza turą)`).toBe(false);
+          if (!waiting.includes(other)) expect(game.validateMove(s, other, move, context), `${label} (${other} poza turą)`).toBe(false);
         }
         views(s);
 
@@ -105,11 +115,12 @@ describe.each(CASES)("$name: kontrakt", ({ game, mode }) => {
         expect(order, `seed ${seed}: miejsca rosną wzdłuż rankingu`).toEqual([...order].sort((a, b) => a - b));
         expect(order[0]).toBe(1);
         expect(winner !== undefined, `seed ${seed}: zwycięzca tylko przy samodzielnym 1. miejscu`).toBe(n > 1 && order.filter((x) => x === 1).length === 1);
-        for (const p of players) expect(Number.isFinite(game.record!.score(s, p)), `seed ${seed}: rekord ${p}`).toBe(true);
+        for (const p of players) expect(Number.isFinite(game.record!.score(s, p)), `seed ${seed}: rekord ${p}`).toBe(!["schulte", "sudoku"].includes(game.id));
       }
       for (const move of seen.values()) {
         for (const player of [...players, STRANGER]) {
           expect(game.validateMove(s, player, move), `seed ${seed}, po końcu: ${player} ${JSON.stringify(move).slice(0, 80)}`).toBe(false);
+          expect(game.validateMove(s, player, move, { source: "timeout" }), `seed ${seed}, timeout po końcu: ${player}`).toBe(false);
         }
       }
     }
@@ -208,4 +219,66 @@ test.each(MINI_GAME_IDS)("%s: soloState zostawia jednego gracza i ten sam wynik"
     if (!perPlayer) expect((solo as Record<string, unknown>)[key]).toEqual(value);
   }
   expect(state.players).toEqual(["sesja-a", "sesja-b"]);
+});
+
+// P4-033/F4-021: dane z normalnych ruchów, a nie mapy z samego timeoutu.
+test.each(["schulte", "kropki", "kat", "rok", "wieza", "balon", "sudoku", "kolo"])("%s: soloState zachowuje wypełnione mapy, wynik i widok obserwatora", (id) => {
+  const game = GAMES[id], rng = createRng(42);
+  const players = ["sesja-ania", "sesja-bartek"];
+  let state = game.setup(players, rng);
+  const send = (player: string, data: unknown) => {
+    const move = game.moveSchema.parse(data);
+    expect(game.validateMove(state, player, move)).toBe(true);
+    state = game.applyMove(state, player, move, rng);
+  };
+  for (const [i, player] of players.entries()) {
+    if (id === "kolo") {
+      const points = Array.from({ length: 100 }, (_, at) => [0.5 + 0.3 * Math.cos(at * Math.PI / 50), 0.5 + 0.3 * Math.sin(at * Math.PI / 50)]);
+      send(player, { type: "result", points });
+      send(player, { type: "result", points: [] });
+    } else {
+      const field = id === "schulte" ? "found" : id === "sudoku" ? "filled" : id === "wieza" ? "height" : "done";
+      send(player, { type: "progress", [field]: i + 1 });
+      if (id === "schulte" || id === "sudoku") send(player, { type: "result", ms: 20000 + i * 1000, mistakes: i, ...(id === "schulte" ? { splits: Array(25).fill((20000 + i * 1000) / 25) } : {}) });
+      else if (id === "wieza") send(player, { type: "result", stops: [600, 566] });
+      else if (id === "balon") send(player, { type: "result", pumps: Array(10).fill(i + 1) });
+      else {
+        const answers = id === "kropki" ? state.rounds.map((r: unknown[]) => r.length) : id === "kat" ? state.rounds.map((r: { angle: number }) => r.angle) : state.events.map((e: { year: number }) => e.year);
+        send(player, { type: "result", answers });
+      }
+    }
+  }
+  expect(game.isOver(state)).not.toBeNull();
+  const before = structuredClone(state);
+  for (const player of players) {
+    const solo = JSON.parse(JSON.stringify(soloState(state, player)));
+    const view = game.playerView(solo, "");
+    expect(solo.players).toEqual(["1"]);
+    expect(JSON.stringify(view)).not.toContain("sesja-");
+    expect(game.record!.score(solo, "1")).toBe(game.record!.score(state, player));
+    expect(game.isOver(solo)).toEqual({ ranking: ["1"] });
+    const fields = id === "kolo" ? ["attempts", "best", "worst"] : ["progress", "results", ...({ schulte: [], sudoku: [], kropki: ["answers"], kat: ["answers"], rok: ["answers"], wieza: [], balon: ["pumps"] }[id] ?? [])];
+    for (const field of fields) {
+      expect(state[field][player], field).toBeDefined();
+      expect(solo[field], field).toEqual({ "1": state[field][player] });
+    }
+    expect(view).toEqual(solo);
+  }
+  expect(state).toEqual(before);
+});
+
+describe("P4-034: jedna lista mini-gier i stałe z przedrostkiem gry", () => {
+  test("F4-017: MINI_GAME_IDS to te same 30 gier co dawny ręczny zbiór w Game.tsx (bez Państw-miast)", () => {
+    expect([...MINI_GAME_IDS].sort()).toEqual(
+      ["tort", "zakupy", "zaslona", "nozyczki", "refleks", "simon", "stoper", "schulte", "sudoku", "stroop", "liczenie", "kolo", "kolor", "kropki", "rok", "srodek", "stoj", "sledzenie", "kubki", "wieza", "rytm", "inny", "obrot", "literowka", "mapa", "kat", "przytrzymaj", "balon", "w-pamieci", "dziesiatki"].sort(),
+    );
+  });
+
+  test("F4-051: stałe Śledzenia mają przedrostek SLEDZENIE_", async () => {
+    const all: Record<string, unknown> = await import("./index.ts");
+    for (const name of ["BALLS", "MOVE_MS", "RADIUS", "ROUNDS", "SHOW_MS", "SPEED_START", "SPEED_STEP", "TARGETS"]) {
+      expect(name in all, name).toBe(false);
+      expect(all[`SLEDZENIE_${name}`], name).toBeTypeOf("number");
+    }
+  });
 });

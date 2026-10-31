@@ -1,6 +1,8 @@
 import { type LobbyPlayer, WIEZA_BASE, WIEZA_LEVELS, WIEZA_MAX_STOP_MS, wiezaBuild, wiezaLeft, type WiezaView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
+import * as clock from "../clock.ts";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: WiezaView;
@@ -26,9 +28,9 @@ const percent = (width: number) => `${Math.round(width * 100)}%`;
 function Preview({ color }: { color?: string }) {
   return (
     <>
-      <span className="absolute bottom-[18%] left-[30%] h-[18%] w-[40%] rounded-sm" style={{ backgroundColor: color }} />
-      <span className="absolute bottom-[36%] left-[34%] h-[18%] w-[36%] rounded-sm opacity-80" style={{ backgroundColor: color }} />
-      <span className="absolute bottom-[54%] left-[40%] h-[18%] w-[30%] animate-[preview-half_3s_linear_infinite] rounded-sm" style={{ backgroundColor: color }} />
+      <span className="absolute bottom-[18%] left-[30%] h-[18%] w-[40%]" style={{ backgroundColor: color }} />
+      <span className="absolute bottom-[36%] left-[34%] h-[18%] w-[36%] opacity-80" style={{ backgroundColor: color }} />
+      <span className="absolute bottom-[54%] left-[40%] h-[18%] w-[30%] animate-[preview-half_3s_linear_infinite]" style={{ backgroundColor: color }} />
     </>
   );
 }
@@ -65,15 +67,17 @@ export function Wieza({ view, me, players, ranking, onMove }: Props) {
     const next = [...stops, t];
     const built = wiezaBuild(view.sides, next);
     setStops(next);
-    if (built.height < next.length) navigator.vibrate?.(60);
+    if (built.height < next.length) navigator.vibrate?.(VIBRATE.mistake);
     else if (next.length < WIEZA_LEVELS) onMove({ type: "progress", height: built.height });
     if (built.height < next.length || next.length >= WIEZA_LEVELS) setPhase("over");
   }
 
-  // Ruch ustawia pozycję wprost w DOM (bez stanu Reacta na klatkę), z tego samego wzoru co serwer.
+  // Ruch ustawia pozycję wprost w DOM (bez stanu Reacta na klatkę), z tego samego wzoru co serwer. Jazda klocka jest zadaniem,
+  // więc nie zależy od przejść CSS i działa tak samo przy prefers-reduced-motion.
   useEffect(() => {
     if (phase !== "play") return;
     started.current = performance.now();
+    clock.stimulus("wieza");
     let id = requestAnimationFrame(function frame(now) {
       const t = now - started.current;
       if (t >= WIEZA_MAX_STOP_MS) return drop(WIEZA_MAX_STOP_MS);
@@ -135,7 +139,11 @@ export function Wieza({ view, me, players, ranking, onMove }: Props) {
       />
       <div
         className="tile relative mx-auto aspect-square w-full max-w-[calc(100dvh-22rem)] touch-none select-none overflow-hidden"
-        onPointerDown={() => phase === "play" && drop(Math.min(WIEZA_MAX_STOP_MS, Math.round(performance.now() - started.current)))}
+        onPointerDown={(e) => {
+          if (phase !== "play") return;
+          clock.input("wieza", e);
+          drop(Math.min(WIEZA_MAX_STOP_MS, Math.round(performance.now() - started.current)));
+        }}
       >
         <div className="absolute inset-0 transition-transform duration-[180ms]" style={{ transform: `translateY(${shift * ROW}%)` }} aria-hidden>
           <span className="absolute bg-fg-muted" style={block(0, WIEZA_BASE.left, WIEZA_BASE.width)} />
@@ -167,7 +175,7 @@ export function Wieza({ view, me, players, ranking, onMove }: Props) {
           </span>
         )}
       </div>
-      <p className="text-center text-sm text-fg-muted">Zatrzymaj klocek nad wieżą. To, co wystaje, zostaje odcięte.</p>
+      <p className="text-center text-sm text-fg-muted">Zatrzymaj klocek nad wieżą. To, co wystaje, zostaje ucięte.</p>
     </section>
   );
 }

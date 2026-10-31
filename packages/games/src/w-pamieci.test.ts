@@ -242,3 +242,54 @@ describe("stan", () => {
     expect(game.isOver(send(copy, B, play(s, 3)))).toEqual({ winner: B, ranking: [B, A] });
   });
 });
+
+// P4-005: istniejący kontrakt przyjmuje wynik zaraz po pomyłce, bez osobnego potwierdzenia.
+test.each([1, 6])("%i graczy: wynik po trzech rundach jest zapisany i nie daje się nadpisać timeoutem", (n) => {
+  const players = [A, B, C, "darek", "ewa", "filip"].slice(0, n);
+  let s = fresh(players);
+  for (const p of players) s = send(s, p, play(s, 3, 2));
+  expect(game.isOver(s)).toEqual({ ranking: players });
+  expect(game.places!(s)).toEqual(Object.fromEntries(players.map(p => [p, 1])));
+  for (const p of players) {
+    expect(s.results[p]).toEqual({ rounds: 3, diff: 2 });
+    expect(game.record!.score(s, p)).toBe(3);
+    expect(game.record!.tie!.score(s, p)).toBe(2);
+    expect(accepts(s, p, play(s, 3, 2))).toBe(false);
+    expect(accepts(s, p, game.timeoutMove!(s, p, createRng(1)))).toBe(false);
+  }
+  const copy = JSON.parse(JSON.stringify(s)) as State;
+  expect(game.playerView(copy, "")).toEqual(s);
+});
+
+test.each([1, 7, 42])("P4-032/F4-053: seed %i, runda nie przedłuża ciągu poprzedniej", (seed) => {
+  const { rounds } = fresh([A], seed);
+  for (let i = 1; i < rounds.length; i++) {
+    const previous = rounds[i - 1], current = rounds[i];
+    const prefix = { start: current.start, ops: current.ops.slice(0, previous.ops.length) };
+    expect(prefix, `rundy ${i - 1} i ${i}`).not.toEqual(previous);
+  }
+});
+
+describe("P4-059: stała liczba mnożeń w rundzie", () => {
+  const all = Array.from({ length: 1000 }, (_, seed) => fresh([A], seed + 1).rounds);
+
+  test("runda z n działaniami ma floor(n / 3) mnożeń, wartości 1-99, dla 1000 seedów", () => {
+    all.forEach((rounds, seed) =>
+      rounds.forEach((round, i) => {
+        const n = i + START_OPS;
+        expect(round.ops, `seed ${seed + 1}, runda ${i}`).toHaveLength(n);
+        expect(round.ops.filter((o) => o.op === "×"), `seed ${seed + 1}, runda ${i}`).toHaveLength(Math.floor(n / 3));
+        for (const { op, n: k } of round.ops) expect(Number.isInteger(k) && k >= (op === "×" ? 2 : 1) && k <= (op === "×" ? 3 : 9)).toBe(true);
+        for (const v of steps(round)) expect(v >= 1 && v <= MAX_VALUE, `seed ${seed + 1}, runda ${i}: ${v}`).toBe(true);
+      }),
+    );
+  });
+
+  test("miejsca mnożeń są tasowane, a ciągi różne między seedami", () => {
+    for (let i = 1; i < ROUNDS; i++) {
+      const places = new Set(all.map((rounds) => rounds[i].ops.map((o) => +(o.op === "×")).join("")));
+      expect(places.size, `runda ${i}`).toBeGreaterThan(1);
+    }
+    expect(new Set(all.map((rounds) => JSON.stringify(rounds))).size).toBe(all.length);
+  });
+});

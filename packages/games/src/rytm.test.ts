@@ -1,10 +1,10 @@
 import { describe, expect, test } from "vitest";
-import { createRng } from "./core.ts";
+import { createRng, soloState } from "./core.ts";
 import { BEATS, deviation, expected, MAX_TAPS, type Move, rytm as game, type State, TAP_MS, type View } from "./rytm.ts";
 
 // Testy napisane przed implementacją. Ustalają zasady:
 // - 1-6 graczy grają naraz u siebie; metronom gra 8 uderzeń i cichnie, gracz stuka dalej przez 10 s,
-// - tempo losuje serwer: 70-130 BPM co 5, w stanie jako odstęp w ms, to samo dla wszystkich,
+// - tempo stałe: 100 BPM, w stanie jako odstęp 600 ms (P4-056; dawniej losowe 70-130 BPM, stare partie zostają ze swoim odstępem),
 // - klient oddaje jeden wynik: czasy stuknięć w ms od ostatniego uderzenia metronomu (1-10 000, ściśle rosnące, najwyżej 60),
 // - serwer liczy średnią odchyłkę odstępów od odstępu metronomu (pierwszy odstęp od ostatniego uderzenia); błąd odstępu
 //   jest ucięty do odstępu metronomu, a brakujące odstępy (do floor(10 000 / odstęp) − 1) liczą się jak najgorsze,
@@ -44,10 +44,26 @@ describe("definicja", () => {
 });
 
 describe("setup", () => {
-  test("tempo to 70-130 BPM co 5 i trafiają się wszystkie", () => {
+  test("P4-056: tempo zawsze 100 BPM, czyli odstęp 600 ms; metronom nadal 8 uderzeń", () => {
     const intervals = new Set(Array.from({ length: 300 }, (_, seed) => fresh([A], seed).interval));
-    const bpms = Array.from({ length: 13 }, (_, i) => 70 + 5 * i);
-    expect([...intervals].sort((a, b) => a - b)).toEqual(bpms.map((bpm) => Math.round(60_000 / bpm)).sort((a, b) => a - b));
+    expect([...intervals]).toEqual([600]);
+    expect(BEATS).toBe(8);
+    expect(expected(600)).toBe(15);
+  });
+
+  test("P4-056: timeout przy 600 ms to 600 ms", () => {
+    const s = fresh([A]);
+    const t = game.timeoutMove!(s, A, createRng(1));
+    expect(game.validateMove(s, A, t, { source: "timeout" })).toBe(true);
+    expect(view(game.applyMove(s, A, t, createRng(1))).results[A]).toBe(600);
+  });
+
+  test("P4-056: stara partia z innym tempem liczy się po swoim odstępie", () => {
+    const old: State = { ...fresh([A]), interval: 857 };
+    const s = game.applyMove(old, A, play(old), createRng(1));
+    expect(view(s).interval).toBe(857);
+    expect(view(s).results[A]).toBe(0);
+    expect(view(s).taps?.[A]).toHaveLength(expected(857));
   });
 
   test("wszyscy grają naraz i dostają to samo tempo", () => {
@@ -217,5 +233,28 @@ describe("stan", () => {
     const copy = JSON.parse(JSON.stringify(next)) as State;
     expect(copy).toEqual(next);
     expect(game.isOver(send(copy, B, play(copy, 10)))).toEqual({ winner: B, ranking: [B, A] });
+  });
+});
+
+describe("P4-033/F4-016: kafel Rytmu ze stanu", () => {
+  test("oddane stuknięcia zostają w stanie i nie mutują poprzedniej partii", () => {
+    const s = game.setup([A, B], createRng(1));
+    const taps = [s.interval + 10, 2 * s.interval + 20, 3 * s.interval + 30];
+    const move = game.moveSchema.parse({ type: "result", taps });
+    expect(game.validateMove(s, A, move)).toBe(true);
+    const before = structuredClone(s);
+    const after = game.applyMove(s, A, move, createRng(1));
+    expect(s).toEqual(before);
+    expect(after).toMatchObject({ taps: { [A]: taps } });
+    const restored = JSON.parse(JSON.stringify(soloState(after, A)));
+    expect(game.playerView(restored, "")).toMatchObject({ taps: { "1": taps } });
+    expect(JSON.parse(JSON.stringify(after))).toEqual(after);
+  });
+
+  test("timeout zapisuje pustą listę, bez fikcyjnego tempa", () => {
+    const s = game.setup([A], createRng(1));
+    const move = game.timeoutMove!(s, A, createRng(1));
+    expect(game.validateMove(s, A, move)).toBe(true);
+    expect(game.applyMove(s, A, move, createRng(1))).toMatchObject({ taps: { [A]: [] }, results: { [A]: s.interval } });
   });
 });

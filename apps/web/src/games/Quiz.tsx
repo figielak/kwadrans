@@ -1,7 +1,7 @@
-import { type LobbyPlayer, QUIZ_DURATION_MS, type QuizMove } from "@kwadrans/games";
-import { Trophy } from "@phosphor-icons/react";
-import { type ReactNode, useEffect, useRef, useState } from "react";
-import { Intro, Stats } from "../screens/ui.tsx";
+import { type LobbyPlayer, QUIZ_DURATION_MS, QUIZ_BLOCK_MS, type QuizMove } from "@kwadrans/games";
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Intro, ScoreTable, Stats } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 /** Wspólny przebieg Koloru liter, Liczenia, Innego elementu, Obrotu i Literówki: 30 s pytań z odpowiedziami do wyboru, pomyłka blokuje na chwilę. */
 interface Props {
@@ -30,9 +30,7 @@ interface Props {
 }
 
 /** Bez kary losowe klepanie byłoby szybsze niż myślenie. */
-export const BLOCK_MS = 1000;
-export const MIN_ANSWER = 150;
-export const MAX_ANSWER = 5000;
+export const BLOCK_MS = QUIZ_BLOCK_MS;
 
 type Phase = "intro" | "play" | "wrong" | "sent";
 
@@ -74,66 +72,25 @@ export function Results({
   });
 
   return (
-    <section className="tile flex flex-col gap-3 p-4">
-      <table className="w-full border-separate border-spacing-y-1 whitespace-nowrap tabular-nums">
-        <thead>
-          <tr className="label text-right">
-            <th className="w-full px-2 text-left font-normal">Gracz</th>
-            <th className="px-1.5 font-normal">{points ? "Punkty" : label}</th>
-            <th className="px-1.5 font-normal">Śr. czas</th>
-            <th className="px-1.5 font-normal">Błędy</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr
-              key={r.id}
-              className={`text-right font-mono text-sm ${r.id === winner ? "font-semibold" : ""}`}
-              style={r.id === winner ? { backgroundColor: `color-mix(in srgb, ${r.color} 16%, transparent)` } : undefined}
-            >
-              <td className="max-w-0 rounded-l-inset px-2 py-1.5 text-left font-sans text-base">
-                <span className="flex items-center gap-2">
-                  {r.id === winner ? (
-                    <Trophy size={16} weight="fill" color={r.color} className="w-5 shrink-0" aria-label="Zwycięzca" />
-                  ) : ranking ? (
-                    <span className="w-5 shrink-0 font-mono" style={{ color: r.color }}>
-                      {places[i]}.
-                    </span>
-                  ) : (
-                    <span className="mx-[5px] size-2.5 shrink-0 rounded-full" style={{ backgroundColor: r.color }} aria-hidden />
-                  )}
-                  {/* Nick się zawija, nie ucina: kolumny liczb zostawiają mu mało miejsca. */}
-                  <span className="min-w-0 whitespace-normal break-words">
-                    {r.nick}
-                    {r.id === me && <span className="text-fg-muted"> (ty)</span>}
-                  </span>
-                </span>
-              </td>
-              {!r.res ? (
-                <td colSpan={3} className="rounded-r-inset px-2 font-sans text-fg-muted">
-                  gra…
-                </td>
-              ) : (
-                <>
-                  {r.avg === null ? (
-                    <td colSpan={2} className="px-1.5 font-sans text-fg-muted">
-                      brak trafień
-                    </td>
-                  ) : (
-                    <>
-                      <td className="px-1.5">{main(r)}</td>
-                      <td className="px-1.5">{duration(r.avg)}</td>
-                    </>
-                  )}
-                  <td className={`rounded-r-inset pr-2 pl-1.5 ${r.res.errors > 0 ? "text-warning" : ""}`}>{r.res.errors}</td>
-                </>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <p className="text-sm text-fg-muted">{note}</p>
-    </section>
+    <ScoreTable
+      heads={[points ? "Punkty" : label, "Śr. czas", "Błędy"]}
+      winner={winner}
+      ranked={!!ranking}
+      rows={rows.map((r, i) => ({
+        id: r.id,
+        nick: r.nick,
+        color: r.color,
+        me: r.id === me,
+        place: places[i],
+        cells: !r.res
+          ? null
+          : [
+              ...(r.avg === null ? [{ value: "brak trafień", span: 2, muted: true }] : [{ value: main(r) }, { value: duration(r.avg) }]),
+              { value: r.res.errors, warn: r.res.errors > 0 },
+            ],
+      }))}
+      note={note}
+    />
   );
 }
 
@@ -142,7 +99,7 @@ export function QuizPreview({ prompt, options, correct }: { prompt: ReactNode; o
   return (
     <div className="flex flex-col items-center gap-3">
       {prompt}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap justify-center gap-2">
         {options.map((option, i) => (
           <span key={i} className="relative rounded-inset border border-line bg-surface px-2 py-1 text-sm font-semibold">
             {option}
@@ -162,56 +119,78 @@ export function Quiz({ view, me, players, ranking, winner, task, preview, questi
   const [index, setIndex] = useState(0);
   /** Ostatnio dotknięta odpowiedź: zielony błysk przy trafieniu, czerwony z potrząśnięciem przy pomyłce. */
   const [flash, setFlash] = useState<{ i: number; ok: boolean; id: number } | null>(null);
-  const run = useRef({ start: 0, shownAt: 0, times: [] as number[], errors: 0, streak: 0, timer: 0 });
+  const run = useRef({ start: 0, shownAt: 0, times: [] as number[], errors: 0, streak: 0, timer: 0, accepting: false, blockedUntil: 0, sent: false });
 
-  function next() {
-    run.current.shownAt = performance.now();
+  function next(at = Math.round(performance.now())) {
+    run.current.shownAt = at;
     setIndex((i) => i + 1);
     setPhase("play");
   }
 
   function start() {
-    const t = performance.now();
-    run.current = { start: t, shownAt: t, times: [], errors: 0, streak: 0, timer: 0 };
+    const t = Math.round(performance.now());
+    run.current = { start: t, shownAt: t, times: [], errors: 0, streak: 0, timer: 0, accepting: false, blockedUntil: 0, sent: false };
     setPhase("play");
   }
 
-  function answer(option: number) {
-    if (phase !== "play") return;
+  useLayoutEffect(() => {
+    run.current.accepting = phase === "play" && playing;
+  }, [phase, index, playing]);
+
+  function finish() {
     const r = run.current;
-    const took = Math.round(performance.now() - r.shownAt);
+    if (r.sent || !playing) return;
+    r.sent = true;
+    r.accepting = false;
+    clearTimeout(r.timer);
+    setPhase("sent");
+    onMove({ type: "result", times: [...r.times], errors: r.errors });
+  }
+
+  function answer(option: number) {
+    const r = run.current;
+    if (phase !== "play" || !playing || !r.accepting || r.sent) return;
+    const now = Math.round(performance.now());
+    if (now - r.start >= QUIZ_DURATION_MS) return finish();
+    if (now < r.blockedUntil) return;
+    r.accepting = false;
+    const took = now - r.shownAt;
     const ok = option === question(index).correct;
-    setFlash((f) => ({ i: option, ok, id: (f?.id ?? 0) + 1 }));
     if (ok) {
       r.streak++;
-      // ponytail: odpowiedź po 5 s liczona jako 5 s, szybsza niż 150 ms przepada (serwer by ją odrzucił)
-      if (took >= MIN_ANSWER) r.times.push(Math.min(took, MAX_ANSWER));
-      next();
+      r.times.push(took);
+      next(now);
     } else {
+      // Błysk pomyłki zostaje na dotkniętym przycisku (pytanie stoi przez blokadę); trafienie błyska licznikiem,
+      // bo po nim od razu jest nowe pytanie i błysk trafiłby w przypadkową odpowiedź.
+      setFlash((f) => ({ i: option, ok, id: (f?.id ?? 0) + 1 }));
       r.errors++;
       r.streak = 0;
-      navigator.vibrate?.(60);
+      navigator.vibrate?.(VIBRATE.mistake);
+      r.blockedUntil = now + BLOCK_MS;
       setPhase("wrong");
-      r.timer = window.setTimeout(retry ? () => setPhase("play") : next, BLOCK_MS);
+      r.timer = window.setTimeout(() => {
+        if (Math.round(performance.now()) - r.start >= QUIZ_DURATION_MS) return finish();
+        if (retry) setPhase("play");
+        else next();
+      }, BLOCK_MS);
     }
   }
 
   // Zegar gry: kończy partię po 30 s (czas do końca pokazuje nagłówek).
   useEffect(() => {
-    if (phase === "intro" || phase === "sent") return;
+    if (phase === "intro" || phase === "sent" || !playing) return;
     const id = setInterval(() => {
       const r = run.current;
-      if (performance.now() - r.start < QUIZ_DURATION_MS) return;
-      clearTimeout(r.timer);
-      setPhase("sent");
-      onMove({ type: "result", times: r.times, errors: r.errors });
+      if (Math.round(performance.now()) - r.start < QUIZ_DURATION_MS) return;
+      finish();
     }, 100);
     return () => clearInterval(id);
-  }, [phase === "intro" || phase === "sent"]);
+  }, [phase === "intro" || phase === "sent", playing]);
 
   useEffect(() => () => clearTimeout(run.current.timer), []);
 
-  const idle = phase === "intro" || phase === "sent";
+  const idle = phase === "intro" || phase === "sent" || !playing;
   useEffect(() => onRound?.(idle ? null : QUIZ_DURATION_MS), [idle]);
 
   if (!playing || phase === "sent") return <Results view={view} me={me} players={players} ranking={ranking} winner={winner} points={points} note={note} />;
@@ -229,11 +208,15 @@ export function Quiz({ view, me, players, ranking, winner, task, preview, questi
   }
 
   const q = question(index);
+  const hits = run.current.times.length;
+  const counted = (value: ReactNode) => (
+    <span key={hits} className={hits ? "inline-block animate-[tile-hit_0.35s_ease-out] rounded-inset px-1" : "px-1"}>{value}</span>
+  );
   return (
     <div className="flex flex-1 flex-col gap-3">
       <Stats
         items={[
-          points ? { label: "Punkty", value: points(run.current) } : { label: "Trafienia", value: run.current.times.length },
+          points ? { label: "Punkty", value: counted(points(run.current)) } : { label: "Trafienia", value: counted(hits) },
           { label: "Błędy", value: run.current.errors, warn: run.current.errors > 0 },
           { label: "Seria", value: run.current.streak },
         ]}
@@ -243,17 +226,19 @@ export function Quiz({ view, me, players, ranking, winner, task, preview, questi
           {phase === "wrong" ? <span className="text-2xl font-semibold text-warning">Źle!</span> : q.prompt}
         </div>
       )}
-      <div className={q.cols ? "grid gap-2" : "grid grid-cols-2 gap-3"} style={q.cols ? { gridTemplateColumns: `repeat(${q.cols}, 1fr)` } : undefined}>
+      <div className={q.cols ? "grid gap-2" : "grid grid-cols-2 gap-3"} style={q.cols ? { gridTemplateColumns: `repeat(${q.cols}, minmax(0, 1fr))` } : undefined}>
         {q.options.map((option, i) => (
           <button
             // Klucz z błysku: przycisk montuje się od nowa i animacja startuje jeszcze raz.
             key={i === flash?.i ? `${i}-${flash.id}` : i}
             type="button"
             disabled={phase !== "play"}
+            // Siatka figur (Inny element) nie ma tekstu w przycisku: nazwa z pozycji, bez zdradzania odpowiedzi.
+            aria-label={q.cols ? `Figura ${i + 1} z ${q.options.length}` : undefined}
             onPointerDown={() => answer(i)}
             className={`flex touch-none select-none items-center justify-center border bg-surface ${q.cols ? "aspect-square rounded-inset" : "min-h-24 gap-2 rounded-tile text-xl font-semibold"} ${
               phase !== "wrong" ? "border-line" : i === flash?.i ? "border-warning" : "border-line opacity-40"
-            } ${i === flash?.i ? (flash.ok ? "animate-[tile-hit_0.35s_ease-out]" : "animate-[tile-miss_0.35s_ease-out]") : ""}`}
+            } ${i === flash?.i ? "animate-[tile-miss_0.35s_ease-out]" : ""}`}
           >
             {option}
           </button>

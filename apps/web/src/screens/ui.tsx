@@ -38,13 +38,13 @@ export function TopBar({ code, onBack, onLeave, children }: { code: string; onBa
   return (
     <div className="flex items-center justify-between">
       <button type="button" className="-ml-2 flex min-h-12 items-center gap-1.5 px-2 text-sm text-fg-muted" onClick={onBack ?? onLeave}>
-        {onBack ? <ArrowLeft size={16} aria-hidden /> : <SignOut size={16} aria-hidden />}
+        {onBack ? <ArrowLeft size={16} weight="bold" aria-hidden /> : <SignOut size={16} weight="bold" aria-hidden />}
         {onBack ? "Gry" : "Wyjdź"}
       </button>
       {children}
       <button type="button" className="-mr-2 flex min-h-12 items-center gap-2 px-2" onClick={share} aria-label={`Kod pokoju ${code}, udostępnij link`}>
         <span className="text-sm text-fg-muted">{copied ? "Skopiowano!" : "Kod"}</span>
-        <span className="font-mono text-lg font-medium tracking-[0.12em]">{code}</span>
+        <span className="font-mono tabular-nums text-lg font-medium tracking-[0.12em]">{code}</span>
         {copied ? <Check size={16} weight="bold" aria-hidden /> : <ShareNetwork size={16} weight="bold" aria-hidden />}
       </button>
     </div>
@@ -61,7 +61,7 @@ export function PlayerDots({ view }: { view: RoomView }) {
         return (
           <li
             key={p.id}
-            className={`grid size-4 place-items-center rounded-full transition-opacity ${p.connected ? "" : "opacity-40"}`}
+            className={`grid size-4 place-items-center rounded-full transition-opacity duration-180 ${p.connected ? "" : "opacity-40"}`}
             style={{ backgroundColor: p.color }}
             aria-label={`${p.nick}${ready ? ", gotowe" : ""}${p.connected ? "" : ", rozłączony"}`}
           >
@@ -94,12 +94,12 @@ export interface GameDot {
 }
 
 /**
- * Gracze mini-gry jako kropki z inicjałem obok tytułu: nicki zajęłyby przy sześciu osobach trzy rzędy nad polem gry.
+ * Gracze jako kropki z inicjałem: nicki zajęłyby przy sześciu osobach trzy rzędy nad polem gry.
  * Dotknięcie rzędu rozwija pełną listę z nickami (rysuje ją `Game.tsx`). `square`: odznaka z punktami turnieju, a nie z wygranymi.
  */
-export function GameDots({ dots, square, open, onToggle }: { dots: GameDot[]; square: boolean; open: boolean; onToggle: () => void }) {
+export function GameDots({ dots, square, open, onToggle, compact = false }: { dots: GameDot[]; square: boolean; open: boolean; onToggle: () => void; compact?: boolean }) {
   return (
-    <button type="button" className="-my-2.5 flex min-h-12 items-center gap-1.5" aria-expanded={open} title="Pokaż graczy" onClick={onToggle}>
+    <button type="button" className={`-my-2.5 flex min-h-12 shrink-0 items-center ${compact ? "gap-1" : "gap-1.5"}`} aria-expanded={open} aria-label={open ? "Zwiń graczy" : "Pokaż graczy"} onClick={onToggle}>
       {dots.map((d) => (
         <span
           key={d.id}
@@ -111,7 +111,7 @@ export function GameDots({ dots, square, open, onToggle }: { dots: GameDot[]; sq
         >
           <span className="grid size-8 place-items-center rounded-full bg-bg" aria-hidden>
             <span
-              className={`grid size-7 place-items-center rounded-full leading-none font-semibold text-bg transition-opacity ${d.label.length > 1 ? "text-[11px]" : "text-sm"} ${d.reading || !d.connected ? "opacity-40" : ""}`}
+              className={`grid size-7 place-items-center rounded-full leading-none font-semibold text-bg transition-opacity duration-180 ${d.label.length > 1 ? "text-[11px]" : "text-sm"} ${d.reading || !d.connected ? "opacity-40" : ""}`}
               style={{ backgroundColor: d.color }}
             >
               {d.label}
@@ -122,14 +122,14 @@ export function GameDots({ dots, square, open, onToggle }: { dots: GameDot[]; sq
             // Klucz z wyniku: po wygranej liczba montuje się od nowa i wskakuje.
             <span
               key={d.badge}
-              className={`absolute -top-1 -right-1 grid h-4 min-w-4 place-items-center border border-line bg-surface px-0.5 font-mono text-[10px] leading-none text-fg tabular-nums ${square ? "rounded-sm" : "rounded-full"} ${d.plus ? "animate-[stone-pop_0.5s_ease-out]" : ""}`}
+              className={`absolute -top-1 -right-1 grid h-4 min-w-4 place-items-center border border-line bg-surface px-0.5 font-mono text-[10px] leading-none text-fg tabular-nums ${square ? "rounded-sm" : "rounded-full"} ${d.plus ? "animate-[stone-pop_0.35s_ease-out]" : ""}`}
               aria-hidden
             >
               {d.badge}
             </span>
           )}
           {d.plus && (
-            <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono text-sm" style={{ color: d.color }} aria-hidden>
+            <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono tabular-nums text-sm" style={{ color: d.color }} aria-hidden>
               +1
             </span>
           )}
@@ -157,6 +157,98 @@ export function Scores({ rows }: { rows: { id: string; nick: string; color?: str
   );
 }
 
+/** Komórka `ScoreTable`: `span` łączy kolumny (np. „brak trafień”), `muted` to tekst zamiast liczby, `warn` barwi liczbę (błędy). */
+export interface ScoreCell {
+  value: ReactNode;
+  span?: number;
+  muted?: boolean;
+  warn?: boolean;
+}
+
+/**
+ * Drugi wspólny wzorzec wyników (obok `Scores`): gracz i kilka kolumn liczb, gdy jedna liczba nie wystarcza
+ * (quizy, Dziesiątki, Stój!, Refleks). Puchar u zwycięzcy, miejsca z remisami po końcu (`ranked`), „(ty)”, „gra…” dla grających.
+ */
+export function ScoreTable({
+  heads,
+  rows,
+  winner,
+  ranked = false,
+  note,
+  children,
+}: {
+  heads: ReactNode[];
+  /** `cells: null` = gracz jeszcze gra. */
+  rows: { id: string; nick: string; color?: string; me: boolean; place?: number; cells: ScoreCell[] | null }[];
+  winner?: string;
+  ranked?: boolean;
+  note?: ReactNode;
+  /** Szczegół pod tabelą, np. wykres reakcji w Refleksie. */
+  children?: ReactNode;
+}) {
+  return (
+    <section className="tile flex flex-col gap-3 p-4">
+      <table className="w-full border-separate border-spacing-y-1 whitespace-nowrap tabular-nums">
+        <thead>
+          <tr className="label text-right">
+            <th className="w-full px-2 text-left font-normal">Gracz</th>
+            {heads.map((head, i) => (
+              <th key={i} className="px-1.5 font-normal">
+                {head}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr
+              key={r.id}
+              className={`text-right font-mono tabular-nums text-sm ${r.id === winner ? "font-semibold" : ""}`}
+              style={r.id === winner ? { backgroundColor: `color-mix(in srgb, ${r.color} 16%, transparent)` } : undefined}
+            >
+              <td className="max-w-0 rounded-l-inset px-2 py-1.5 text-left font-sans text-base">
+                <span className="flex items-center gap-2">
+                  {r.id === winner ? (
+                    <Trophy size={16} weight="fill" color={r.color} className="w-5 shrink-0" aria-label="Zwycięzca" />
+                  ) : ranked && r.place !== undefined ? (
+                    <span className="w-5 shrink-0 font-mono tabular-nums" style={{ color: r.color }}>
+                      {r.place}.
+                    </span>
+                  ) : (
+                    <span className="mx-[5px] size-2.5 shrink-0 rounded-full" style={{ backgroundColor: r.color }} aria-hidden />
+                  )}
+                  {/* Nick się zawija, nie ucina: kolumny liczb zostawiają mu mało miejsca. */}
+                  <span className="min-w-0 whitespace-normal break-words">
+                    {r.nick}
+                    {r.me && <span className="text-fg-muted"> (ty)</span>}
+                  </span>
+                </span>
+              </td>
+              {r.cells === null ? (
+                <td colSpan={heads.length} className="rounded-r-inset px-2 font-sans text-fg-muted">
+                  gra…
+                </td>
+              ) : (
+                r.cells.map((c, i) => (
+                  <td
+                    key={i}
+                    colSpan={c.span}
+                    className={`${i === r.cells!.length - 1 ? "rounded-r-inset pr-2 pl-1.5" : "px-1.5"} ${c.muted ? "font-sans text-fg-muted" : ""} ${c.warn ? "text-warning" : ""}`}
+                  >
+                    {c.value}
+                  </td>
+                ))
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {children}
+      {note && <p className="text-sm text-fg-muted">{note}</p>}
+    </section>
+  );
+}
+
 /** Pasek statystyk nad planszą mini-gry: każda liczba ma etykietę, `warn` barwi wartość (kara, błędy). */
 export function Stats({ items }: { items: { label: string; value: ReactNode; warn?: boolean }[] }) {
   return (
@@ -172,7 +264,38 @@ export function Stats({ items }: { items: { label: string; value: ReactNode; war
 }
 
 /** „12,3”: jedno miejsce po przecinku, z przecinkiem. */
-export const tenth = (n: number) => n.toFixed(1).replace(".", ",");
+/** Krok odświeżania pasków czasu; przejście szerokości trwa tyle samo, więc pasek jedzie płynnie i liniowo. */
+export const TICK_MS = 250;
+
+/**
+ * Pasek czasu liczony z zegara od zamontowania: działa przy prefers-reduced-motion (wtedy skacze co krok) i po powrocie do karty.
+ * `fill` rośnie od zera, bez niego maleje. Kolor z `color` albo z klasy `bar`.
+ */
+export function TimeBar({ ms, fill = false, color, bar = "" }: { ms: number; fill?: boolean; color?: string; bar?: string }) {
+  const [start] = useState(() => performance.now());
+  const [now, setNow] = useState(start);
+  useEffect(() => {
+    const id = setInterval(() => setNow(performance.now()), TICK_MS);
+    return () => clearInterval(id);
+  }, []);
+  const done = Math.min(1, (now - start) / ms);
+  return (
+    <div className="h-1.5 overflow-hidden rounded-full bg-line" aria-hidden>
+      <div className={`h-full transition-[width] duration-250 ease-linear ${bar}`} style={{ width: `${(fill ? done : 1 - done) * 100}%`, backgroundColor: color }} />
+    </div>
+  );
+}
+
+/** Liczba z przecinkiem dziesiętnym i typograficznym minusem; zaokrąglone do zera nie dostaje znaku („0,0”, nie „−0,0”). */
+/** „do minuty”, „do 3 minut”: limit całej partii mini-gry w punkcie `time` ekranu Intro. */
+export const upTo = (seconds: number) => (seconds === 60 ? "do minuty" : seconds % 60 ? `do ${seconds} s` : `do ${seconds / 60} minut`);
+
+export function decimal(n: number, digits: number): string {
+  const text = Math.abs(n).toFixed(digits).replace(".", ",");
+  return n < 0 && Number(text.replace(",", ".")) !== 0 ? `−${text}` : text;
+}
+
+export const tenth = (n: number) => decimal(n, 1);
 
 /** Kolor według celności błędu: do `perfect` zielony, powyżej `close` ostrzegawczy. */
 export const grade = (d: number, perfect: number, close: number) =>
@@ -191,25 +314,34 @@ export function RoundTable({
   format = tenth,
   legend,
   children,
+  goal,
+  tone,
+  caption,
 }: {
   heads: ReactNode[];
-  /** Pusta lista `errors` = gracz nie odpowiedział (limit czasu). */
-  rows: { id: string; nick: string; color?: string; me: boolean; errors: number[] }[];
+  /** Pusta lista `errors` = gracz nie odpowiedział (limit czasu). `score` (opcjonalny) stoi w wierszu gracza; `null` = gra…. */
+  rows: { id: string; nick: string; color?: string; me: boolean; errors: number[]; score?: string | null }[];
   perfect: number;
   close: number;
   /** Czego dotyczy liczba, np. „% tortu”. */
   unit: string;
-  /** Zapis błędu w komórce; domyślnie jedno miejsce po przecinku. */
-  format?: (d: number) => string;
+  /** Zapis błędu w komórce (np. ze znakiem kierunku); domyślnie jedno miejsce po przecinku. */
+  format?: (d: number, round: number, row: string) => ReactNode;
   /** Tekst progów pod tabelą; domyślnie progi w procentach. */
   legend?: ReactNode;
   /** Dopisek między tabelą a legendą, np. lista miast w Mapie. */
   children?: ReactNode;
+  /** Wiersz celów pod nagłówkami (prawdziwe wartości rund), np. „Cel” w Przytrzymaj. */
+  goal?: { label: ReactNode; values: ReactNode[] };
+  /** Własny kolor komórki zamiast progów; wyłącza wyróżnienie najlepszego w rundzie (Balon: stuknięcia, nie błąd). */
+  tone?: (d: number, round: number) => { className: string; label?: string };
+  /** Własny podpis pod tabelą zamiast opisu błędu i progów. */
+  caption?: ReactNode;
 }) {
   const played = rows.filter((r) => r.errors.length);
   const best = (round: number) => {
     const sorted = [...played].sort((a, b) => a.errors[round] - b.errors[round]);
-    return sorted.length > 1 && sorted[0].errors[round] < sorted[1].errors[round] ? sorted[0].id : null;
+    return !tone && sorted.length > 1 && sorted[0].errors[round] < sorted[1].errors[round] ? sorted[0].id : null;
   };
   return (
     <section className="tile flex flex-col gap-2 p-3">
@@ -219,37 +351,60 @@ export function RoundTable({
             {head}
           </span>
         ))}
+        {goal && (
+          <>
+            <span className="col-span-full text-left font-sans text-sm text-fg-muted">{goal.label}</span>
+            {goal.values.map((v, i) => (
+              <span key={i} className="rounded-inset border border-line py-1 text-fg-muted">
+                {v}
+              </span>
+            ))}
+          </>
+        )}
         {rows.map((r) => (
           <Fragment key={r.id}>
             <span className="col-span-full mt-1 flex items-center gap-2 text-left font-sans text-sm">
               <span className="size-2 rounded-full" style={{ backgroundColor: r.color }} aria-hidden />
               {r.nick}
               {r.me && <span className="text-fg-muted">(ty)</span>}
-              {!r.errors.length && <span className="text-fg-muted">bez odpowiedzi</span>}
+              {/* Z wynikiem w wierszu puste rundy mogą być po prostu ukryte (rywal w trakcie), więc bez dopisku. */}
+              {!r.errors.length && r.score === undefined && <span className="text-fg-muted">bez odpowiedzi</span>}
+              {r.score !== undefined && (
+                <span className={`ml-auto font-mono tabular-nums ${r.score === null ? "text-fg-muted" : "font-semibold"}`}>{r.score ?? "gra…"}</span>
+              )}
             </span>
-            {r.errors.map((d, i) => (
-              <span
-                key={i}
-                className={`rounded-inset border py-1 ${grade(d, perfect, close).text} ${d <= perfect ? "font-semibold" : ""} ${best(i) === r.id ? "" : "border-line"}`}
-                style={best(i) === r.id ? { borderColor: r.color, backgroundColor: `color-mix(in srgb, ${r.color} 28%, transparent)` } : undefined}
-              >
-                {format(d)}
-              </span>
-            ))}
+            {r.errors.map((d, i) => {
+              const own = tone?.(d, i);
+              return (
+                <span
+                  role="img"
+                  key={i}
+                  aria-label={own?.label}
+                  className={`rounded-inset border py-1 ${own ? own.className : `${grade(d, perfect, close).text} ${d <= perfect ? "font-semibold" : ""}`} ${best(i) === r.id ? "" : "border-line"}`}
+                  style={best(i) === r.id ? { borderColor: r.color, backgroundColor: `color-mix(in srgb, ${r.color} 28%, transparent)` } : undefined}
+                >
+                  {format(d, i, r.id)}
+                </span>
+              );
+            })}
           </Fragment>
         ))}
       </div>
       {children}
       <p className="text-xs text-fg-muted">
-        Błąd w każdej rundzie ({unit}){played.length > 1 && "; tło w kolorze gracza ma najlepszy w rundzie"}. {legend ?? `Zielony: do ${perfect}%, czerwony: ponad ${close}%.`}
+        {caption ?? (
+          <>
+            Błąd w każdej rundzie ({unit}){played.length > 1 && "; tło w kolorze gracza ma najlepszy w rundzie"}. {legend ?? `Zielony: do ${perfect}%, czerwony: ponad ${close}%.`}
+          </>
+        )}
       </p>
     </section>
   );
 }
 
 /** Przycisk przyklejony do dołu ekranu: przy otwartej klawiaturze i długiej liście zostaje pod kciukiem. */
-export function StickyBar({ children }: { children: ReactNode }) {
-  return <div className="sticky bottom-0 -mx-4 flex items-center gap-3 bg-bg/90 px-4 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">{children}</div>;
+export function StickyBar({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <div className={`sticky bottom-0 -mx-4 flex items-center gap-3 bg-bg/90 px-4 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur ${className}`}>{children}</div>;
 }
 
 /** To, czego ekran instrukcji potrzebuje z pokoju; podaje `Game.tsx`, żeby nie przeciągać tego przez propsy każdej gry. */
@@ -324,7 +479,7 @@ export function Intro({ time, task, score, preview, onStart }: { time: ReactNode
         <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm text-fg-muted" role="status">
           {room.others.map((p) => (
             <li key={p.id} className="flex items-center gap-2">
-              <span className="size-2 rounded-full" style={{ backgroundColor: p.color }} />
+              <span className="size-2 rounded-full" style={{ backgroundColor: p.color }} aria-hidden />
               {p.nick} {p.began ? "już gra" : "czyta zasady"}
             </li>
           ))}
@@ -332,4 +487,23 @@ export function Intro({ time, task, score, preview, onStart }: { time: ReactNode
       )}
     </section>
   );
+}
+
+/**
+ * Klucze zastane przy montażu (wejście, odświeżenie, reconnect) i obecne od tamtej pory bez przerwy.
+ * Klucz, który zniknie (np. rewanż czyści planszę), przestaje być zastany, więc jego ponowne pojawienie jest nowe.
+ */
+export function seenAtMount<K>(seen: Set<K> | null, present: Iterable<K>): Set<K> {
+  const now = new Set(present);
+  if (!seen) return now;
+  for (const k of seen) if (!now.has(k)) seen.delete(k);
+  return seen;
+}
+
+/** Zastany stan pokazujemy od razu; `isNew` mówi, czy element pojawił się po montażu i może dostać animację pojawienia. */
+export function useFresh<K>(present: Iterable<K>) {
+  const seen = useRef<Set<K> | null>(null);
+  seen.current = seenAtMount(seen.current, present);
+  const initial = seen.current;
+  return { isNew: (k: K) => !initial.has(k) };
 }

@@ -79,6 +79,19 @@ const moveSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("move"), pawn: z.number().int().min(0).max(3) }),
 ]);
 
+/** Szybki: dalsze miejsca według pionków w domku końcowym, potem sumy pozycji; równe = to samo miejsce. */
+const byProgress = (pawns: State["pawns"]) => {
+  const home = (p: PlayerId) => pawns[p].filter((pos) => pos >= TRACK).length;
+  const sum = (p: PlayerId) => pawns[p].reduce((a, b) => a + b, 0);
+  return (a: PlayerId, b: PlayerId) => home(b) - home(a) || sum(b) - sum(a);
+};
+
+function quickPlaces(s: State): Record<PlayerId, number> {
+  const [first, ...rest] = s.ranking;
+  const compare = byProgress(s.pawns);
+  return { [first]: 1, ...Object.fromEntries(rest.map((p) => [p, 2 + rest.filter((q) => compare(q, p) < 0).length])) };
+}
+
 const rules = (s: Pick<State, "mode">) => MODES.find((m) => m.id === s.mode) ?? DEFAULT;
 const current = (s: State) => s.players[s.turn];
 /** Pole na wspólnym torze dla pozycji 0-39 danego gracza. */
@@ -153,8 +166,7 @@ function movePawn(s: State, player: PlayerId, pawn: number): State {
   if (home(player) >= goal) {
     if (!untilRanking) {
       // Partia kończy się od razu; reszta według pionków w domku końcowym, potem sumy pozycji.
-      const sum = (p: PlayerId) => pawns[p].reduce((a, b) => a + b, 0);
-      const rest = s.players.filter((p) => p !== player).sort((a, b) => home(b) - home(a) || sum(b) - sum(a));
+      const rest = s.players.filter((p) => p !== player).sort(byProgress(pawns));
       return { ...next, ranking: [player, ...rest], phase: "over" };
     }
     const ranking = [...s.ranking, player];
@@ -235,7 +247,7 @@ export const chinczyk: GameDefinition<State, Move> = {
     targets: Object.fromEntries(legalMoves(s).map((i) => [i, target(s, current(s), i, s.dice!)!])),
   }),
 
-  isOver: (s) => (s.phase === "over" ? { winner: s.ranking[0], ranking: s.ranking } : null),
+  isOver: (s) => (s.phase === "over" ? { winner: s.ranking[0], ranking: s.ranking, ...(!rules(s).untilRanking && { places: quickPlaces(s) }) } : null),
 
   // Limit od nowa po każdym rzucie i ruchu; klient woła to samo na widoku (liczy się tylko `seconds`).
   turn: (s) => ({ key: `${s.turn}:${s.phase}:${s.last?.roll ?? 0}`, seconds: rules(s).seconds }),

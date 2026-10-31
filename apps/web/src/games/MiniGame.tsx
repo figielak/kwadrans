@@ -294,7 +294,7 @@ export function MiniGame({ id, view, me, players, ranking, winner, onMove, onRou
 
       {id === "sudoku" && (
         <Sudoku
-          key={(view as SudokuView).puzzle.join()}
+          key={(view as SudokuView).nonce ?? (view as SudokuView).puzzle.join()}
           view={view as SudokuView}
           me={me}
           players={players}

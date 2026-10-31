@@ -1,6 +1,6 @@
-import type { LobbyPlayer, PiecWRzedzieView } from "@kwadrans/games";
+import { initials, type LobbyPlayer, type PiecWRzedzieView } from "@kwadrans/games";
 import { useState } from "react";
-import { StickyBar } from "../screens/ui.tsx";
+import { StickyBar, useFresh } from "../screens/ui.tsx";
 
 interface Props {
   view: PiecWRzedzieView;
@@ -14,7 +14,7 @@ const STARS = new Set([3 * 15 + 3, 3 * 15 + 11, 7 * 15 + 7, 11 * 15 + 3, 11 * 15
 
 /**
  * Pole ma ~25px na telefonie, więc ruch idzie w dwóch krokach: pierwsze dotknięcie pokazuje kamień,
- * drugie (albo „Postaw”) go stawia. Pod ławką łatwo trafić w sąsiednie pole.
+ * drugie (albo „Postaw na H8”) go stawia. Pod ławką łatwo trafić w sąsiednie pole.
  * Przycisk leży tuż pod planszą; czekający widzi w tym samym miejscu, kto się zastanawia.
  */
 export function PiecWRzedzie({ view, players, canMove, onMove }: Props) {
@@ -22,14 +22,22 @@ export function PiecWRzedzie({ view, players, canMove, onMove }: Props) {
   const colorOf = (seat: 0 | 1) => players.find((p) => p.id === view.players[seat])?.color ?? "var(--color-fg-muted)";
   const myColor = colorOf(view.turn);
   const turnNick = players.find((p) => p.id === view.players[view.turn])?.nick ?? "Przeciwnik";
+  // Drugi znak oprócz koloru: inicjał właściciela na kamieniu i nick w etykiecie pola.
+  const nicks = view.players.map((id) => players.find((p) => p.id === id)?.nick ?? "Gracz");
+  const labels = initials(nicks);
   const over = view.winLine !== null || view.board.every((c) => c !== null);
   const win = new Set(view.winLine?.map((m) => m.y * view.size + m.x));
   // Końce zwycięskiej linii: po sortowaniu (x, y) skrajne pola w każdym kierunku.
   const ends = view.winLine && [...view.winLine].sort((a, b) => a.x - b.x || a.y - b.y);
   const last = view.lastMove && view.lastMove.y * view.size + view.lastMove.x;
+  // Kamienie zastane po odświeżeniu stoją od razu; wskakuje tylko kamień położony po wejściu.
+  const { isNew } = useFresh(view.board.flatMap((c, i) => (c === null ? [] : [i])));
   const pickedFree = picked !== null && canMove && view.board[picked] === null ? picked : null;
   const px = pickedFree === null ? null : pickedFree % view.size;
   const py = pickedFree === null ? null : Math.floor(pickedFree / view.size);
+
+  /** Nazwa pola jak w Statkach: litera kolumny i numer wiersza („H8”). */
+  const name = (i: number) => `${String.fromCharCode(65 + (i % view.size))}${Math.floor(i / view.size) + 1}`;
 
   function place(i: number) {
     setPicked(null);
@@ -59,23 +67,30 @@ export function PiecWRzedzie({ view, players, canMove, onMove }: Props) {
                 key={i}
                 type="button"
                 disabled={!canMove || cell !== null}
-                aria-label={`Pole ${x + 1}, ${y + 1}${cell === null ? "" : ", zajęte"}`}
+                aria-label={`Pole ${name(i)}${cell === null ? "" : `, ${nicks[cell]}`}`}
                 className={`relative grid place-items-center border-r border-b border-line bg-surface-inset ${win.has(i) ? "z-10" : ""}`}
                 style={{ background }}
                 onClick={() => (preview ? place(i) : setPicked(i))}
               >
                 {cell !== null ? (
+                  // Bez cienia (DESIGN §2); zwycięska linia świeci set-glow, tylko gdy padła po wejściu.
                   <span
-                    className={`aspect-square w-[80%] rounded-full ${last === i ? "animate-[stone-pop_0.35s_ease-out] outline-2 outline-offset-1 outline-fg" : ""}`}
+                    className={`grid aspect-square w-[80%] place-items-center rounded-full text-[0.55rem] leading-none font-semibold text-bg ${last === i ? `outline-2 outline-offset-1 outline-fg ${isNew(i) ? "animate-[stone-pop_0.35s_ease-out]" : ""}` : ""} ${
+                      win.has(i) && last !== null && isNew(last) ? "animate-[set-glow_0.9s_ease-in-out_4]" : ""
+                    }`}
                     style={{
-                      background: `radial-gradient(circle at 35% 30%, color-mix(in srgb, ${colorOf(cell)} 70%, white), ${colorOf(cell)} 65%)`,
-                      boxShadow: win.has(i) ? `0 0 10px 2px ${colorOf(cell)}` : "0 1px 2px rgb(0 0 0 / 0.6)",
+                      background: `radial-gradient(circle at 35% 30%, color-mix(in srgb, ${colorOf(cell)} 70%, var(--color-fg)), ${colorOf(cell)} 65%)`,
+                      ["--glow" as string]: colorOf(cell),
+                      outline: win.has(i) && last !== i ? `2px solid ${colorOf(cell)}` : undefined,
                     }}
-                  />
+                    aria-hidden
+                  >
+                    {labels[cell]}
+                  </span>
                 ) : preview ? (
-                  // Jeszcze nie postawiony: stała, pełna obwódka i pulsujące wypełnienie.
+                  // Jeszcze nie postawiony: pełna obwódka i półprzezroczyste wypełnienie, bez migania.
                   <span className="grid aspect-square w-[80%] rounded-full border-2" style={{ borderColor: myColor }}>
-                    <span className="animate-pulse rounded-full" style={{ backgroundColor: `color-mix(in srgb, ${myColor} 55%, transparent)` }} />
+                    <span className="rounded-full" style={{ backgroundColor: `color-mix(in srgb, ${myColor} 55%, transparent)` }} />
                   </span>
                 ) : (
                   STARS.has(i) && <span className="size-[14%] rounded-full bg-fg-subtle" aria-hidden />
@@ -108,18 +123,18 @@ export function PiecWRzedzie({ view, players, canMove, onMove }: Props) {
         <StickyBar>
           <button
             type="button"
-            className="btn h-14 w-full text-lg font-semibold text-bg disabled:opacity-40"
+            className="btn h-14 w-full text-lg font-semibold btn-player disabled:opacity-40"
             style={{ backgroundColor: myColor }}
             disabled={pickedFree === null}
             onClick={() => pickedFree !== null && place(pickedFree)}
           >
-            {pickedFree === null ? "Wybierz pole" : "Postaw"}
+            {pickedFree === null ? "Wybierz pole" : `Postaw na ${name(pickedFree)}`}
           </button>
         </StickyBar>
       ) : (
         !over && (
           <p role="status" className="flex h-14 items-center justify-center gap-2 text-fg-muted">
-            <span className="size-2.5 animate-pulse rounded-full" style={{ backgroundColor: myColor }} aria-hidden />
+            <span className="size-2.5 rounded-full" style={{ backgroundColor: myColor }} aria-hidden />
             {turnNick} się zastanawia…
           </p>
         )

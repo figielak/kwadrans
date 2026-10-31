@@ -17,17 +17,17 @@ export const fetchRanking = (): Promise<Record<string, RankingRow[]>> =>
     .then((r) => (r.ok ? r.json() : {}))
     .catch(() => ({}));
 
-/** Rekordy mini-gier: wszyscy gracze każdej gry, od najlepszego. */
-export const fetchRecords = (): Promise<Record<string, RecordRow[]>> =>
+/** Rekordy mini-gier: wszyscy gracze każdej gry, od najlepszego; null, gdy serwer nie odpowie (to nie to samo co brak wyników). */
+export const fetchRecords = (): Promise<Record<string, RecordRow[]> | null> =>
   fetch(`${serverUrl}/api/records`)
-    .then((r) => (r.ok ? r.json() : {}))
-    .catch(() => ({}));
-
-/** Partia, w której padł rekord gry (stan z `soloState`), albo null. */
-export const fetchTopRecord = (gameId: string): Promise<unknown> =>
-  fetch(`${serverUrl}/api/records/${gameId}/top`)
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null);
+
+/** Partia, w której padł rekord gry (stan z `soloState`), null bez zapisanej partii albo false, gdy serwer nie odpowie. */
+export const fetchTopRecord = (gameId: string): Promise<unknown> =>
+  fetch(`${serverUrl}/api/records/${gameId}/top`)
+    .then((r) => (r.ok ? r.json() : false))
+    .catch(() => false);
 
 /** Wyzwanie dnia: gra na dziś i dzisiejsze wyniki, od najlepszego; przy błędzie null (kafel się nie pokaże). */
 export const fetchDaily = (): Promise<{ gameId: string; rows: RecordRow[] } | null> =>

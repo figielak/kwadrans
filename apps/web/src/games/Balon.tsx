@@ -1,6 +1,7 @@
 import { BALON_BALLOONS, BALON_MAX_SAFE, balonScore, type BalonView, type LobbyPlayer } from "@kwadrans/games";
-import { Fragment, useEffect, useState } from "react";
-import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { useEffect, useState } from "react";
+import { Intro, RoundTable, Scores, Stats } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: BalonView;
@@ -55,7 +56,7 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
   function pump() {
     if (phase !== "play") return;
     if (current < view.limits[pumps.length]) return setCurrent(current + 1);
-    navigator.vibrate?.(60);
+    navigator.vibrate?.(VIBRATE.mistake);
     finish(current + 1);
   }
 
@@ -82,38 +83,26 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
         <Scores rows={all} />
         <p className="text-sm text-fg-muted">Suma zgarniętych punktów z {BALON_BALLOONS} balonów. Przy remisie wygrywa ten, komu pękło mniej.</p>
         {shown.length > 0 && (
-          <section className="tile flex flex-col gap-2 p-3">
-            <div className="grid grid-cols-10 gap-1 text-center font-mono text-[11px] tabular-nums">
-              <span className="col-span-10 text-left font-sans text-sm text-fg-muted">Balon wytrzymywał</span>
-              {view.limits.map((limit, i) => (
-                <span key={i} className="rounded-inset border border-line py-1 text-fg-muted">
-                  {limit}
-                </span>
-              ))}
-              {shown.map((r) => (
-                <Fragment key={r.id}>
-                  <span className="col-span-10 mt-1 flex items-center gap-2 text-left font-sans text-sm">
-                    <span className="size-2 rounded-full" style={{ backgroundColor: r.color }} aria-hidden />
-                    {r.nick}
-                    {r.me && <span className="text-fg-muted">(ty)</span>}
-                    {!r.taps.length && <span className="text-fg-muted">bez odpowiedzi</span>}
-                  </span>
-                  {r.taps.map((n, i) => (
-                    <span
-                      key={i}
-                      className={`rounded-inset border border-line py-1 ${
-                        n > view.limits[i] ? "text-warning line-through" : n === view.limits[i] ? "font-semibold text-success" : n === 0 ? "text-fg-muted" : ""
-                      }`}
-                      aria-label={n > view.limits[i] ? `pękł przy ${n}. stuknięciu` : n === 0 ? "bez pompowania" : undefined}
-                    >
-                      {n === 0 ? "–" : n}
-                    </span>
-                  ))}
-                </Fragment>
-              ))}
-            </div>
-            <p className="text-xs text-fg-muted">Stuknięcia w każdym balonie. Przekreślone na czerwono: balon pękł przy tym stuknięciu (0 pkt). Zielone: zgarnięty w ostatniej chwili. Kreska: zgarnięty bez pompowania.</p>
-          </section>
+          <RoundTable
+            heads={view.limits.map((_, i) => i + 1)}
+            goal={{ label: "Balon wytrzymywał", values: view.limits }}
+            rows={shown.map((r) => ({ id: r.id, nick: r.nick, color: r.color, me: r.me, errors: r.taps }))}
+            perfect={0}
+            close={0}
+            unit=""
+            format={(n) => n}
+            // Stuknięcia, nie błąd: kolor mówi, czy balon pękł, nikt nie ma „najlepszego” w rundzie.
+            tone={(n, i) =>
+              n > view.limits[i]
+                ? { className: "text-warning line-through", label: `pękł przy ${n}. stuknięciu` }
+                : n === view.limits[i]
+                  ? { className: "font-semibold text-success" }
+                  : n === 0
+                    ? { className: "text-fg-muted", label: "bez pompowania" }
+                    : { className: "" }
+            }
+            caption="Stuknięcia w każdym balonie. Przekreślone na czerwono: balon pękł przy tym stuknięciu (0 pkt). Zielone: zgarnięty w ostatniej chwili. Szare 0: zgarnięty bez pompowania."
+          />
         )}
       </>
     );
@@ -143,7 +132,12 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
           { label: "Suma", value: total },
         ]}
       />
-      <div className="tile relative mx-auto flex aspect-square w-full max-w-[calc(100dvh-25rem)] touch-none items-center justify-center overflow-hidden select-none" onPointerDown={pump}>
+      <button
+        type="button"
+        aria-label="Pompuj balon"
+        className="tile relative mx-auto flex aspect-square w-full max-w-[calc(100dvh-25rem)] touch-none items-center justify-center overflow-hidden select-none"
+        onPointerDown={pump}
+      >
         {shown !== null && (
           <span
             className="aspect-[5/6] rounded-[50%] transition-[width] duration-100"
@@ -151,7 +145,8 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
             aria-hidden
           />
         )}
-        {phase === "pause" && (
+        {/* Werdykt ostatniego balonu nie zależy od fazy: przerwa trwa 0,8 s, a float-up 1,6 s i kończy niewidoczny. */}
+        {pumps.length > 0 && (
           <span
             key={pumps.length}
             className={`pointer-events-none absolute inset-x-0 top-[12%] animate-[float-up_1.6s_ease-out_forwards] text-center font-mono text-4xl font-semibold tabular-nums ${
@@ -161,8 +156,8 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
             {lastPopped ? "Pękł!" : `+${last}`}
           </span>
         )}
-      </div>
-      <button type="button" className="btn text-bg" style={{ backgroundColor: color }} disabled={phase !== "play"} onClick={() => finish(current)}>
+      </button>
+      <button type="button" className="btn btn-player" style={{ backgroundColor: color }} disabled={phase !== "play"} onClick={() => finish(current)}>
         Zgarnij {current} pkt
       </button>
       <p className="text-center text-sm text-fg-muted">Stukaj w pole, żeby pompować. Nikt nie wie, ile balon wytrzyma.</p>

@@ -1,6 +1,7 @@
 import { type LobbyPlayer, RYTM_BEATS, RYTM_MAX_TAPS, RYTM_TAP_MS, type RytmView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
-import { Intro, Scores } from "../screens/ui.tsx";
+import { Intro, Scores, TimeBar } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: RytmView;
@@ -67,7 +68,7 @@ export function Rytm({ view, me, players, ranking, onMove }: Props) {
       after(at(i), () => {
         setBeat(i);
         setLit(true);
-        navigator.vibrate?.(30);
+        navigator.vibrate?.(VIBRATE.beat);
         if (i === RYTM_BEATS - 1) setPhase("tap");
       });
       after(at(i) + FLASH_MS, () => setLit(false));
@@ -101,7 +102,8 @@ export function Rytm({ view, me, players, ranking, onMove }: Props) {
   );
 
   if (!playing || phase === "sent") {
-    const { taps } = run.current;
+    const id = view.players.includes(me) ? me : view.players.length === 1 ? view.players[0] : undefined;
+    const taps = id === undefined ? [] : view.taps?.[id] ?? [];
     const rows = (ranking ?? view.players).map((id) => {
       const p = players.find((pl) => pl.id === id);
       return { id, nick: p?.nick ?? "Gracz", color: p?.color, me: id === me, score: id in view.results ? `${view.results[id]} ms` : null };
@@ -110,9 +112,9 @@ export function Rytm({ view, me, players, ranking, onMove }: Props) {
       <>
         {taps.length > 0 && (
           <section className="tile flex flex-col items-center gap-1 p-6">
-            <span className="label">Twoje tempo</span>
+            <span className="label">{id === me ? "Twoje tempo" : "Tempo gracza"}</span>
             {/* Średni odstęp to czas ostatniego stuknięcia podzielony przez ich liczbę. */}
-            <span className="text-7xl font-semibold tabular-nums">{bpm(taps[taps.length - 1] / taps.length)}</span>
+            <span className="font-mono text-7xl font-semibold tabular-nums">{bpm(taps[taps.length - 1] / taps.length)}</span>
             <span className="text-2xl font-semibold tabular-nums text-fg-muted">cel {bpm(view.interval)} BPM</span>
           </section>
         )}
@@ -144,9 +146,7 @@ export function Rytm({ view, me, players, ranking, onMove }: Props) {
           ))}
         </div>
         {/* Płynny pasek zamiast licznika sekund: tykające cyfry podawałyby tempo 60 BPM. */}
-        <div className="h-1.5 overflow-hidden rounded-full bg-line">
-          <div className="h-full bg-fg-muted transition-[width] ease-linear" style={{ width: tapping ? "100%" : "0%", transitionDuration: `${RYTM_TAP_MS}ms` }} />
-        </div>
+        {tapping ? <TimeBar ms={RYTM_TAP_MS} fill bar="bg-fg-muted" /> : <div className="h-1.5 rounded-full bg-line" />}
       </div>
       <button
         type="button"
@@ -157,7 +157,7 @@ export function Rytm({ view, me, players, ranking, onMove }: Props) {
         }`}
         style={{ backgroundColor: pressed ? color : undefined }}
       >
-        {tapping && !lit ? "Stukaj dalej" : beat < 0 ? "Słuchaj" : <span className="text-7xl tabular-nums">{(beat % BAR) + 1}</span>}
+        {tapping && !lit ? "Stukaj dalej" : beat < 0 ? "Słuchaj" : <span className="font-mono text-7xl tabular-nums">{(beat % BAR) + 1}</span>}
       </button>
     </div>
   );

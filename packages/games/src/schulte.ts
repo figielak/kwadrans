@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type GameDefinition, type PlayerId, ranked, shuffle } from "./core.ts";
+import { byCompletion, type GameDefinition, type PlayerId, ranked, shuffle } from "./core.ts";
 
 export const SIZE = 5;
 /** Kara za dotknięcie złej liczby. */
@@ -7,8 +7,8 @@ export const PENALTY_MS = 3000;
 /** Szybciej niż 150 ms na liczbę nikt nie klika. */
 const MIN_MS = SIZE * SIZE * 150;
 
-/** `splits`: czasy szukania kolejnych liczb (25 sztuk, suma = `ms`) albo pusta lista po limicie czasu. */
-export type Result = { ms: number; mistakes: number; splits: number[] };
+/** `splits`: 25 międzyczasów (suma = `ms`) albo pusta lista. Brak completed tylko w historycznym detail. */
+export type Result = { ms: number; mistakes: number; splits: number[]; completed?: boolean };
 export type Move = ({ type: "result" } & Result) | { type: "progress"; found: number };
 
 export interface State {
@@ -36,7 +36,7 @@ export const schulte: GameDefinition<State, Move> = {
   // Stały klucz: ruch progress nie odnawia limitu, nawet gdy gra już tylko jedna osoba.
   turn: () => ({ key: "run", seconds: TURN_SECONDS }),
   moveSchema: z.discriminatedUnion("type", [
-    z.object({ type: z.literal("result"), ms: z.number(), mistakes: z.number(), splits: z.array(z.number()).max(SIZE * SIZE) }),
+    z.object({ type: z.literal("result"), ms: z.number(), mistakes: z.number(), completed: z.boolean().optional(), splits: z.array(z.number()).max(SIZE * SIZE) }),
     z.object({ type: z.literal("progress"), found: z.number() }),
   ]),
 
@@ -47,12 +47,15 @@ export const schulte: GameDefinition<State, Move> = {
     progress: {},
   }),
 
-  validateMove: (state, player, move) =>
+  validateMove: (state, player, move, context) =>
     state.players.includes(player) &&
     !(player in state.results) &&
     (move.type === "progress"
       ? Number.isInteger(move.found) && move.found >= 1 && move.found < SIZE * SIZE
-      : move.ms >= MIN_MS &&
+      : (context?.source === "timeout"
+          ? move.completed === false && move.ms === TURN_SECONDS * 1000 && move.mistakes === 0 && move.splits.length === 0
+          : move.completed !== false) &&
+        move.ms >= MIN_MS &&
         move.ms <= TURN_SECONDS * 1000 &&
         Number.isInteger(move.mistakes) &&
         move.mistakes >= 0 &&
@@ -64,13 +67,13 @@ export const schulte: GameDefinition<State, Move> = {
   applyMove: (state, player, move) =>
     move.type === "progress"
       ? { ...state, progress: { ...state.progress, [player]: move.found } }
-      : { ...state, results: { ...state.results, [player]: { ms: Math.round(move.ms), mistakes: move.mistakes, splits: move.splits } } },
+      : { ...state, results: { ...state.results, [player]: { ms: Math.round(move.ms), mistakes: move.mistakes, splits: move.splits, completed: move.completed !== false } } },
 
   playerView: (state): View => state,
 
-  ...ranked((state: State) => state.results, (a, b) => total(a) - total(b), { lower: true, score: total }),
+  ...ranked((state: State) => state.results, byCompletion((a, b) => total(a) - total(b)), { lower: true, score: (r) => r.completed === false ? Infinity : total(r) }),
 
   waitingFor: (state) => state.players.filter((p) => !(p in state.results)),
 
-  timeoutMove: () => ({ type: "result", ms: TURN_SECONDS * 1000, mistakes: 0, splits: [] }),
+  timeoutMove: () => ({ type: "result", ms: TURN_SECONDS * 1000, mistakes: 0, splits: [], completed: false }),
 };

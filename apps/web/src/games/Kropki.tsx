@@ -20,7 +20,7 @@ function Preview() {
       {PREVIEW_DOTS.map(([x, y]) => (
         <span key={x} className="absolute size-2.5 animate-[preview-half_3s_linear_infinite] rounded-full bg-fg" style={{ left: `${x}%`, top: `${y}%` }} />
       ))}
-      <span className="animate-[preview-half_3s_linear_infinite] font-mono text-3xl font-semibold opacity-0 [animation-delay:-1.5s]">Ile?</span>
+      <span className="animate-[preview-half_3s_linear_infinite] font-mono tabular-nums text-3xl font-semibold opacity-0 [animation-delay:-1.5s]">Ile?</span>
     </>
   );
 }

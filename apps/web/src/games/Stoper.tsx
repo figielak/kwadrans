@@ -1,5 +1,6 @@
 import { type LobbyPlayer, STOPER_VISIBLE_MS, type StoperView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
+import * as clock from "../clock.ts";
 import { Intro, Scores } from "../screens/ui.tsx";
 
 interface Props {
@@ -7,7 +8,7 @@ interface Props {
   me: string;
   players: LobbyPlayer[];
   ranking?: string[];
-  onMove: (move: { type: "result"; deviation: number }) => void;
+  onMove: (move: { type: "result"; deviation: number; stopped?: number }) => void;
 }
 
 /** Odliczanie „3, 2, 1” przed startem stopera. */
@@ -39,7 +40,6 @@ export function Stoper({ view, me, players, ranking, onMove }: Props) {
   const [phase, setPhase] = useState<Phase>("intro");
   // Ujemne w trakcie odliczania przed startem.
   const [elapsed, setElapsed] = useState(-COUNT_MS);
-  const [stopped, setStopped] = useState<number | null>(null);
   const start = useRef(0);
   /** Po tylu ms bez dotknięcia partia kończy się sama (najgorszy wynik). */
   const giveUp = 2 * view.target;
@@ -48,19 +48,19 @@ export function Stoper({ view, me, players, ranking, onMove }: Props) {
   function stop() {
     const took = Math.min(performance.now() - start.current, giveUp);
     if (took < 0) return;
-    setStopped(took);
+    const stopped = Math.round(took);
     setPhase("sent");
-    onMove({ type: "result", deviation: Math.min(view.target, Math.round(Math.abs(took - view.target))) });
+    onMove({ type: "result", deviation: Math.abs(stopped - view.target), stopped });
   }
 
   useEffect(() => {
-    if (phase !== "run") return;
+    if (phase !== "run" || !playing) return;
     const id = setInterval(() => {
       setElapsed(performance.now() - start.current);
       if (performance.now() - start.current >= giveUp) stop();
     }, 30);
     return () => clearInterval(id);
-  }, [phase]);
+  }, [phase, playing]);
 
   const rows = (ranking ?? view.players).map((id) => {
     const p = players.find((pl) => pl.id === id);
@@ -68,18 +68,22 @@ export function Stoper({ view, me, players, ranking, onMove }: Props) {
   });
 
   if (!playing || phase === "sent") {
-    const diff = (stopped ?? 0) - view.target;
-    const off = Math.abs(diff);
+    const id = view.players.includes(me) ? me : view.players.length === 1 ? view.players[0] : undefined;
+    const off = id === undefined ? undefined : view.results[id];
+    const stopped = id === undefined ? undefined : view.stops?.[id];
+    const diff = stopped === undefined ? undefined : stopped - view.target;
     return (
       <>
-        {stopped !== null && (
+        {off !== undefined && (
           <section className="tile flex flex-col items-center gap-1 p-6">
-            <span className="label">Twój czas</span>
-            <span className="text-7xl font-semibold tabular-nums">{seconds(stopped)}</span>
-            <span className={`text-2xl font-semibold tabular-nums ${off <= 100 ? "text-success" : off <= 500 ? "text-fg" : "text-warning"}`}>
-              {diff < 0 ? "−" : "+"}
-              {seconds(off)} s
-            </span>
+            <span className="label">{stopped === undefined ? "Odchyłka" : id === me ? "Twój czas" : "Czas gracza"}</span>
+            <span className="font-mono text-7xl font-semibold tabular-nums">{stopped === undefined ? `${seconds(off)} s` : seconds(stopped)}</span>
+            {diff !== undefined && (
+              <span className={`text-2xl font-semibold tabular-nums ${off <= 100 ? "text-success" : off <= 500 ? "text-fg" : "text-warning"}`}>
+                {diff < 0 ? "−" : "+"}
+                {seconds(off)} s
+              </span>
+            )}
           </section>
         )}
         <Scores rows={rows} />
@@ -109,12 +113,15 @@ export function Stoper({ view, me, players, ranking, onMove }: Props) {
   return (
     <button
       type="button"
-      onPointerDown={stop}
+      onPointerDown={(e) => {
+        clock.input("stoper", e);
+        stop();
+      }}
       className="flex min-h-80 flex-1 touch-none select-none flex-col items-center justify-center gap-2 rounded-tile border border-line bg-surface"
     >
       <span className="label">Cel</span>
       <span className="text-3xl font-semibold tabular-nums">{goal}</span>
-      <span className="my-4 text-7xl font-semibold tabular-nums">
+      <span className="my-4 font-mono text-7xl font-semibold tabular-nums">
         {elapsed < 0 ? Math.ceil(-elapsed / 1000) : elapsed < STOPER_VISIBLE_MS ? seconds(elapsed) : "?,??"}
       </span>
       <span className="text-fg-muted">{elapsed < 0 ? "Przygotuj się" : `Dotknij, gdy minie ${goal}`}</span>

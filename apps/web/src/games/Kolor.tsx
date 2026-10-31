@@ -1,6 +1,6 @@
 import { type Hsb, KOLOR_COUNT, KOLOR_SHOW_MS, kolorDistance, kolorHints, kolorHsbToRgb, type KolorView, type LobbyPlayer } from "@kwadrans/games";
 import { useEffect, useState } from "react";
-import { Intro, Scores } from "../screens/ui.tsx";
+import { Intro, Scores, Stats } from "../screens/ui.tsx";
 
 interface Props {
   view: KolorView;
@@ -15,7 +15,8 @@ const rand = (min: number, max: number) => min + Math.floor(Math.random() * (max
 const randomStart = (): Hsb => ({ h: rand(0, 359), s: rand(20, 80), b: rand(30, 80) });
 
 /** Wzór i podgląd mają ten sam rozmiar: duże pole wydaje się jaśniejsze i bardziej nasycone niż małe. */
-const SWATCH = "h-28 rounded-tile border border-line";
+// h-24: z paskiem Stats faza suwaków dalej mieści się na 360×640.
+const SWATCH = "h-24 rounded-tile border border-line";
 
 const css = (c: Hsb) => `rgb(${kolorHsbToRgb(c).join(" ")})`;
 /** Wszędzie jedno miejsce po przecinku: „87,3%”. */
@@ -141,11 +142,8 @@ export function Kolor({ view, me, players, ranking, onMove }: Props) {
     );
   }
 
-  const counter = (
-    <span className="label">
-      Kolor {index + 1}/{KOLOR_COUNT}
-    </span>
-  );
+  // Liczby nad polem gry to zawsze pasek Stats (DESIGN §5).
+  const counter = <Stats items={[{ label: "Kolor", value: `${index + 1}/${KOLOR_COUNT}` }]} />;
 
   if (phase === "show") {
     return (
@@ -174,8 +172,8 @@ export function Kolor({ view, me, players, ranking, onMove }: Props) {
         </div>
         <p className="text-center font-mono text-5xl font-semibold tabular-nums">{match(target, guesses[index])}</p>
         <p className="text-center text-fg-muted">{wrong.length ? `Twój kolor: ${wrong.join(", ")}` : "Bardzo blisko"}</p>
-        <button type="button" className="btn mt-auto w-full text-bg" style={{ backgroundColor: color }} onClick={next}>
-          Następny kolor
+        <button type="button" className="btn mt-auto w-full btn-player" style={{ backgroundColor: color }} onClick={next}>
+          Dalej
         </button>
       </section>
     );
@@ -199,7 +197,7 @@ export function Kolor({ view, me, players, ranking, onMove }: Props) {
           />
         </label>
       ))}
-      <button type="button" className="btn mt-auto w-full text-bg" style={{ backgroundColor: color }} onClick={confirm}>
+      <button type="button" className="btn mt-auto w-full btn-player" style={{ backgroundColor: color }} onClick={confirm}>
         Zatwierdź kolor
       </button>
     </section>
