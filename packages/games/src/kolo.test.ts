@@ -170,24 +170,6 @@ describe("koniec", () => {
     expect(game.isOver(s)).toEqual({ ranking: [A, B] });
   });
 
-  test("licznik: próba go nie odnawia (także solo), koniec prób innego gracza tak", () => {
-    const key = (s: State) => game.turn!(s).key;
-    let s = game.setup([A, B], createRng(1));
-    expect(game.turn!(s).seconds).toBe(game.turnSeconds);
-    const both = key(s);
-    s = send(s, A, result(circle()));
-    expect(key(s)).toBe(both);
-    s = send(s, B, result([]));
-    const onlyA = key(s);
-    expect(onlyA).not.toBe(both);
-    s = send(s, A, result(circle()));
-    expect(key(s), "rysuje już tylko A").toBe(onlyA);
-
-    const solo = game.setup([A], createRng(1));
-    expect(key(send(solo, A, result(circle())))).toBe(key(solo));
-    expect(game.turn!(send(solo, A, result([]))).seconds).toBe(0);
-  });
-
   test("po limicie czasu pusty rysunek", () => {
     const s = game.setup([A, B], createRng(1));
     expect(game.timeoutMove!(s, A, createRng(1))).toEqual(result([]));

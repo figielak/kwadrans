@@ -35,7 +35,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-async function drawing(n: number, gameId = "kalambury") {
+async function drawing(n: number, gameId = "kalambury", start = true) {
   const room = new LobbyRoom();
   rooms.push(room);
   const handlers = new Map<string, (client: Client, raw: unknown) => void>();
@@ -66,7 +66,7 @@ async function drawing(n: number, gameId = "kalambury") {
   for (let i = 1; i < n; i++) send(i, "ready", { ready: true });
   send(0, "start", {});
   if (gameId === "kalambury") send(0, "move", { type: "choose", index: 0 });
-  else for (let i = 0; i < n; i++) send(i, "begin", {});
+  else if (start) for (let i = 0; i < n; i++) send(i, "begin", {});
   expect(snapshot().phase).toBe("playing");
   if (gameId === "kalambury") expect((snapshot().game!.view as KalamburyView).phase).toBe("draw");
   return { send, snapshot, clients, observer };
@@ -217,5 +217,79 @@ describe("Sekwencja: wynik po limicie", () => {
     expect(Object.values(results)).toEqual(Array(n).fill(7));
     expect(record).toHaveBeenCalledTimes(1);
     for (const row of record.mock.calls[0][1]) expect(row).toMatchObject({ score: 7, tie: null });
+  });
+});
+
+// P4-022: jeden termin mini-gry od końca instrukcji; ruchy rywali go nie przesuwają.
+describe("Mini-gra: jeden termin niezależny od rywali", () => {
+  const circle = Array.from({ length: 100 }, (_, i): [number, number] => [0.5 + 0.3 * Math.cos((i / 100) * 2 * Math.PI), 0.5 + 0.3 * Math.sin((i / 100) * 2 * Math.PI)]);
+
+  test("limit rusza po ostatnim Start, nie po pierwszym", async () => {
+    const { send, snapshot } = await drawing(2, "stoper", false);
+    expect(snapshot().game!.msLeft).toBe(15_000);
+    send(0, "begin", {});
+    vi.advanceTimersByTime(5_000);
+    send(0, "begin", {});
+    expect(snapshot().game!.msLeft).toBe(10_000);
+    send(1, "begin", {});
+    expect(snapshot().game!.msLeft).toBe(60_000);
+  });
+
+  test("bez Start limit rusza sam po 15 s", async () => {
+    const { snapshot } = await drawing(2, "stoper", false);
+    vi.advanceTimersByTime(15_000);
+    expect(snapshot().game!.msLeft).toBe(60_000);
+  });
+
+  test.each([2, 6])("Stoper, %i graczy: wyniki pierwszego i kolejnych nie przesuwają terminu", async (n) => {
+    const { send, snapshot } = await drawing(n, "stoper");
+    const validate = vi.spyOn(GAMES.stoper, "validateMove");
+    vi.advanceTimersByTime(20_000);
+    send(0, "move", { type: "result", deviation: 100 });
+    expect(snapshot(1).game!.msLeft).toBe(40_000);
+    vi.advanceTimersByTime(20_000);
+    for (let i = 1; i < n - 1; i++) send(i, "move", { type: "result", deviation: 100 });
+    // Widok liczy czas przy wiadomości; begin po instrukcji tylko go odświeża.
+    send(0, "begin", {});
+    expect(snapshot(n - 1).game!.msLeft).toBe(20_000);
+    vi.advanceTimersByTime(19_999);
+    expect(snapshot().phase).toBe("playing");
+    vi.advanceTimersByTime(1);
+    expect(snapshot().phase).toBe("over");
+    const timeouts = validate.mock.calls.filter(([, , , context]) => context?.source === "timeout");
+    expect(timeouts.map(([, player]) => player)).toEqual([`p${n}`]);
+  });
+
+  test.each([2, 6])("Narysuj koło, %i graczy: próby i koniec rywala nie odnawiają limitu", async (n) => {
+    const { send, snapshot } = await drawing(n, "kolo");
+    vi.advanceTimersByTime(30_000);
+    send(1, "move", { type: "result", points: circle });
+    expect(snapshot(1).game!.msLeft).toBe(90_000);
+    send(0, "move", { type: "result", points: [] });
+    expect(snapshot(1).game!.msLeft).toBe(90_000);
+    vi.advanceTimersByTime(90_000);
+    expect(snapshot().phase).toBe("over");
+  });
+
+  test("Narysuj koło solo: kolejne próby nie odnawiają limitu", async () => {
+    const { send, snapshot } = await drawing(1, "kolo");
+    vi.advanceTimersByTime(30_000);
+    send(0, "move", { type: "result", points: circle });
+    send(0, "move", { type: "result", points: circle });
+    expect(snapshot().game!.msLeft).toBe(90_000);
+  });
+
+  test("rewanż nie dziedziczy terminu poprzedniej partii", async () => {
+    const { send, snapshot } = await drawing(2, "stoper");
+    vi.advanceTimersByTime(50_000);
+    send(0, "move", { type: "result", deviation: 100 });
+    send(1, "move", { type: "result", deviation: 200 });
+    expect(snapshot().phase).toBe("over");
+    send(0, "rematch", {});
+    send(1, "rematch", {});
+    expect(snapshot().game!.msLeft).toBe(15_000);
+    send(0, "begin", {});
+    send(1, "begin", {});
+    expect(snapshot().game!.msLeft).toBe(60_000);
   });
 });
