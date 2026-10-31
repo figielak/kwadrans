@@ -82,3 +82,36 @@ describe("przejścia, pętle i paski", () => {
   });
 });
 
+
+// P4-044: odsłona prawdy od razu, bez animacji; znacznik prawdy neutralny, odpowiedź w kolorze gracza, ocena na błędzie.
+describe("odsłona prawdy", () => {
+  const game = (name: string) => readFileSync(join(src, "games", `${name}.tsx`), "utf8");
+
+  test("Mapa pokazuje prawdziwe miejsce bez stone-pop i neutralnym pierścieniem", () => {
+    const code = game("Mapa");
+    expect(code).not.toContain("stone-pop");
+    expect(code).toMatch(/\{\.\.\.target\}\s+r=\{2\.6\}\s+fill="none"\s+className="stroke-fg"/);
+  });
+
+  test("Środek: pierścień środka neutralny, kolor oceny tylko na linii błędu", () => {
+    expect(game("Srodek")).toMatch(/<circle cx=\{mid\.x \* 100\} cy=\{mid\.y \* 100\} r=\{2\.6\} fill="none" className="stroke-fg"/);
+  });
+
+  test("Tort: idealne cięcia neutralne", () => {
+    expect(game("Tort")).toMatch(/ideal\(cake\)\.map\(\(deg, i\) => <Cut key=\{i\} deg=\{deg\} className="stroke-fg"/);
+  });
+
+  test("Który rok?: pierścień prawdziwego roku neutralny, nie success", () => {
+    const code = game("Rok");
+    expect(code).not.toContain("border-success");
+    expect(code).toMatch(/rounded-full border-2 border-fg" style=\{\{ left: at\(event\.year\) \}\}/);
+  });
+
+  test("Kalambury: odsłonięta litera bez animacji, opisana jako wyjątek w ZASADY §5", () => {
+    const code = game("Kalambury");
+    const hint = code.slice(code.indexOf("{view.hint}") - 300, code.indexOf("{view.hint}"));
+    expect(hint).not.toContain("animate-");
+    expect(rules).toMatch(/Odsłona prawdy[^\n]*bez animacji/);
+    expect(rules).toMatch(/litera Kalamburów[^\n]*bez animacji/);
+  });
+});
