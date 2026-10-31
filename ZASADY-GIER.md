@@ -135,7 +135,7 @@ Wspólne zasady w `quiz.ts`, wspólny ekran `Quiz.tsx` (dzielą je też Inny ele
 - Pomyłka blokuje na 1 s (inaczej losowe klepanie byłoby szybsze niż myślenie).
 - Wynik: `times` (czasy poprawnych) i `errors`. Ranking jak w Refleksie: trafienia, potem niższa średnia. `errors` nie wpływa na ranking, ale jest widoczne w pasku statystyk i w wynikach.
 - Ekran końcowy: tabela z miejscem (puchar u zwycięzcy), trafieniami, średnim czasem (od 1 s w sekundach) i błędami; pod nią notka, jak liczony jest ranking.
-- Dotknięta odpowiedź błyska: zielono przy trafieniu, czerwono z potrząśnięciem przy pomyłce.
+- Trafienie błyska na zielono licznikiem trafień (albo punktów), bo od razu jest nowe pytanie; pomyłka błyska czerwono z potrząśnięciem na dotkniętej odpowiedzi.
 - Walidacja wspólna sześciu quizów (także Inny element, Obrót, Literówka, Dziesiątki): każdy czas całkowity 0-30000 ms,
   suma ≤ 30000 ms, `errors` całkowite 0-30. Pierwsza pomyłka może paść od razu, kolejne najwcześniej co 1000 ms:
   trzydziesta przed końcem rundy, trzydziesta pierwsza dopiero po jej końcu. Suma czasów nie jest powiększana o blokady,

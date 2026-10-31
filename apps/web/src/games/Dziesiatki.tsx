@@ -154,12 +154,14 @@ export function Dziesiatki({ view, me, players, ranking, winner, onMove, onRound
               // Klucz z błysku: przycisk montuje się od nowa i animacja startuje jeszcze raz.
               key={flashed ? `${i}-${flash!.id}` : i}
               type="button"
+              aria-pressed={i === selected}
               disabled={phase !== "play"}
               onPointerDown={() => tap(i)}
               className={`flex aspect-square touch-none select-none items-center justify-center rounded-inset border bg-surface font-mono text-3xl font-semibold tabular-nums ${
                 phase !== "wrong" ? "border-line" : flashed ? "border-warning" : "border-line opacity-40"
               } ${flashed ? (flash!.ok ? "animate-[tile-hit_0.35s_ease-out]" : "animate-[tile-miss_0.35s_ease-out]") : ""}`}
-              style={i === selected ? { borderColor: color, backgroundColor: `color-mix(in srgb, ${color} 25%, transparent)` } : undefined}
+              // Zaznaczenie jak w Sudoku i Zakupach: pierścień 2 px w kolorze gracza, od razu, bez przejścia.
+              style={i === selected ? { borderColor: color, boxShadow: `0 0 0 2px ${color}` } : undefined}
             >
               {n}
             </button>

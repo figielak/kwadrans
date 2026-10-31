@@ -198,12 +198,14 @@ export function Quiz({ view, me, players, ranking, winner, task, preview, questi
     r.accepting = false;
     const took = now - r.shownAt;
     const ok = option === question(index).correct;
-    setFlash((f) => ({ i: option, ok, id: (f?.id ?? 0) + 1 }));
     if (ok) {
       r.streak++;
       r.times.push(took);
       next(now);
     } else {
+      // Błysk pomyłki zostaje na dotkniętym przycisku (pytanie stoi przez blokadę); trafienie błyska licznikiem,
+      // bo po nim od razu jest nowe pytanie i błysk trafiłby w przypadkową odpowiedź.
+      setFlash((f) => ({ i: option, ok, id: (f?.id ?? 0) + 1 }));
       r.errors++;
       r.streak = 0;
       navigator.vibrate?.(VIBRATE.mistake);
@@ -248,11 +250,15 @@ export function Quiz({ view, me, players, ranking, winner, task, preview, questi
   }
 
   const q = question(index);
+  const hits = run.current.times.length;
+  const counted = (value: ReactNode) => (
+    <span key={hits} className={hits ? "inline-block animate-[tile-hit_0.35s_ease-out] rounded-inset px-1" : "px-1"}>{value}</span>
+  );
   return (
     <div className="flex flex-1 flex-col gap-3">
       <Stats
         items={[
-          points ? { label: "Punkty", value: points(run.current) } : { label: "Trafienia", value: run.current.times.length },
+          points ? { label: "Punkty", value: counted(points(run.current)) } : { label: "Trafienia", value: counted(hits) },
           { label: "Błędy", value: run.current.errors, warn: run.current.errors > 0 },
           { label: "Seria", value: run.current.streak },
         ]}
@@ -272,7 +278,7 @@ export function Quiz({ view, me, players, ranking, winner, task, preview, questi
             onPointerDown={() => answer(i)}
             className={`flex touch-none select-none items-center justify-center border bg-surface ${q.cols ? "aspect-square rounded-inset" : "min-h-24 gap-2 rounded-tile text-xl font-semibold"} ${
               phase !== "wrong" ? "border-line" : i === flash?.i ? "border-warning" : "border-line opacity-40"
-            } ${i === flash?.i ? (flash.ok ? "animate-[tile-hit_0.35s_ease-out]" : "animate-[tile-miss_0.35s_ease-out]") : ""}`}
+            } ${i === flash?.i ? "animate-[tile-miss_0.35s_ease-out]" : ""}`}
           >
             {option}
           </button>

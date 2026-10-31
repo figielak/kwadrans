@@ -154,6 +154,7 @@ export function Sudoku({ view, me, players, ranking, onMove }: Props) {
                   // Klucz z błysku: pole montuje się od nowa i animacja startuje jeszcze raz.
                   key={hit ? `${i}-${flash.id}` : i}
                   type="button"
+                  aria-pressed={selected === i}
                   disabled={view.puzzle[i] !== 0 || n !== 0}
                   onPointerDown={() => pick(i)}
                   style={selected === i ? { borderColor: color, boxShadow: `0 0 0 2px ${color}` } : undefined}

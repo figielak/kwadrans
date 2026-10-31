@@ -265,6 +265,11 @@ animacja tylko go dogania na ekranie.
 - **Pomiar czasu nigdy nie zależy od animacji.** W grach na refleks bodziec pojawia się bez przejścia.
 - **Odsłona prawdy od razu, bez animacji** (Mapa, Odcień, Policz kropki, Kąt, Który rok?, Środek, Tort, Nożyczki): cały czas odsłony z zasad
   jest na odczyt, nic nie wskakuje. Tak samo odsłonięta litera Kalamburów pojawia się bez animacji (wyjątek od `stone-pop` dla nowego elementu).
+- **Zaznaczenie w polu gry na czas** (Dziesiątki, Sudoku, Zakupy) pojawia się od razu, bez przejścia, jak bodziec:
+  pierścień 2 px w kolorze gracza i `aria-pressed`.
+- **Okno otwierane dotknięciem** (szczegóły pola w Kampus Tour) pojawia się od razu; `card-in` jest tylko dla okna albo karty, które otwiera stan gry.
+- **Błysk trafienia** (`tile-hit`) w quizach błyska na liczniku trafień (albo punktów), bo po trafieniu od razu jest nowe pytanie
+  i błysk trafiłby w przypadkowy przycisk. Poza tym błysk dotyczy miejsca dokonanej odpowiedzi; błysk pomyłki zostaje na dotkniętym przycisku, bo pytanie stoi przez blokadę.
 - **Wibracje zamiast dźwięku**, zawsze `navigator.vibrate?.(...)`:
 
   | Zdarzenie | Wzór |

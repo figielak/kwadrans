@@ -714,7 +714,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-041](PACKAGES.md#p4-041). Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. W quizie zmiana rozmiaru siatki po trafieniu nie błyska na przypadkowym nowym elemencie; jednoczesny szybki dotyk przyjmuje prawidłową odpowiedź raz. Okno z kliknięcia działa od razu, bez blokady animacji.
 - Granice: Nie zmieniać czasu logiki, kara 1 s pozostaje.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 3/3 części. TDD `0dd3706`; typy, testy i build PASS. [05-42-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-42-SUMMARY.md).
 
 <a id="scope-p4-046"></a>
 
