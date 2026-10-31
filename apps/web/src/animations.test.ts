@@ -115,3 +115,35 @@ describe("odsłona prawdy", () => {
     expect(rules).toMatch(/litera Kalamburów[^\n]*bez animacji/);
   });
 });
+
+// P4-045: zaznaczenie i okno z dotyku od razu; błysk trafienia na liczniku, nie na przyciskach nowego pytania.
+describe("zaznaczenie, okno i błysk trafienia", () => {
+  const game = (name: string) => readFileSync(join(src, "games", `${name}.tsx`), "utf8");
+
+  test.each(["Dziesiatki", "Sudoku", "Zakupy"])("%s: zaznaczenie pierścieniem 2 px z aria-pressed, bez przejścia", (name) => {
+    const code = game(name);
+    expect(code).toContain("aria-pressed=");
+    expect(code).toContain("boxShadow: `0 0 0 2px ${color}`");
+    expect(code).not.toContain("transition");
+  });
+
+  test("Kampus Tour: okno pola z dotyku bez card-in", () => {
+    const code = game("KampusTour");
+    const info = code.slice(code.indexOf("function tileInfo"), code.indexOf("\n  }\n", code.indexOf("function tileInfo")));
+    expect(info).not.toContain("animate-");
+  });
+
+  test("Quiz: trafienie błyska licznikiem, przyciski błyskają tylko pomyłką", () => {
+    const code = game("Quiz");
+    const buttons = code.slice(code.indexOf("q.options.map"));
+    expect(buttons).not.toContain("tile-hit");
+    expect(buttons).toContain("animate-[tile-miss_0.35s_ease-out]");
+    expect(code).toMatch(/key=\{hits\}[^\n]*animate-\[tile-hit_0\.35s_ease-out\]/);
+  });
+
+  test("ZASADY §5 opisuje zaznaczenie, okno z dotyku i miejsce błysku", () => {
+    expect(rules).toMatch(/Zaznaczenie w polu gry na czas[^\n]*od razu/);
+    expect(rules).toMatch(/Okno otwierane dotknięciem[^\n]*od razu/);
+    expect(rules).toMatch(/Błysk trafienia[^\n]*licznik/);
+  });
+});
