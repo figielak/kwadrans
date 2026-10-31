@@ -55,6 +55,7 @@ import {
   type LobbyPlayer,
 } from "@kwadrans/games";
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
+import { useHarm } from "../vibrate.ts";
 import { KampusSummary } from "./KampusSummary.tsx";
 
 interface Props {
@@ -358,6 +359,13 @@ function cell(i: number): [number, number] {
   return [0, 32 - i];
 }
 
+/** Pola, które były moje, a teraz ma je inny gracz (wykupienie); sprzedaż bankowi zostawia pole bez właściciela. */
+export function boughtOut(before: Record<number, string>, after: Record<number, string>, me: string): number[] {
+  return Object.keys(before)
+    .map(Number)
+    .filter((t) => before[t] === me && after[t] !== undefined && after[t] !== me);
+}
+
 export function KampusTour({ view, me, players, dropped, scores, seated, canMove, result, onMove, timer, actions }: Props) {
   const [selected, setSelected] = useState<number | null>(null);
   const stage = useStage();
@@ -380,6 +388,14 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
   const owners = settledOwners.current;
   const levels = settledLevels.current;
   const cash = settledCash.current;
+  // Wykupienie mojego pola to szkoda od rywala: wibruje raz, po dojściu pionka, licząc od chwili wejścia do gry.
+  const ownersBefore = useRef(owners);
+  const losses = useRef(0);
+  if (owners !== ownersBefore.current) {
+    if (boughtOut(ownersBefore.current, owners, me).length) losses.current++;
+    ownersBefore.current = owners;
+  }
+  useHarm(losses.current ? String(losses.current) : null);
   const floats = useFloats(view.players, cash);
   const warning = useMonopolyWarning(view.players, owners, view.monopoly);
   const recent = settledEvents.current.slice(-1);

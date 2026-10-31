@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, DiceFive, DiceFour, DiceOne, DiceSix, DiceThree, DiceTwo } from "@phosphor-icons/react";
 import { CHINCZYK_TRACK as TRACK, type ChinczykView, type LobbyPlayer } from "@kwadrans/games";
 import { StickyBar } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 type Move = { type: "roll" } | { type: "move"; pawn: number };
 
@@ -158,13 +159,13 @@ export function Chinczyk({ view, me, players, canMove, onMove }: Props) {
   useEffect(() => {
     if (seen.current === event) return;
     seen.current = event;
-    if (pending.current) navigator.vibrate?.([60, 40, 60]);
+    if (pending.current) navigator.vibrate?.(VIBRATE.harm);
     pending.current = !!last?.move?.captured.includes(me);
   }, [event, last, me]);
   useEffect(() => {
     if (!settled || !pending.current) return;
     pending.current = false;
-    navigator.vibrate?.([60, 40, 60]);
+    navigator.vibrate?.(VIBRATE.harm);
   }, [settled]);
 
   const seatOf = (player: string) => view.starts[player] / (TRACK / 4);

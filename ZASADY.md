@@ -266,11 +266,17 @@ animacja tylko go dogania na ekranie.
 
   | Zdarzenie | Wzór |
   |---|---|
-  | moja tura (robi to `Game.tsx`, gra tego nie powtarza) | 40 |
-  | pomyłka | 60 |
-  | coś złego dla mnie od innego gracza (zbity pionek) | [60, 40, 60] |
+  | moja nowa decyzja: tura albo nowa faza, w której gram (robi to `Game.tsx` z `decisionKey`, gra tego nie powtarza) | 40 |
+  | pomyłka: rzeczywisty błąd, także falstart w Refleksie i złe pole w Sekwencji | 60 |
+  | coś złego dla mnie od innego gracza: zbity pionek, trafienie mojej floty, wykupienie mojego pola, STOP w Państwach-miastach | [60, 40, 60] |
+  | uderzenie metronomu w Rytmie (część bodźca, nie informacja zwrotna) | 30 |
+  | ruch zignorowany bez kary (Środek, Nożyczki, Koło): `shake` 300 ms i krótki powód | bez wibracji |
+  | legalne pudło w grze turowej (Statki, Memory, Kalambury) | bez wibracji |
 
-  Poprawne trafienie nie wibruje.
+  Poprawne trafienie nie wibruje. Wzory są w `VIBRATE` (`apps/web/src/vibrate.ts`), gry nie wpisują własnych liczb.
+  Szkoda od rywala wibruje raz na zdarzenie u poszkodowanego (`useHarm`); zdarzenie zastane po wejściu albo odświeżeniu nie wibruje.
+  Kalambury: połowa rysowania nie jest nową decyzją (nie wolno jej zdradzić), rysujący decyduje od wyboru hasła, zgadujący od wejścia w rysowanie.
+  Za zasłoną: dotknięcie przed zniknięciem kulki jest po prostu ignorowane, bez shake i tekstu (zasady gry, nie pomyłka).
 
 ## 6. Podpięcie i odbiór
 

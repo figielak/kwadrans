@@ -11,6 +11,7 @@ import { Labirynt } from "../games/Labirynt.tsx";
 import { PiecWRzedzie } from "../games/PiecWRzedzie.tsx";
 import { FleetLeft, Statki } from "../games/Statki.tsx";
 import { fetchRecords } from "../net.ts";
+import { decisionKey, VIBRATE } from "../vibrate.ts";
 import { formatRecord, RecordPanel } from "./Records.tsx";
 import { type GameDot, GameDots, IntroContext, Screen, StickyBar, type Send } from "./ui.tsx";
 
@@ -30,10 +31,11 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
   const myTurn = view.phase === "playing" && game.waitingFor.includes(me);
   const waitingNicks = game.waitingFor.filter((id) => id !== me).map(nick).join(" i ");
 
-  // Tryb cichy: krótka wibracja zamiast dźwięku, gdy przychodzi moja tura.
+  // Tryb cichy: krótka wibracja zamiast dźwięku, gdy czeka na mnie nowa decyzja (tura albo nowa faza).
+  const decision = view.phase === "playing" ? decisionKey(def.id, game.view, me, game.waitingFor) : null;
   useEffect(() => {
-    if (myTurn) navigator.vibrate?.(40);
-  }, [myTurn]);
+    if (decision !== null) navigator.vibrate?.(VIBRATE.turn);
+  }, [decision]);
 
   // Kalambury: serwer ma dwa limity po 40 s (po pierwszym odsłania literę), a gracz widzi jeden pasek na całe rysowanie.
   // W pierwszej połowie do czasu dochodzi cała druga; memo po wiadomości, żeby termin nie przesuwał się przy każdym renderze.

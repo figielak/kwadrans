@@ -1,6 +1,7 @@
 import { type LobbyPlayer, SCHULTE_PENALTY_MS, SCHULTE_SIZE, type SchulteView, schulteTotal } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: SchulteView;
@@ -59,7 +60,7 @@ export function Schulte({ view, me, players, ranking, onMove }: Props) {
     setFlash((f) => ({ n, ok: n === target, id: (f?.id ?? 0) + 1 }));
     if (n !== target) {
       setMistakes((m) => m + 1);
-      navigator.vibrate?.(60);
+      navigator.vibrate?.(VIBRATE.mistake);
       return;
     }
     const ms = Math.round(performance.now() - start.current);

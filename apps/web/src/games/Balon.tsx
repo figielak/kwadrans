@@ -1,6 +1,7 @@
 import { BALON_BALLOONS, BALON_MAX_SAFE, balonScore, type BalonView, type LobbyPlayer } from "@kwadrans/games";
 import { Fragment, useEffect, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: BalonView;
@@ -55,7 +56,7 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
   function pump() {
     if (phase !== "play") return;
     if (current < view.limits[pumps.length]) return setCurrent(current + 1);
-    navigator.vibrate?.(60);
+    navigator.vibrate?.(VIBRATE.mistake);
     finish(current + 1);
   }
 

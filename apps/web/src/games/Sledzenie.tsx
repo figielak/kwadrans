@@ -1,6 +1,7 @@
 import { BALLS, type LobbyPlayer, MOVE_MS, RADIUS, ROUNDS, SHOW_MS, sledzeniePosition, type SledzenieView, TARGETS } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: SledzenieView;
@@ -108,7 +109,7 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
     if (next.length < TARGETS) return;
     setPicks([...picks, next]);
     setPhase("reveal");
-    if (!next.every(isTarget)) navigator.vibrate?.(60);
+    if (!next.every(isTarget)) navigator.vibrate?.(VIBRATE.mistake);
   }
 
   if (!playing || phase === "sent") {

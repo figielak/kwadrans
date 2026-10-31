@@ -686,7 +686,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: [P4-041](PACKAGES.md#p4-041). Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Sprawdzić zdarzenia w każdej wskazanej grze: raz na zdarzenie, brak wibracji przy poprawnym trafieniu i legalnym pudle. Reconnect nie powtarza szkody; half Kalamburów nie zdradza fazy. U14 na urządzeniu, poza nim można przechwycić wywołania vibrate, ale nie potwierdzać odczucia.
 - Granice: Nie zmieniać kary ani przyjmowania ruchu przez dodanie efektu.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 5/5 części. TDD `19f35d5`; typy, testy i build PASS. Odczucie wibracji (U14) do sprawdzenia na telefonie. [05-40-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-40-SUMMARY.md).
 
 <a id="scope-p4-044"></a>
 

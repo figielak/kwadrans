@@ -1,6 +1,7 @@
 import { type LobbyPlayer, RYTM_BEATS, RYTM_MAX_TAPS, RYTM_TAP_MS, type RytmView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { Intro, Scores, TimeBar } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: RytmView;
@@ -67,7 +68,7 @@ export function Rytm({ view, me, players, ranking, onMove }: Props) {
       after(at(i), () => {
         setBeat(i);
         setLit(true);
-        navigator.vibrate?.(30);
+        navigator.vibrate?.(VIBRATE.beat);
         if (i === RYTM_BEATS - 1) setPhase("tap");
       });
       after(at(i) + FLASH_MS, () => setLit(false));

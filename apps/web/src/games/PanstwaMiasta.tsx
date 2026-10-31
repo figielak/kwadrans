@@ -2,6 +2,7 @@ import { Check, HandPalm, ThumbsDown, X } from "@phosphor-icons/react";
 import { type LobbyPlayer, type PanstwaMiastaMove, type PanstwaMiastaView, PM_ANSWER_MAX, PM_CATEGORIES, pmFits } from "@kwadrans/games";
 import { Fragment, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Scores, StickyBar } from "../screens/ui.tsx";
+import { useHarm } from "../vibrate.ts";
 
 interface Props {
   view: PanstwaMiastaView;
@@ -22,6 +23,8 @@ export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, o
   const player = (id: string) => players.find((p) => p.id === id);
   const letter = view.letters[view.round];
   const playing = view.players.includes(me);
+  // STOP od innego gracza ucina mi czas pisania: szkoda od rywala, raz na rundę.
+  useHarm(view.phase === "write" && playing && view.stop && view.stop !== me && !view.done.includes(me) ? `${view.round}:${view.stop}` : null);
 
   return (
     <div className="flex flex-col gap-3">
@@ -114,7 +117,7 @@ export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, o
 
 function StopBanner({ nick }: { nick?: string }) {
   return (
-    <span role="status" className="mb-2 flex items-center gap-2 font-semibold text-warning">
+    <span role="status" className="mb-2 flex animate-[stone-pop_0.35s_ease-out] items-center gap-2 font-semibold text-warning">
       <HandPalm size={20} weight="fill" aria-hidden />
       STOP! {nick ?? "Ktoś"} oddaje kartkę
     </span>

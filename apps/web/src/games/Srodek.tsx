@@ -88,7 +88,6 @@ export function Srodek({ view, me, players, ranking, onMove }: Props) {
     setAim(null);
     // Poza strefą to nie odpowiedź (serwer też by ją odrzucił): runda trwa dalej, bez kary.
     if (srodekOffset(view.segments[index], p) > SRODEK_ACCEPT_PX) {
-      navigator.vibrate?.(60);
       return setMiss(miss + 1);
     }
     setMiss(0);

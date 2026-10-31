@@ -2,6 +2,7 @@ import { DZIESIATKI_SIDE, DZIESIATKI_TARGET, type DziesiatkiView, dziesiatkiTake
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
 import { BLOCK_MS, Results } from "./Quiz.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: DziesiatkiView;
@@ -84,7 +85,7 @@ export function Dziesiatki({ view, me, players, ranking, winner, onMove, onRound
     } else {
       r.errors++;
       r.streak = 0;
-      navigator.vibrate?.(60);
+      navigator.vibrate?.(VIBRATE.mistake);
       r.blockedUntil = now + BLOCK_MS;
       setPhase("wrong");
       r.timer = window.setTimeout(() => {

@@ -86,6 +86,8 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
   const [started, setStarted] = useState(attempts > 0);
   const [points, setPoints] = useState<KoloPoint[]>([]);
   const [hint, setHint] = useState<string | null>(null);
+  // Licznik odrzuconych rysunków: nowy klucz płótna odpala shake od nowa.
+  const [miss, setMiss] = useState(0);
   /** Ostatnia oceniona próba, widoczna na płótnie do następnego dotknięcia. */
   const [last, setLast] = useState<{ points: KoloPoint[]; circle: Circle; score: number; note: string; record: boolean } | null>(null);
   const drawn = useRef<KoloPoint[]>([]);
@@ -159,7 +161,10 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
     const sent = drawn.current.filter((_, i) => i % step === 0);
     // Niedokończone koło nie idzie na serwer, więc przypadkowe dotknięcie nie spala próby.
     const { status, score, points: cut, circle } = koloJudge(sent);
-    if (status !== "ok" || !circle) return setHint(HINTS[status === "small" ? "small" : "unfinished"]);
+    if (status !== "ok" || !circle) {
+      setMiss(miss + 1);
+      return setHint(HINTS[status === "small" ? "small" : "unfinished"]);
+    }
     onMove({ type: "result", points: sent });
     // Oceniony rysunek zostaje do następnego dotknięcia, potem w tle wraca przygaszona najlepsza próba (z serwera).
     drawn.current = [];
@@ -215,8 +220,9 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
         />
         <div ref={canvas} className="relative mx-auto w-full" style={{ maxWidth: canvasSize }}>
           <svg
+            key={miss}
             viewBox="0 0 1 1"
-            className="block aspect-square w-full touch-none select-none rounded-tile border border-line bg-surface [-webkit-touch-callout:none]"
+            className={`block aspect-square w-full touch-none select-none rounded-tile border border-line bg-surface [-webkit-touch-callout:none] ${miss && hint ? "animate-[shake_0.3s_ease-out]" : ""}`}
             onPointerDown={down}
             onPointerMove={move}
             onPointerUp={up}

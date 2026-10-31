@@ -14,6 +14,7 @@ import {
 import { type CSSProperties, type PointerEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { StickyBar } from "../screens/ui.tsx";
+import { useHarm, VIBRATE } from "../vibrate.ts";
 
 type Move = { type: "place"; ships: Ship[] } | { type: "ready" } | { type: "unready" } | { type: "shoot"; x: number; y: number };
 type Board = StatkiView["boards"][string];
@@ -75,11 +76,14 @@ export function Statki({ view, me, players, canMove, onMove }: Props) {
     return () => clearTimeout(id);
   }, [turn]);
 
+  const incoming = seated ? lastShot(view.boards[me].shots) : undefined;
+  // Trafienie albo zatopienie mojej floty to szkoda od rywala; pudło nie. Pole strzału jest kluczem zdarzenia.
+  useHarm(incoming && incoming.result !== "miss" ? `${incoming.x},${incoming.y}` : null);
+
   if (view.phase === "placing" && seated) {
     return <Placement rules={rules} board={view.boards[me]} color={color(me)} enemyNick={nick(enemyId)} onMove={onMove} />;
   }
 
-  const incoming = seated ? lastShot(view.boards[me].shots) : undefined;
   const spot = incoming && name(incoming);
   const news =
     incoming &&
@@ -209,7 +213,7 @@ function Placement({
 
   function commit(next: Ship[], index?: number) {
     if (!isValidFleet(next, rules)) {
-      navigator.vibrate?.(60);
+      navigator.vibrate?.(VIBRATE.mistake);
       if (index !== undefined) setGhost(next[index]);
       setTimeout(() => setGhost(null), 600);
       return;

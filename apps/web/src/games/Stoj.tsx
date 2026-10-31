@@ -3,6 +3,7 @@ import { HandPalm } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
 import { Results } from "./Quiz.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 type Move = { type: "result"; taps: (number | null)[] };
 
@@ -73,7 +74,7 @@ export function Stoj({ view, me, players, ranking, winner, onMove }: Props) {
     // Spóźniony timer następnego bodźca mógłby wydłużyć okno ponad to, co przyjmie serwer.
     r.taps[shown.i] = Math.min(reaction, STOJ_SCHEDULE[shown.i].window);
     setShown({ ...shown, tapped: true });
-    if (view.reds[shown.i]) navigator.vibrate?.(60);
+    if (view.reds[shown.i]) navigator.vibrate?.(VIBRATE.mistake);
     else setLast(reaction);
   }
 

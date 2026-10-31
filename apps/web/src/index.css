@@ -348,7 +348,7 @@ body::before {
   }
 }
 
-/* Ruch zignorowany bez kary: delikatne potrząśnięcie bez błysku koloru (Środek poza strefą, Nożyczki za krótkie cięcie). */
+/* Ruch zignorowany bez kary: delikatne potrząśnięcie bez błysku koloru i bez wibracji (Środek poza strefą, Nożyczki za krótkie cięcie, Koło niedokończone). */
 @keyframes shake {
   20% {
     transform: translateX(-4px);

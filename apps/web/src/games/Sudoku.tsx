@@ -1,6 +1,7 @@
 import { type LobbyPlayer, SUDOKU_BLANKS, SUDOKU_PENALTY_MS, type SudokuView, sudokuTotal } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: SudokuView;
@@ -74,7 +75,7 @@ export function Sudoku({ view, me, players, ranking, onMove }: Props) {
     setFlash((f) => ({ i: selected, ok, id: (f?.id ?? 0) + 1 }));
     if (!ok) {
       setMistakes((m) => m + 1);
-      navigator.vibrate?.(60);
+      navigator.vibrate?.(VIBRATE.mistake);
       return;
     }
     setCells(cells.map((v, i) => (i === selected ? digit : v)));

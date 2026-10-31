@@ -2,6 +2,7 @@ import { type LobbyPlayer, REFLEKS_PENALTY_MS, REFLEKS_ROUNDS, type RefleksView 
 import { Trophy } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 type Move = { type: "result"; times: number[] };
 
@@ -173,6 +174,7 @@ export function Refleks({ view, me, players, ranking, winner, onMove }: Props) {
       next(Math.min(reaction, REFLEKS_PENALTY_MS));
     } else if (phase === "wait" || phase === "go") {
       clearTimeout(r.timer);
+      navigator.vibrate?.(VIBRATE.mistake);
       setPhase("early");
       r.timer = window.setTimeout(() => next(REFLEKS_PENALTY_MS), 800);
     }
@@ -206,10 +208,12 @@ export function Refleks({ view, me, players, ranking, winner, onMove }: Props) {
         ]}
       />
       <button
+        // Klucz z falstartu: przycisk montuje się od nowa i animacja błędu startuje jeszcze raz (jak w Stój!).
+        key={phase === "early" ? `early-${times.length}` : "field"}
         type="button"
         onPointerDown={tap}
         className={`flex min-h-80 flex-1 touch-none select-none items-center justify-center rounded-tile border border-line text-2xl font-semibold ${
-          phase === "go" ? "bg-success text-bg" : "bg-surface text-fg-muted"
+          phase === "go" ? "bg-success text-bg" : phase === "early" ? "animate-[tile-miss_0.35s_ease-out] bg-surface text-warning" : "bg-surface text-fg-muted"
         }`}
       >
         {phase === "go" ? "Teraz!" : phase === "early" ? "Falstart!" : last === null ? "Czekaj…" : last === REFLEKS_PENALTY_MS ? "Za wolno!" : `${last} ms`}

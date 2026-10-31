@@ -1,6 +1,7 @@
 import { KUBKI_ROUNDS, KUBKI_SHOW_MS, kubkiBallAt, kubkiSwapMs, type KubkiView, type LobbyPlayer } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: KubkiView;
@@ -115,7 +116,7 @@ export function Kubki({ view, me, players, ranking, onMove }: Props) {
     const slot = Math.min(CUPS.length - 1, Math.max(0, Math.floor(((e.clientX - rect.left) / rect.width) * CUPS.length)));
     setPicks([...picks, slot]);
     setPhase("reveal");
-    if (slot !== ballSlot) navigator.vibrate?.(60);
+    if (slot !== ballSlot) navigator.vibrate?.(VIBRATE.mistake);
   }
 
   if (!playing || phase === "sent") {

@@ -77,7 +77,6 @@ export function Nozyczki({ view, me, players, ranking, onMove }: Props) {
     setAim(null);
     // Za krótki ruch albo prosta obok kształtu to nie odpowiedź (serwer też by ją odrzucił): runda trwa dalej, bez kary.
     if (!nozyczkiAccepts(view.shapes[index], cut)) {
-      navigator.vibrate?.(60);
       return setMiss(miss + 1);
     }
     setMiss(0);

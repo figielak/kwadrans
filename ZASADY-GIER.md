@@ -71,7 +71,8 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
 - 12 rund (`ROUNDS`). W każdej pole zmienia kolor po losowym opóźnieniu 1-3 s (12 opóźnień z serwera), gracz dotyka jak najszybciej.
   Liczba rund jest stała, żeby losowe opóźnienia nie zmieniały tego, ile da się ugrać (dawniej 30 s i liczba trafień).
 - Każda runda daje jeden czas reakcji 100-1000 ms. Falstart (dotknięcie przed zmianą albo reakcja poniżej 100 ms) i reakcja ponad 1 s
-  liczą się jak 1000 ms (`PENALTY_MS`) i runda przepada; po falstarcie 0,8 s przerwy.
+  liczą się jak 1000 ms (`PENALTY_MS`) i runda przepada; po falstarcie 0,8 s przerwy. Falstart to pomyłka: wibracja 60,
+  „Falstart!” w kolorze ostrzeżenia i błysk pola jak przy błędzie w Stój!.
 - Jeden ruch z `times`: 12 czasów w ms (int). Wynik liczy serwer: zaokrąglona średnia w ms, mniej lepiej, równe to remis.
 - Walidacja: lista pusta albo dokładnie 12 liczb całkowitych 100-1000. Pusta lista = limit czasu = 1000 ms, czyli najgorszy możliwy wynik.
 - Stan trzyma też `times` każdego gracza (tabela i wykres na końcu; liczba kar to czasy równe 1000).
@@ -87,6 +88,7 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
   To celowy wyjątek od najgorszego wyniku timeoutu, żeby nie gubić zdobytej serii; zaczęta, nieukończona seria nie daje punktu.
 - Odświeżenie zachowuje postęp serwera. Po Start klient pokazuje kolejną serię po ostatniej zaliczonej;
   pomyłka i timeout oddają ten sam osiągnięty wynik. Po rewanżu nowa sekwencja i pusty postęp.
+- Pomyłka: wynik idzie na serwer od razu, wibracja 60, a przez 1 s widać złe pole (błysk) i podświetlone właściwe; potem tabela.
 - Limit jest skończony, niezależnie od bufora 100 kolorów. Model czasu `T(N) ≈ N + (0,6+d)·N(N+1)/2`,
   gdzie `d` to założony średni czas decyzji na pole, a nie pomiar; nie obiecujemy ukończenia dowolnej serii w 300 s.
   Nie dodajemy szybkości jako drugiego kryterium: równe serie to remis.
@@ -158,6 +160,7 @@ Wspólne zasady w `quiz.ts`, wspólny ekran `Quiz.tsx` (dzielą je też Inny ele
 - Każda próba to osobny ruch `result` z `points` (20-1000 punktów, wszystkie w 0-1). Pusta lista kończy pozostałe próby
   (zostaje dotychczasowa najlepsza); to też ruch po limicie czasu.
 - Ocenę liczy serwer (`judge`), klient woła tę samą funkcję przed wysłaniem i niedokończonego koła nie wysyła, więc nie zużywa próby.
+  Odrzucony rysunek: potrząśnięcie płótna i powód pod nim, bez wibracji (ruch zignorowany, nie pomyłka).
 - `judge`: obcina rysunek po pełnym obrocie (zakładka nie liczy się), dopasowuje okrąg (metoda Kåsy), potem:
   - poniżej 0,9 obrotu albo mniej niż 20 punktów: `unfinished`, 0 pkt,
   - promień poniżej 0,15: `small`, 0 pkt,
@@ -249,7 +252,7 @@ Przebieg i ekran jak w Policz kropki (`Szacowanie.tsx`); inny jest rysunek, zakr
 - Pusta lista = limit czasu = 10 × 100% (więcej niż najgorsza uczciwa partia).
 - Ekran: kwadratowy kafel z odcinkiem (poprzeczne kreski na końcach). Liczy się miejsce podniesienia palca: punkt można przytrzymać
   i przesunąć. W trakcie celowania pierścień pokazuje rzut na odcinek
-  (tylko w strefie akceptacji). Puszczenie poza strefą: potrząśnięcie odcinka, wibracja 60 i „Dotknij bliżej odcinka”, runda trwa dalej.
+  (tylko w strefie akceptacji). Puszczenie poza strefą: potrząśnięcie odcinka i „Dotknij bliżej odcinka”, bez wibracji (to nie pomyłka), runda trwa dalej.
   Po puszczeniu przez 1 s widać własny punkt na odcinku (kolor gracza), prawdziwy środek (pierścień), odcinek błędu między nimi
   i błąd w %; kolor według celności: do 2% zielony z „Idealnie!”, do 8% zwykły, dalej ostrzegawczy.
   Potem sama wskakuje następna runda; po dziesiątej wynik idzie na serwer.
@@ -581,7 +584,8 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
   Czas `visible` nie wchodzi do wyniku.
 - Walidacja: lista pusta albo dokładnie 8 czasów, każdy całkowity od 0 do 8000 (`2 × MAX_HIDDEN`). Pusta lista = limit czasu = suma `hidden`,
   czyli najgorszy możliwy wynik.
-- Dotknięcie, gdy kulkę jeszcze widać, jest ignorowane bez kary (jak dotknięcie poza strefą w Środku); liczy się pierwsze dotknięcie po zniknięciu.
+- Dotknięcie, gdy kulkę jeszcze widać, jest ignorowane bez kary i bez żadnego efektu (wyjątek od potrząśnięcia w Środku: to część zasad,
+  nie chybiony ruch); liczy się pierwsze dotknięcie po zniknięciu.
 - Ekran sam kończy rundę po dwukrotności `hidden` (dalej odchyłka i tak jest ucięta). Grający nie widzi limitu tury ani żadnego licznika
   sekund (podawałyby czas), jak w Stoperze, Rytmie i Przytrzymaj.
 - Bez ruchu `progress` (8 krótkich rund).
@@ -608,7 +612,7 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 - Pusta lista = limit czasu = 5 × 50% (`MAX_ERROR`, tyle co cięcie obok kształtu; każda uczciwa runda kosztuje mniej).
 - Bez ruchu `progress` (5 krótkich rund).
 - Ekran: kwadratowy kafel z kształtem. Przeciąganie pokazuje prostą przez cały kafel w kolorze gracza, puszczenie tnie.
-  Cięcie, które nie jest odpowiedzią: potrząśnięcie, wibracja 60 i „Przetnij kształt”, runda trwa dalej.
+  Cięcie, które nie jest odpowiedzią: potrząśnięcie i „Przetnij kształt”, bez wibracji (to nie pomyłka), runda trwa dalej.
   Po cięciu przez 1,5 s obie części mają kolor gracza o różnym kryciu, pod kaflem ich udziały („53,0% | 47,0%”); kolor według celności:
   do 1 zielony z „Idealnie!”, do 5 zwykły, dalej ostrzegawczy. Potem sam wskakuje następny kształt; po piątym wynik idzie na serwer.
 - Ekran końcowy: jedna tabela, kształty 1-5 w kolumnach, gracze w wierszach. Najlepszy w rundzie (bez remisu) ma tło w kolorze gracza.

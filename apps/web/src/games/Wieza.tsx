@@ -1,6 +1,7 @@
 import { type LobbyPlayer, WIEZA_BASE, WIEZA_LEVELS, WIEZA_MAX_STOP_MS, wiezaBuild, wiezaLeft, type WiezaView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
   view: WiezaView;
@@ -65,7 +66,7 @@ export function Wieza({ view, me, players, ranking, onMove }: Props) {
     const next = [...stops, t];
     const built = wiezaBuild(view.sides, next);
     setStops(next);
-    if (built.height < next.length) navigator.vibrate?.(60);
+    if (built.height < next.length) navigator.vibrate?.(VIBRATE.mistake);
     else if (next.length < WIEZA_LEVELS) onMove({ type: "progress", height: built.height });
     if (built.height < next.length || next.length >= WIEZA_LEVELS) setPhase("over");
   }

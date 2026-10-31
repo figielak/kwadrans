@@ -2,6 +2,7 @@ import { type LobbyPlayer, QUIZ_DURATION_MS, QUIZ_BLOCK_MS, type QuizMove } from
 import { Trophy } from "@phosphor-icons/react";
 import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Intro, Stats } from "../screens/ui.tsx";
+import { VIBRATE } from "../vibrate.ts";
 
 /** Wspólny przebieg Koloru liter, Liczenia, Innego elementu, Obrotu i Literówki: 30 s pytań z odpowiedziami do wyboru, pomyłka blokuje na chwilę. */
 interface Props {
@@ -205,7 +206,7 @@ export function Quiz({ view, me, players, ranking, winner, task, preview, questi
     } else {
       r.errors++;
       r.streak = 0;
-      navigator.vibrate?.(60);
+      navigator.vibrate?.(VIBRATE.mistake);
       r.blockedUntil = now + BLOCK_MS;
       setPhase("wrong");
       r.timer = window.setTimeout(() => {
