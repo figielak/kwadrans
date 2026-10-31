@@ -227,7 +227,7 @@ export function StartBar({ view, me, send, note }: { view: RoomView; me: string;
         onClick={() => send("ready", { ready: !meReady })}
       >
         {meReady ? <Check size={18} weight="bold" aria-hidden /> : <HandWaving size={18} weight="fill" aria-hidden />}
-        <span className="truncate">{meReady ? `Gotowe, czekamy na ${hostNick}` : `Zgłaszam gotowość: ${def.name}`}</span>
+        <span className="truncate">{meReady ? `Gotowość zgłoszona, czekamy na ${hostNick}` : `Zgłaszam gotowość: ${def.name}`}</span>
       </button>
     ) : (
       <p className="flex min-h-12 w-full items-center justify-center text-center text-sm text-fg-muted">

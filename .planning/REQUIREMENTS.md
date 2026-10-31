@@ -106,7 +106,7 @@ Samo przygotowanie planów lub częściowa akceptacja nie zamykają FIX-01. FIX-
 | DIFF-02 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | DIFF-03 | Phase 3 | Complete (03-01..03-08, scalone w FINDINGS.md 03-09) |
 | FIX-01 | Phase 4 | Complete (2026-10-26), 5/5; rzeczywista zgoda ZG4-v1 i kompletne przekazanie S5-v1 |
-| FIX-02 | Phase 5 | In progress; 57/62 pakietów, 227/267 części; 05-56/P4-035: Wspólne funkcje bez zmiany reguł, typy/testy/build PASS; następny P4-047 (P4-061 czeka na U14); P4-059 czeka na P11 |
+| FIX-02 | Phase 5 | In progress; 58/62 pakietów, 233/267 części; 05-57/P4-047: Słowa czynności i przejść, typy/testy/build PASS; następny P4-049 (P4-061 czeka na U14); P4-059 czeka na P11 |
 
 **Coverage:**
 - v1 requirements: 21 total
@@ -348,3 +348,5 @@ Następny P4-043; P4-014/015 oczekują U02. Dowody: 05-39-SUMMARY.md. Commit bez
 2026-10-31, 05-55/P4-034 zakończony: mini-gry z MINI_GAME_IDS w Game/Lobby (SIMULTANEOUS, OWN_RANKING z Kalamburami), nonce Sudoku z fallbackiem planszy, stałe SLEDZENIE_*, Turniej z podsumowaniem w StartBar bez drugiego sticky. 56/62 pakietów, 226/267 części; FIX-02 otwarte. Następny P4-035; P4-061 czeka na U14. Dowody: 05-55-SUMMARY.md. Commity bez push.
 
 2026-10-31, 05-56/P4-035 zakończony: talia Kampus Tour przez shuffle z core, swapsFor w Kubkach (te same talie i zamiany dla seedów 1-3), Koło bez ranked i trzy kopie szkieletu rund z powodem w ZASADY-GIER §1. 57/62 pakietów, 227/267 części; FIX-02 otwarte. Następny P4-047; P4-061 czeka na U14. Dowody: 05-56-SUMMARY.md. Commity bez push.
+
+2026-10-31, 05-57/P4-047 zakończony: Dalej po odsłonie, Wyniki do podsumowania, wspólne słowa nagłówka w Kampus Tour, Zgłaszam gotowość (neutralnie zamiast Jestem gotowy, wybór użytkownika), Czekamy na: {nicki}, Idealnie!, rysujesz, Dotknij symbolu; słownik ról w ZASADY §4, kolor Dalej w DESIGN §5. 58/62 pakietów, 233/267 części; FIX-02 otwarte. Następny P4-049; P4-061 czeka na U14. Dowody: 05-57-SUMMARY.md. Commity bez push.

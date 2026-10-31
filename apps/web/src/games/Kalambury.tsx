@@ -45,7 +45,7 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
       {timer && (
         <header className="flex flex-col gap-2">
           <span className="label">
-            Runda {view.round + 1}/{view.rounds} · rysuje {drawing ? "ty" : nick(view.drawer)}
+            Runda {view.round + 1}/{view.rounds} · {drawing ? "rysujesz" : `rysuje ${nick(view.drawer)}`}
           </span>
           {/* Tytuł w kolorze gracza tylko u rysującego: to jego tura, jak „Twój ruch” w innych grach. */}
           <h1 className="text-xl leading-tight font-semibold" style={drawing && live ? { color: player(me)?.color } : undefined}>
@@ -135,7 +135,7 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
           {view.phase === "reveal" && view.players.includes(me) && (
             <StickyBar>
               <button type="button" className="btn w-full btn-player" style={{ backgroundColor: player(me)?.color }} disabled={view.ready.includes(me)} onClick={() => onMove({ type: "next" })}>
-                {view.ready.includes(me) ? "Czekamy na resztę" : "Dalej"}
+                {view.ready.includes(me) ? `Czekamy na: ${view.players.filter((p) => !view.ready.includes(p)).map(nick).join(", ")}…` : "Dalej"}
               </button>
             </StickyBar>
           )}

@@ -198,7 +198,12 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
   minimum 48 px mierzone po skalowaniu sceny. Podsumowanie może przewijać treść ze stałymi akcjami;
   otwarty dialog nie dubluje tych samych akcji na planszy.
 - Teksty po polsku, krótkie, bez em-dashy, przecinek dziesiętny („10,00 s”), te same słowa co w innych grach
-  („Start”, „Dalej”, „Rewanż”, „Do lobby”, „(ty)”).
+  („Start”, „Dalej”, „Rewanż”, „Do lobby”, „(ty)”). Słownik ról:
+  - „Dalej”: przejście po odsłonie do następnej rundy, koloru albo kroku (nie „OK”, „Następna runda”); „Wyniki” tylko do końcowego podsumowania;
+  - „Gotowe”: oddanie odpowiedzi albo kartki (Zakupy, Państwa-miasta po STOP); gotowość to „Zgłaszam gotowość” (lobby, ekran gry, Statki);
+  - po własnym „Dalej”: „Czekamy na: {nicki}…”; nagłówek tury: „Twój ruch”, „Ruch: {nick}”, „Remis”, „Koniec”;
+  - wynik bez błędu: „Idealnie!”; „Nowy rekord!” tylko dla rekordu wszech czasów (lepsza próba w partii to „Najlepsza próba!”);
+  - czynność gry zostaje własnym słowem („Pokrój”, „Zgarnij”, „Rzuć”), nie mechanicznym „Dalej”.
 - Elementy ozdobne mają `aria-hidden`, a przyciski bez tekstu `aria-label`.
 - Tylko ciemny motyw.
 

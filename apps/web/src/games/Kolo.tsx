@@ -170,7 +170,7 @@ export function Kolo({ view, me, players, ranking, onMove }: Props) {
     drawn.current = [];
     setPoints([]);
     const diff = best ? score - best.score : 0;
-    const note = !best ? "" : diff > 0 ? "Nowy rekord!" : diff === 0 ? "Tyle co najlepsza" : `−${tenths(-diff)} pkt od najlepszej`;
+    const note = !best ? "" : diff > 0 ? "Najlepsza próba!" : diff === 0 ? "Tyle co najlepsza" : `−${tenths(-diff)} pkt od najlepszej`;
     setLast({ points: cut, circle, score, note, record: diff > 0 });
   }
 

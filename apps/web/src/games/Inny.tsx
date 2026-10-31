@@ -46,7 +46,7 @@ export function Inny({ view, ...props }: Props) {
         const { cols, rows, odd, base, other } = view.trials[i % view.trials.length];
         return {
           cols,
-          status: "Dotknij symbol, który się różni",
+          status: "Dotknij symbolu, który się różni",
           options: Array.from({ length: cols * rows }, (_, cell) => <Shape {...(cell === odd ? other : base)} />),
           correct: odd,
         };

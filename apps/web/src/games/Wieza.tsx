@@ -169,7 +169,7 @@ export function Wieza({ view, me, players, ranking, onMove }: Props) {
           </span>
         )}
       </div>
-      <p className="text-center text-sm text-fg-muted">Zatrzymaj klocek nad wieżą. To, co wystaje, zostaje odcięte.</p>
+      <p className="text-center text-sm text-fg-muted">Zatrzymaj klocek nad wieżą. To, co wystaje, zostaje ucięte.</p>
     </section>
   );
 }

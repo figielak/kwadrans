@@ -52,7 +52,7 @@ export function Obrot({ view, ...props }: Props) {
               ))}
             </div>
           }
-          options={["ta sama", "lustro"]}
+          options={["Ta sama", "Lustro"]}
           correct={0}
         />
       }

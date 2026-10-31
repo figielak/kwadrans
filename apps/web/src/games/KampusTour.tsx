@@ -433,10 +433,12 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
       ? `Wygrywasz${view.monopoly ? " przez monopol" : ""}!`
       : result.winner
         ? `Wygrywa ${nick(result.winner)}${view.monopoly ? " (monopol)" : ""}`
-        : "Koniec gry"
+        : result.ranking?.length === 1
+          ? "Koniec"
+          : "Remis"
     : canMove
-      ? "Twoja tura"
-      : `Tura: ${nick(view.turn!)}`;
+      ? "Twój ruch"
+      : `Ruch: ${nick(view.turn!)}`;
 
   const describe = (e: KampusEvent) => {
     const who = nick(e.player);
@@ -1099,7 +1101,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
                 <p className="text-sm text-fg-muted">{CARDS[view.card].text}</p>
                 {canMove ? (
                   <button type="button" style={mine} className="btn mt-2" autoFocus onClick={() => onMove({ type: "card" })}>
-                    OK
+                    Dalej
                   </button>
                 ) : (
                   <p className="mt-2 text-sm text-fg-muted">{nick(view.turn!)} czyta kartę…</p>
@@ -1153,7 +1155,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
                     ))}
                 </ul>
                 <button type="button" style={mine} className="btn mt-2" autoFocus onClick={warning.dismiss}>
-                  OK
+                  Dalej
                 </button>
               </div>
             </div>

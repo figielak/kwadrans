@@ -166,11 +166,11 @@ export function Szacowanie({ view, me, players, ranking, onMove, truths, draw, s
               </span>
             </p>
             <span className={`font-mono text-3xl font-semibold tabular-nums ${diff === 0 ? "text-success" : ""}`}>
-              {diff === 0 ? "Idealnie" : signed(diff)}
+              {diff === 0 ? "Idealnie!" : signed(diff)}
             </span>
           </div>
           <button type="button" className="btn w-full btn-player" style={{ backgroundColor: color }} autoFocus onClick={next}>
-            {answers.length < rounds ? "Następna runda" : "Wyniki"}
+            {answers.length < rounds ? "Dalej" : "Wyniki"}
           </button>
         </>
       )}

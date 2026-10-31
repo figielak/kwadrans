@@ -123,7 +123,7 @@ export function Zaslona({ view, me, players, ranking, onMove }: Props) {
             close={CLOSE}
             unit="s od mety"
             format={seconds}
-            legend={`Zielony: do ${seconds(PERFECT)} s, ostrzegawczy: ponad ${seconds(CLOSE)} s.`}
+            legend={`Zielony: do ${seconds(PERFECT)} s, czerwony: ponad ${seconds(CLOSE)} s.`}
           />
         )}
       </>

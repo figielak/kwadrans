@@ -175,7 +175,7 @@ export function Kolor({ view, me, players, ranking, onMove }: Props) {
         <p className="text-center font-mono text-5xl font-semibold tabular-nums">{match(target, guesses[index])}</p>
         <p className="text-center text-fg-muted">{wrong.length ? `Twój kolor: ${wrong.join(", ")}` : "Bardzo blisko"}</p>
         <button type="button" className="btn mt-auto w-full btn-player" style={{ backgroundColor: color }} onClick={next}>
-          Następny kolor
+          Dalej
         </button>
       </section>
     );

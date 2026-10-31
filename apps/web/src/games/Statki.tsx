@@ -338,7 +338,8 @@ function Placement({
             }}
           >
             <Check size={20} weight="bold" aria-hidden />
-            Gotowe
+            {/* Na 360 px obok „Obróć” i „Losuj” napis łamie się na dwie linie w przycisku 56 px zamiast się ucinać. */}
+            <span className="min-w-0 text-center leading-tight">Zgłaszam gotowość</span>
           </button>
         </div>
       </StickyBar>

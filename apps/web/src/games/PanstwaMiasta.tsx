@@ -109,7 +109,7 @@ export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, o
           {view.phase === "summary" && playing && (
             <StickyBar>
               <button type="button" className="btn w-full btn-player" style={{ backgroundColor: player(me)?.color }} disabled={view.ready.includes(me)} onClick={() => onMove({ type: "next" })}>
-                {view.ready.includes(me) ? "Czekamy na resztę" : "Dalej"}
+                {view.ready.includes(me) ? `Czekamy na: ${view.players.filter((p) => !view.ready.includes(p)).map((p) => player(p)?.nick ?? "Gracz").join(", ")}…` : "Dalej"}
               </button>
             </StickyBar>
           )}

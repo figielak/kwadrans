@@ -158,8 +158,8 @@ Stan pusty mówi, czemu jest pusto: „Za krótka partia na ciekawostki.”, w t
 - **Akcent jest rzadki.** Jeden wypełniony przycisk platformy na ekranie; znak aplikacji może zachować akcent,
   bo identyfikuje markę, nie proponuje kolejnej czynności. Link w tekście („zmień”) to `fg-muted` z podkreśleniem.
 - **Akcent należy do platformy, kolor gracza do partii.** Wypełniony akcentem jest przycisk, który prowadzi przez aplikację
-  („Zagraj”, „Start”, gotowość, „Rewanż”, „Dalej”, „Jeszcze raz”). Akcja w trakcie partii („Zatwierdź”, „Gotowe”, „Rzuć”, „Zgarnij”)
-  jest wypełniona kolorem gracza z tekstem `bg`.
+  („Zagraj”, „Start”, gotowość, „Rewanż”, „Dalej” między grami turnieju, „Jeszcze raz”). Akcja w trakcie partii („Zatwierdź”, „Gotowe”,
+  „Rzuć”, „Zgarnij”, „Dalej” między rundami partii, gotowość rozstawienia w Statkach) jest wypełniona kolorem gracza z tekstem `bg`.
   Zatwierdzony wspólny kontrakt to `.btn` + `.btn-player`: kolor gracza przekazany przez komponent stanowi tło,
   tekst korzysta z `bg`, a rozmiar, focus, stan nieaktywny i reakcja na dotyk pochodzą z `.btn`.
   Klasa współdzieli wygląd, nie zmienia znaczenia akcji ani ról tokenów.
@@ -221,7 +221,7 @@ Rozbieżności do decyzji (nie są wzorem dla nowych ekranów):
 
 - **Gry główne na 360×640.** Państwa-miasta wymagają przewinięcia;
   jest to rozbieżność do poprawy, a nie zgoda na przewijanie plansz.
-  Statki (P4-008, wszystkie tryby): rozstawianie mieści się (flota 142-482 px, „Obróć”/„Losuj”/„Gotowe” w jednym wierszu 534-590 px).
+  Statki (P4-008, wszystkie tryby): rozstawianie mieści się (flota 142-482 px, „Obróć”/„Losuj”/„Zgłaszam gotowość” w jednym wierszu 534-590 px).
   W bitwie aktywna plansza jest duża u góry razem z akcją (cel 142-482 px i „Wybierz pole” 502-558 px; obrońca i obserwator: ostrzeliwana plansza).
   Wyjątek: mała plansza drugiej floty (3/5 szerokości) może leżeć poniżej 640 px i dochodzi się do niej przewinięciem,
   bo przy obu planszach naraz miałaby pole około 6 px; pasek bitwy nie jest przyklejony, więc nic jej nie zasłania.

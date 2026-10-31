@@ -91,7 +91,7 @@ Powyższe obszary nie dodają wzajemnych zależności. Można przejść do nast�
 | 56 | [P4-062: Państwa-miasta: pominąć Ł](#scope-p4-062) | P2 | 1 | wykonano 2026-10-31, 05-54; TDD cd9d00d |
 | 57 | [P4-034: Jedna lista mini-gier i klucz rewanżu](#scope-p4-034) | P3 | 4 | wykonano 2026-10-31, 05-55; TDD e3d6157 |
 | 58 | [P4-035: Wspólne funkcje bez zmiany reguł](#scope-p4-035) | P3 | 1 | wykonano 2026-10-31, 05-56; TDD 33e148a |
-| 59 | [P4-047: Słowa czynności i przejść](#scope-p4-047) | P3 | 6 | nie rozpoczęto |
+| 59 | [P4-047: Słowa czynności i przejść](#scope-p4-047) | P3 | 6 | wykonano 2026-10-31, 05-57; TDD 1fe5ae6 |
 | 60 | [P4-049: Liczby, etykiety i wąskie kolumny](#scope-p4-049) | P3 | 12 | nie rozpoczęto |
 | 61 | [P4-053: Wąskie podpisy i hierarchia ekranów](#scope-p4-053) | P3 | 11 | nie rozpoczęto |
 | 62 | [P4-054: Nieaktualne opisy bez zmiany zasad](#scope-p4-054) | P3 | 10 | nie rozpoczęto |
@@ -938,7 +938,7 @@ Poniższe karty są przekazaniem wybranych zakresów. Normatywne szczegóły zac
 - Zależności i rozpoczęcie: brak. Dodatkowy warunek: zakres i warianty zatwierdzone w ZG4-v1; testy i odbiór tej karty nadal wymagane.
 - Odbiór: T + UI. Przejść od Intro przez odsłonę do Rewanżu w wskazanych grach i Turnieju: etykieta mówi co nastąpi, nie znika potrzebna akcja; Potnij/Pokrój pozostaje czynnością gry, nie mechaniczne Dalej.
 - Granice: Nie zmieniać momentu wysłania wyniku; właścicielem W pamięci jest P4-005.
-- Wykonanie: **nie rozpoczęto**. Dowody poprawki/odbioru: brak.
+- Wykonanie: **zakończone 2026-10-31**, 6/6 części. TDD `1fe5ae6`; typy, testy i build PASS. [05-57-SUMMARY](../05-poprawki-zaakceptowanych-rozbieznosci/05-57-SUMMARY.md).
 
 <a id="scope-p4-049"></a>
 
