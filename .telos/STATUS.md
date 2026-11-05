@@ -3,8 +3,8 @@
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 07-atrakcyjnosc
 Task: 07-02
-Next: /telos:revise (poprawki 1-4 z 07-01), potem /telos:do
-Blockers: 07-02: poprawki z przeglądu 07-01 do naniesienia
+Next: /telos:do
+Blockers: none
 Awaiting user: 08, 09, 10, 11, 12, 07:D-10
 <!-- Blockers: "NN-MM: reason". Awaiting user: IDs only, e.g. "02:Q-01, 02:D-03" -->
 
