@@ -12,7 +12,7 @@ nie piszemy testów.
 **Tożsamość**
 - `id` (małe litery, myślniki). Jest kluczem rankingu w SQLite, więc **nie zmienia się nigdy**, nawet gdy zmieni się nazwa w UI.
 - Nazwa w UI: krótka, jedno lub dwa słowa, mieści się na kaflu w lobby.
-- Liczba graczy (`minPlayers`, `maxPlayers`). `minPlayers: 1` oznacza grę z grupy „Szybkie i refleksowe”.
+- Liczba graczy (`minPlayers`, `maxPlayers`). `minPlayers: 1` oznacza mini-grę.
 - Tryby (opcjonalnie, tylko gry główne; mini-gra ma zasady narzucone z góry): lista `modes` z `id`, nazwą i jednolinijkowym opisem, w kolejności wyświetlania; domyślny ma `default: true`. Tryb zmienia liczby
   (plansza, flota, flagi zasad), nie mechanikę; wszystkie tryby liczą się do jednego rankingu (wzór: `statki.ts`).
 
@@ -136,8 +136,8 @@ Te rzeczy działają tak samo w każdej grze. Odstępstwo wymaga wpisu w `ZASADY
 - Dla Który rok? zatwierdzono 270 s przy `T = 228 s`: 42 s zapasu, około 18,4%, zamiast 273,6 s wymaganych przez pełne 20%.
   To nazwany wyjątek od progu 20% (P4-021).
 - Przyjęcie normy nie zmienia automatycznie stałych, losowania ani punktacji istniejących gier. Aktualne liczby pozostają
-  w `ZASADY-GIER.md` i `KONCEPT.md`; ich dostosowanie wymaga testu i dokumentacji przed kodem w odpowiednim pakiecie.
-  W szczególności nowy komplet Balonu należy do P4-060. Nie wszystkie obecne gry spełniają już powyższe normy.
+  w `ZASADY-GIER.md`; ich dostosowanie wymaga testu i dokumentacji przed kodem w odpowiednim pakiecie.
+  Nie wszystkie obecne gry spełniają już powyższe normy.
 
 ## 4. Spójność wyglądu
 
@@ -157,8 +157,7 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
 - Układ: `Screen` (jedna kolumna, `max-w-md`), akcje przy dolnej krawędzi, przy długiej treści `StickyBar`.
 - Klasy z `index.css`: `.tile` (karta), `.label` (podpis), `.btn` + `.btn-primary` / `.btn-ghost`, `.field`.
   Nowa klasa wspólna powstaje dopiero, gdy potrzebuje jej druga gra.
-  Zatwierdzony kontrakt wspólnej `.btn-player` dla akcji gracza opisuje [DESIGN.md §5](DESIGN.md#5-zasady-które-z-tego-wynikają);
-  jej implementacja i migracja użyć należą do P4-050, klasa nie jest jeszcze dostępna w CSS.
+  Kontrakt wspólnej `.btn-player` dla akcji gracza opisuje [DESIGN.md §5](DESIGN.md#5-zasady-które-z-tego-wynikają).
 - Wyniki mini-gry: komponent `Scores`, wiersz na gracza, „gra…” dopóki nie oddał.
   Gdy jedna liczba nie wystarcza (trafienia, średni czas, błędy), drugi wspólny wzorzec `ScoreTable` w ui.tsx (quizy, Dziesiątki, Stój!, Refleks):
   te same zasady „gra…”, „(ty)”, pucharu, miejsc z remisami i cyfr mono, szczegół (wykres Refleksu) pod tabelą.
@@ -323,7 +322,7 @@ Podpięcie, w tej kolejności:
    mini-gra: `record` w definicji (trzeci argument `ranked`; z `tie`, jeśli komparator ma drugie kryterium), przypadek w `RECORDS` w `index.test.ts` i jednostka w `FORMAT` w `screens/Records.tsx`,
 6. wiersz w katalogu gier w `KONCEPT.md` (sekcja 2).
 
-Po zmianie w `packages/games` serwer deweloperski trzeba zrestartować.
+Po zmianie w `packages/games` serwer deweloperski restartuje się sam (`node --watch`), a trwające partie przepadają.
 
 Gra jest gotowa, gdy w `/dev` (`/dev?n=...` dla większej liczby graczy) przeszło wszystko poniżej:
 - [ ] `pnpm test` i `pnpm typecheck` bez błędów,

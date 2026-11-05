@@ -6,7 +6,7 @@ Styl wizualny Kwadransa: jak strona wygląda i dlaczego. Opis powstał z przegl�
 Jedynym katalogiem tokenów, ich ról i skali promieni w dokumentacji jest sekcja 2 tego pliku.
 Ich implementacja to `apps/web/src/index.css`, a wspólne komponenty są w `apps/web/src/screens/ui.tsx`.
 Reguły odbioru nowej gry (pola dotykowe, czasy animacji, wibracje) są w [ZASADY.md](ZASADY.md), sekcje 4 i 5;
-przy sprzeczności obowiązują ZASADY. Opis zatwierdzonej klasy przed wdrożeniem jest jawnie oznaczony w §5.
+przy sprzeczności obowiązują ZASADY.
 
 ## 1. Charakter
 
@@ -160,11 +160,9 @@ Stan pusty mówi, czemu jest pusto: „Za krótka partia na ciekawostki.”, w t
 - **Akcent należy do platformy, kolor gracza do partii.** Wypełniony akcentem jest przycisk, który prowadzi przez aplikację
   („Zagraj”, „Start”, gotowość, „Rewanż”, „Dalej” między grami turnieju, „Jeszcze raz”). Akcja w trakcie partii („Zatwierdź”, „Gotowe”,
   „Rzuć”, „Zgarnij”, „Dalej” między rundami partii, gotowość rozstawienia w Statkach) jest wypełniona kolorem gracza z tekstem `bg`.
-  Zatwierdzony wspólny kontrakt to `.btn` + `.btn-player`: kolor gracza przekazany przez komponent stanowi tło,
+  Wspólny kontrakt to `.btn` + `.btn-player`: kolor gracza przekazany przez komponent stanowi tło,
   tekst korzysta z `bg`, a rozmiar, focus, stan nieaktywny i reakcja na dotyk pochodzą z `.btn`.
   Klasa współdzieli wygląd, nie zmienia znaczenia akcji ani ról tokenów.
-  **Stan przejściowy:** `.btn-player` nie jest jeszcze zaimplementowana; obecne użycia to `btn text-bg`
-  i `backgroundColor` z koloru gracza. Dodanie klasy i migracja stylów należą do P4-050.
 - **Kolor nigdy nie jest jedynym sygnałem.** Błąd ma ikonę i tekst, bodziec ma napis i skok jasności, stan nieaktywny ma podpis.
 - **Kolor znaczy.** Role tokenów określa tabela w §2; kolor gracza wskazuje właściciela lub jego akcję.
 - **Obrys przed wypełnieniem.** Karty, przyciski drugorzędne i pola mają obrys 1 px w `line`; pełne tło dostaje tylko to, co ma przyciągać.
