@@ -2,7 +2,7 @@
 id: 07-20
 title: "Etap 3: karty głosowania po partii"
 type: code
-status: draft
+status: approved
 critical: false
 effort: normal
 depends: [07-19]

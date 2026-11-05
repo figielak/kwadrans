@@ -2,7 +2,7 @@
 id: 07-01
 title: Etap 0: pomiar partii w pokoju i odczyt miar
 type: code
-status: draft
+status: approved
 critical: false
 effort: normal
 depends: []

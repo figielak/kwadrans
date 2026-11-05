@@ -12,9 +12,9 @@ z `.planning/ATRAKCYJNOSC-PLAN.md` oraz test z ludźmi przed etapem 2 i po etapi
 - D-06: Kolejność: etapy 1 → 2 → 3, test z ludźmi, potem Blef na kościach oraz etapy 4 i 5 (plan D6).
 - D-07: Ta rozpiska obejmuje etapy 0-3 i dwa testy z ludźmi. Etapy 4-5 rozpisujemy po drugim teście, bo jego wyniki mogą je przesunąć.
 - D-08: Wszystkie zadania wykonuje Claude, bez podziału na Claude'a i Codexa (poprzedni podział użytkownik uznał za błąd). Testy z ludźmi prowadzi użytkownik.
-- D-09 [proposed]: Powroty liczymy z nowej tabeli `played_days(nick_key, day)`, a nie z `results` i `scores` jak w planie §10: `results` ma tylko partie ze zwycięzcą, `scores` także solo i żadna nie ma identyfikatora partii. Dane zbieramy od wdrożenia, bez liczenia wstecz.
-- D-10 [proposed]: Miejsca dla ekranu wyników liczy serwer (`RoomView.game.places`), a `places` dostają też gry główne z możliwym remisem (Memory, Kalambury, Państwa-miasta, Kampus Tour, Gomoku). To rozszerza kontrakt `GameDefinition`, bez zmiany zasad.
-- D-11 [proposed]: W głosowaniu „Inna gra” głosują i grają obecne `seats`, a pula pasuje do ich liczby; obserwatorzy tylko oglądają. Plan §6 mówi ogólnie o „każdym” i „liczbie osób”.
+- D-09: Powroty liczymy z nowej tabeli `played_days(nick_key, day)`, a nie z `results` i `scores` jak w planie §10: `results` ma tylko partie ze zwycięzcą, `scores` także solo i żadna nie ma identyfikatora partii. Dane zbieramy od wdrożenia, bez liczenia wstecz.
+- D-10: Miejsca dla ekranu wyników liczy serwer (`RoomView.game.places`), a `places` dostają też gry główne z możliwym remisem (Memory, Kalambury, Państwa-miasta, Kampus Tour, Gomoku). To rozszerza kontrakt `GameDefinition`, bez zmiany zasad.
+- D-11: W głosowaniu „Inna gra” głosują i grają obecne `seats`, a pula pasuje do ich liczby; obserwatorzy tylko oglądają. Plan §6 mówi ogólnie o „każdym” i „liczbie osób”.
 
 ## Constraints
 - Każde zadanie `code` sam prowadzi od testów: najpierw dokumenty i testy (czerwone), potem kod. Przy zmianie zasad osobny commit z dokumentami i testami przed kodem (plan §10, AGENTS).

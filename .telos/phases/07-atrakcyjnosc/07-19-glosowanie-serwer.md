@@ -2,7 +2,7 @@
 id: 07-19
 title: "Etap 3: głosowanie „Inna gra” na serwerze"
 type: code
-status: draft
+status: approved
 critical: false
 effort: hard
 depends: [07-17]

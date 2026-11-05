@@ -2,7 +2,7 @@
 id: 07-02
 title: "Etap 1: miejsca po partii w widoku pokoju, także w grach głównych"
 type: code
-status: draft
+status: approved
 critical: false
 effort: normal
 depends: [07-01]
