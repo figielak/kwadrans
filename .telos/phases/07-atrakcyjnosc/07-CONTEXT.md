@@ -14,6 +14,8 @@ z `.planning/ATRAKCYJNOSC-PLAN.md` i test z ludźmi po każdej stronie zmiany ry
 - D-08: Codex przegląda plan osobno przed każdym etapem, na aktualnym kodzie.
 - D-09: Przebieg pracy: plan Claude z użytkownikiem → przegląd Codex → testy Claude → kod Codex, aż testy przejdą → ekran Claude.
 - D-10 [proposed]: Etapy 0 i 1 mają wspólny przegląd Codexa (07-01), bo plan każe je zacząć razem, a etap 0 to jedna tabela.
+- D-11: Powroty liczymy z nowej tabeli `played_days(nick_key, day)`, a nie z `results` i `scores` jak w planie §10: `results` ma tylko partie ze zwycięzcą, `scores` także solo i żadna nie ma identyfikatora partii. Tabela nie wiąże osoby z pokojem ani grą, `room_games` zostaje bez nicków, dane zbieramy od wdrożenia, bez liczenia wstecz.
+- D-12: Miejsca dla ekranu wyników liczy serwer: `RoomView.game.places` = `result.places`, potem `def.places(state)`, tylko gdy wynik ma `ranking`. `places` dostają też gry główne z możliwym remisem (Memory, Kalambury, Państwa-miasta, Kampus Tour, Gomoku), bez zmiany zasad.
 
 ## Constraints
 - Zadanie „(Codex)”: wykonuje Codex z promptu użytkownika, nie `/telos:do`. Nie rusza `.telos/` i nie commituje. Potem Claude przegląda diff,
