@@ -321,7 +321,7 @@ Podpięcie, w tej kolejności:
 4. `apps/web/src/games/<Gra>.tsx`,
 5. gałąź w `screens/Game.tsx` (mini-gra: `key` z wyzwania albo `nonce`; listę mini-gier daje sam rejestr przez `MINI_GAME_IDS`, gra główna z własną tabelą po partii trafia do `OWN_RANKING`), ikona w `ICONS` w `screens/Lobby.tsx`,
    mini-gra: `record` w definicji (trzeci argument `ranked`; z `tie`, jeśli komparator ma drugie kryterium), przypadek w `RECORDS` w `index.test.ts` i jednostka w `FORMAT` w `screens/Records.tsx`,
-6. opis w `KONCEPT.md` (sekcja 2 i tabela etapów).
+6. wiersz w katalogu gier w `KONCEPT.md` (sekcja 2).
 
 Po zmianie w `packages/games` serwer deweloperski trzeba zrestartować.
 

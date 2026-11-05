@@ -78,7 +78,7 @@ apps/web/src/         frontend: screens/ (platforma), games/ (interfejs każdej 
 
 | Dokument | Zawartość |
 |---|---|
-| [KONCEPT.md](KONCEPT.md) | założenia, lista gier, architektura, reguły platformy |
+| [KONCEPT.md](KONCEPT.md) | założenia, katalog gier, architektura, reguły platformy |
 | [ZASADY-GIER.md](ZASADY-GIER.md) | dokładne zasady każdej gry |
 | [ZASADY.md](ZASADY.md) | proces dodawania gry, obowiązkowe testy, spójność wyglądu i animacji |
 | [DESIGN.md](DESIGN.md) | styl wizualny: tokeny, wzorcowe sekcje, stany |

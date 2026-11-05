@@ -11,7 +11,7 @@ przy sprzeczności obowiązują ZASADY. Opis zatwierdzonej klasy przed wdrożeni
 ## 1. Charakter
 
 Ciemny, cichy, techniczny. Telefon często leży obok, a wokół są inni ludzie, więc ekran nie świeci, nie miga i nie gra.
-Wygląd jest przedłużeniem figielak.dev: te same tokeny, ten sam krój, te same przyciski w kształcie pigułki.
+Wygląd jest przedłużeniem figielak.dev: te same tokeny (1:1 z `../figielak.dev/src/styles/tokens.css`), ten sam krój, te same przyciski w kształcie pigułki.
 
 Trzy rzeczy budują cały styl:
 
