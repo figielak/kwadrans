@@ -22,7 +22,7 @@ z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami
 
 ## Conventions
 - Plan, akceptacja użytkownika, dopiero implementacja. Po akceptacji zakresu nie pytać o każdą małą paczkę.
-- Nowa gra: ustalenia → testy zasad (osobny commit, czerwone) → kod zasad → ekran → podpięcie (`.telos/PROCESS.md`).
+- Nowa gra: ustalenia → testy zasad (osobny commit, czerwone) → kod zasad → ekran → podpięcie (`ZASADY.md`).
 - Commity po polsku „<Gra>: co się zmieniło”. Stała zgoda użytkownika (2026-10-29): commit testów i commit
   implementacji po każdym zadaniu bez pytania; push zawsze wymaga osobnej prośby.
 - Gra to płaski `packages/games/src/<id>.ts` + `<id>.test.ts`, wpis w `GAMES`, ekran `apps/web/src/games/<Gra>.tsx`.
@@ -37,8 +37,6 @@ z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami
 Źródła prawdy (przy sprzeczności wygrywają): `KONCEPT.md`, `ZASADY-GIER.md`, `ZASADY.md`, `DESIGN.md`
 (przy sprzeczności z DESIGN wygrywa ZASADY), `AGENTS.md`. Skróty w `.telos/` (czytaj tylko potrzebny):
 - `GAMES.md`: katalog wszystkich gier z `id`, typem, limitem, wynikiem i najważniejszymi stałymi.
-- `PROCESS.md`: proces nowej gry, obowiązkowe testy, spójność zasad i normy limitów, odbiór.
-- `UI.md`: tokeny, typografia, wzorce ekranów, stany, animacje, wibracje, wyjątki.
 - `AUDIT.md`: zakończony audyt spójności (fazy 01-05), decyzje ZG4-v1, wyjątki, otwarte odbiory.
 - `PROPOSALS.md`: propozycje po audycie (atrakcyjność, 5 nowych gier) z wymaganiami; pełne plany w `.planning/*-PLAN.md`.
 

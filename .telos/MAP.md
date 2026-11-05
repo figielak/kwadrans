@@ -55,4 +55,4 @@
 - Proces nowej gry, spójność UI: `ZASADY.md`; styl: `DESIGN.md`
 - Dev i deploy: `README.md`; reguły agentów: `AGENTS.md`
 - Trasy API: `apps/server/src/index.ts:19-43`
-- Skróty kontekstu: `.telos/GAMES.md`, `.telos/PROCESS.md`, `.telos/UI.md`, `.telos/AUDIT.md`; archiwum audytu: `git show fb0f5d2:.planning/phases/...`
+- Skróty kontekstu: `.telos/GAMES.md`, `.telos/AUDIT.md`; archiwum audytu: historia gita pod commitem fb0f5d2

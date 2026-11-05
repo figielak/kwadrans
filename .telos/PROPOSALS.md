@@ -10,7 +10,7 @@
   3 wieczór w jednym pokoju, potem test z ludźmi (ATR-03), 4 wybór gry i wygląd (ATR-04), 5 powroty (ATR-05).
 - Ścieżka każdej gry: zaakceptowane zasady do ZASADY-GIER/KONCEPT, testy przed kodem, zasady, ekran, integracja,
   testy/typy/build, minimalna i maksymalna obsada z obserwatorem, prywatność WebSocket, telefon i odbiór z ludźmi
-  (szczegóły `PROCESS.md`). Wspólny szyfr dodatkowo: testy i dokumentacja wyniku kooperacyjnego i braku walkoweru,
+  (szczegóły `ZASADY.md` §1-3 i §6). Wspólny szyfr dodatkowo: testy i dokumentacja wyniku kooperacyjnego i braku walkoweru,
   bez regresji starych gier. Podróbka: zasady, 60 par pytań, ekran i podpięcie, odbiór 3/6 graczy, telefonu i balansu.
 
 ## Atrakcyjność i gra z innymi

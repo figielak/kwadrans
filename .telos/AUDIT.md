@@ -23,7 +23,7 @@ jeden raport z decyzją użytkownika, potem poprawki (test i dokument przed kode
   W obrębie tego zakresu nie pyta się o małe paczki; podział i kolejność zadań nie wymagają nowej akceptacji.
 - Stare rekordy, wygrane i zapisane partie bez przeliczania, kasowania ani zmiany schematu SQLite; świadomie wspólna historia
   różnych metod i trudności. Nowe timeouty Schultego/Sudoku bez rekordu; stare `detail` bez `completed` bez nadawania statusu.
-- Norma limitów mini-gier `L >= max(1,2·T, T+10 s)` z wyjątkami Środek 60 s, Tort 120 s, Który rok? 270 s (szczegóły `PROCESS.md`).
+- Norma limitów mini-gier `L >= max(1,2·T, T+10 s)` z wyjątkami Środek 60 s, Tort 120 s, Który rok? 270 s (szczegóły `ZASADY.md` §3).
 - Zgoda nie obejmowała push, wdrożenia, pobierania bazy z Pi, nowych zależności, nowych gier ani zapisu pokoi.
 
 ## Najważniejsze zmiany fazy 05 (pakiety)

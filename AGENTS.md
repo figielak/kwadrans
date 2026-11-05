@@ -18,7 +18,7 @@ serwer Colyseus (Node 24), frontend Vite + React, zasady gier jako czyste funkcj
 Te pliki są źródłem prawdy. Nie powielaj ich treści tutaj; po zmianie zasad lub architektury popraw właściwy plik.
 
 `.telos/` to pamięć projektu i bieżący stan prac: `STATUS.md` mówi, gdzie jesteśmy, `ROADMAP.md` podaje fazy,
-`MAP.md` wskazuje kod, a `GAMES.md`, `PROCESS.md`, `UI.md`, `AUDIT.md` i `PROPOSALS.md` to skróty kontekstu.
+`MAP.md` wskazuje kod, a `GAMES.md`, `AUDIT.md` i `PROPOSALS.md` to skróty kontekstu.
 To nie jest źródło prawdy; przy sprzeczności wygrywają pliki z tabeli wyżej. Stan i fazy zmienia się poleceniami `telos`
 (`status set`, `roadmap set`, `history add`). `.planning/` zawiera już tylko plany propozycji (`*-PLAN.md`);
 zakończony audyt spójności (fazy 01-05) jest w historii gita pod `fb0f5d2`.

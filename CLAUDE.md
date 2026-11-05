@@ -15,5 +15,5 @@ PROJECT.md (rules) · MAP.md (where things are) · STATUS.md (now/next) · ROADM
   specific files only, never `--no-verify`, never push.
 <!-- telos:end -->
 
-Context digests in `.telos/` (read on demand): GAMES.md (all games) · PROCESS.md (new game, tests, rule consistency)
-· UI.md (design, animations, vibrations) · AUDIT.md (audit M1, known risks, open items) · PROPOSALS.md (post-audit proposals).
+Context digests in `.telos/` (read on demand): GAMES.md (all games) · AUDIT.md (audit M1, known risks, open items)
+· PROPOSALS.md (post-audit proposals). In task `Read first`, cite sources directly, e.g. `ZASADY.md §5`.
