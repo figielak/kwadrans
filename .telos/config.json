@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "profile": "standard",
+  "files_language": "en",
+  "stack": [
+    "typescript"
+  ],
+  "checks": {
+    "build": "pnpm run build",
+    "types": "pnpm run typecheck",
+    "test": "pnpm run test",
+    "test_related": "pnpm exec vitest related --run {files}"
+  },
+  "docs": {
+    "readme": "README.md",
+    "changelog": "CHANGELOG.md",
+    "paths": [
+      "docs/"
+    ]
+  },
+  "protected_configs": [
+    "eslint.config.*",
+    "biome.json",
+    "tsconfig.json",
+    "ruff.toml",
+    "pyproject.toml#tool.ruff"
+  ],
+  "limits": {
+    "status_lines": 40,
+    "map_tokens": 1500,
+    "history_entries": 30
+  },
+  "git": {
+    "auto_commit": true,
+    "phase_tags": true
+  },
+  "strict_scope": false
+}

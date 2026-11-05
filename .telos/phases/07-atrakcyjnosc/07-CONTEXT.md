@@ -5,7 +5,7 @@ z `.planning/ATRAKCYJNOSC-PLAN.md` i test z ludźmi po każdej stronie zmiany ry
 
 ## Decisions
 - D-01: „Ze znajomymi” nad „Sam”, a „Utwórz pokój” jako główny przycisk (plan D1, zmienia KONCEPT §1).
-- D-02: W pokoju z 2+ graczami wspólny start 3-2-1 zamiast osobnego (plan D2, zmienia KONCEPT §2.4 i reguły platformy).
+- D-02: W pokoju z 2+ graczami wspólny start 3-2-1 zamiast osobnego (plan D2, zmienia KONCEPT §3, reguły platformy oraz mini-gry i rekordy).
 - D-03: `live` to dekoracja zgłaszana przez klienta, jawny wyjątek obok zasady „serwer jest źródłem prawdy”; nie dotyka wyników (plan D3).
 - D-04: DESIGN §1 dopuszcza krótkie, jednorazowe reakcje na zdarzenia; pętli i stroboskopów nadal nie ma (plan D4).
 - D-05: Wyzwanie dnia: wspólny układ i ranking z pierwszej próby; przyjęte, ale wdrożenie w etapie 5, poza tą rozpiską (plan D5).

@@ -14,7 +14,7 @@ Zapisz wspólne 3-2-1: „Start” to gotowość, limit gry rusza po odliczaniu,
 
 ## Read first
 - .planning/ATRAKCYJNOSC-PLAN.md §5 Wspólny start
-- KONCEPT.md:146-147 (instrukcja)
+- KONCEPT.md:160-161 (instrukcja)
 - apps/server/src/LobbyRoom.test.ts:225-256 (begin i limit)
 - apps/server/src/LobbyRoom.ts:170-175 (begin)
 - apps/server/src/LobbyRoom.ts:340-354 (startMatch)
@@ -29,7 +29,7 @@ Zapisz wspólne 3-2-1: „Start” to gotowość, limit gry rusza po odliczaniu,
 - Stare testy `begin` bez odliczania poprawiam tu, razem z dokumentem. Lekcja 05-24: jeden termin mini-gry, odliczanie go nie zjada.
 
 ## Steps
-1. KONCEPT §2.4 i reguły platformy: gotowość, 3-2-1, 5 s instrukcji po rewanżu.
+1. KONCEPT §3 (reguły platformy, mini-gry i rekordy): gotowość, 3-2-1, 5 s instrukcji po rewanżu.
 2. `LobbyRoom.test.ts`: komplet `begin` → `startsIn` 3000, limit dopiero po 3 s.
 3. Testy: 15 s bez kompletu → odliczanie; rewanż 5 s; kolejna gra turnieju 15 s; jeden grający od razu bez odliczania.
 4. Brzegi: reconnect w odliczaniu widzi resztę czasu; wyjście gracza w odliczaniu kończy partię jak dziś i gasi timer; `begin` w trakcie odliczania nic nie zmienia.

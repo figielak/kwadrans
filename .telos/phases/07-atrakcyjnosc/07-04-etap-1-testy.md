@@ -14,7 +14,7 @@ Zapisz zachowanie ekranu wyników, solo bez limitu instrukcji i nowej kolejnośc
 
 ## Read first
 - .planning/ATRAKCYJNOSC-PLAN.md §4
-- KONCEPT.md:13-15 (ekran główny)
+- KONCEPT.md:18-21 (ekran główny)
 - apps/server/src/LobbyRoom.test.ts:38-70 (harness pokoju)
 - apps/web/src/hierarchy.test.ts:10-12
 - apps/web/src/screens/Records.tsx:55-58 (formatRecord)

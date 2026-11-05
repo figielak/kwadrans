@@ -6,7 +6,7 @@
 - `apps/server/src/` pokój, zapis wyników, API HTTP
 - `apps/web/src/` klient: połączenie, ekrany w `apps/web/src/screens/`, UI gier w `apps/web/src/games/`
 - `cloudflared/` tunel; `.github/workflows/ci.yml` CI; `Dockerfile`, `docker-compose.yml` obraz i wdrożenie
-- `.planning/` notatki bieżącego etapu, nie źródło prawdy
+- `.planning/` tylko plany propozycji po audycie (`*-PLAN.md`, wymagania w `.telos/PROPOSALS.md`); archiwum audytu w gicie pod `fb0f5d2`
 
 ## Entry points
 - Serwer: `apps/server/src/index.ts:11-49` (trasy HTTP, definicja pokoju, statyczny frontend)
@@ -55,3 +55,4 @@
 - Proces nowej gry, spójność UI: `ZASADY.md`; styl: `DESIGN.md`
 - Dev i deploy: `README.md`; reguły agentów: `AGENTS.md`
 - Trasy API: `apps/server/src/index.ts:19-43`
+- Skróty kontekstu: `.telos/GAMES.md`, `.telos/PROCESS.md`, `.telos/UI.md`, `.telos/AUDIT.md`; archiwum audytu: `git show fb0f5d2:.planning/phases/...`

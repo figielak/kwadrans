@@ -7,7 +7,7 @@
      to "## M1 · Name — done (01–05)". -->
 
 ## M0 · Platforma i gry (przed telos) — done
-<!-- Etapy 0-5 i 7 z KONCEPT.md §8: infrastruktura, skorupa, Gomoku, Statki, Kampus Tour, PWA i rekordy,
+<!-- Etapy 0-5 i 7 z dawnego planu w KONCEPT.md: infrastruktura, skorupa, Gomoku, Statki, Kampus Tour, PWA i rekordy,
      a poza planem Chińczyk, Memory, Labirynt, Kalambury, Państwa-miasta, 30 mini-gier i Turniej. Bez katalogów faz. -->
 
 ## M1 · Audyt spójności (GSD) — done (01–05)
@@ -26,5 +26,5 @@
 - 10-wyprawa [planned] nowa gra główna (WYP-01..05) · done when: TDD, ekran, podpięcie i odbiór 2/6 graczy z obserwatorem
 - 11-sabotaz [planned] nowa gra główna (SAB-01..05) · done when: TDD, ekran, podpięcie i odbiór 3/6 graczy z obserwatorem
 - 12-wspolny-szyfr [planned] gra kooperacyjna z rozszerzeniem kontraktu o wynik drużyny (SZYFR-01..06) · done when: TDD, odbiór 2/6 i brak regresji starych gier
-- 13-zapis-pokoi [planned] stan pokoi w SQLite, przeżywa restart i deploy (KONCEPT §8) · done when: partia trwa po restarcie serwera
+- 13-zapis-pokoi [planned] stan pokoi w SQLite, przeżywa restart i deploy · done when: partia trwa po restarcie serwera
 - 14-poprawka [planned] gra karciana typu Uno, 2-6 graczy, ukryte ręce (KONCEPT §2.2) · done when: zestaw kart ustalony, TDD, ekran i odbiór
