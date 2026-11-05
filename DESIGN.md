@@ -202,73 +202,44 @@ z [ZASADY.md §4](ZASADY.md#4-spójność-wyglądu); lokalne wyjątki formularzy
   bo graczy może być 6, a `Stats` mieści trzy liczby. Każdy ma jedną liczbę, więc zapis w linii zostaje czytelny.
 - **Kampus Tour** ma własny układ poziomy, planszę 2.5D (krawędź i cień „stołu”), poświatę pola gracza na turze oraz cienie pod oknami i pionkami. Przyciski decyzji i zamknięcia mają minimum 48 px po skalowaniu sceny; dawne 44 px budowy nie jest już wyjątkiem.
 
-Zwykłe kontrolki (P4-037, pomiar Chromium 360×640) nie korzystają z wyjątku gęstych plansz:
-suwnice Odcienia mają 328×48 px, suwak Roku 182×48 px, wyjście z Lobby około 75×48 px,
-a wiersze graczy w Lobby/Setup 286×48 px. Sześć próbek koloru ma osobne cele 48×48 px;
-widoczne kropki pozostają 28 px. Hitboxy zajmują po 4 px dotychczasowego bocznego paddingu kafla,
-dzięki czemu środki kropek nie przesuwają się, cele nie nachodzą na siebie i nie ma przewijania poziomego.
-Dotyk działa również poza widoczną kropką i przy krawędziach toru; suwaki zachowują natywną klawiaturę i focus.
-Na ekranach Odcienia/Roku z sześcioma graczami przyciski zatwierdzania kończą się odpowiednio na 616/502 px;
-dokument ma 640 px. Listy graczy poza partią mogą przewijać się pionowo według reguły na początku tej sekcji.
+Zwykłe kontrolki nie korzystają z wyjątku gęstych plansz: suwaki Odcienia i Roku, wyjście z Lobby i wiersze graczy
+w Lobby/Setup mają cele minimum 48 px. Sześć próbek koloru ma osobne cele 48×48 px przy widocznych kropkach 28 px;
+cele nie nachodzą na siebie i nie ma przewijania poziomego. Dotyk działa również poza widoczną kropką i przy krawędziach toru;
+suwaki zachowują natywną klawiaturę i focus.
 
 W aktywnej partii wspólny nagłówek pokazuje status oraz jeden wiersz kropek graczy i limitu czasu.
 Dotknięcie kropek rozwija pełne nicki, wygrane i statystyki gry; rozłączenie pozostaje oznaczone także w zwiniętym widoku.
 Przy kilku oczekujących zwinięty status podaje ich liczbę, rozwinięty pełne nicki. Własne nagłówki pozostają bez zmian.
 Zmniejszenie nagłówka nie zastępuje osobnego odbioru geometrii plansz.
 
-Rozbieżności do decyzji (nie są wzorem dla nowych ekranów):
+Układy ekranów, które trzeba zachować (pomiary z odbiorów P4-006 do P4-037 są w historii gita):
 
-- **Gry główne na 360×640.** Państwa-miasta wymagają przewinięcia;
-  jest to rozbieżność do poprawy, a nie zgoda na przewijanie plansz.
-  Statki (P4-008, wszystkie tryby): rozstawianie mieści się (flota 142-482 px, „Obróć”/„Losuj”/„Zgłaszam gotowość” w jednym wierszu 534-590 px).
-  W bitwie aktywna plansza jest duża u góry razem z akcją (cel 142-482 px i „Wybierz pole” 502-558 px; obrońca i obserwator: ostrzeliwana plansza).
-  Wyjątek: mała plansza drugiej floty (3/5 szerokości) może leżeć poniżej 640 px i dochodzi się do niej przewinięciem,
-  bo przy obu planszach naraz miałaby pole około 6 px; pasek bitwy nie jest przyklejony, więc nic jej nie zasłania.
-  Chińczyk (P4-009, Klasyczny i Szybki, 2 i 4 graczy, obserwator): plansza 142-470 px (u obserwatora do 498 px),
-  „Rzuć” albo kostka z „Rusz…” pod nią, dokument 640 px; dolne domki co najmniej 26 px nad paskiem, także z 16-znakowymi nickami.
-  Kafelek pokazuje najwyżej linię rzutu i komunikat; „X rzuca kostką…” tylko bez komunikatu, bo kto ma ruch, mówi nagłówek.
-  Gomoku mieści się po zmniejszeniu nagłówka (P4-007): plansza 150-487 px (pole 22,5 px), akcja 514-570 px, dokument 640 px,
-  u obserwatora plansza 178-515 px; po końcu cała plansza zostaje nad „Rewanż”, a wyniki przewijają się jak w ZASADY §4. Także mini-gry wymagają osobnego odbioru;
-  nie zakładamy, że każda mieści się w 640 px. Przewijanie list poza partią jest dopuszczone powyżej.
+- **Statki**: rozstawianie ma „Obróć”, „Losuj” i „Zgłaszam gotowość” w jednym wierszu. W bitwie aktywna plansza jest duża u góry
+  razem z akcją (obrońca i obserwator: ostrzeliwana plansza). Mała plansza drugiej floty (3/5 szerokości) może leżeć poniżej 640 px
+  i dochodzi się do niej przewinięciem, bo przy obu planszach naraz miałaby pole około 6 px; pasek bitwy nie jest przyklejony, więc nic jej nie zasłania.
+- **Chińczyk**: „Rzuć” albo kostka z „Rusz…” pod planszą. Kafelek pokazuje najwyżej linię rzutu i komunikat;
+  „X rzuca kostką…” tylko bez komunikatu, bo kto ma ruch, mówi nagłówek.
+- **Gomoku**: po końcu cała plansza zostaje nad „Rewanż”, a wyniki przewijają się jak w ZASADY §4.
+- **Memory**: wszystkie rozmiary mieszczą planszę i instrukcję na 360×640 przy zwiniętym nagłówku, także u obserwatora i z długimi nickami.
+- **Kalambury**: w fazie rysowania rozmiar kwadratowego płótna wynika z rzeczywistego miejsca pod własnym nagłówkiem i listą graczy,
+  z zachowaniem miejsca na kontrolki danej roli i dolny margines. Zmiany wysokości nagłówka, czatu i widocznego obszaru aktualizują pomiar.
+  Przy otwartej klawiaturze zgadujący może przewinąć do pola i przycisków; minimalny bok płótna to 48 px. Czat i potwierdzenie „Pasuję” pozostają obecne.
+- **Narysuj koło**: aktywne płótno pozostaje kwadratowe i mieści się w wysokości pozostałej po nagłówku, statystykach, komunikacie i dolnym marginesie.
+  Miejsce na zakończenie prób jest zarezerwowane od startu, dzięki czemu pierwsza oceniona próba nie zmienia rozmiaru pola.
+  Współrzędne i ocena rysunku pozostają niezależne od rozmiaru.
+- **Państwa-miasta** (fizyczny odbiór U02 otwarty, lokalny wyjątek przewijania z ZASADY §4): sześć kategorii formularza przewija się wewnątrz listy,
+  a dolne Oddaj/Dalej/STOP pozostają poza tą listą. Po zmianie widocznej wysokości aktywne pole jest przewijane po przeliczeniu układu.
+  Głosowanie i podsumowanie mają osobną tabelę na kategorię przy 4+ osobach, z graczami w wierszach; przy 2/3 zachowują zwartą tabelę.
+  Pełne nicki i odpowiedzi mogą łamać się w wierszach; brak poziomego przewijania, cele głosu minimum 48 px.
+- **Wyniki**: wspólny ekran końcowy umieszcza OverActions/NextActions w StickyBar. Rysunki, rekordy i tabela turnieju mogą przewijać się pionowo
+  w naturalnych rozmiarach; przyciski są dostępne od razu, a na końcu przewijania ostatni wiersz leży nad paskiem.
+  Solo ma Jeszcze raz/Wyjdź; między grami turnieju Dalej/Zakończ turniej (dla gospodarza), a finał Rewanż/Do lobby. Własny poziomy układ Kampus Tour pozostaje osobny.
+- **Kampus Tour, środek planszy**: stały wiersz rundy i limitu, status, akcje oraz ostatni wpis logu; dłuższy opis może przewijać się w pozostałym miejscu.
+  „Rozbuduj pole” otwiera szczegóły bieżącego pola z poziomami w dwóch kolumnach, żeby decyzje miały 48 px na ekranie po zoom sceny.
+  Podsumowanie ma ograniczoną wysokość, przewijaną treść i stałe akcje; po jego otwarciu akcje planszy nie są renderowane drugi raz.
+  Panele pokazują wygrane, obserwator ma „Oglądasz”. Pełne nicki wykresu pozostają w legendzie i tytułach etykiet; krótkie etykiety przy końcach linii nie nachodzą na statystyki.
+- **Kampus Tour, pokaz ruchu**: turlanie rozpoczyna rzeczywisty rzut rozpoznany w istniejącym widoku, łącznie z kolejnym dubletem o identycznych oczkach
+  i rzutem w Kolokwium bez przesunięcia. MPK i karta przestawiają pionek bez turlania. Nakładka „Dotknij, aby przejść do decyzji” kończy pokaz
+  jednym dotknięciem, bez wysyłania ruchu; decyzję wybiera dopiero następne. Nowa wiadomość zastępuje poprzedni pokaz; refresh i reduced motion pokazują od razu stan serwera.
 
-Odbiór Memory po P4-006/P4-011: Mała, Średnia i Duża mieszczą planszę oraz instrukcję na 360×640
-przy 2/6 graczach, także u obserwatora i z długimi nickami. Odstęp plansza–instrukcja to 8 px;
-karty mają odpowiednio 76×76, 76×60,8 i 48×48 px przy szerokości 360 px. To pomiar zwiniętego nagłówka.
-
-Kalambury (P4-012): w fazie rysowania rozmiar kwadratowego płótna wynika z rzeczywistego miejsca
-pod własnym nagłówkiem i listą graczy, z zachowaniem miejsca na kontrolki danej roli i dolny margines.
-Zmiany wysokości nagłówka, czatu i widocznego obszaru aktualizują pomiar. Przy otwartej klawiaturze
-zgadujący może przewinąć do pola i przycisków; minimalny bok płótna to 48 px. Czat i potwierdzenie
-„Pasuję” pozostają obecne. Odsłona i wyniki zachowują dotychczasowy układ.
-
-Narysuj koło (P4-013): aktywne płótno pozostaje kwadratowe i mieści się w wysokości pozostałej
-po nagłówku, statystykach, komunikacie i dolnym marginesie. Miejsce na zakończenie prób jest
-zarezerwowane od startu, dzięki czemu pierwsza oceniona próba nie zmienia rozmiaru pola.
-Na 360×640 przycisk ma 48 px i kończy się na 616 px; bok płótna wynosi 261 px solo lub 293 px
-w pokoju 2/6 osób ze zwiniętym nagłówkiem. Współrzędne i ocena rysunku pozostają niezależne od rozmiaru.
-
-Państwa-miasta (P4-014, wdrożone, fizyczny odbiór U02 otwarty): sześć kategorii formularza przewija
-się wewnątrz listy, a dolne Oddaj/Dalej/STOP pozostają poza tą listą. Po zmianie widocznej wysokości
-aktywne pole jest przewijane po przeliczeniu układu. Głosowanie i podsumowanie mają osobną tabelę
-na kategorię przy 4+ osobach, z graczami w wierszach; przy 2/3 zachowują zwartą tabelę.
-Pełne nicki i odpowiedzi mogą łamać się w wierszach; brak poziomego przewijania, cele głosu minimum 48 px.
-Jest to lokalny wyjątek przewijania formularza i odpowiedzi opisany w ZASADY §4.
-
-Wyniki (P4-016): wspólny ekran końcowy umieszcza OverActions/NextActions w StickyBar.
-Rysunki, rekordy i tabela turnieju mogą przewijać się pionowo w naturalnych rozmiarach;
-przyciski są dostępne od razu, a na końcu przewijania ostatni wiersz leży nad paskiem.
-Solo ma Jeszcze raz/Wyjdź; między grami turnieju Dalej/Zakończ turniej (dla gospodarza),
-a finał Rewanż/Do lobby. Własny poziomy układ Kampus Tour pozostaje osobny.
-
-Kampus Tour (P4-017): środek ma stały wiersz rundy i limitu, status, akcje oraz ostatni wpis logu.
-Dłuższy opis może przewijać się w pozostałym miejscu. „Rozbuduj pole” otwiera szczegóły bieżącego pola
-z poziomami w dwóch kolumnach, żeby decyzje miały 48 px na ekranie po zoom sceny.
-Podsumowanie ma ograniczoną wysokość, przewijaną treść i stałe akcje; po jego otwarciu akcje planszy
-nie są renderowane drugi raz. Panele pokazują wygrane, obserwator ma „Oglądasz”. Pełne nicki wykresu
-pozostają w legendzie i tytułach etykiet; krótkie etykiety przy końcach linii nie nachodzą na statystyki.
-
-Kampus Tour (P4-018): turlanie rozpoczyna rzeczywisty rzut rozpoznany w istniejącym widoku,
-łącznie z kolejnym dubletem o identycznych oczkach i rzutem w Kolokwium bez przesunięcia.
-MPK i karta przestawiają pionek bez turlania. Nakładka „Dotknij, aby przejść do decyzji”
-kończy pokaz jednym dotknięciem, bez wysyłania ruchu; decyzję wybiera dopiero następne.
-Nowa wiadomość zastępuje poprzedni pokaz; refresh i reduced motion pokazują od razu stan serwera.
+Do decyzji (nie jest wzorem dla nowych ekranów): mini-gry wymagają osobnego odbioru na 360×640; nie zakładamy, że każda mieści się w 640 px.
