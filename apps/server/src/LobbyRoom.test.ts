@@ -1,4 +1,4 @@
-import { type Client, CloseCode } from "@colyseus/core";
+import { type Client } from "@colyseus/core";
 import { GAMES, KALAMBURY_HALF_SECONDS, type KalamburyView, type RoomView, type ZakupyView } from "@kwadrans/games";
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -35,7 +35,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-async function openRoom(n: number, options?: { solo?: string }) {
+async function drawing(n: number, gameId = "kalambury", start = true) {
   const room = new LobbyRoom();
   rooms.push(room);
   const handlers = new Map<string, (client: Client, raw: unknown) => void>();
@@ -47,7 +47,7 @@ async function openRoom(n: number, options?: { solo?: string }) {
     const timer = setTimeout(callback, ms, ...args);
     return { clear: () => clearTimeout(timer) } as ReturnType<typeof room.clock.setTimeout>;
   });
-  await room.onCreate(options);
+  await room.onCreate();
   const observer = n < room.maxClients ? n : undefined;
   const clients = Array.from({ length: n + Number(observer !== undefined) }, (_, i) => ({ sessionId: `p${i + 1}`, send: vi.fn() } as unknown as Client));
   for (const client of clients) {
@@ -60,11 +60,6 @@ async function openRoom(n: number, options?: { solo?: string }) {
     const latest = calls.filter(([type]) => type === "room").at(-1)!;
     return latest[1] as RoomView;
   };
-  return { room, send, snapshot, clients, observer };
-}
-
-async function drawing(n: number, gameId = "kalambury", start = true) {
-  const { room, send, snapshot, clients, observer } = await openRoom(n);
   send(0, "pickGame", { gameId });
   // Przy dwóch graczach jest jeszcze miejsce na obserwatora; sześciu zapełnia pokój.
   if (observer !== undefined) send(0, "toggleSeat", { id: clients[observer].sessionId });
@@ -74,7 +69,7 @@ async function drawing(n: number, gameId = "kalambury", start = true) {
   else if (start) for (let i = 0; i < n; i++) send(i, "begin", {});
   expect(snapshot().phase).toBe("playing");
   if (gameId === "kalambury") expect((snapshot().game!.view as KalamburyView).phase).toBe("draw");
-  return { room, send, snapshot, clients, observer };
+  return { send, snapshot, clients, observer };
 }
 
 describe.each([2, 6])("Kalambury: %i graczy", (n) => {
@@ -296,144 +291,5 @@ describe("Mini-gra: jeden termin niezależny od rywali", () => {
     send(0, "begin", {});
     send(1, "begin", {});
     expect(snapshot().game!.msLeft).toBe(60_000);
-  });
-});
-
-// 07-02: zapis pomiaru z prawdziwego pokoju. Jeden wpis `recordRoomGame` na partię, bez nicków obserwatorów.
-describe("pomiar: wpis room_games z pokoju", () => {
-  const FIVE = [0, 1, 2, 3, 4];
-  // Gracz p1 stawia pięć w poziomie, p2 odpowiada w drugim rzędzie.
-  function playGomoku(send: (player: number, type: string, raw: unknown) => void) {
-    for (const x of FIVE) {
-      send(0, "move", { x, y: 0 });
-      if (x < 4) send(1, "move", { x, y: 1 });
-    }
-  }
-  const spyEntries = () => vi.spyOn(stats, "recordRoomGame");
-
-  test("Gomoku do końca: jeden wpis completed z dwiema osobami, obserwator się nie liczy", async () => {
-    const entries = spyEntries();
-    const { send, snapshot, clients } = await drawing(2, "piec-w-rzedzie");
-    expect(clients).toHaveLength(3);
-    playGomoku(send);
-    expect(snapshot().phase).toBe("over");
-    expect(entries).toHaveBeenCalledTimes(1);
-    const call = entries.mock.calls[0][0];
-    expect(call).toMatchObject({ gameId: "piec-w-rzedzie", players: 2, outcome: "completed" });
-    expect([...call.nicks].sort()).toEqual(["p1", "p2"]);
-    expect(typeof call.roomKey).toBe("string");
-  });
-
-  test("wyjście w 1v1 w trakcie: walkover z players 2, nigdy players 1", async () => {
-    const entries = spyEntries();
-    const { room, clients } = await drawing(2, "piec-w-rzedzie");
-    await room.onLeave(clients[1], CloseCode.CONSENTED);
-    expect(entries).toHaveBeenCalledTimes(1);
-    expect(entries.mock.calls[0][0]).toMatchObject({ players: 2, outcome: "walkover" });
-    expect(entries.mock.calls.some(([call]) => call.players === 1)).toBe(false);
-  });
-
-  test("po końcu partii wyjście gracza nie dopisuje drugiego wpisu", async () => {
-    const entries = spyEntries();
-    const { room, send, snapshot, clients } = await drawing(2, "piec-w-rzedzie");
-    playGomoku(send);
-    expect(snapshot().phase).toBe("over");
-    await room.onLeave(clients[1], CloseCode.CONSENTED);
-    expect(entries).toHaveBeenCalledTimes(1);
-    expect(entries.mock.calls[0][0].outcome).toBe("completed");
-  });
-
-  test("wyjście jednej osoby z trzech: aborted z players 3", async () => {
-    const entries = spyEntries();
-    const { room, clients } = await drawing(3);
-    await room.onLeave(clients[2], CloseCode.CONSENTED);
-    expect(entries).toHaveBeenCalledTimes(1);
-    expect(entries.mock.calls[0][0]).toMatchObject({ gameId: "kalambury", players: 3, outcome: "aborted" });
-  });
-
-  test("obserwator wychodzący w trakcie nie tworzy wpisu", async () => {
-    const entries = spyEntries();
-    const { room, clients, observer } = await drawing(2);
-    expect(observer).toBeDefined();
-    await room.onLeave(clients[observer!], CloseCode.CONSENTED);
-    expect(entries).not.toHaveBeenCalled();
-  });
-
-  test("solo: wpis z players 1", async () => {
-    const entries = spyEntries();
-    const { send, snapshot } = await openRoom(1, { solo: "stoper" });
-    expect(snapshot().phase).toBe("playing");
-    send(0, "begin", {});
-    send(0, "move", { type: "result", deviation: 100 });
-    expect(snapshot().phase).toBe("over");
-    expect(entries).toHaveBeenCalledTimes(1);
-    expect(entries.mock.calls[0][0]).toMatchObject({ gameId: "stoper", players: 1, outcome: "completed" });
-  });
-
-  test("rewanż ma ten sam klucz pokoju, drugi pokój inny, a żaden nie jest kodem pokoju", async () => {
-    const entries = spyEntries();
-    const first = await drawing(2, "stoper");
-    const finishRound = (room: Awaited<ReturnType<typeof drawing>>) => {
-      room.send(0, "move", { type: "result", deviation: 100 });
-      room.send(1, "move", { type: "result", deviation: 200 });
-    };
-    finishRound(first);
-    first.send(0, "rematch", {});
-    first.send(1, "rematch", {});
-    first.send(0, "begin", {});
-    first.send(1, "begin", {});
-    finishRound(first);
-    const second = await drawing(2, "stoper");
-    finishRound(second);
-    expect(entries).toHaveBeenCalledTimes(3);
-    const keys = entries.mock.calls.map(([call]) => call.roomKey);
-    expect(keys[0]).toBe(keys[1]);
-    expect(keys[2]).not.toBe(keys[0]);
-    expect(keys).not.toContain(first.room.roomId);
-    expect(keys).not.toContain(second.room.roomId);
-  });
-
-  test("turniej: wpis na każdą grę pod jednym kluczem, bez wpisu za sam turniej", async () => {
-    const entries = spyEntries();
-    const { send, snapshot, clients } = await openRoom(2);
-    send(0, "pickTournament", { length: 3 });
-    send(0, "toggleSeat", { id: clients[2].sessionId });
-    send(1, "ready", { ready: true });
-    send(0, "start", {});
-    expect(snapshot().phase).toBe("playing");
-    vi.advanceTimersByTime(30 * 60_000);
-    const { games } = snapshot().tournament!;
-    expect(games).toHaveLength(3);
-    expect(entries).toHaveBeenCalledTimes(3);
-    expect(entries.mock.calls.map(([call]) => call.gameId)).toEqual(games);
-    expect(new Set(entries.mock.calls.map(([call]) => call.roomKey)).size).toBe(1);
-    for (const [call] of entries.mock.calls) expect(call).toMatchObject({ players: 2, outcome: "completed" });
-  });
-
-  test("turniej: wyjście w trakcie gry to aborted z players 2", async () => {
-    const entries = spyEntries();
-    const { room, send, clients } = await openRoom(2);
-    send(0, "pickTournament", { length: 3 });
-    send(0, "toggleSeat", { id: clients[2].sessionId });
-    send(1, "ready", { ready: true });
-    send(0, "start", {});
-    await room.onLeave(clients[1], CloseCode.CONSENTED);
-    expect(entries).toHaveBeenCalledTimes(1);
-    expect(entries.mock.calls[0][0]).toMatchObject({ players: 2, outcome: "aborted" });
-  });
-
-  test("błąd ruchu po limicie: aborted, jeden wpis", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    const entries = spyEntries();
-    const { send, snapshot } = await drawing(2, "stoper");
-    vi.spyOn(GAMES.stoper, "timeoutMove").mockImplementation(() => {
-      throw new Error("błąd zasad");
-    });
-    send(0, "begin", {});
-    send(1, "begin", {});
-    vi.advanceTimersByTime(GAMES.stoper.turnSeconds! * 1000);
-    expect(snapshot().phase).toBe("over");
-    expect(entries).toHaveBeenCalledTimes(1);
-    expect(entries.mock.calls[0][0]).toMatchObject({ players: 2, outcome: "aborted" });
   });
 });

@@ -20,7 +20,7 @@
 
 ## M2 · Po audycie (propozycje, kolejność nieustalona, każda czeka na akceptację planu)
 - 06-odbiory-urzadzen [planned] domknąć odbiory U03, U04, U09, U14 i P11 na telefonie i w partiach · done when: każdy odbiór ma wynik albo jawną decyzję o pozostawieniu
-- 07-atrakcyjnosc [active] ATR-00..05: pomiar, wyniki z momentem, rywalizacja w partii, wieczór w pokoju, wygląd, powroty · done when: zaakceptowane etapy wdrożone i zmierzone
+- 07-atrakcyjnosc [planned] ATR-00..05: pomiar, wyniki z momentem, rywalizacja w partii, wieczór w pokoju, wygląd, powroty · done when: zaakceptowane etapy wdrożone i zmierzone
 - 08-podrobka [planned] nowa gra główna `podrobka` (POD-01..07) · done when: TDD, ekran, podpięcie i odbiór 3/6 graczy z obserwatorem
 - 09-blef-na-kosciach [planned] nowa gra główna (BLEF-01..05) · done when: TDD, ekran, podpięcie i odbiór 2/6 graczy z obserwatorem
 - 10-wyprawa [planned] nowa gra główna (WYP-01..05) · done when: TDD, ekran, podpięcie i odbiór 2/6 graczy z obserwatorem
