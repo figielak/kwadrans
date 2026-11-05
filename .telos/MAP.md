@@ -6,7 +6,7 @@
 - `apps/server/src/` pokój, zapis wyników, API HTTP
 - `apps/web/src/` klient: połączenie, ekrany w `apps/web/src/screens/`, UI gier w `apps/web/src/games/`
 - `cloudflared/` tunel; `.github/workflows/ci.yml` CI; `Dockerfile`, `docker-compose.yml` obraz i wdrożenie
-- `.planning/` tylko plany propozycji po audycie (`*-PLAN.md`, wymagania w `.telos/PROPOSALS.md`); archiwum audytu w gicie pod `fb0f5d2`
+- `.planning/` tylko plany propozycji po audycie (wymagania w `.telos/PROPOSALS.md`); archiwum audytu w gicie pod `fb0f5d2`
 
 ## Entry points
 - Serwer: `apps/server/src/index.ts:11-49` (trasy HTTP, definicja pokoju, statyczny frontend)
