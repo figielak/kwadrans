@@ -229,3 +229,108 @@ describe("rekordowa partia", () => {
     }
   });
 });
+
+// 07-02: pomiar atrakcyjności (plan §10). Tabela room_games bez nicków, powroty z played_days (D-11).
+describe("pomiar: room_games i miary", () => {
+  const day = (d: number, h = 12, min = 0) => new Date(2026, 10, d, h, min).getTime();
+  const since = new Date(2026, 10, 1).getTime();
+  type Entry = Parameters<ReturnType<typeof openStats>["recordRoomGame"]>[0];
+  const entry = (roomKey: string, outcome: Entry["outcome"], nicks: string[], at: number, players = 2): Entry => ({
+    roomKey,
+    gameId: "stoper",
+    players,
+    outcome,
+    nicks,
+    at,
+  });
+  const zero = { medianGames: 0, nextRate: 0, rooms3Plus: 0, returningNicks: 0, interrupted: 0 };
+
+  it("pusta baza daje same zera", () => {
+    expect(openStats(":memory:").metrics(since)).toEqual(zero);
+  });
+
+  it("zestaw wzorcowy: mediana, kolejna partia, pokoje 3+, powroty i przerwane", () => {
+    const stats = openStats(":memory:");
+    // A: trzy ukończone (pierwsza dokładnie o `since`, druga tego samego dnia, trzecia nazajutrz)
+    stats.recordRoomGame(entry("A", "completed", ["Ala", "Olek"], since));
+    stats.recordRoomGame(entry("A", "completed", ["Ala", "Olek"], day(1, 15)));
+    stats.recordRoomGame(entry("A", "completed", ["Olek", "Bartek"], day(2)));
+    // B: dwie ukończone i walkower, który nie jest kolejną partią ani dniem gry
+    stats.recordRoomGame(entry("B", "completed", ["Cela", "Bartek"], day(1)));
+    stats.recordRoomGame(entry("B", "walkover", ["Cela"], day(2, 10)));
+    stats.recordRoomGame(entry("B", "completed", ["ala", "Dawid"], day(2, 14)));
+    // C: jedna ukończona
+    stats.recordRoomGame(entry("C", "completed", ["Ewa", "Dawid"], day(1)));
+    // D: dwie przerwane
+    stats.recordRoomGame(entry("D", "aborted", ["Hela", "Iga"], day(2)));
+    stats.recordRoomGame(entry("D", "aborted", ["Hela", "Iga"], day(2, 13)));
+    // E: jedyny wpis o 1 ms przed `since`, więc pokoju w miarach nie ma
+    stats.recordRoomGame(entry("E", "completed", ["Franek", "Ewa"], since - 1));
+    // S: solo i pokój z jednym grającym przez oba dni
+    stats.recordRoomGame(entry("S", "completed", ["Gosia"], day(1), 1));
+    stats.recordRoomGame(entry("S", "completed", ["Gosia"], day(2), 1));
+
+    expect(stats.metrics(since)).toEqual({ medianGames: 1.5, nextRate: 0.5, rooms3Plus: 0.25, returningNicks: 4, interrupted: 3 });
+  });
+
+  it("pokój z samymi przerwanymi: mediana 0, bez kolejnych partii, wszystkie liczą się jako przerwane", () => {
+    const stats = openStats(":memory:");
+    stats.recordRoomGame(entry("D", "aborted", ["Ala", "Ola"], day(2)));
+    stats.recordRoomGame(entry("D", "aborted", ["Ala", "Ola"], day(2, 13)));
+    stats.recordRoomGame(entry("D", "aborted", ["Ala", "Ola"], day(3), 3));
+    expect(stats.metrics(since)).toEqual({ ...zero, interrupted: 3 });
+  });
+
+  it("solo i jeden grający nie wchodzą do miar ani do dni, nawet przez dwa dni", () => {
+    const stats = openStats(":memory:");
+    stats.recordRoomGame(entry("S", "completed", ["Gosia"], day(1), 1));
+    stats.recordRoomGame(entry("S", "completed", ["Gosia"], day(2), 1));
+    stats.recordRoomGame(entry("S", "walkover", ["Gosia"], day(3), 1));
+    expect(stats.metrics(since)).toEqual(zero);
+  });
+
+  it("walkover i aborted nie dopisują dnia gry", () => {
+    const stats = openStats(":memory:");
+    stats.recordRoomGame(entry("R", "completed", ["Ala", "Ola"], day(1)));
+    stats.recordRoomGame(entry("R", "walkover", ["Ala"], day(2)));
+    stats.recordRoomGame(entry("R", "aborted", ["Ala", "Ola"], day(3)));
+    expect(stats.metrics(since).returningNicks).toBe(0);
+    stats.recordRoomGame(entry("R", "completed", ["Ala", "Ola"], day(4)));
+    expect(stats.metrics(since).returningNicks).toBe(2);
+  });
+
+  it("dwie partie jednej doby to jeden dzień, a 23:30 i 00:30 to dwa", () => {
+    const same = openStats(":memory:");
+    same.recordRoomGame(entry("R", "completed", ["Ala", "Ola"], day(3, 8)));
+    same.recordRoomGame(entry("R", "completed", ["Ala", "Ola"], day(3, 23, 59)));
+    expect(same.metrics(since).returningNicks).toBe(0);
+
+    const midnight = openStats(":memory:");
+    midnight.recordRoomGame(entry("R", "completed", ["Ala", "Ola"], day(3, 23, 30)));
+    midnight.recordRoomGame(entry("R", "completed", ["Ala", "Ola"], day(4, 0, 30)));
+    expect(midnight.metrics(since).returningNicks).toBe(2);
+  });
+
+  it("„Ala” i „ala” to jedna osoba, a dni liczą się od doby `since`", () => {
+    const stats = openStats(":memory:");
+    stats.recordRoomGame(entry("R", "completed", ["Ala", "Ola"], day(2)));
+    stats.recordRoomGame(entry("Q", "completed", ["ala", "Ela"], day(3)));
+    // Dzień sprzed `since` nie dokłada się do powrotów.
+    stats.recordRoomGame(entry("P", "completed", ["Ela", "Ula"], day(1, 0, 0) - 60_000));
+    const { returningNicks } = stats.metrics(since);
+    expect(returningNicks).toBe(1);
+  });
+
+  it("room_games nie ma kolumny z nickiem, a nicki nie trafiają do wierszy", () => {
+    const dir = mkdtempSync(join(tmpdir(), "kwadrans-"));
+    const path = join(dir, "stats.db");
+    const stats = openStats(path);
+    stats.recordRoomGame(entry("R", "completed", ["Ala", "Ola"], day(2)));
+    const db = new DatabaseSync(path);
+    const columns = (db.prepare("PRAGMA table_info(room_games)").all() as { name: string }[]).map((c) => c.name);
+    expect(columns.length).toBeGreaterThan(0);
+    expect(columns.some((name) => /nick/i.test(name))).toBe(false);
+    expect(JSON.stringify(db.prepare("SELECT * FROM room_games").all())).not.toMatch(/Ala|Ola/);
+    db.close();
+  });
+});

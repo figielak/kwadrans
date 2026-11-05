@@ -2,7 +2,7 @@
 id: 07-02
 title: "Etap 0: testy pomiaru (Claude)"
 type: doc
-status: approved
+status: done
 critical: false
 effort: normal
 depends: [07-01]
@@ -44,8 +44,13 @@ Testy tabeli `room_games`, dni gry z innymi, miar z planu §10 i zapisu z prawdz
 4. `LobbyRoom.test.ts`, szpieg na `stats.recordRoomGame`, harness zwraca też `room`: Gomoku do końca → `players: 2`, `completed`, dwa nicki; wyjście w 1v1 przez `room.onLeave(client, CloseCode.CONSENTED)` → `players: 2`, `walkover`, nigdy `players: 1`; wyjście 1 z 3 → `players: 3`, `aborted`; solo → `players: 1`; obserwator się nie liczy; rewanż → ten sam `roomKey`, drugi pokój → inny; turniej → wpis na każdą grę, wyjście w trakcie → `aborted`; błąd ruchu po limicie → `aborted`; zawsze jeden wpis na partię.
 
 ## Acceptance
-- [ ] Testy padają przez brak metod, nie przez błąd składni
-- [ ] `pnpm --filter server exec vitest run src/stats.test.ts` → exit 1
-- [ ] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 1
+- [x] Testy padają przez brak metod, nie przez błąd składni
+- [x] `pnpm --filter server exec vitest run src/stats.test.ts` → exit 1
+- [x] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 1
 
 ## Result
+Dodano 8 testów `stats.test.ts` (zestaw wzorcowy D-13, brzegi, `PRAGMA table_info`) i 10 w `LobbyRoom.test.ts` (Gomoku do końca, walkover, 1 z 3, obserwator, solo, rewanż i klucz, turniej, błąd po limicie).
+Harness: wydzielone `openRoom` (opcje `solo`), `drawing` zwraca też `room`. 29 dotychczasowych testów pokoju nadal zielone.
+RED: `vitest run src/stats.test.ts` → exit 1: 8 nowych pada na `recordRoomGame`/`metrics is not a function`; `src/LobbyRoom.test.ts` → exit 1: 10 nowych pada na brak `stats.recordRoomGame`.
+Założenie dla kodu: `completed` także po wygaśnięciu limitu (partia z rankingiem); `aborted` tylko przy `finish({})`.
+Deviations: none

@@ -2,7 +2,7 @@
 <!-- ≤ 40 lines. Maintained by `telos status set <key>=<value>`; never edit by hand.
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 07-atrakcyjnosc
-Task: 07-02
+Task: 07-03
 Next: /telos:do
 Blockers: none
 Awaiting user: 08, 09, 10, 11, 12, 07:D-10
@@ -15,5 +15,6 @@ Awaiting user: 08, 09, 10, 11, 12, 07:D-10
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
+- 07-02 done: testy pomiaru room_games i metrics (RED)
+- 07-02 done: testy pomiaru room_games i metrics, RED
 - 07-01 done: przegląd Codexa, 4 poprawki blokujące (1-4), potrzebny revise przed testami
-- 05 done: audyt spójności zamknięty, 62/62 pakietów (2026-10-31)
