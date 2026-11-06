@@ -96,7 +96,11 @@ Do skopiowania: gdy ekran ma jedną informację do przekazania, powiększ ją i 
 ### 3.3 Ekran instrukcji mini-gry (`Intro` w `ui.tsx`)
 
 Kafel wyśrodkowany w pionie: animowany podgląd 128 px na tle `bg`, trzy punkty z ikonami (czas, zadanie, punktacja),
-przycisk „Start” i wyciszona linia odliczania. Gracz rozumie grę w 3 sekundy, bo podgląd pokazuje ją w ruchu, a tekst ma trzy linie.
+przycisk i wyciszona linia odliczania. Gracz rozumie grę w 3 sekundy, bo podgląd pokazuje ją w ruchu, a tekst ma trzy linie.
+
+Przy 2+ grających przycisk to „Gotowy” (po kliknięciu znika, zostaje „Czekamy na pozostałych”), a lista pod spodem pokazuje „gotowy” albo „czyta zasady” przy każdym graczu.
+Gdy wszyscy są gotowi albo minie czas, na podglądzie pojawia się duże 3-2-1 (`intro-count`, `stone-pop` co sekundę), a gra rusza u wszystkich razem.
+Solo ma „Start” i nie odlicza; obserwator widzi listę i odliczanie bez przycisku.
 
 Do skopiowania: stały szkielet zamiast dowolnego opisu; ikony `fg-muted` w roli wypunktowania.
 

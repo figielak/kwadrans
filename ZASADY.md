@@ -187,6 +187,7 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
 - Mini-gra zaczyna od ekranu instrukcji: komponent `Intro` (ui.tsx) z animowanym podglądem gry (mały komponent `Preview` w pliku gry,
   sama animacja CSS w pętli), trzema krótkimi punktami (`time`: długość partii, czyli czas albo liczba rund z limitem całej partii („10 odcinków, razem do minuty”), `task`: co zrobić, `score`: jak liczone są punkty) i przyciskiem „Start”.
   Limit gry jeszcze wtedy nie tyka; przy co najmniej dwóch grających po `INTRO_SECONDS` (15 s) gra rusza sama.
+  Przy 2+ grających przycisk to „Gotowy”, a gra rusza u wszystkich po wspólnym 3-2-1 (klient nie woła `onStart` po własnym kliknięciu, pomiar zaczyna się po `intro: false`).
   Jeden grający czeka na „Start” bez odliczania. Tylko „Jeszcze raz” w pokoju `solo` pomija instrukcję i zaczyna grę od razu po decyzji gracza.
   Pod przyciskiem widać, kto już gra, a kto czyta zasady.
 - Pola dotykowe co najmniej 48 px (tyle ma `.btn`), a pola gry na czas mają `touch-none select-none` i reagują na `onPointerDown`.
@@ -227,7 +228,7 @@ animacja tylko go dogania na ekranie.
 
   | Keyframes | Rola | Czasy |
   |---|---|---|
-  | `stone-pop` | coś pojawia się na planszy (kamień, strzał, ścianka, karta Memory, znacznik, nowa wygrana) oraz wiersz odsłony wyników | `0.35s` standard; `180ms` działanie W pamięci (wyjątek: pokaz co 1,5 s) |
+  | `stone-pop` | coś pojawia się na planszy (kamień, strzał, ścianka, karta Memory, znacznik, nowa wygrana) oraz wiersz odsłony wyników, liczba 3-2-1 na ekranie instrukcji | `0.35s` standard; `180ms` działanie W pamięci (wyjątek: pokaz co 1,5 s) |
   | `ring-pulse` | to można wybrać (pionek, karta, „Jeszcze raz” po prośbie innych), w pętli | `1.2s` |
   | `dice-tumble` | rzut kośćmi, pętla na czas pokazu rzutu | `0.3s` |
   | `card-in` | karta lub okno na środku ekranu (Karta Dziekanatu, oferty, podsumowanie) | `0.35s` |

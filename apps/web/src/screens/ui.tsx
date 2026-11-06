@@ -2,7 +2,7 @@ import { ArrowLeft, CaretDown, Check, HandTap, ShareNetwork, SignOut, Timer, Tro
 import type { RoomView } from "@kwadrans/games";
 import { createContext, Fragment, type ReactNode, type Ref, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { autoStart } from "./intro.ts";
+import { autoStart, introStage, startsAfterClose } from "./intro.ts";
 import { bestRound, type Hero, revealOrder } from "./results.ts";
 
 export type Send = (type: string, payload?: unknown) => void;
@@ -551,6 +551,10 @@ export function StickyBar({ children, className = "" }: { children: ReactNode; c
 /** To, czego ekran instrukcji potrzebuje z pokoju; podaje `Game.tsx`, żeby nie przeciągać tego przez propsy każdej gry. */
 export const IntroContext = createContext<{
   game: NonNullable<RoomView["game"]>;
+  seated: boolean;
+  me: string;
+  myNick: string;
+  myColor: string;
   others: { id: string; nick: string; color: string; began: boolean }[];
   begin: () => void;
   /** Rekord gry do pobicia, jedna linia pod przyciskiem „Start”. */
@@ -565,35 +569,52 @@ export const IntroContext = createContext<{
 export function Intro({ time, task, score, preview, onStart }: { time: ReactNode; task: ReactNode; score: ReactNode; preview: ReactNode; onStart: () => void }) {
   const room = useContext(IntroContext);
   const live = room?.game.intro ?? false;
+  const stage = introStage({ seated: room?.seated ?? true, solo: !room || room.others.length === 0, began: room?.game.began.includes(room.me) ?? false, countdown: room?.game.countdown ?? false, intro: live });
   // Termin od chwili odebrania wiadomości, jak w liczniku tury.
   const deadline = useMemo(() => (live && room?.game.msLeft != null ? Date.now() + room.game.msLeft : null), [room?.game]);
   const [now, setNow] = useState(Date.now);
   const seen = useRef(live);
+  const began = useRef(false);
   const started = useRef(false);
 
-  function start() {
+  function startGame() {
     if (started.current) return;
     started.current = true;
-    room?.begin();
     onStart();
   }
 
+  // „Gotowy” zgłasza się raz. Przy 2+ grających pomiar rusza dopiero po zamknięciu instrukcji przez serwer (po 3-2-1).
+  function ready() {
+    if (began.current) return;
+    began.current = true;
+    room?.begin();
+    if (!room || room.others.length === 0) startGame();
+  }
+
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 250);
+    const id = setInterval(() => setNow(Date.now()), stage === "countdown" ? 100 : 250);
     return () => clearInterval(id);
-  }, []);
+  }, [stage === "countdown"]);
 
   // Po odświeżeniu w trakcie partii instrukcja jest już zamknięta: wtedy nic nie rusza samo, tyka zwykły limit.
   useEffect(() => {
-    if (room && autoStart(room.game)) start();
+    if (room && autoStart(room.game)) ready();
     if (live) seen.current = true;
-    else if (seen.current) start();
+    else if (startsAfterClose({ seen: seen.current, intro: live })) startGame();
   }, [live, room?.game.skipIntro]);
 
+  const seconds = deadline === null ? 0 : Math.max(0, Math.ceil((deadline - now) / 1000));
   return (
     <section className="tile my-auto flex flex-col gap-4 p-4">
       <div className="relative flex h-32 items-center justify-center overflow-hidden rounded-inset border border-line bg-bg" aria-hidden>
         {preview}
+        {stage === "countdown" && (
+          <div className="absolute inset-0 flex items-center justify-center bg-bg/80">
+            <span key={seconds} className="intro-count text-6xl font-bold tabular-nums">
+              {seconds}
+            </span>
+          </div>
+        )}
       </div>
       <ul className="flex flex-col gap-1.5">
         {(
@@ -610,11 +631,19 @@ export function Intro({ time, task, score, preview, onStart }: { time: ReactNode
         ))}
       </ul>
       <div className="flex flex-col gap-1">
-        <button type="button" className="btn btn-primary w-full" onClick={start}>
-          Start
-        </button>
-        {deadline !== null && (
-          <p className="text-center text-sm text-fg-muted tabular-nums">Start automatycznie za {Math.max(0, Math.ceil((deadline - now) / 1000))} s</p>
+        {stage === "reads" && (
+          <button type="button" className="btn btn-primary w-full" onClick={ready}>
+            {room && room.others.length > 0 ? "Gotowy" : "Start"}
+          </button>
+        )}
+        {stage === "ready" && <p className="text-center text-fg-muted">Czekamy na pozostałych</p>}
+        {stage === "countdown" && (
+          <p className="text-center text-fg-muted" role="status">
+            Start za {seconds}
+          </p>
+        )}
+        {(stage === "reads" || stage === "watching") && deadline !== null && room && room.others.length > 0 && (
+          <p className="text-center text-sm text-fg-muted tabular-nums">Start automatycznie za {seconds} s</p>
         )}
         {room?.record && <p className="text-center text-sm text-fg-muted tabular-nums">{room.record}</p>}
       </div>
@@ -623,9 +652,15 @@ export function Intro({ time, task, score, preview, onStart }: { time: ReactNode
           {room.others.map((p) => (
             <li key={p.id} className="flex items-center gap-2">
               <span className="size-2 rounded-full" style={{ backgroundColor: p.color }} aria-hidden />
-              {p.nick} {p.began ? "już gra" : "czyta zasady"}
+              {p.nick} {p.began ? "gotowy" : "czyta zasady"}
             </li>
           ))}
+          {room.seated && (
+            <li className="flex items-center gap-2">
+              <span className="size-2 rounded-full" style={{ backgroundColor: room.myColor }} aria-hidden />
+              {room.myNick} {room.game.began.includes(room.me) ? "gotowy" : "czyta zasady"}
+            </li>
+          )}
         </ul>
       )}
     </section>

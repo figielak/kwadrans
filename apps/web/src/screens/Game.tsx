@@ -265,6 +265,10 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
 
   const intro = {
     game,
+    seated,
+    me,
+    myNick: nick(me),
+    myColor: myColor ?? "",
     others: view.seats.filter((id) => id !== me).map((id) => ({ id, nick: nick(id), color: view.players.find((p) => p.id === id)?.color ?? "", began: game.began.includes(id) })),
     begin: () => send("begin"),
     record: recordHint(def.id, records.before, nick(me)),

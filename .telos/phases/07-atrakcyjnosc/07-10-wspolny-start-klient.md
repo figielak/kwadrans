@@ -2,7 +2,7 @@
 id: 07-10
 title: "Etap 2: gotowość i 3-2-1 na ekranie instrukcji"
 type: code
-status: approved
+status: done
 critical: false
 effort: normal
 depends: [07-09]
@@ -46,11 +46,15 @@ Ekran instrukcji pokazuje gotowość graczy i duże 3-2-1, a gra rusza u wszystk
 - Sprawdź `/dev?n=2` i `?n=6`, reconnect w odliczaniu i `prefers-reduced-motion`; DESIGN §3.3.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter web exec vitest run src/screens/intro.test.ts` → exit 0
-- [ ] `pnpm --filter web exec vitest run src/animations.test.ts` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
-- [ ] Odbiór w `/dev?n=3`: gra rusza u wszystkich po 3-2-1
+- [x] all listed tests pass
+- [x] `pnpm --filter web exec vitest run src/screens/intro.test.ts` → exit 0
+- [x] `pnpm --filter web exec vitest run src/animations.test.ts` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
+- [x] Odbiór w `/dev?n=3`: gra rusza u wszystkich po 3-2-1
 
 ## Result
+Ekran instrukcji pokazuje „Gotowy” (2+ grających) albo „Start” (solo), listę „gotowy / czyta zasady” i duże 3-2-1 (`intro-count` na `stone-pop`), a `onStart` przy 2+ grających woła dopiero zamknięcie instrukcji przez serwer.
+`introStage` i `startsAfterClose` w `intro.ts`; `seated`, `me`, `myNick`, `myColor` w `IntroContext`. 12 testów w `intro.test.ts`, `pnpm test` zielony.
+Odbiór w `/dev?n=3` (Liczenie): trzy ramki odliczają równo i startują razem. Test a11y kotwiczy się na `room.others.map`, więc własny wiersz listy jest za mapą.
+Deviations: none

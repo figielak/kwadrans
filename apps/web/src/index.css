@@ -229,6 +229,11 @@ body::before {
   }
 }
 
+/* Liczba 3-2-1 na ekranie instrukcji: ta sama animacja pojawienia, nowy klucz co sekundę. */
+.intro-count {
+  animation: stone-pop 0.35s ease-out;
+}
+
 /* Linia rysuje się od początku do końca (pathLength=1): zwycięska piątka w Gomoku, podgląd koła w instrukcji Narysuj koło. */
 @keyframes line-draw {
   from {
