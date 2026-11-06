@@ -2,7 +2,7 @@
 id: 07-01
 title: Etap 0: pomiar partii w pokoju i odczyt miar
 type: code
-status: approved
+status: done
 critical: false
 effort: normal
 depends: []
@@ -56,10 +56,16 @@ Każda partia zostawia anonimowy wpis, a miary z planu §10 da się odczytać sk
 - `metrics.ts`: odczyt przez `openStats`, wydruk JSON.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter server exec vitest run src/stats.test.ts` → exit 0
-- [ ] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter server exec vitest run src/stats.test.ts` → exit 0
+- [x] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
 
 ## Result
+Dodano tabele `room_games` (bez nicków, losowy klucz pokoju z `randomUUID`) i `played_days`, `recordRoomGame` oraz `metrics(since)` w `stats.ts`.
+`LobbyRoom` zapisuje jeden wpis na partię w `finish(result, outcome)`: liczba miejsc i nicki z chwili startu, `walkover` przy walkowerze, `aborted` przy wyjściu bez zwycięzcy i błędzie ruchu po limicie.
+Skrypt `apps/server/src/metrics.ts [dni]` drukuje miary jako JSON (`DB_PATH`, domyślnie 7 dni).
+Testy z `bca0694` przeniesione; 63 testy w obu plikach zielone, `pnpm test` i `typecheck` bez błędów.
+Zmiana testu: turniej w teście dostawał dogrywkę (remis po limitach czasu), więc zamiast stałych 3 gier sprawdza „wpis na każdą grę”.
+Deviations: none

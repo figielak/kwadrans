@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { type AuthContext, type Client, CloseCode, matchMaker, Room, ServerError } from "@colyseus/core";
@@ -30,7 +31,7 @@ import {
   type Tournament,
   winner,
 } from "@kwadrans/games";
-import { openStats } from "./stats.ts";
+import { openStats, type RoomGameOutcome } from "./stats.ts";
 
 const RECONNECT_SECONDS = 10 * 60; // telefon śpi między turami
 const IDLE_MS = 60 * 60 * 1000;
@@ -55,6 +56,9 @@ interface Match {
   state: unknown;
   rng: Rng;
   result: GameResult | null;
+  /** Stan przy starcie: onLeave zmienia `seats` jeszcze przed `finish`, a pomiar liczy osoby od początku partii. */
+  players: number;
+  nicks: string[];
 }
 
 export class LobbyRoom extends Room {
@@ -80,6 +84,8 @@ export class LobbyRoom extends Room {
   /** Ekran instrukcji mini-gry: limit rusza dopiero, gdy wystartują wszyscy albo minie INTRO_SECONDS. */
   private intro = false;
   private began = new Set<string>();
+  /** Losowy klucz pokoju do pomiaru; kody pokoi wracają, więc nie nadają się na klucz. */
+  private roomKey: string = randomUUID();
   private messageCounts = new Map<string, { second: number; count: number }>();
 
   async onCreate(options?: { solo?: unknown }) {
@@ -242,7 +248,10 @@ export class LobbyRoom extends Room {
     if (this.seats.includes(client.sessionId)) {
       this.seats = this.seats.filter((s) => s !== client.sessionId);
       // Walkower: w grze 1v1 wygrywa ten, kto został. W turnieju gra przepada bez punktów, a turniej trwa.
-      if (this.phase === "playing") this.finish(this.seats.length === 1 && !this.tournament ? { winner: this.seats[0] } : {});
+      if (this.phase === "playing") {
+        const walkover = this.seats.length === 1 && !this.tournament;
+        this.finish(walkover ? { winner: this.seats[0] } : {}, walkover ? "walkover" : "aborted");
+      }
       else this.maybeRematch();
     }
     this.update();
@@ -339,7 +348,8 @@ export class LobbyRoom extends Room {
 
   private startMatch(def: GameDefinition<unknown, unknown>) {
     const rng = newRng();
-    this.match = { def, state: def.setup(this.seats, rng, this.mode ?? undefined), rng, result: null };
+    const nicks = this.seats.map((id) => this.players.get(id)?.nick ?? "?");
+    this.match = { def, state: def.setup(this.seats, rng, this.mode ?? undefined), rng, result: null, players: this.seats.length, nicks };
     this.phase = "playing";
     this.began.clear();
     // Ekran instrukcji mają gry solo (te same, które lobby pokazuje jako „Szybkie”).
@@ -379,9 +389,10 @@ export class LobbyRoom extends Room {
     if (after.join() !== before || after.length === 1) this.startTurnTimer();
   }
 
-  private finish(result: GameResult) {
+  private finish(result: GameResult, outcome: RoomGameOutcome = "completed") {
     if (!this.match) return;
     this.match.result = result;
+    this.measure(outcome);
     this.phase = "over";
     this.resetReady();
     this.turnTimer?.clear();
@@ -426,6 +437,16 @@ export class LobbyRoom extends Room {
     }, NEXT_SECONDS * 1000);
   }
 
+  /** Jeden anonimowy wpis na partię; błąd zapisu pomiaru nie może zepsuć końca partii. */
+  private measure(outcome: RoomGameOutcome) {
+    const { players, nicks } = this.match!;
+    try {
+      stats.recordRoomGame({ roomKey: this.roomKey, gameId: this.gameId!, players, outcome, nicks });
+    } catch (error) {
+      this.logError("pomiar partii", error);
+    }
+  }
+
   /** Po limicie czasu serwer wykonuje ruch za gracza, który nie zdążył. */
   private startTurnTimer() {
     // Wynik oddany, gdy ktoś jeszcze czyta instrukcję, nie uruchamia limitu.
@@ -447,7 +468,7 @@ export class LobbyRoom extends Room {
       } catch (error) {
         // Bez ruchu zastępczego nie ruszyłby kolejny limit i partia wisiałaby bez końca, więc kończy się bez zwycięzcy.
         this.logError("ruch po limicie czasu", error);
-        this.finish({});
+        this.finish({}, "aborted");
       }
       this.update();
     }, ms);
