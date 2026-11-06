@@ -1,5 +1,5 @@
 import { type AuthContext, type Client, CloseCode } from "@colyseus/core";
-import { GAMES, KALAMBURY_HALF_SECONDS, type KalamburyView, type RoomView, type ZakupyView } from "@kwadrans/games";
+import { GAMES, KALAMBURY_HALF_SECONDS, type KalamburyView, type RoomView, type SabotazKind, type SabotazMove, type SabotazView, type ZakupyView } from "@kwadrans/games";
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 // Testy przed poprawką P4-027: prawdziwe handlery pokoju i walidator gry,
@@ -1456,5 +1456,301 @@ describe("pomiar: wpis room_games z pokoju", () => {
     expect(snapshot().phase).toBe("over");
     expect(entries).toHaveBeenCalledTimes(1);
     expect(entries.mock.calls[0][0]).toMatchObject({ players: 2, outcome: "aborted" });
+  });
+});
+
+describe("11-03: Sabotaż w pokoju", () => {
+  type OpenRoom = Awaited<ReturnType<typeof drawing>>;
+
+  const MAX_PAYLOAD = 32 * 1024;
+  /** Wartość "trap", a nie klucz liczności `"trap":1` we własnej ręce. */
+  const TRAP_CARD = /"trap"(?!:)/;
+  const index = (id: string) => Number(id.slice(1)) - 1;
+
+  const open = (n: number) => drawing(n, "sabotaz", false);
+  const viewOf = (r: OpenRoom, player = 0) => r.snapshot(player).game!.view as SabotazView;
+  const stamp = (r: OpenRoom) => ({ nonce: viewOf(r).nonce, round: viewOf(r).round });
+  const decided = (r: OpenRoom) => ({ ...stamp(r), decision: viewOf(r).decision });
+  /** Termin na teraz: ostatnia wysłana wiadomość pokazuje stan z chwili wysłania. */
+  const msLeft = (r: OpenRoom) => r.room["viewFor"]("p1").game!.msLeft;
+  const waiting = (r: OpenRoom) => r.snapshot().game!.waitingFor;
+
+  /** Ruch z odstępem poniżej limitu 10 wiadomości/s, żeby limit nie udawał błędu zasad. */
+  function paced(r: OpenRoom, player: string, move: SabotazMove) {
+    vi.advanceTimersByTime(110);
+    r.send(index(player), "move", move);
+  }
+  const initials = (r: OpenRoom, kinds: Record<string, SabotazKind> = {}) => {
+    for (const p of viewOf(r).players) paced(r, p, { type: "place", kind: kinds[p] ?? "safe", ...stamp(r) });
+  };
+  const place = (r: OpenRoom, kind: SabotazKind = "safe") => paced(r, viewOf(r).turn!, { type: "place", kind, ...decided(r) });
+  const bid = (r: OpenRoom, amount: number) => paced(r, viewOf(r).turn!, { type: "bid", amount, ...decided(r) });
+  const passAll = (r: OpenRoom) => {
+    while (viewOf(r).phase === "bid") paced(r, viewOf(r).turn!, { type: "pass", ...decided(r) });
+  };
+  const reveal = (r: OpenRoom, owner: string) => paced(r, viewOf(r).leader!, { type: "reveal", owner, ...decided(r) });
+  const nextAll = (r: OpenRoom) => {
+    for (const p of waiting(r)) paced(r, p, { type: "next", ...stamp(r) });
+  };
+  /** Od pierwszych kart do rozstrzygnięcia: same Przejścia, sukces `winner`. */
+  function win(r: OpenRoom, winner: string) {
+    initials(r);
+    bid(r, 1);
+    while (viewOf(r).phase === "bid") {
+      if (viewOf(r).turn === winner) bid(r, 2);
+      else paced(r, viewOf(r).turn!, { type: "pass", ...decided(r) });
+    }
+    while (viewOf(r).phase === "reveal") reveal(r, viewOf(r).players.find((p) => p !== viewOf(r).leader && viewOf(r).stackSizes[p] > 0)!);
+  }
+  function playAll(r: OpenRoom, winners: string[]) {
+    winners.forEach((winner, round) => {
+      win(r, winner);
+      if (round < winners.length - 1) nextAll(r);
+    });
+  }
+  /** Stosy po dwie karty, p1 deklaruje `amount`, pozostali pasują. */
+  function toReveal(r: OpenRoom, amount: number, kinds: Record<string, SabotazKind> = {}) {
+    initials(r, kinds);
+    for (let i = 0; i < viewOf(r).players.length; i++) place(r);
+    bid(r, amount);
+    passAll(r);
+  }
+  const roomMessages = (r: OpenRoom, player: number) =>
+    vi.mocked(r.clients[player].send).mock.calls.filter(([type]) => type === "room").map(([, message]) => message as RoomView);
+
+  describe("termin", () => {
+    test("częściowe pierwsze karty nie odnawiają wspólnego terminu, nowa faza ma własne 60 s", async () => {
+      const r = await open(3);
+      expect(msLeft(r)).toBe(30_000);
+      vi.advanceTimersByTime(5000);
+      r.send(0, "move", { type: "place", kind: "trap", ...stamp(r) });
+      expect(msLeft(r)).toBe(25_000);
+      expect(waiting(r)).toEqual(["p2", "p3"]);
+      vi.advanceTimersByTime(5000);
+      r.send(1, "move", { type: "place", kind: "safe", ...stamp(r) });
+      expect(msLeft(r)).toBe(20_000);
+      vi.advanceTimersByTime(1000);
+      r.send(2, "move", { type: "place", kind: "safe", ...stamp(r) });
+      expect(viewOf(r).phase).toBe("place");
+      expect(msLeft(r)).toBe(60_000);
+    });
+
+    test("częściowe dalej nie odnawia wspólnego terminu odsłony, nowa runda ma własne 30 s", async () => {
+      const r = await open(3);
+      win(r, "p1");
+      expect(viewOf(r).phase).toBe("summary");
+      expect(msLeft(r)).toBe(15_000);
+      vi.advanceTimersByTime(3000);
+      r.send(0, "move", { type: "next", ...stamp(r) });
+      expect(msLeft(r)).toBe(12_000);
+      vi.advanceTimersByTime(3000);
+      r.send(1, "move", { type: "next", ...stamp(r) });
+      expect(msLeft(r)).toBe(9000);
+      r.send(2, "move", { type: "next", ...stamp(r) });
+      expect(viewOf(r).round).toBe(1);
+      expect(msLeft(r)).toBe(30_000);
+    });
+
+    test("każde kolejne odkrycie tej samej osoby dostaje nowe 60 s", async () => {
+      const r = await open(3);
+      toReveal(r, 5);
+      expect(viewOf(r).phase).toBe("reveal");
+      expect(msLeft(r)).toBe(60_000);
+      for (const owner of ["p2", "p3"]) {
+        vi.advanceTimersByTime(10_000);
+        expect(msLeft(r)).toBe(50_000);
+        r.send(0, "move", { type: "reveal", owner, ...decided(r) });
+        expect(waiting(r)).toEqual(["p1"]);
+        expect(msLeft(r)).toBe(60_000);
+      }
+    });
+  });
+
+  describe("zegar", () => {
+    test("po limicie pierwszych kart gra tylko za oczekujących, a nowa faza zachowuje pełny własny termin", async () => {
+      const r = await open(3);
+      r.send(0, "move", { type: "place", kind: "trap", ...stamp(r) });
+      vi.advanceTimersByTime(30_000);
+      expect(viewOf(r).phase).toBe("place");
+      expect(viewOf(r, 0).me?.stack).toEqual(["trap"]);
+      expect(viewOf(r, 1).me?.stack).toEqual(["safe"]);
+      expect(viewOf(r, 2).me?.stack).toEqual(["safe"]);
+      expect(msLeft(r)).toBe(60_000);
+      vi.advanceTimersByTime(59_999);
+      expect(viewOf(r).decision).toBe(0);
+      vi.advanceTimersByTime(1);
+      expect(viewOf(r)).toMatchObject({ phase: "bid", leader: "p1", bid: 1, decision: 1 });
+    });
+
+    test("cała runda samym zegarem: stary callback nie zużywa nowej rundy", async () => {
+      const r = await open(3);
+      vi.advanceTimersByTime(30_000 + 60_000 * 3);
+      expect(viewOf(r).phase).toBe("summary");
+      expect(viewOf(r).history[0]).toMatchObject({ outcome: "success", leader: "p1", bid: 1 });
+      expect(msLeft(r)).toBe(15_000);
+      vi.advanceTimersByTime(15_000);
+      expect(viewOf(r)).toMatchObject({ phase: "initial", round: 1, ready: [] });
+      expect(viewOf(r, 1).me).toEqual({ hand: { safe: 3, trap: 1 }, stack: [] });
+      expect(msLeft(r)).toBe(30_000);
+    });
+
+    test("po limicie odkrywania odsłania legalny cudzy stos i daje nowy termin", async () => {
+      const r = await open(3);
+      toReveal(r, 5);
+      const before = viewOf(r).reveals.length;
+      vi.advanceTimersByTime(60_000);
+      expect(viewOf(r).reveals).toHaveLength(before + 1);
+      expect(viewOf(r).reveals.at(-1)!.owner).not.toBe("p1");
+      expect(msLeft(r)).toBe(60_000);
+    });
+
+    test("duplikat ze starej decyzji niczego nie zmienia, także terminu", async () => {
+      const r = await open(3);
+      initials(r);
+      const stale: SabotazMove = { type: "place", kind: "safe", ...decided(r) };
+      r.send(0, "move", stale);
+      vi.advanceTimersByTime(5000);
+      const before = viewOf(r);
+      r.send(0, "move", stale);
+      r.send(1, "move", stale);
+      expect(viewOf(r)).toEqual(before);
+      expect(msLeft(r)).toBe(55_000);
+    });
+  });
+
+  describe("poufność wiadomości room", () => {
+    /** p1 ma zakrytą Pułapkę, a p2 prowadzi próbę. Zwraca stan w fazie odkrywania. */
+    async function hiddenTrap() {
+      const r = await open(3);
+      initials(r, { p1: "trap" });
+      bid(r, 1);
+      bid(r, 2);
+      paced(r, viewOf(r).turn!, { type: "pass", ...decided(r) });
+      paced(r, viewOf(r).turn!, { type: "pass", ...decided(r) });
+      expect(viewOf(r)).toMatchObject({ phase: "reveal", leader: "p2" });
+      return r;
+    }
+
+    test("rywale i obserwator w żadnej wiadomości nie dostają cudzej zakrytej karty", async () => {
+      const r = await hiddenTrap();
+      expect(r.observer).toBe(3);
+      for (const player of [1, 2, r.observer!]) {
+        const messages = roomMessages(r, player);
+        expect(messages.length).toBeGreaterThan(5);
+        for (const message of messages) expect(JSON.stringify(message)).not.toMatch(TRAP_CARD);
+      }
+      // Kontrola wzorca: właściciel widzi w wiadomości własną kartę.
+      expect(JSON.stringify(roomMessages(r, 0).at(-1))).toMatch(TRAP_CARD);
+      expect(viewOf(r, r.observer!).me).toBeNull();
+      expect(viewOf(r, 1).me?.hand).toEqual({ safe: 2, trap: 1 });
+    });
+
+    test("odsłona ujawnia zakończoną rundę wszystkim, także obserwatorowi", async () => {
+      const r = await hiddenTrap();
+      reveal(r, "p1");
+      expect(viewOf(r).phase).toBe("summary");
+      for (const player of [0, 1, 2, r.observer!]) {
+        expect(viewOf(r, player).history[0]).toMatchObject({ outcome: "foreign-trap", trapOwner: "p1" });
+        expect(viewOf(r, player).history[0].stacks.p1).toEqual(["trap"]);
+      }
+      expect(viewOf(r).totals).toEqual({ p1: 1, p2: 0, p3: 0 });
+    });
+
+    test("historia zakończonej rundy jest jawna, a bieżąca runda pozostaje tajna", async () => {
+      const r = await open(3);
+      win(r, "p1");
+      nextAll(r);
+      initials(r, { p2: "trap" });
+      expect(viewOf(r).phase).toBe("place");
+      for (const player of [0, 2, r.observer!]) {
+        const { history, ...current } = viewOf(r, player);
+        expect(history).toHaveLength(1);
+        expect(JSON.stringify(current)).not.toMatch(TRAP_CARD);
+        expect(history[0].stacks).toEqual({ p1: ["safe"], p2: ["safe"], p3: ["safe"] });
+      }
+      expect(viewOf(r, 1).me?.stack).toEqual(["trap"]);
+    });
+
+    test("po końcu partii każdy widzi pełną historię sześciu rund", async () => {
+      const r = await open(3);
+      playAll(r, ["p1", "p2", "p3", "p1", "p2", "p3"]);
+      expect(r.snapshot().phase).toBe("over");
+      for (const player of [0, 1, 2, r.observer!]) expect(viewOf(r, player).history).toHaveLength(6);
+    });
+
+    test("6 graczy bez siódmego połączenia: viewFor osoby spoza miejsc to widok obserwatora", async () => {
+      const r = await open(6);
+      expect(r.observer).toBeUndefined();
+      expect(r.clients).toHaveLength(6);
+      initials(r, { p1: "trap", p2: "trap" });
+      const outsider = r.room["viewFor"]("kibic");
+      const view = outsider.game!.view as SabotazView;
+      expect(view.me).toBeNull();
+      expect(view.players).toHaveLength(6);
+      expect(JSON.stringify(outsider)).not.toMatch(TRAP_CARD);
+      expect(viewOf(r, 0).me?.stack).toEqual(["trap"]);
+    });
+  });
+
+  test("największa wiadomość room: 6 osób i 6 najdłuższych rund mieści się w 32 KB", async () => {
+    const r = await open(6);
+    for (let round = 0; round < 6; round++) {
+      const players = viewOf(r).players;
+      // Lider rusza ostatni i zostawia Pułapkę w ręce, reszta kładzie ją na spód: 23 karty i 19 odkryć, najwięcej możliwe.
+      const leader = players[(round + 5) % 6];
+      initials(r, Object.fromEntries(players.map((p) => [p, p === leader ? "safe" : "trap"])));
+      for (let i = 0; i < 17; i++) place(r);
+      expect(viewOf(r).turn).toBe(leader);
+      bid(r, 23);
+      passAll(r);
+      while (viewOf(r).phase === "reveal") {
+        const { stackSizes } = viewOf(r);
+        const owner = players.filter((p) => p !== leader).sort((a, b) => stackSizes[b] - stackSizes[a])[0];
+        reveal(r, owner);
+      }
+      if (round < 5) nextAll(r);
+    }
+    expect(r.snapshot().phase).toBe("over");
+    expect(viewOf(r).history.every((h) => h.reveals.length === 19 && h.outcome === "foreign-trap")).toBe(true);
+
+    const all = r.clients.flatMap((_, player) => roomMessages(r, player)).map((message) => JSON.stringify(message));
+    const bytes = (text: string) => new TextEncoder().encode(text).length;
+    const largest = Math.max(...all.map(bytes));
+    // Testowe id są 2-znakowe. Prawdziwe sessionId ma 9 znaków, a nick do 16 znaków, po 2 bajty na polską literę.
+    const realisticIds = Math.max(...all.map((json) => bytes(json.replace(/"p([1-6])"/g, '"$1abcdefgh"'))));
+    const nicksMargin = 6 * 2 * 16 * 3;
+    expect(largest).toBeLessThan(MAX_PAYLOAD);
+    expect(realisticIds + nicksMargin).toBeLessThan(MAX_PAYLOAD);
+  });
+
+  describe("wynik", () => {
+    test("remis na górze: bez zwycięzcy, miejsca z remisem, jeden wpis wieczoru i brak zapisu wygranej", async () => {
+      const record = vi.spyOn(stats, "record");
+      const r = await open(3);
+      playAll(r, ["p1", "p2", "p1", "p2", "p1", "p2"]);
+      const { game, evening, phase } = r.snapshot();
+      expect(phase).toBe("over");
+      expect(game!.result?.winner).toBeUndefined();
+      expect(game!.places).toEqual({ p1: 1, p2: 1, p3: 3 });
+      expect(evening.games).toBe(1);
+      expect(record).not.toHaveBeenCalled();
+    });
+
+    test("powtórzone wiadomości i czas po końcu nie powielają wyniku", async () => {
+      const record = vi.spyOn(stats, "record");
+      const r = await open(3);
+      playAll(r, ["p1", "p1", "p1", "p1", "p1", "p1"]);
+      expect(r.snapshot().game!.result?.winner).toBe("p1");
+      expect(r.snapshot().game!.places).toEqual({ p1: 1, p2: 2, p3: 2 });
+      const totals = viewOf(r).totals;
+      r.send(0, "move", { type: "next", ...stamp(r) });
+      r.send(0, "move", { type: "reveal", owner: "p2", ...decided(r) });
+      vi.advanceTimersByTime(120_000);
+      expect(viewOf(r).totals).toEqual(totals);
+      expect(totals.p1).toBe(12);
+      expect(r.snapshot().evening.games).toBe(1);
+      expect(record).toHaveBeenCalledTimes(1);
+      expect(record).toHaveBeenCalledWith("sabotaz", ["p1", "p2", "p3"], "p1");
+    });
   });
 });

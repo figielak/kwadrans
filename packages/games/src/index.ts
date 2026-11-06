@@ -16,6 +16,7 @@ import { literowka } from "./literowka.ts";
 import { nozyczki } from "./nozyczki.ts";
 import { obrot } from "./obrot.ts";
 import { panstwaMiasta } from "./panstwa-miasta.ts";
+import { sabotaz } from "./sabotaz.ts";
 import { labirynt } from "./labirynt.ts";
 import { piecWRzedzie } from "./piec-w-rzedzie.ts";
 import { przytrzymaj } from "./przytrzymaj.ts";
@@ -114,6 +115,20 @@ export { LIST as ZAKUPY_LIST, MAX_MS as ZAKUPY_MAX_MS, score as zakupyScore, SHE
 export { deviation as zaslonaDeviation, ROUNDS as ZASLONA_ROUNDS, type View as ZaslonaView } from "./zaslona.ts";
 export { type Cake as TortCake, CAKES as TORT_CAKES, error as tortError, type View as TortView } from "./tort.ts";
 export { ballAt as kubkiBallAt, ROUNDS as KUBKI_ROUNDS, SHOW_MS as KUBKI_SHOW_MS, swapMs as kubkiSwapMs, type Round as KubkiRound, type View as KubkiView } from "./kubki.ts";
+export {
+  INITIAL_SECONDS as SABOTAZ_INITIAL_SECONDS,
+  type Kind as SabotazKind,
+  type Move as SabotazMove,
+  ROUNDS as SABOTAZ_ROUNDS,
+  type RoundRecord as SabotazRound,
+  SAFE_CARDS as SABOTAZ_SAFE_CARDS,
+  SUCCESS_POINTS as SABOTAZ_SUCCESS_POINTS,
+  SUMMARY_SECONDS as SABOTAZ_SUMMARY_SECONDS,
+  TRAP_CARDS as SABOTAZ_TRAP_CARDS,
+  TRAP_POINTS as SABOTAZ_TRAP_POINTS,
+  TURN_SECONDS as SABOTAZ_TURN_SECONDS,
+  type View as SabotazView,
+} from "./sabotaz.ts";
 export { BLANKS as SUDOKU_BLANKS, PENALTY_MS as SUDOKU_PENALTY_MS, total as sudokuTotal, type View as SudokuView } from "./sudoku.ts";
 export { accepts as nozyczkiAccepts, type Cut as NozyczkiCut, error as nozyczkiError, type Point as NozyczkiPoint, share as nozyczkiShare, SHAPES as NOZYCZKI_SHAPES, split as nozyczkiSplit, type View as NozyczkiView } from "./nozyczki.ts";
 export { DURATION_MS as QUIZ_DURATION_MS, BLOCK_MS as QUIZ_BLOCK_MS, type QuizMove } from "./quiz.ts";
@@ -160,6 +175,7 @@ export const GAMES: Record<string, GameDefinition<any, any>> = Object.assign(Obj
   [sudoku.id]: sudoku,
   [panstwaMiasta.id]: panstwaMiasta,
   [kalambury.id]: kalambury,
+  [sabotaz.id]: sabotaz,
 });
 
 /** Id mini-gier (gry solo, minPlayers 1): pula turnieju i lista na ekranie mini-gier. */

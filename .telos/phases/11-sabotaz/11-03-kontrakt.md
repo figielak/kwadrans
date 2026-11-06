@@ -2,7 +2,7 @@
 id: 11-03
 title: "Sabotaż: rejestr, zegar pokoju i poufność"
 type: code
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: true
 effort: hard
 depends: ["11-02"]
@@ -61,10 +61,13 @@ Podłączyć silnik do rejestru i udowodnić zgodność SAB-03 z rzeczywistą ś
 4. apps/server/src/LobbyRoom.test.ts: dodać scenariusze zegara, widoków, maksymalnej wiadomości i wyniku na prawdziwych handlerach.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm typecheck && pnpm test` → exit 0
-- [ ] Udokumentowane liczby bajtów oraz dowód stałego terminu initial/summary i nowego terminu kolejnych reveal.
+- [x] all listed tests pass
+- [x] `pnpm typecheck && pnpm test` → exit 0
+- [x] Udokumentowane liczby bajtów oraz dowód stałego terminu initial/summary i nowego terminu kolejnych reveal.
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+RED: `vitest run src/index.test.ts` → exit 1: GAMES.sabotaz i SABOTAZ_* nieobecne (lista 38 zamiast 39). Potem wpis w GAMES, eksporty SABOTAZ_*, SabotazView/Move/Kind/Round; kontrakt startuje od minPlayers, a reveal dowodzi sterowana partia 3 i 6 osób (visited.sabotaz: initial, place, bid, reveal, summary).
+Pokój (15 testów przez prawdziwe handlery i fałszywy zegar): częściowe initial 30→25→20 s i next 15→12→9 s bez odnowienia; nowa faza 60 s, nowa runda 30 s; kolejne reveal 50→60 s dla tej samej osoby; zegar gra tylko za oczekujących, stary callback nie zużywa nowej rundy, duplikat bez zmian.
+Największa wiadomość room (6 osób, 6 rund po 19 odkryć): 8914 B; z 9-znakowymi id 11462 B, plus 576 B zapasu na nicki, przy limicie 32768 B. Wynik: remis bez zwycięzcy, places z remisami, jeden wpis wieczoru, jeden zapis wygranej.
+Testy: 2478 + 186 + 371. LobbyRoom.ts bez zmian. Do 11-06 gra jest w GAMES bez ekranu klienta, więc gałęzi nie scalać przed tym zadaniem.
+Deviations: AGENTS.md — zmiana użytkownika sprzed zadania, nie commitowana
