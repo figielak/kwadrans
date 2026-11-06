@@ -2,7 +2,7 @@
 id: 11-02
 title: "Sabotaż: testy przed kodem i silnik rund"
 type: code
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: in-progress # draft | approved | in-progress | done | blocked | reverted
 critical: true
 effort: hard
 depends: ["11-01"]
@@ -81,5 +81,6 @@ Zbudować kompletny silnik SAB-01..03 z testami zapisanymi i commitowanymi przed
 - [ ] Osobny commit pełnych testów poprzedza sabotaz.ts; brak nieautoryzowanych commitów i zmian testów pod kod.
 
 ## Result
+RED: pnpm --filter @kwadrans/games exec vitest run src/sabotaz.test.ts → exit 1: brak modułu ./sabotaz.ts (przed implementacją). Czeka na prośbę o osobny commit testów.
 <!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
      last line always: "Deviations: none" or "Deviations: path — why" -->
