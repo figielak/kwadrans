@@ -22,6 +22,9 @@ import {
   mark,
   MAX_PLAYERS,
   QUICK_SERIES_LENGTH,
+  VOTE_SECONDS,
+  voteOptions,
+  voteWinner,
   MINI_GAME_IDS,
   type MoveContext,
   NEXT_SECONDS,
@@ -60,6 +63,7 @@ export const stats = openStats(dbPath);
 type Timer = { clear(): void };
 
 const newRng = () => createRng(crypto.getRandomValues(new Uint32Array(1))[0]);
+const defaultMode = (def: GameDefinition<unknown, unknown>) => (def.modes?.find((m) => m.default) ?? def.modes?.[0])?.id ?? null;
 
 interface Match {
   def: GameDefinition<unknown, unknown>;
@@ -90,6 +94,8 @@ export class LobbyRoom extends Room {
   private scores: Record<string, number> = {};
   private evening: Evening = { games: [], nicks: {} };
   private eveningView: RoomView["evening"] = { games: 0, played: [], table: [], titles: [] };
+  /** Trwające głosowanie „Inna gra”, zawsze w fazie `over`; koniec liczy `turnTimer`. */
+  private vote: { options: string[]; votes: Record<string, string> } | null = null;
   private match: Match | null = null;
   private turnTimer?: Timer;
   private turnEndsAt: number | null = null;
@@ -125,7 +131,7 @@ export class LobbyRoom extends Room {
       this.gameId = gameId;
       this.tournament = null;
       this.markedBy = {};
-      this.mode = (def?.modes?.find((m) => m.default) ?? def?.modes?.[0])?.id ?? null;
+      this.mode = def ? defaultMode(def) : null;
       this.seats = def ? [...this.players.keys()].slice(0, def.maxPlayers) : [];
       this.resetReady();
     });
@@ -245,15 +251,35 @@ export class LobbyRoom extends Room {
     // Po partii `ready` znaczy „chcę rewanż”; rewanż rusza, gdy chcą wszyscy grający.
     this.on("rematch", (client) => {
       const player = this.players.get(client.sessionId);
-      if (!player || this.phase !== "over" || !this.seats.includes(client.sessionId)) return;
+      if (!player || this.phase !== "over" || this.vote || !this.seats.includes(client.sessionId)) return;
       player.ready = true;
       this.maybeRematch();
     });
 
-    // Każdy może zakończyć serię i zabrać wszystkich do lobby; trwający turniej przerywa tylko gospodarz.
+    // Inna gra: każdy grający może rozpocząć głosowanie, poza pokojem solo i trwającym turniejem. Dotychczasowa zgoda na rewanż przepada.
+    this.on("otherGame", (client) => {
+      if (this.phase !== "over" || this.solo || this.vote || !this.seats.includes(client.sessionId)) return;
+      if (this.tournament && !isDone(this.tournament)) return;
+      const options = voteOptions(Object.values(GAMES), this.seats.length, this.gameId!, this.eveningView.played, newRng());
+      if (options.length === 0) return;
+      this.vote = { options, votes: {} };
+      this.resetReady();
+      this.turnEndsAt = Date.now() + VOTE_SECONDS * 1000;
+      this.turnTimer = this.clock.setTimeout(() => {
+        this.finishVote();
+        this.update();
+      }, VOTE_SECONDS * 1000);
+    });
+
+    this.on("vote", (client, { id }) => {
+      if (!this.vote?.options.includes(id) || !this.seats.includes(client.sessionId)) return;
+      this.vote = { ...this.vote, votes: { ...this.vote.votes, [client.sessionId]: id } };
+      this.maybeFinishVote();
+    });
+
+    // Gospodarz zabiera wszystkich do lobby: kończy serię, przerywa turniej albo gasi głosowanie.
     this.on("toLobby", (client) => {
-      if (!this.players.has(client.sessionId) || this.phase !== "over" || this.solo) return;
-      if (this.tournament && !isDone(this.tournament) && !this.isHost(client)) return;
+      if (!this.isHost(client) || this.phase !== "over" || this.solo) return;
       this.toLobby();
     });
   }
@@ -322,6 +348,7 @@ export class LobbyRoom extends Room {
         const walkover = this.seats.length === 1 && !this.tournament;
         this.finish(walkover ? { winner: this.seats[0] } : {}, walkover ? "walkover" : "aborted");
       }
+      else if (this.vote) this.voteAfterLeave(client.sessionId);
       else this.maybeRematch();
     }
     this.update();
@@ -383,6 +410,7 @@ export class LobbyRoom extends Room {
 
   private toLobby() {
     this.phase = "lobby";
+    this.vote = null;
     this.match = null;
     this.resetReady();
     this.turnTimer?.clear();
@@ -404,9 +432,41 @@ export class LobbyRoom extends Room {
     this.startMatch(GAMES[this.gameId]);
   }
 
+  private maybeFinishVote() {
+    if (this.vote && this.seats.every((id) => id in this.vote!.votes)) this.finishVote();
+  }
+
+  /** Kto wyszedł, nie głosuje; odpadają też opcje, na które jest już za mało osób. Nie zostaje żadna: lobby. */
+  private voteAfterLeave(id: string) {
+    const options = this.vote!.options.filter((option) => GAMES[option].minPlayers <= this.seats.length);
+    if (options.length === 0) return this.toLobby();
+    const votes = Object.entries(this.vote!.votes).filter(([voter, vote]) => voter !== id && options.includes(vote));
+    this.vote = { options, votes: Object.fromEntries(votes) };
+    this.maybeFinishVote();
+  }
+
+  /** Wynik głosowania rusza jak nowa gra: tryb domyślny, pełna instrukcja, bez skończonego turnieju. */
+  private finishVote() {
+    const gameId = voteWinner(this.vote!.options, this.vote!.votes, newRng());
+    this.vote = null;
+    this.turnTimer?.clear();
+    this.turnEndsAt = null;
+    this.tournament = null;
+    this.markedBy = {};
+    this.gameId = gameId;
+    this.mode = defaultMode(GAMES[gameId]);
+    try {
+      this.startMatch(GAMES[gameId]);
+    } catch (error) {
+      // Jak w turnieju: błąd w zasadach gry nie może zostawić pokoju bez wyjścia.
+      this.logError("start gry po głosowaniu", error);
+      this.toLobby();
+    }
+  }
+
   private maybeRematch() {
     const def = this.gameId ? GAMES[this.gameId] : undefined;
-    if (this.phase !== "over" || !def || this.seats.length < def.minPlayers) return;
+    if (this.phase !== "over" || this.vote || !def || this.seats.length < def.minPlayers) return;
     if (!this.seats.every((id) => this.players.get(id)?.ready)) return;
     if (this.tournament) return this.startTournamentGame();
     // Na zmianę: kto zaczynał, w rewanżu rusza się ostatni. W mini-grach (minPlayers 1) wszyscy grają naraz,
@@ -597,6 +657,7 @@ export class LobbyRoom extends Room {
       markedBy: this.markedBy,
       scores: this.scores,
       evening: this.eveningView,
+      vote: this.vote && { ...this.vote, msLeft: Math.max(0, (this.turnEndsAt ?? 0) - Date.now()) },
       game: match && {
         // Obserwator dostaje widok gracza "", czyli bez czyichkolwiek ukrytych informacji.
         view: match.def.playerView(match.state, this.seats.includes(id) ? id : ""),

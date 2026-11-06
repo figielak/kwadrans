@@ -159,7 +159,12 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
 - Po limicie tury serwer wykonuje `timeoutMove` (losowy ruch), nie przegraną. Limit odnawia się tylko,
   gdy zmienia się `waitingFor` (albo `key` z `turn`) lub ten sam gracz ma kolejny ruch.
 - Gracze bez miejsca oglądają partię. Nowy gracz dostaje miejsce sam, jeśli gra wybrana i jest wolne.
-- Rewanż po zgodzie wszystkich grających, kolejność miejsc rotuje (poza mini-grami, gdzie wszyscy grają naraz); do lobby może wrócić każdy.
+- Rewanż po zgodzie wszystkich grających, kolejność miejsc rotuje (poza mini-grami, gdzie wszyscy grają naraz); do lobby zabiera wszystkich tylko gospodarz.
+- **Głosowanie „Inna gra”**: po partii każdy grający może je rozpocząć (`otherGame`), poza pokojem solo i trwającym turniejem. Serwer losuje do 3 gier (`voteOptions`): bez bieżącej,
+  pasujące do liczby `seats`, co najmniej dwie niegrane w tym pokoju (`evening.played`), gdy takie są. Głosują i grają obecne `seats` (`vote: { id }`, liczy się ostatni głos), obserwatorzy tylko oglądają;
+  `RoomView.vote` niesie opcje, głosy i `msLeft`. Komplet głosów albo `VOTE_SECONDS = 10` rozstrzyga (`voteWinner`: najwięcej głosów, remis i brak głosów przez `rng`), a wybrana gra rusza w trybie domyślnym
+  zwykłym startem z pełną instrukcją; skończony turniej jest wtedy czyszczony. Rewanż w trakcie głosowania jest ignorowany. Wyjście gracza kasuje jego głos i opcje, na które jest już za mało osób;
+  gdy nie zostaje żadna, wszyscy wracają do lobby. Gospodarz może zgasić głosowanie przez „Do lobby”.
 - W mini-grach (`minPlayers: 1`) przy co najmniej dwóch grających „Start” oznacza gotowość. Komplet gotowości albo upływ 15 s instrukcji
   rozpoczyna wspólne odliczanie 3-2-1; dopiero po nim rusza pełny limit gry. Rewanż skraca instrukcję do 5 s; kolejna gra turnieju ma 15 s.
   Jeden grający czeka bez limitu instrukcji i po „Start” rusza od razu, bez odliczania (także w zwykłym pokoju i turnieju); po godzinie bezczynności pokój jest zamykany.

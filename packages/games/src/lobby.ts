@@ -46,6 +46,8 @@ export interface RoomView {
   scores: Record<PlayerId, number>;
   /** Gotowe podsumowanie wieczoru. Historia partii zostaje na serwerze. */
   evening: { games: number; played: string[]; table: EveningRow[]; titles: EveningTitle[] };
+  /** Trwające głosowanie „Inna gra”; faza zostaje `over`, a null znaczy brak głosowania. */
+  vote: { options: string[]; votes: Record<PlayerId, string>; msLeft: number } | null;
   game: {
     view: unknown;
     /** Na kogo czekamy: gracz na turze albo kilku naraz (np. rozstawianie statków). */
@@ -99,6 +101,9 @@ export const ROOM_MESSAGES = {
   // „Start” na ekranie instrukcji mini-gry.
   begin: z.unknown(),
   rematch: z.unknown(),
+  // Głosowanie „Inna gra”: rozpoczęcie i głos; opcje i prawo głosu sprawdza pokój.
+  otherGame: z.unknown(),
+  vote: z.object({ id: z.string() }),
   toLobby: z.unknown(),
   // Kształt ruchu sprawdza moveSchema wybranej gry.
   move: z.unknown(),

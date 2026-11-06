@@ -1,4 +1,4 @@
-import type { GameResult, PlayerId } from "./core.ts";
+import { type GameResult, type PlayerId, type Rng, shuffle } from "./core.ts";
 import { gamePoints } from "./turniej.ts";
 
 interface GameRow {
@@ -91,4 +91,27 @@ export function titles(evening: Evening): EveningTitle[] {
   award("Najlepsza seria", table, (row) => bestRuns.get(row.key) ?? 0);
   award("Największy powrót", table.filter((row) => byStanding(row, table[0]) === 0), (row) => deficits.get(row.key) ?? 0, " pkt");
   return result;
+}
+
+/** Tyle sekund trwa głosowanie „Inna gra”. */
+export const VOTE_SECONDS = 10;
+
+const VOTE_OPTIONS = 3;
+
+/** Do 3 gier pasujących do liczby osób, bez bieżącej; co najmniej dwie niegrane w tym pokoju, gdy takie są. */
+export function voteOptions(pool: { id: string; minPlayers: number; maxPlayers: number }[], players: number, current: string, played: string[], rng: Rng): string[] {
+  const fitting = pool.filter((game) => game.id !== current && game.minPlayers <= players && players <= game.maxPlayers).map((game) => game.id);
+  const fresh = shuffle(fitting.filter((id) => !played.includes(id)), rng).slice(0, VOTE_OPTIONS - 1);
+  const rest = shuffle(fitting.filter((id) => !fresh.includes(id)), rng).slice(0, VOTE_OPTIONS - fresh.length);
+  // Ostatnie tasowanie: niegrane nie stoją zawsze na tych samych kartach.
+  return shuffle([...fresh, ...rest], rng);
+}
+
+/** Najwięcej głosów; remis i brak głosów rozstrzyga rng. Głosy spoza opcji się nie liczą. */
+export function voteWinner(options: string[], votes: Record<PlayerId, string>, rng: Rng): string {
+  const counted = Object.values(votes);
+  const count = (id: string) => counted.filter((vote) => vote === id).length;
+  const best = Math.max(...options.map(count));
+  const leaders = options.filter((id) => count(id) === best);
+  return leaders[Math.floor(rng() * leaders.length)];
 }

@@ -84,6 +84,280 @@ async function drawing(n: number, gameId = "kalambury", start = true) {
   return { room, send, snapshot, clients, observer };
 }
 
+describe("07-19: głosowanie Inna gra", () => {
+  const saved = { ...GAMES };
+  afterEach(() => {
+    for (const id of Object.keys(GAMES)) delete GAMES[id];
+    Object.assign(GAMES, saved);
+  });
+  /** Zawęża katalog, żeby losowanie opcji nie decydowało o przebiegu testu. */
+  const onlyGames = (keep: (id: string) => boolean) => {
+    for (const id of Object.keys(GAMES)) if (!keep(id)) delete GAMES[id];
+  };
+  const minisOnly = () => onlyGames((id) => saved[id].minPlayers === 1);
+  const mainsOnly = () => onlyGames((id) => id === "stoper" || saved[id].minPlayers > 1);
+
+  /** Skończona partia stopera: n grających, ostatni klient to obserwator (gdy jest miejsce). */
+  async function over(n = 2) {
+    const room = await drawing(n, "stoper");
+    for (let i = 0; i < n; i++) room.send(i, "move", { type: "result", deviation: 100 + i });
+    expect(room.snapshot().phase).toBe("over");
+    return room;
+  }
+  async function voting(n = 2) {
+    const room = await over(n);
+    room.send(0, "otherGame", {});
+    expect(room.snapshot().vote).not.toBeNull();
+    return room;
+  }
+
+  test("po partii startuje głosowanie: 3 opcje bez bieżącej gry, 10 s, widzi je też obserwator", async () => {
+    const { snapshot, observer } = await voting();
+    const { vote, phase } = snapshot();
+    expect(phase).toBe("over");
+    expect(vote!.options).toHaveLength(3);
+    expect(vote!.options).not.toContain("stoper");
+    expect(vote!.votes).toEqual({});
+    expect(vote!.msLeft).toBe(10_000);
+    expect(snapshot(observer).vote).toEqual(vote);
+  });
+
+  test("przed głosowaniem pole vote jest null; obserwator ani ponowne otherGame niczego nie zmieniają", async () => {
+    const { send, snapshot, observer } = await over();
+    expect(snapshot().vote).toBeNull();
+    send(observer!, "otherGame", {});
+    expect(snapshot().vote).toBeNull();
+    send(1, "otherGame", {});
+    const options = snapshot().vote!.options;
+    vi.advanceTimersByTime(4000);
+    send(0, "otherGame", {});
+    expect(snapshot().vote!.options).toEqual(options);
+    expect(snapshot().vote!.msLeft).toBe(6000);
+  });
+
+  test("poza końcem partii otherGame nic nie robi", async () => {
+    const lobby = await openRoom(2);
+    lobby.send(0, "otherGame", {});
+    expect(lobby.snapshot()).toMatchObject({ phase: "lobby", vote: null });
+    const playing = await drawing(2, "stoper");
+    playing.send(0, "otherGame", {});
+    expect(playing.snapshot()).toMatchObject({ phase: "playing", vote: null });
+  });
+
+  test("komplet głosów: start od razu w mini-grze z pełną instrukcją, timer głosowania zgaszony", async () => {
+    minisOnly();
+    const { send, snapshot } = await voting();
+    const { options } = snapshot().vote!;
+    send(0, "vote", { id: options[1] });
+    expect(snapshot().phase).toBe("over");
+    expect(snapshot().vote!.votes).toEqual({ p1: options[1] });
+    send(1, "vote", { id: options[1] });
+    const view = snapshot();
+    expect(view).toMatchObject({ phase: "playing", gameId: options[1], vote: null, seats: ["p1", "p2"], mode: null });
+    expect(view.game).toMatchObject({ intro: true, countdown: false, skipIntro: false, msLeft: 15_000 });
+    const match = view.game;
+    vi.advanceTimersByTime(10_000);
+    // Sam upływ czasu nic nie wysyła: dowolna wiadomość odświeża widok.
+    send(0, "otherGame", {});
+    expect(snapshot()).toMatchObject({ phase: "playing", gameId: options[1], vote: null });
+    expect(snapshot().game!.msLeft).toBe(match!.msLeft! - 10_000);
+  });
+
+  test("gra główna rusza bez instrukcji, w trybie domyślnym", async () => {
+    onlyGames((id) => id === "stoper" || id === "statki");
+    const { send, snapshot } = await voting();
+    expect(snapshot().vote!.options).toEqual(["statki"]);
+    send(0, "vote", { id: "statki" });
+    send(1, "vote", { id: "statki" });
+    const def = saved.statki;
+    expect(snapshot()).toMatchObject({ phase: "playing", gameId: "statki", mode: (def.modes!.find((m) => m.default) ?? def.modes![0]).id });
+    expect(snapshot().game!.intro).toBe(false);
+  });
+
+  test("brak głosów po 10 s: losowo z opcji", async () => {
+    const { snapshot } = await voting();
+    const { options } = snapshot().vote!;
+    vi.advanceTimersByTime(9999);
+    expect(snapshot().phase).toBe("over");
+    vi.advanceTimersByTime(1);
+    expect(snapshot()).toMatchObject({ phase: "playing", vote: null });
+    expect(options).toContain(snapshot().gameId);
+  });
+
+  test("po czasie liczą się oddane głosy; remis rozstrzyga rng między remisującymi", async () => {
+    const one = await voting();
+    const [a] = one.snapshot().vote!.options;
+    one.send(0, "vote", { id: a });
+    vi.advanceTimersByTime(10_000);
+    expect(one.snapshot().gameId).toBe(a);
+
+    const two = await voting();
+    const [x, y] = two.snapshot().vote!.options;
+    two.send(0, "vote", { id: x });
+    two.send(1, "vote", { id: y });
+    expect([x, y]).toContain(two.snapshot().gameId);
+    expect(two.snapshot().phase).toBe("playing");
+  });
+
+  test("zmiana głosu: liczy się ostatni", async () => {
+    const { send, snapshot } = await voting(3);
+    const [a, b] = snapshot().vote!.options;
+    send(0, "vote", { id: a });
+    send(1, "vote", { id: a });
+    send(0, "vote", { id: b });
+    send(1, "vote", { id: b });
+    expect(snapshot().vote!.votes).toEqual({ p1: b, p2: b });
+    send(2, "vote", { id: a });
+    expect(snapshot().gameId).toBe(b);
+  });
+
+  test("głos obserwatora, spoza opcji albo o złym kształcie jest odrzucany", async () => {
+    const { send, snapshot, observer } = await voting();
+    const { options } = snapshot().vote!;
+    send(observer!, "vote", { id: options[0] });
+    send(0, "vote", { id: "stoper" });
+    send(0, "vote", { id: "nie-ma-takiej" });
+    send(0, "vote", { nope: 1 });
+    expect(snapshot().vote!.votes).toEqual({});
+  });
+
+  test("vote poza głosowaniem nic nie robi", async () => {
+    const { send, snapshot } = await over();
+    send(0, "vote", { id: "refleks" });
+    expect(snapshot()).toMatchObject({ phase: "over", vote: null });
+  });
+
+  test("rematch w trakcie głosowania jest ignorowany, wcześniejsza zgoda przepada", async () => {
+    const { send, snapshot } = await over();
+    send(0, "rematch", {});
+    send(1, "otherGame", {});
+    expect(snapshot().players.every((p) => !p.ready)).toBe(true);
+    send(0, "rematch", {});
+    send(1, "rematch", {});
+    expect(snapshot()).toMatchObject({ phase: "over", gameId: "stoper" });
+    expect(snapshot().vote).not.toBeNull();
+    expect(snapshot().players.every((p) => !p.ready)).toBe(true);
+  });
+
+  test("pokój solo: otherGame nic nie robi", async () => {
+    const { send, snapshot } = await openRoom(1, { solo: "stoper" });
+    send(0, "begin", {});
+    send(0, "move", { type: "result", deviation: 100 });
+    expect(snapshot().phase).toBe("over");
+    send(0, "otherGame", {});
+    expect(snapshot().vote).toBeNull();
+  });
+
+  const tournament = async () => {
+    const room = await openRoom(2);
+    room.send(0, "pickTournament", { length: 3 });
+    room.send(0, "toggleSeat", { id: "p3" });
+    room.send(1, "ready", { ready: true });
+    room.send(0, "start", {});
+    return room;
+  };
+
+  test("trwający turniej: otherGame nic nie robi", async () => {
+    const { send, snapshot } = await tournament();
+    for (let i = 0; i < 600 && snapshot().phase !== "over"; i++) vi.advanceTimersByTime(1000);
+    expect(snapshot().phase).toBe("over");
+    expect(snapshot().tournament!.index).toBeLessThan(snapshot().tournament!.games.length);
+    send(0, "otherGame", {});
+    expect(snapshot().vote).toBeNull();
+  });
+
+  test("po skończonym turnieju głosowanie działa, a tournament jest null przed startem nowej gry", async () => {
+    const { send, snapshot } = await tournament();
+    vi.advanceTimersByTime(30 * 60_000);
+    expect(snapshot().phase).toBe("over");
+    expect(snapshot().tournament).not.toBeNull();
+    send(0, "otherGame", {});
+    expect(snapshot().tournament).not.toBeNull();
+    const [id] = snapshot().vote!.options;
+    send(0, "vote", { id });
+    send(1, "vote", { id });
+    expect(snapshot()).toMatchObject({ phase: "playing", gameId: id, tournament: null, vote: null });
+  });
+
+  test("wyjście gracza, gdy pozostali zagłosowali: rozstrzygnięcie", async () => {
+    const { room, send, snapshot, clients } = await voting(3);
+    const [a] = snapshot().vote!.options;
+    send(0, "vote", { id: a });
+    send(1, "vote", { id: a });
+    await room.onLeave(clients[2], CloseCode.CONSENTED);
+    expect(snapshot()).toMatchObject({ phase: "playing", gameId: a, vote: null, seats: ["p1", "p2"] });
+  });
+
+  test("wyjście gracza kasuje jego głos; wyjście obserwatora niczego nie rozstrzyga", async () => {
+    const { room, send, snapshot, clients, observer } = await voting(3);
+    const [a] = snapshot().vote!.options;
+    send(0, "vote", { id: a });
+    send(1, "vote", { id: a });
+    await room.onLeave(clients[observer!], CloseCode.CONSENTED);
+    expect(snapshot().phase).toBe("over");
+    await room.onLeave(clients[1], CloseCode.CONSENTED);
+    expect(snapshot().vote!.votes).toEqual({ p1: a });
+  });
+
+  test("za mało osób na wszystkie opcje: lobby, timer zgaszony", async () => {
+    mainsOnly();
+    const { room, snapshot, clients } = await voting();
+    await room.onLeave(clients[1], CloseCode.CONSENTED);
+    expect(snapshot()).toMatchObject({ phase: "lobby", vote: null, game: null });
+    vi.advanceTimersByTime(10_000);
+    expect(snapshot()).toMatchObject({ phase: "lobby", vote: null, game: null });
+  });
+
+  test("za mało osób na część opcji: odpadają tylko one, razem z głosami na nie", async () => {
+    onlyGames((id) => ["stoper", "statki", "refleks", "stroop"].includes(id));
+    const { room, send, snapshot, clients } = await voting();
+    expect(snapshot().vote!.options).toContain("statki");
+    send(0, "vote", { id: "statki" });
+    await room.onLeave(clients[1], CloseCode.CONSENTED);
+    expect(snapshot().vote!.options.sort()).toEqual(["refleks", "stroop"]);
+    expect(snapshot().vote!.votes).toEqual({});
+    expect(snapshot().phase).toBe("over");
+  });
+
+  test("toLobby od gospodarza gasi głosowanie, od gościa nic nie robi", async () => {
+    const { send, snapshot } = await voting();
+    const vote = snapshot().vote;
+    send(1, "toLobby", {});
+    expect(snapshot()).toMatchObject({ phase: "over", vote });
+    send(0, "toLobby", {});
+    expect(snapshot()).toMatchObject({ phase: "lobby", vote: null });
+    vi.advanceTimersByTime(10_000);
+    expect(snapshot()).toMatchObject({ phase: "lobby", vote: null, game: null });
+  });
+
+  test("toLobby od gościa po zwykłej partii nic nie robi", async () => {
+    const { send, snapshot } = await over();
+    send(1, "toLobby", {});
+    expect(snapshot().phase).toBe("over");
+    send(0, "toLobby", {});
+    expect(snapshot().phase).toBe("lobby");
+  });
+
+  test("gospodarz wyszedł: nowy gospodarz, głosowanie trwa", async () => {
+    const { room, send, snapshot, clients } = await voting(3);
+    const vote = snapshot(1).vote!;
+    await room.onLeave(clients[0], CloseCode.CONSENTED);
+    expect(snapshot(1).hostId).toBe("p2");
+    expect(snapshot(1).vote!.options).toEqual(vote.options);
+    send(1, "vote", { id: vote.options[0] });
+    send(2, "vote", { id: vote.options[0] });
+    expect(snapshot(1)).toMatchObject({ phase: "playing", gameId: vote.options[0], vote: null });
+  });
+
+  test("toLobby przerywa głosowanie po turnieju tak jak zwykły powrót", async () => {
+    const { send, snapshot } = await tournament();
+    vi.advanceTimersByTime(30 * 60_000);
+    send(1, "otherGame", {});
+    send(0, "toLobby", {});
+    expect(snapshot()).toMatchObject({ phase: "lobby", vote: null, tournament: { games: [] } });
+  });
+});
+
 describe("07-18: Szybka seria", () => {
   test("gospodarz odpala turniej 5 gier z miejscami dla wszystkich, bez gotowości gości", async () => {
     const { send, snapshot } = await openRoom(3);

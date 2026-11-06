@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { nickKey } from "./core.ts";
-import { addGame, eveningTable, placesFromResult, titles, type Evening } from "./wieczor.ts";
+import { createRng } from "./core.ts";
+import { GAMES } from "./index.ts";
+import { addGame, eveningTable, placesFromResult, titles, VOTE_SECONDS, voteOptions, voteWinner, type Evening } from "./wieczor.ts";
 
 const empty = (): Evening => ({ games: [], nicks: {} });
 const rows = (...places: number[]) => places.map((place, i) => ({ key: ["ala", "bartek", "celina"][i], nick: ["Ala", "Bartek", "Celina"][i], place }));
@@ -113,5 +115,85 @@ describe("titles", () => {
     const evening = play(play(empty(), 1, 2), 1, 2);
     const next = addGame(evening, "stoper", [{ key: "ala", nick: "ALA", place: 2 }, { key: "bartek", nick: "Bartek", place: 1 }]);
     expect(titles(next)).toContainEqual({ title: "Najlepsza seria", nick: "ALA", detail: "2" });
+  });
+});
+
+describe("voteOptions", () => {
+  const game = (id: string, minPlayers = 1, maxPlayers = 6) => ({ id, minPlayers, maxPlayers });
+  const pool = ["a", "b", "c", "d", "e", "f", "g"].map((id) => game(id));
+
+  test("limit głosowania to 10 s", () => expect(VOTE_SECONDS).toBe(10));
+
+  test("ten sam seed daje ten sam wynik", () => {
+    expect(voteOptions(pool, 2, "a", [], createRng(7))).toEqual(voteOptions(pool, 2, "a", [], createRng(7)));
+  });
+
+  test("1000 seedów: 3 różne, pasujące gry bez bieżącej, co najmniej dwie niegrane", () => {
+    const mixed = [...pool, game("duet", 2, 2), game("tlum", 5, 6)];
+    const firsts = new Set<string>();
+    for (let seed = 0; seed < 1000; seed++) {
+      const options = voteOptions(mixed, 3, "a", ["b", "c", "d"], createRng(seed));
+      expect(new Set(options).size).toBe(3);
+      for (const id of options) expect(["b", "c", "d", "e", "f", "g"]).toContain(id);
+      expect(options.filter((id) => ["e", "f", "g"].includes(id)).length).toBeGreaterThanOrEqual(2);
+      firsts.add(options[0]);
+    }
+    // Niegrane nie stoją zawsze na tych samych pozycjach.
+    expect(firsts.has("b") || firsts.has("c") || firsts.has("d")).toBe(true);
+  });
+
+  test("każdy seed i każda liczba osób w prawdziwym katalogu: 3 różne gry pasujące do osób", () => {
+    const catalog = Object.values(GAMES);
+    for (let players = 1; players <= 6; players++) {
+      for (let seed = 0; seed < 1000; seed++) {
+        const options = voteOptions(catalog, players, "stoper", ["refleks"], createRng(seed));
+        expect(new Set(options).size).toBe(3);
+        expect(options).not.toContain("stoper");
+        expect(options.filter((id) => id === "refleks").length).toBeLessThanOrEqual(1);
+        for (const id of options) {
+          expect(GAMES[id].minPlayers).toBeLessThanOrEqual(players);
+          expect(GAMES[id].maxPlayers).toBeGreaterThanOrEqual(players);
+        }
+      }
+    }
+  });
+
+  test("mniej niegranych niż dwie: bierze je wszystkie i dopełnia granymi", () => {
+    for (let seed = 0; seed < 200; seed++) {
+      const options = voteOptions(pool.slice(0, 5), 2, "a", ["b", "c", "d"], createRng(seed));
+      expect(options).toHaveLength(3);
+      expect(options).toContain("e");
+    }
+    expect(voteOptions(pool.slice(0, 4), 2, "a", ["a", "b", "c", "d"], createRng(1)).sort()).toEqual(["b", "c", "d"]);
+  });
+
+  test("gdy pasuje mniej niż 3, zwraca tyle, ile jest; nie pasuje nic: pusto", () => {
+    const small = [game("a"), game("b"), game("duet", 2, 2)];
+    expect(voteOptions(small, 1, "a", [], createRng(1))).toEqual(["b"]);
+    expect(voteOptions([game("duet", 2, 2)], 1, "a", [], createRng(1))).toEqual([]);
+  });
+});
+
+describe("voteWinner", () => {
+  const options = ["a", "b", "c"];
+
+  test("wygrywa większość", () => {
+    for (let seed = 0; seed < 50; seed++) expect(voteWinner(options, { p1: "b", p2: "b", p3: "a" }, createRng(seed))).toBe("b");
+  });
+
+  test("remis rozstrzyga rng, tylko między remisującymi, i każdy może wygrać", () => {
+    const seen = new Set<string>();
+    for (let seed = 0; seed < 1000; seed++) seen.add(voteWinner(options, { p1: "a", p2: "c" }, createRng(seed)));
+    expect([...seen].sort()).toEqual(["a", "c"]);
+  });
+
+  test("bez głosów losuje spośród wszystkich opcji", () => {
+    const seen = new Set<string>();
+    for (let seed = 0; seed < 1000; seed++) seen.add(voteWinner(options, {}, createRng(seed)));
+    expect([...seen].sort()).toEqual(options);
+  });
+
+  test("głosy spoza opcji się nie liczą", () => {
+    for (let seed = 0; seed < 50; seed++) expect(voteWinner(options, { p1: "x", p2: "x", p3: "c" }, createRng(seed))).toBe("c");
   });
 });

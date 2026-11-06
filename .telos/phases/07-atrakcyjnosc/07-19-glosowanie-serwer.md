@@ -2,7 +2,7 @@
 id: 07-19
 title: "Etap 3: głosowanie „Inna gra” na serwerze"
 type: code
-status: approved
+status: done
 critical: false
 effort: hard
 depends: [07-17]
@@ -70,10 +70,15 @@ scope: ["packages/games/src/wieczor.ts", "packages/games/src/wieczor.test.ts", "
 5. `LobbyRoom`: `otherGame`, `vote`, `finishVote`, wpięcie w `onLeave`, `maybeRematch`, `toLobby`.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter @kwadrans/games exec vitest run src/wieczor.test.ts` → exit 0
-- [ ] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter @kwadrans/games exec vitest run src/wieczor.test.ts` → exit 0
+- [x] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
 
 ## Result
+Głosowanie „Inna gra” na serwerze: `otherGame` od grającego po partii losuje do 3 opcji (`voteOptions`), `vote` zbiera głosy, a komplet albo 10 s prowadzi przez `voteWinner` do startu w trybie domyślnym.
+Rozstrzygnięcie wpięte w `onLeave`, `maybeRematch`, `rematch` i `toLobby`; „Do lobby” tylko u gospodarza; skończony turniej czyszczony przed startem.
+Testy: 22 w `LobbyRoom.test.ts` i 10 w `wieczor.test.ts`; razem 2367 + 165 + 350 PASS.
+Niespodzianki: starego testu „gość wraca do lobby” nie było, więc dopisano nowy. Do 07-20 przycisk „Do lobby” u gościa nic nie robi. Plan nie mówił, kto otwiera głosowanie i co przy części niepasujących opcji: otwiera każdy grający, odpadają tylko te opcje.
+Deviations: none
