@@ -4,6 +4,7 @@ import { type CSSProperties, useEffect, useState } from "react";
 import { MiniGame } from "../games/MiniGame.tsx";
 import { fetchRanking, fetchRecords, fetchTopRecord, type RankingRow } from "../net.ts";
 import { ICONS } from "./Lobby.tsx";
+import { recordChange, recordSummary } from "./results.ts";
 import { Screen } from "./ui.tsx";
 
 const num = (n: number) => n.toFixed(1).replace(".", ",");
@@ -109,7 +110,7 @@ interface PanelProps {
   color?: string;
   /** Wynik z tej partii (z drugim kryterium); brak u obserwatora. */
   score?: Score;
-  /** Nad panelem stoi bohater wyników: to jego tytuł ma być największym tekstem. */
+  /** Nad panelem stoi bohater wyników: to jego tytuł ma być największym tekstem, a zwykła partia składa panel do jednej linii. */
   underHero?: boolean;
 }
 
@@ -118,6 +119,9 @@ export function RecordPanel({ gameId, before, after, nick, color, score, underHe
   const order = orderOf(gameId);
   const now = score === undefined ? null : standing(after, nick, order);
   const title = <h2 className="label">Rekordy · {GAMES[gameId].name}</h2>;
+  const summary = underHero ? recordSummary({ before, after, nick, order, score, format: (s) => formatRecord(gameId, s), gap: (g) => formatGap(gameId, g) }) : { full: true };
+  if (!summary) return null;
+  if ("line" in summary) return <p className="px-1 text-sm" aria-live="polite">{summary.line}</p>;
   if (!now || score === undefined) {
     return (
       <section className="tile flex flex-col gap-3 p-4">
@@ -126,15 +130,7 @@ export function RecordPanel({ gameId, before, after, nick, color, score, underHe
       </section>
     );
   }
-  const was = before && standing(before, nick, order);
-  const fresh = !!before && (!was || compareRecords(order)(now, was) < 0);
-  // Ile zabrakło do własnego rekordu: w głównym wyniku albo, przy równym, w drugim kryterium.
-  const missed =
-    score.best !== now.best
-      ? { gap: Math.abs(score.best - now.best), onTie: false }
-      : score.tie !== null && now.tie !== null && score.tie !== now.tie
-        ? { gap: Math.abs(score.tie - now.tie), onTie: true }
-        : null;
+  const { was, fresh, missed } = recordChange(before, nick, order, now, score);
 
   return (
     <section className="tile flex flex-col gap-3 p-4" aria-live="polite">

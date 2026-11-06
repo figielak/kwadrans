@@ -14,7 +14,7 @@ import { fetchRecords } from "../net.ts";
 import { decisionKey, VIBRATE } from "../vibrate.ts";
 import { formatBest, formatGap, formatRecord, RecordPanel } from "./Records.tsx";
 import { heroResult, reducedMotion, shouldReveal } from "./results.ts";
-import { type GameDot, GameDots, IntroContext, ResultDetails, ResultHero, Screen, StickyBar, type Send } from "./ui.tsx";
+import { type GameDot, GameDots, HeroSlot, IntroContext, ResultDetails, ResultHero, Screen, StickyBar, type Send } from "./ui.tsx";
 
 interface Props {
   view: RoomView;
@@ -119,6 +119,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
     setRevealing(revealStarts);
   }, [view.phase]);
   const reveal = revealStarts || revealing;
+  // Miejsce na linię najlepszej rundy: stoi w bohaterze, a pisze do niego tabela rund spod „Szczegółów”.
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
 
   // Kampus Tour ma własny, poziomy układ na cały ekran: gracze w rogach, licznik i rewanż w środku planszy.
   if (def.id === "kampus-tour") {
@@ -463,10 +465,11 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           </header>
         )}
 
-        {hero && <ResultHero hero={hero} winner={game.result?.winner} me={me} nick={nick} color={colorOf} reveal={reveal} onDone={() => setRevealing(false)} />}
+        {hero && <ResultHero hero={hero} winner={game.result?.winner} me={me} nick={nick} color={colorOf} reveal={reveal} onDone={() => setRevealing(false)} slot={setSlot} />}
         {hero && panels}
 
-        <ResultDetails collapsible={!!hero}>
+        <HeroSlot.Provider value={slot}>
+          <ResultDetails collapsible={!!hero}>
           {def.id === "piec-w-rzedzie" && (
             <PiecWRzedzie
               view={game.view as PiecWRzedzieView}
@@ -526,7 +529,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
               onMove={(move) => send("move", move)}
             />
           )}
-        </ResultDetails>
+          </ResultDetails>
+        </HeroSlot.Provider>
 
         {!hero && panels}
 

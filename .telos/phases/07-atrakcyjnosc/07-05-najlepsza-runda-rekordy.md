@@ -2,7 +2,7 @@
 id: 07-05
 title: "Etap 1: linia najlepszej rundy i zwinięty panel rekordów"
 type: code
-status: approved
+status: done
 critical: false
 effort: normal
 depends: [07-04]
@@ -57,11 +57,16 @@ Gry z tabelą rund dają jedną linię najlepszej chwili przy zwiniętych „Szc
 - `Records.tsx`, `Game.tsx`: zwinięty panel obok bohatera.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter web exec vitest run src/screens/results.test.ts` → exit 0
-- [ ] `pnpm --filter web exec vitest run src/screens/tables.test.tsx` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
-- [ ] Odbiór w `/dev?n=2`: linia w Mapie widoczna przy zwiniętych „Szczegółach”
+- [x] all listed tests pass
+- [x] `pnpm --filter web exec vitest run src/screens/results.test.ts` → exit 0
+- [x] `pnpm --filter web exec vitest run src/screens/tables.test.tsx` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
+- [x] Odbiór w `/dev?n=2`: linia w Mapie widoczna przy zwiniętych „Szczegółach”
 
 ## Result
+`RoundTable` przez portal wstawia do slotu bohatera linię „Najlepsza runda: Ola, Gdańsk, 4 km” (`bestRound`, `bestRoundLine`, kontekst `HeroSlot`); bez slotu, czyli na ekranie „Rekordy” i solo, linii nie ma. Nowe propsy `labels`, `shortUnit`, `best`.
+`RecordPanel` przy bohaterze zwija się do jednej linii (`recordSummary`), przy rekordzie, awansie i pierwszym wyniku zostaje pełny; obserwator pod bohaterem nie ma panelu. Solo bez zmian.
+Testy: 255 passed w web. Odbiór na `/dev?n=2` w Mapie: „Najlepsza runda: Gracz 2, Bydgoszcz, 95 km” przy zwiniętych „Szczegółach”; w rewanżu „Do Twojego rekordu zabrakło 1074 km”, a przy remisie we wszystkich rundach linii nie ma.
+Niespodzianki: bez stanu sprzed partii (odświeżenie) linia mówi „Twój rekord”, nie „Wyrównany rekord”; różnica zaokrąglona do zera nie daje „zabrakło 0,0 s”. Odbiór przez 127.0.0.1, bo limit 3 pokoi na IP blokował localhost po testach 07-04.
+Deviations: apps/web/src/games/Przytrzymaj.tsx — `best={false}`, wymaganie „Przytrzymaj bez linii” z Constraints, a pliku nie było na liście

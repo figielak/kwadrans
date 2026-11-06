@@ -1,6 +1,6 @@
 import { createRng, GAMES, MINI_GAME_IDS } from "@kwadrans/games";
 import { describe, expect, test } from "vitest";
-import { heroResult, revealOrder, shouldReveal } from "./results.ts";
+import { bestRound, heroResult, recordSummary, revealOrder, shouldReveal } from "./results.ts";
 
 const NICKS: Record<string, string> = { a: "Ala", b: "Bob", c: "Cyd" };
 const base = { places: null, seats: ["a", "b", "c"], me: "x", nick: (id: string) => NICKS[id] ?? "Gracz" };
@@ -165,5 +165,66 @@ describe("shouldReveal", () => {
   test("rewanż znów daje odsłonę", () => {
     const steps = [shouldReveal("playing", "over", 3), shouldReveal("over", "playing", 3), shouldReveal("playing", "over", 3)];
     expect(steps).toEqual([true, false, true]);
+  });
+});
+
+describe("bestRound", () => {
+  test("jedyny najmniejszy błąd ze wszystkich rund i graczy", () => {
+    expect(bestRound([{ id: "a", errors: [10, 4, 9] }, { id: "b", errors: [7, 5, 6] }])).toEqual({ round: 1, id: "a", error: 4 });
+  });
+
+  test("remis między graczami albo u jednego gracza: null", () => {
+    expect(bestRound([{ id: "a", errors: [4, 8] }, { id: "b", errors: [9, 4] }])).toBeNull();
+    expect(bestRound([{ id: "a", errors: [4, 4] }])).toBeNull();
+  });
+
+  test("puste `errors`: null, a gracz bez odpowiedzi nie przeszkadza reszcie", () => {
+    expect(bestRound([])).toBeNull();
+    expect(bestRound([{ id: "a", errors: [] }, { id: "b", errors: [] }])).toBeNull();
+    expect(bestRound([{ id: "a", errors: [] }, { id: "b", errors: [3] }])).toEqual({ round: 0, id: "b", error: 3 });
+  });
+});
+
+describe("recordSummary", () => {
+  const order = { lower: false };
+  const row = (nick: string, best: number) => ({ nick, best, tie: null, played: 1 });
+  const common = { nick: "Ala", order, format: (s: { best: number }) => `${s.best} traf.`, gap: (g: { gap: number }) => `${g.gap} traf.` };
+  const score = (best: number) => ({ best, tie: null });
+
+  test("zwykła partia poniżej rekordu: jedna linia z brakiem do własnego rekordu", () => {
+    const rows = [row("Ola", 30), row("Ala", 20)];
+    expect(recordSummary({ ...common, before: rows, after: rows, score: score(19) })).toEqual({ line: "Do Twojego rekordu zabrakło 1 traf." });
+  });
+
+  test("wyrównany rekord: jedna linia", () => {
+    const rows = [row("Ala", 20)];
+    expect(recordSummary({ ...common, before: rows, after: rows, score: score(20) })).toEqual({ line: "Wyrównany rekord: 20 traf." });
+  });
+
+  test("bez stanu sprzed partii (odświeżenie) nie udaje wyrównania", () => {
+    const rows = [row("Ala", 20)];
+    expect(recordSummary({ ...common, before: null, after: rows, score: score(20) })).toEqual({ line: "Twój rekord: 20 traf." });
+  });
+
+  test("różnica zaokrąglona do zera nie daje „zabrakło 0”", () => {
+    const rows = [row("Ala", 20)];
+    expect(recordSummary({ ...common, gap: () => "0,0 s", before: rows, after: rows, score: score(19) })).toEqual({ line: "Twój rekord: 20 traf." });
+  });
+
+  test("własny rekord bez zmiany miejsca: pełny panel", () => {
+    expect(recordSummary({ ...common, before: [row("Ola", 30), row("Ala", 20)], after: [row("Ola", 30), row("Ala", 25)], score: score(25) })).toEqual({ full: true });
+  });
+
+  test("awans: pełny panel", () => {
+    expect(recordSummary({ ...common, before: [row("Ola", 30), row("Ala", 20)], after: [row("Ala", 31), row("Ola", 30)], score: score(31) })).toEqual({ full: true });
+  });
+
+  test("pierwszy wynik: pełny panel", () => {
+    expect(recordSummary({ ...common, before: [row("Ola", 30)], after: [row("Ola", 30), row("Ala", 5)], score: score(5) })).toEqual({ full: true });
+  });
+
+  test("obserwator albo brak wyniku w rankingu: bez linii", () => {
+    expect(recordSummary({ ...common, before: [], after: [row("Ola", 30)], score: undefined })).toBeNull();
+    expect(recordSummary({ ...common, before: [], after: [row("Ola", 30)], score: score(5) })).toBeNull();
   });
 });

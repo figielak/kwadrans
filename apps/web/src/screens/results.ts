@@ -1,4 +1,4 @@
-import type { GameResult, RoomView } from "@kwadrans/games";
+import { compareRecords, type GameResult, type RecordOrder, type RecordRow, type RoomView, standing } from "@kwadrans/games";
 
 type Phase = RoomView["phase"];
 
@@ -81,3 +81,44 @@ export const revealOrder = <R,>(rows: R[]): R[] => [...rows].reverse();
 
 /** Odsłona tylko, gdy partia skończyła się na oczach gracza i jest co odsłaniać: odświeżenie w `over` pokazuje całość od razu. */
 export const shouldReveal = (prev: Phase | null, phase: Phase, count: number) => prev === "playing" && phase === "over" && count >= 3;
+
+/** Najmniejszy błąd partii, ze wszystkich rund i graczy; przy remisie (także u jednej osoby) nie ma jednej najlepszej chwili. */
+export function bestRound(rows: { id: string; errors: number[] }[]) {
+  const cells = rows.flatMap(({ id, errors }) => errors.map((error, round) => ({ round, id, error })));
+  const lowest = Math.min(...cells.map((c) => c.error));
+  const best = cells.filter((c) => c.error === lowest);
+  return best.length === 1 ? best[0] : null;
+}
+
+/** Porównanie partii z rankingiem sprzed niej. `before` null: strona odświeżona albo rekordy nie zdążyły dojść, więc o rekordzie nie wiadomo. */
+export function recordChange(before: RecordRow[] | null, nick: string, order: RecordOrder, now: { best: number; tie: number | null }, score: HeroScore) {
+  const was = before && standing(before, nick, order);
+  return {
+    was,
+    fresh: !!before && (!was || compareRecords(order)(now, was) < 0),
+    // Ile zabrakło do własnego rekordu: w głównym wyniku albo, przy równym, w drugim kryterium.
+    missed: gapBetween(now, score),
+  };
+}
+
+/**
+ * Panel rekordów przy bohaterze: `full`, gdy padł rekord, awans albo pierwszy wynik, inaczej jedna linia.
+ * null: obserwator albo wynik, którego nie ma w rankingu.
+ */
+export function recordSummary({ before, after, nick, order, score, format, gap }: {
+  before: RecordRow[] | null;
+  after: RecordRow[];
+  nick: string;
+  order: RecordOrder;
+  score: HeroScore | undefined;
+  format: (score: HeroScore) => string;
+  gap: (gap: { gap: number; onTie: boolean }) => string;
+}): { full: true } | { line: string } | null {
+  const now = score ? standing(after, nick, order) : null;
+  if (!now || !score) return null;
+  const { was, fresh, missed } = recordChange(before, nick, order, now, score);
+  if (fresh || (was && was.place > now.place)) return { full: true };
+  const short = missed && gap(missed);
+  if (short && /[1-9]/.test(short)) return { line: `Do Twojego rekordu zabrakło ${short}` };
+  return { line: `${before && !missed ? "Wyrównany rekord" : "Twój rekord"}: ${format(now)}` };
+}

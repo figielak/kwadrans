@@ -115,6 +115,7 @@ export function Srodek({ view, me, players, ranking, onMove }: Props) {
             perfect={PERFECT}
             close={CLOSE}
             unit="% długości odcinka"
+            shortUnit="%"
             // Na ekranie 360 px komórka mieści trzy znaki.
             format={(d) => (d < 10 ? num(d) : `${Math.round(d)}`)}
           />

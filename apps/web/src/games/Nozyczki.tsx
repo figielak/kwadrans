@@ -97,7 +97,7 @@ export function Nozyczki({ view, me, players, ranking, onMove }: Props) {
       <>
         <Scores rows={rows} />
         <p className="text-sm text-fg-muted">Suma błędów z {NOZYCZKI_SHAPES} kształtów, mniej znaczy lepiej.</p>
-        {shown.length > 0 && <RoundTable heads={view.shapes.map((_, i) => i + 1)} rows={shown} perfect={PERFECT} close={CLOSE} unit="o ile % części odbiegają od połowy" />}
+        {shown.length > 0 && <RoundTable heads={view.shapes.map((_, i) => i + 1)} rows={shown} perfect={PERFECT} close={CLOSE} unit="o ile % części odbiegają od połowy" shortUnit="%" />}
       </>
     );
   }

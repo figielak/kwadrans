@@ -106,6 +106,7 @@ export function Mapa({ view, me, players, ranking, onMove }: Props) {
             perfect={PERFECT}
             close={CLOSE}
             unit="km"
+            labels={view.cities.map((c) => c.name)}
             // Cztery cyfry nie mieszczą się w kolumnie rundy na 360 px; pełna odległość zostaje w podpowiedzi i w sumie.
             format={(d) => (d > 999 ? <span title={`${d} km`}>{"999+"}</span> : `${d}`)}
             legend={`Zielony: do ${PERFECT} km, czerwony: ponad ${CLOSE} km.`}

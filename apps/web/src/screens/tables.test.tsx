@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 import type { KampusStats } from "@kwadrans/games";
 import { KampusSummary } from "../games/KampusSummary.tsx";
-import { ResultDetails, ResultHero, RoundTable, ScoreTable } from "./ui.tsx";
+import { bestRoundLine, ResultDetails, ResultHero, RoundTable, ScoreTable } from "./ui.tsx";
 
 // P4-048: dwa wspólne wzorce wyników (Scores, ScoreTable) i jeden tabeli rund (RoundTable z wierszem celów i własną komórką).
 const src = new URL("..", import.meta.url).pathname;
@@ -113,6 +113,12 @@ describe("ResultHero", () => {
     expect(rows[2]).toContain("stone-pop");
   });
 
+  test("slot linii: pod wierszami, a w trakcie odsłony niewidoczny", () => {
+    const slot = () => {};
+    expect(renderToStaticMarkup(<ResultHero {...common} hero={hero} slot={slot} />)).toMatch(/<\/ol><div class="[^"]*empty:hidden/);
+    expect(renderToStaticMarkup(<ResultHero {...common} hero={hero} slot={slot} reveal />)).toMatch(/<\/ol><div class="[^"]*invisible/);
+  });
+
   test("`rowsOnly`: same wiersze, bez tytułu i odsłony", () => {
     const html = renderToStaticMarkup(<ResultHero {...common} hero={hero} winner="a" reveal rowsOnly />);
     expect(html).not.toContain("<h1");
@@ -152,6 +158,61 @@ describe("Kampus Tour: wiersze pod tytułem podsumowania", () => {
     const screen = readFileSync(join(src, "screens", "Game.tsx"), "utf8");
     expect(screen.slice(screen.indexOf('def.id === "kampus-tour"'), screen.indexOf("// Labirynt: przy wygranych"))).toMatch(/<KampusTour[\s\S]*hero=\{/);
     expect(game("KampusTour")).toMatch(/<KampusSummary[\s\S]*hero=\{hero\}/);
+  });
+});
+
+describe("bestRoundLine", () => {
+  const rows = [{ id: "a", nick: "Ola", errors: [4, 9] }, { id: "b", nick: "Bob", errors: [7, 8] }];
+  const line = { rows, heads: [1, 2], unit: "km", format: (d: number) => `${d}` };
+
+  test("nick, nazwa rundy i błąd z jednostką", () => {
+    expect(bestRoundLine({ ...line, labels: ["Gdańsk", "Kraków"] })).toBe("Najlepsza runda: Ola, Gdańsk, 4 km");
+  });
+
+  test("`best: false` albo remis: bez linii", () => {
+    expect(bestRoundLine({ ...line, best: false })).toBeNull();
+    expect(bestRoundLine({ ...line, rows: [{ ...rows[0], errors: [4] }, { ...rows[1], errors: [4] }] })).toBeNull();
+  });
+
+  test("bez `labels`: nagłówek liczbowy to „runda 2”, tekstowy zostaje", () => {
+    const second = [{ id: "a", nick: "Ola", errors: [9, 4] }];
+    expect(bestRoundLine({ ...line, rows: second })).toBe("Najlepsza runda: Ola, runda 2, 4 km");
+    expect(bestRoundLine({ ...line, rows: second, heads: ["3 kaw.", "4 kaw."] })).toBe("Najlepsza runda: Ola, 4 kaw., 4 km");
+  });
+
+  test("`shortUnit` zastępuje długi `unit`; procent bez spacji, pusty bez jednostki", () => {
+    const tort = { ...line, unit: "% tortu do przełożenia", format: (d: number) => `${d},5` };
+    expect(bestRoundLine({ ...tort, shortUnit: "%" })).toBe("Najlepsza runda: Ola, runda 1, 4,5%");
+    expect(bestRoundLine({ ...line, shortUnit: "", format: (d: number) => `+${d}°` })).toBe("Najlepsza runda: Ola, runda 1, +4°");
+  });
+
+  test("zapis komórki nie będący tekstem (Mapa: „999+”): prawdziwa liczba", () => {
+    expect(bestRoundLine({ ...line, format: () => <span>999+</span> })).toBe("Najlepsza runda: Ola, runda 1, 4 km");
+  });
+});
+
+describe("linia najlepszej rundy w grach", () => {
+  test("RoundTable bez slotu bohatera (ekran „Rekordy”) nic nie dokłada", () => {
+    const html = renderToStaticMarkup(<RoundTable heads={[1]} rows={[{ id: "a", nick: "Ala", me: false, errors: [5] }]} perfect={0} close={0} unit="km" />);
+    expect(text(html)).not.toContain("Najlepsza runda");
+  });
+
+  test("Mapa przekazuje `labels`", () => {
+    expect(game("Mapa")).toMatch(/labels=\{view\.cities\.map\(\(c\) => c\.name\)\}/);
+  });
+
+  test.each([["Tort", "%"], ["Nozyczki", "%"], ["Srodek", "%"], ["Zaslona", "s"], ["Rok", "l."], ["Szacowanie", ""]])("%s ma `shortUnit` „%s”", (name, unit) => {
+    expect(game(name)).toContain(`shortUnit="${unit}"`);
+  });
+
+  test.each(["Balon", "Przytrzymaj"])("%s bez linii: `best={false}`", (name) => {
+    expect(game(name)).toContain("best={false}");
+  });
+
+  test("Game.tsx daje slot grom i bohaterowi", () => {
+    const screen = readFileSync(join(src, "screens", "Game.tsx"), "utf8");
+    expect(screen).toMatch(/<HeroSlot\.Provider value=\{slot\}>[\s\S]*<ResultDetails/);
+    expect(screen).toMatch(/<ResultHero[\s\S]*slot=\{setSlot\}/);
   });
 });
 

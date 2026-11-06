@@ -132,7 +132,7 @@ export function Tort({ view, me, players, ranking, onMove }: Props) {
       <>
         <Scores rows={rows} />
         <p className="text-sm text-fg-muted">Suma błędów z {TORT_CAKES} tortów, mniej znaczy lepiej.</p>
-        {shown.length > 0 && <RoundTable heads={view.cakes.map((c) => `${c.pieces} kaw.`)} rows={shown} perfect={PERFECT} close={CLOSE} unit="% tortu do przełożenia" />}
+        {shown.length > 0 && <RoundTable heads={view.cakes.map((c) => `${c.pieces} kaw.`)} rows={shown} perfect={PERFECT} close={CLOSE} unit="% tortu do przełożenia" shortUnit="%" />}
       </>
     );
   }

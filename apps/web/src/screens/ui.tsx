@@ -1,8 +1,9 @@
 import { ArrowLeft, CaretDown, Check, HandTap, ShareNetwork, SignOut, Timer, Trophy, WifiSlash } from "@phosphor-icons/react";
 import type { RoomView } from "@kwadrans/games";
-import { createContext, Fragment, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, Fragment, type ReactNode, type Ref, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { autoStart } from "./intro.ts";
-import { type Hero, revealOrder } from "./results.ts";
+import { bestRound, type Hero, revealOrder } from "./results.ts";
 
 export type Send = (type: string, payload?: unknown) => void;
 
@@ -143,11 +144,14 @@ export function GameDots({ dots, square, open, onToggle, compact = false }: { do
 
 const REVEAL_STEP_MS = 600;
 
+/** Miejsce w bohaterze na linię najlepszej rundy z gry; poza ekranem po partii (np. „Rekordy”) brak, więc linii nie ma. */
+export const HeroSlot = createContext<HTMLElement | null>(null);
+
 /**
  * Bohater po partii: tytuł i po wierszu na gracza. `reveal`: wiersze od ostatniego co 0,6 s, tytuł na końcu;
  * dotknięcie gdziekolwiek kończy pokaz, a przyciski działają przez cały czas. `rowsOnly`: same wiersze pod cudzym tytułem (Kampus Tour).
  */
-export function ResultHero({ hero, winner, me, nick, color, reveal = false, rowsOnly = false, onDone }: {
+export function ResultHero({ hero, winner, me, nick, color, reveal = false, rowsOnly = false, onDone, slot }: {
   hero: Hero;
   winner?: string;
   me: string;
@@ -156,6 +160,7 @@ export function ResultHero({ hero, winner, me, nick, color, reveal = false, rows
   reveal?: boolean;
   rowsOnly?: boolean;
   onDone?: () => void;
+  slot?: Ref<HTMLDivElement>;
 }) {
   const count = hero.rows.length;
   const animated = reveal && !rowsOnly;
@@ -215,6 +220,7 @@ export function ResultHero({ hero, winner, me, nick, color, reveal = false, rows
         {hero.title}
       </h1>
       {list}
+      {slot && <div ref={slot} className={`text-sm text-fg-muted empty:hidden ${titleShown ? "" : "invisible"}`} />}
     </section>
   );
 }
@@ -403,6 +409,27 @@ export const tenth = (n: number) => decimal(n, 1);
 export const grade = (d: number, perfect: number, close: number) =>
   d <= perfect ? { text: "text-success", stroke: "stroke-success" } : d <= close ? { text: "", stroke: "stroke-fg" } : { text: "text-warning", stroke: "stroke-warning" };
 
+/** „Najlepsza runda: Ola, Gdańsk, 4 km”; null, gdy gra nie ma błędów do porównania (`best`) albo najlepszej chwili nie ma jednej. */
+export function bestRoundLine({ rows, heads, labels, unit, shortUnit, format, best = true }: {
+  rows: { id: string; nick: string; errors: number[] }[];
+  heads: ReactNode[];
+  labels?: string[];
+  unit: string;
+  shortUnit?: string;
+  format: (d: number, round: number, row: string) => ReactNode;
+  best?: boolean;
+}) {
+  const top = best ? bestRound(rows) : null;
+  if (!top) return null;
+  const head = heads[top.round];
+  const name = labels?.[top.round] ?? (typeof head === "number" ? `runda ${head}` : head);
+  const cell = format(top.error, top.round, top.id);
+  const value = typeof cell === "string" || typeof cell === "number" ? cell : top.error;
+  const short = shortUnit ?? unit;
+  const nick = rows.find((r) => r.id === top.id)!.nick;
+  return `Najlepsza runda: ${nick}, ${name}, ${value}${short === "%" || !short ? short : ` ${short}`}`;
+}
+
 /**
  * Tabela rund po mini-grze „na oko”: rundy w kolumnach, gracze w wierszach, w komórce błąd rundy (mniej lepiej).
  * Jedyny najmniejszy błąd w rundzie ma tło w kolorze gracza; przy remisie albo jednym graczu nikt.
@@ -419,6 +446,9 @@ export function RoundTable({
   goal,
   tone,
   caption,
+  labels,
+  shortUnit,
+  best = true,
 }: {
   heads: ReactNode[];
   /** Pusta lista `errors` = gracz nie odpowiedział (limit czasu). `score` (opcjonalny) stoi w wierszu gracza; `null` = gra…. */
@@ -439,14 +469,23 @@ export function RoundTable({
   tone?: (d: number, round: number) => { className: string; label?: string };
   /** Własny podpis pod tabelą zamiast opisu błędu i progów. */
   caption?: ReactNode;
+  /** Nazwy rund do linii najlepszej rundy (miasta w Mapie). */
+  labels?: string[];
+  /** Jednostka w linii najlepszej rundy, gdy `unit` to cały opis („% tortu do przełożenia”); pusta, gdy zapis komórki ma ją już w sobie. */
+  shortUnit?: string;
+  /** false: bez linii najlepszej rundy (Balon: stuknięcia, nie błąd; Przytrzymaj: cisza pomiaru). */
+  best?: boolean;
 }) {
+  const slot = useContext(HeroSlot);
+  const line = slot && bestRoundLine({ rows, heads, labels, unit, shortUnit, format, best });
   const played = rows.filter((r) => r.errors.length);
-  const best = (round: number) => {
+  const bestIn = (round: number) => {
     const sorted = [...played].sort((a, b) => a.errors[round] - b.errors[round]);
     return !tone && sorted.length > 1 && sorted[0].errors[round] < sorted[1].errors[round] ? sorted[0].id : null;
   };
   return (
     <section className="tile flex flex-col gap-2 p-3">
+      {line && slot && createPortal(<p>{line}</p>, slot)}
       <div className="grid gap-1 text-center font-mono text-xs tabular-nums" style={{ gridTemplateColumns: `repeat(${heads.length}, minmax(0, 1fr))` }}>
         {heads.map((head, i) => (
           <span key={i} className="text-fg-muted">
@@ -482,8 +521,8 @@ export function RoundTable({
                   role="img"
                   key={i}
                   aria-label={own?.label}
-                  className={`rounded-inset border py-1 ${own ? own.className : `${grade(d, perfect, close).text} ${d <= perfect ? "font-semibold" : ""}`} ${best(i) === r.id ? "" : "border-line"}`}
-                  style={best(i) === r.id ? { borderColor: r.color, backgroundColor: `color-mix(in srgb, ${r.color} 28%, transparent)` } : undefined}
+                  className={`rounded-inset border py-1 ${own ? own.className : `${grade(d, perfect, close).text} ${d <= perfect ? "font-semibold" : ""}`} ${bestIn(i) === r.id ? "" : "border-line"}`}
+                  style={bestIn(i) === r.id ? { borderColor: r.color, backgroundColor: `color-mix(in srgb, ${r.color} 28%, transparent)` } : undefined}
                 >
                   {format(d, i, r.id)}
                 </span>

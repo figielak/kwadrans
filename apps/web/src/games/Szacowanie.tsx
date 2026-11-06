@@ -90,6 +90,7 @@ export function Szacowanie({ view, me, players, ranking, onMove, truths, draw, s
             perfect={0}
             close={Infinity}
             unit={unit}
+            shortUnit=""
             // Znak mówi, czy za dużo, czy za mało; w komórce sama różnica, bo prawdziwe wartości są w wierszu „Było”.
             format={(d, i, id) => (d === 0 ? "0" : `${signed(view.answers[id][i] - truths[i])}${unit}`)}
             caption="Pomyłka w każdej rundzie: plus to za dużo, minus za mało. Zielony: dokładnie."
