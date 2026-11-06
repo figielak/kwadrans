@@ -7,25 +7,24 @@ const room = (seats: string[], waitingFor = seats) => ({ seats, game: { waitingF
 const noProgress = () => null;
 
 describe("liveDots: gry na punkty", () => {
-  test("brak wartości: 0 i ostatnie miejsce ex aequo, bez „1.” dla wszystkich", () => {
+  test("brak wartości: 0 punktów", () => {
     const dots = liveDots(score, room(["a", "b", "c"]), {}, noProgress);
-    expect(dots.map((d) => [d.score, d.place])).toEqual([[0, 3], [0, 3], [0, 3]]);
+    expect(dots.map((d) => d.score)).toEqual([0, 0, 0]);
   });
 
-  test("brak wartości jednego rywala: on ostatni, reszta według punktów", () => {
+  test("w trakcie partii same punkty, bez miejsca w rankingu", () => {
     const dots = liveDots(score, room(["a", "b", "c"]), { a: 5, b: 2 }, noProgress);
-    expect(dots.map((d) => [d.score, d.place])).toEqual([[5, 1], [2, 2], [0, 3]]);
-  });
-
-  test("remis punktów: to samo miejsce, kolejne z przeskokiem", () => {
-    const dots = liveDots(score, room(["a", "b", "c", "d"]), { a: 4, b: 4, c: 1 }, noProgress);
-    expect(dots.map((d) => d.place)).toEqual([1, 1, 3, 4]);
+    expect(dots).toEqual([
+      { id: "a", score: 5, done: false },
+      { id: "b", score: 2, done: false },
+      { id: "c", score: 0, done: false },
+    ]);
   });
 
   test("rywal skończył: stan done z ostatnią wartością", () => {
     const [a, b] = liveDots(score, room(["a", "b"], ["a"]), { a: 1, b: 7 }, noProgress);
     expect(a).toMatchObject({ done: false, score: 1 });
-    expect(b).toMatchObject({ done: true, score: 7, place: 1 });
+    expect(b).toMatchObject({ done: true, score: 7 });
   });
 
   test("obserwator: te same kropki, bo wynik nie zależy od patrzącego", () => {

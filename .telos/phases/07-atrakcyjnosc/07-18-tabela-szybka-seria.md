@@ -2,7 +2,7 @@
 id: 07-18
 title: Etap 3: tabela wieczoru i Szybka seria
 type: code
-status: approved
+status: done
 critical: false
 effort: normal
 depends: [07-17]
@@ -47,10 +47,16 @@ Punkty wieczoru widać przy wynikach i na kropkach, a Szybka seria jednym dotkni
 - `Lobby.tsx`: kafel „Szybka seria” w Zestawach.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
-- [ ] `pnpm --filter web exec vitest run src/screens/tables.test.tsx` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
+- [x] `pnpm --filter web exec vitest run src/screens/tables.test.tsx` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
 
 ## Result
+Dodano `quickSeries` (`QUICK_SERIES_LENGTH = 5`): gospodarz w lobby odpala turniej 5 gier, siadają wszyscy z pokoju, bez gotowości.
+`EveningTable` (ui.tsx) pokazuje się przy wynikach (poza turniejem) po 2+ grach i po dotknięciu kropek; odznaka na kropce to punkty wieczoru.
+Kafel „Szybka seria” w Zestawach, opis w KONCEPT §2.4 i regułach platformy.
+Testy: 3 serwerowe (RED: brak handlera) i 2 tabeli; `pnpm test` 143 serwer + 350 web zielone.
+Niespodzianka: `openRoom(3)` dodaje czwartego uczestnika, więc test oczekuje 4 miejsc.
+Deviations: apps/web/src/live.ts, apps/web/src/live.test.ts, packages/games/src/index.ts, packages/games/src/wieczor.ts, packages/games/src/wieczor.test.ts — niezatwierdzona praca z 07-17 leżąca w drzewie (bez nich LobbyRoom.ts się nie buduje)

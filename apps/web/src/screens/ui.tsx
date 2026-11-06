@@ -7,6 +7,36 @@ import type { MomentStore, ReactionStore } from "../moments.ts";
 import { autoStart, introStage, secondsLeft, startsAfterClose } from "./intro.ts";
 import { bestRound, type Hero, revealOrder } from "./results.ts";
 
+/**
+ * Tabela wieczoru: punkty za wszystkie partie w pokoju. Tylko przy 2+ grach, zwięzła (jeden wiersz na osobę, bez tytułów),
+ * żeby przy wynikach nie była większa od bohatera. Remis dzieli miejsce; kto wyszedł, zostaje i jest przygaszony.
+ */
+export function EveningTable({ evening, present, meKey }: { evening: RoomView["evening"]; present: string[]; meKey: string }) {
+  if (evening.games < 2 || evening.table.length === 0) return null;
+  const places = evening.table.map((r) => 1 + evening.table.filter((o) => o.points > r.points).length);
+  return (
+    <section className="tile px-4 py-3" aria-label="Tabela wieczoru">
+      <h2 className="label mb-1.5 flex justify-between">
+        Wieczór · {evening.games} {evening.games % 10 >= 2 && evening.games % 10 <= 4 && (evening.games < 12 || evening.games > 14) ? "gry" : "gier"}
+        <span>pkt</span>
+      </h2>
+      <ol className="flex flex-col gap-0.5 text-sm">
+        {evening.table.map((r, i) => (
+          <li key={r.key} className={`flex items-center gap-2 ${present.includes(r.key) ? "" : "text-fg-muted"}`}>
+            <span className="w-5 font-mono text-fg-muted tabular-nums">{places[i]}.</span>
+            <span className="min-w-0 flex-1 truncate">
+              {r.nick}
+              {r.key === meKey && <span className="text-fg-muted"> (ty)</span>}
+              {!present.includes(r.key) && <span className="text-xs"> · wyszedł</span>}
+            </span>
+            <span className="font-mono font-semibold tabular-nums">{r.points}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 export type Send = (type: string, payload?: unknown) => void;
 
 /** Wspólny układ ekranu: jedna kolumna, akcje przy dolnej krawędzi (strefa kciuka). */
@@ -85,7 +115,7 @@ export interface GameDot {
   nick: string;
   color?: string;
   me: boolean;
-  /** Wygrane partie w pokoju albo punkty turnieju; zera nie pokazujemy. */
+  /** Punkty wieczoru w pokoju albo punkty turnieju; zera nie pokazujemy. */
   badge: number;
   /** „+1” nad kropką zwycięzcy. */
   plus: boolean;
@@ -98,7 +128,6 @@ export interface GameDot {
   status?: string;
   /** Na żywo w grach na punkty: dekoracja, wynik liczy serwer. */
   score?: number;
-  place?: number;
   /** Reakcje nadawcy, które właśnie się unoszą. */
   reactions?: { key: number; index: number }[];
 }
@@ -114,7 +143,7 @@ export function GameDots({ dots, square, open, onToggle, compact = false }: { do
         <span
           key={d.id}
           role="img"
-          aria-label={`${d.nick}${d.me ? " (ty)" : ""}${d.status ? `, ${d.status}` : ""}${d.badge ? `, ${square ? "punkty w turnieju" : "wygrane partie"}: ${d.badge}` : ""}${d.score !== undefined ? `, wynik: ${d.score}` : ""}${d.place !== undefined ? `, miejsce: ${d.place}` : ""}`}
+          aria-label={`${d.nick}${d.me ? " (ty)" : ""}${d.status ? `, ${d.status}` : ""}${d.badge ? `, ${square ? "punkty w turnieju" : "punkty wieczoru"}: ${d.badge}` : ""}${d.score !== undefined ? `, wynik: ${d.score}` : ""}`}
           // Rozłączony ma przerywany obrys zamiast pierścienia: samo przygaszenie znaczy „czyta zasady”.
           className={`relative grid size-9 place-items-center rounded-full ${d.connected ? "" : "border border-dashed border-fg-muted"}`}
           style={d.connected ? { background: `conic-gradient(${d.color} ${d.fraction * 100}%, var(--color-line) 0)` } : undefined}
@@ -143,11 +172,6 @@ export function GameDots({ dots, square, open, onToggle, compact = false }: { do
               {d.score}
             </span>
           )}
-          {d.place !== undefined && (
-            <span className="absolute -top-1 -left-1 grid h-4 min-w-4 place-items-center rounded-full border border-line bg-surface px-0.5 font-mono text-[10px] leading-none text-fg-muted tabular-nums" aria-hidden>
-              {d.place}.
-            </span>
-          )}
           {d.reactions?.map((r) => (
             <span key={r.key} className="pointer-events-none absolute bottom-full left-1/2 z-20 -translate-x-1/2 animate-[reaction-float_1.2s_ease-out_forwards] text-xl leading-none" aria-hidden>
               {REACTIONS[r.index]}
@@ -172,16 +196,15 @@ type LiveProps = {
   progressOf: Parameters<typeof liveDots>[3];
 };
 
-/** Kropki z wartościami na żywo. Czytają magazyn same, więc nowa wiadomość nie renderuje gry. Miejsc nie ma, póki nikt nie punktuje. */
+/** Kropki z wartościami na żywo. Czytają magazyn same, więc nowa wiadomość nie renderuje gry. */
 export function LiveGameDots({ store, reactions, def, room, progressOf, dots, ...rest }: LiveProps & { reactions: ReactionStore } & Parameters<typeof GameDots>[0]) {
   const live = useSyncExternalStore(store.subscribe, store.get);
   const floating = useSyncExternalStore(reactions.subscribe, reactions.get);
   const rows = room ? liveDots(def, room, live, progressOf) : [];
-  const scoring = rows.some((r) => r.score);
   const merged = dots.map((d) => {
     const row = rows.find((r) => r.id === d.id);
     const own = floating.filter((r) => r.id === d.id);
-    return { ...d, fraction: row?.fraction ?? d.fraction, score: row?.score, place: scoring ? row?.place : undefined, reactions: own.length ? own : undefined };
+    return { ...d, fraction: row?.fraction ?? d.fraction, score: row?.score, reactions: own.length ? own : undefined };
   });
   return <GameDots dots={merged} {...rest} />;
 }
@@ -242,12 +265,11 @@ export function ReactionOverlay({ store, anchored, color, landscape = false }: {
 export function LiveBoard({ store, def, room, progressOf, nick, color, me }: LiveProps & { nick: (id: string) => string; color: (id: string) => string | undefined; me: string }) {
   const live = useSyncExternalStore(store.subscribe, store.get);
   if (!room) return null;
-  const rows = [...liveDots(def, room, live, progressOf)].sort((a, b) => (a.place ?? 0) - (b.place ?? 0));
+  const rows = [...liveDots(def, room, live, progressOf)].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
   return (
     <ul className="tile flex flex-col gap-1.5 p-3" aria-label="Wyniki na żywo">
       {rows.map((r) => (
         <li key={r.id} className="flex items-center gap-2 text-sm">
-          <span className="w-5 font-mono text-fg-muted tabular-nums">{r.place}.</span>
           <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: color(r.id) }} aria-hidden />
           <span className="min-w-0 flex-1 truncate">{nick(r.id)}{r.id === me && " (ty)"}</span>
           <span className="text-xs text-fg-muted">{r.done ? "skończył" : "gra"}</span>

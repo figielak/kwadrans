@@ -9,7 +9,6 @@ type Progress = { done: number; total: number } | null;
 export interface LiveDot {
   id: string;
   score?: number;
-  place?: number;
   fraction?: number;
   /** Przeżycie: numer rundy rywala. */
   round?: number;
@@ -18,18 +17,11 @@ export interface LiveDot {
   done: boolean;
 }
 
-/**
- * Stan kropek na żywo. Gra na punkty: brak wartości to 0, a zero to ostatnie miejsce ex aequo
- * (nikt nie jest „1.” na starcie). Remis punktów to to samo miejsce.
- */
+/** Stan kropek na żywo. Gra na punkty: brak wartości to 0. Miejsc w trakcie partii nie pokazujemy. */
 export function liveDots(def: LiveKind, room: { seats: string[]; game: { waitingFor: string[] } }, live: LiveValues, progressOf: (id: string) => Progress): LiveDot[] {
-  const scores = room.seats.map((id) => live[id] ?? 0);
-  return room.seats.map((id, i) => {
+  return room.seats.map((id) => {
     const done = !room.game.waitingFor.includes(id);
-    if (def.live?.kind === "score") {
-      const score = scores[i];
-      return { id, score, place: score === 0 ? room.seats.length : 1 + scores.filter((s) => s > score).length, done };
-    }
+    if (def.live?.kind === "score") return { id, score: live[id] ?? 0, done };
     if (def.live?.kind === "survival") return { id, round: live[id] ?? 0, out: done, done };
     // Gry z `progress` mają dokładniejszy postęp; pozostałe liczą ułamek z wartości na żywo.
     const progress = progressOf(id);

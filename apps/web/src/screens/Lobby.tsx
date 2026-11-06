@@ -47,7 +47,7 @@ import {
   Timer,
   Trophy,
 } from "@phosphor-icons/react";
-import { DEFAULT_LENGTH, GAMES, type LobbyPlayer, MAX_PLAYERS, MINI_GAME_IDS, PLAYER_COLORS, type RoomView } from "@kwadrans/games";
+import { DEFAULT_LENGTH, GAMES, type LobbyPlayer, MAX_PLAYERS, MINI_GAME_IDS, PLAYER_COLORS, QUICK_SERIES_LENGTH, type RoomView } from "@kwadrans/games";
 import { type ReactNode, useState } from "react";
 import { Screen, type Send, StickyBar } from "./ui.tsx";
 
@@ -84,6 +84,7 @@ export function Lobby({ view, me, dropped, send, onLeave, onMini }: Props) {
           <section className="flex flex-col gap-2">
             <h2 className="label px-1">Zestawy</h2>
             <Tile wide icon={GameController} name="Mini-gry" hint={`${MINI_GAMES.length} gier, także solo`} onClick={onMini} />
+            <Tile wide icon={Lightning} name="Szybka seria" hint={`${QUICK_SERIES_LENGTH} losowych mini-gier dla wszystkich`} onClick={() => send("quickSeries")} />
             <Tile wide icon={Trophy} name="Turniej" hint={`seria mini-gier, 1-${MAX_PLAYERS} os.`} onClick={() => send("pickTournament", { length: DEFAULT_LENGTH })} />
           </section>
           <section>

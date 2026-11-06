@@ -4,12 +4,15 @@ import { dirname } from "node:path";
 import { type AuthContext, type Client, CloseCode, matchMaker, Room, ServerError } from "@colyseus/core";
 import {
   advance,
+  addGame,
   begin,
   cleanConfig,
   cleanNick,
   COUNTDOWN_SECONDS,
   create,
   createRng,
+  type Evening,
+  eveningTable,
   GAMES,
   INTRO_SECONDS,
   isDone,
@@ -18,11 +21,14 @@ import {
   type LobbyPlayer,
   mark,
   MAX_PLAYERS,
+  QUICK_SERIES_LENGTH,
   MINI_GAME_IDS,
   type MoveContext,
   NEXT_SECONDS,
+  nickKey,
   type Phase,
   PLAYER_COLORS,
+  placesFromResult,
   REMATCH_INTRO_SECONDS,
   type Rng,
   ROOM_MESSAGES,
@@ -30,6 +36,7 @@ import {
   soloState,
   type RoomView,
   TOURNAMENT_ID,
+  titles,
   type Tournament,
   winner,
 } from "@kwadrans/games";
@@ -81,6 +88,8 @@ export class LobbyRoom extends Room {
   private tournament: Tournament | null = null;
   private markedBy: Record<string, string> = {};
   private scores: Record<string, number> = {};
+  private evening: Evening = { games: [], nicks: {} };
+  private eveningView: RoomView["evening"] = { games: 0, played: [], table: [], titles: [] };
   private match: Match | null = null;
   private turnTimer?: Timer;
   private turnEndsAt: number | null = null;
@@ -132,6 +141,16 @@ export class LobbyRoom extends Room {
       this.gameId = null;
       this.mode = null;
       this.resetReady();
+    });
+
+    // Szybka seria: zwykły turniej o stałej długości, bez ekranu ustawień i gotowości; grają wszyscy w pokoju.
+    this.on("quickSeries", (client) => {
+      const config = cleanConfig({ length: QUICK_SERIES_LENGTH, must: [], skip: [] }, MINI_GAME_IDS);
+      if (!this.isHost(client) || this.phase !== "lobby" || !config) return;
+      this.seats = [...this.players.keys()].slice(0, MAX_PLAYERS);
+      this.tournament = begin(create(config), MINI_GAME_IDS, newRng());
+      this.markedBy = {};
+      this.startTournamentGame();
     });
 
     // Gry turnieju zaznacza każdy w pokoju; spory rozstrzygają gracze między sobą, nie aplikacja.
@@ -258,6 +277,17 @@ export class LobbyRoom extends Room {
     const taken = new Set([...this.players.values()].map((p) => p.color));
     const color = PLAYER_COLORS.find((c) => !taken.has(c))!;
     this.players.set(client.sessionId, { id: client.sessionId, nick: auth.nick, color, connected: true, ready: false });
+    // Powrót pod nową sesją odświeża pisownię także bez rozegrania kolejnej partii.
+    const key = nickKey(auth.nick);
+    const previousNick = this.evening.nicks[key];
+    if (Object.hasOwn(this.evening.nicks, key) && previousNick !== auth.nick) {
+      this.evening = { ...this.evening, nicks: { ...this.evening.nicks, [key]: auth.nick } };
+      this.eveningView = {
+        ...this.eveningView,
+        table: this.eveningView.table.map((row) => row.key === key ? { ...row, nick: auth.nick } : row),
+        titles: this.eveningView.titles.map((title) => nickKey(title.nick) === key ? { ...title, nick: auth.nick } : title),
+      };
+    }
     if (!this.hostId) this.hostId = client.sessionId;
     // Gra już wybrana i jest wolne miejsce: nowy gracz od razu gra, gospodarz nie musi go zaznaczać.
     if (this.phase === "lobby" && this.seats.length < this.maxSeats()) this.seats = [...this.seats, client.sessionId];
@@ -463,6 +493,18 @@ export class LobbyRoom extends Room {
     this.countdown = false;
     // Kto wyszedł w trakcie, nie siedzi już w seats, więc nie dostaje porażki.
     const nick = (id: string) => this.players.get(id)?.nick ?? "?";
+    const { def, state, rng } = this.match;
+    const gamePlaces = result.ranking ? (result.places ?? def.places?.(state) ?? null) : null;
+    const eveningPlaces = !this.solo && placesFromResult(result, gamePlaces, this.seats);
+    if (eveningPlaces) {
+      this.evening = addGame(this.evening, this.gameId!, this.seats.map((id) => ({ key: nickKey(nick(id)), nick: nick(id), place: eveningPlaces[id] })));
+      this.eveningView = {
+        games: this.evening.games.length,
+        played: [...new Set([...this.eveningView.played, this.gameId!])],
+        table: eveningTable(this.evening),
+        titles: titles(this.evening),
+      };
+    }
     const win = (gameId: string, winnerId: string) => stats.record(gameId, this.seats.map(nick), nick(winnerId));
     if (result.winner) win(this.gameId!, result.winner);
     // Rekordy mini-gier: wynik każdego gracza, także solo. Gra przerwana nie ma rankingu, więc się nie zapisuje.
@@ -478,9 +520,7 @@ export class LobbyRoom extends Room {
       return;
     }
     // Turniej: punkty z miejsc (gra przerwana nie ma rankingu, więc nie daje punktów); wygrana w pokoju liczy się za cały turniej.
-    const { def, state, rng } = this.match;
-    const places = result.ranking ? (def.places?.(state) ?? null) : null;
-    this.tournament = advance(this.tournament, this.seats, places, MINI_GAME_IDS, rng);
+    this.tournament = advance(this.tournament, this.seats, gamePlaces, MINI_GAME_IDS, rng);
     if (isDone(this.tournament)) {
       const champion = winner(this.tournament, this.seats);
       if (!champion) return;
@@ -556,6 +596,7 @@ export class LobbyRoom extends Room {
       tournament: this.tournament,
       markedBy: this.markedBy,
       scores: this.scores,
+      evening: this.eveningView,
       game: match && {
         // Obserwator dostaje widok gracza "", czyli bez czyichkolwiek ukrytych informacji.
         view: match.def.playerView(match.state, this.seats.includes(id) ? id : ""),

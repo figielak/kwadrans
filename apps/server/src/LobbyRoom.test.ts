@@ -84,6 +84,160 @@ async function drawing(n: number, gameId = "kalambury", start = true) {
   return { room, send, snapshot, clients, observer };
 }
 
+describe("07-18: Szybka seria", () => {
+  test("gospodarz odpala turniej 5 gier z miejscami dla wszystkich, bez gotowości gości", async () => {
+    const { send, snapshot } = await openRoom(3);
+    send(0, "quickSeries", {});
+    const view = snapshot();
+    expect(view.phase).toBe("playing");
+    expect(view.tournament!.games).toHaveLength(5);
+    expect(view.tournament!.config.length).toBe(5);
+    // openRoom(3) dodaje jeszcze czwartego uczestnika; w Szybkiej serii siadają wszyscy.
+    expect(view.seats).toEqual(["p1", "p2", "p3", "p4"]);
+  });
+
+  test("przy sześciu graczach też siadają wszyscy", async () => {
+    const { send, snapshot } = await openRoom(6);
+    send(0, "quickSeries", {});
+    expect(snapshot().phase).toBe("playing");
+    expect(snapshot().seats).toHaveLength(6);
+  });
+
+  test("od gościa albo poza lobby nic nie robi", async () => {
+    const { send, snapshot } = await openRoom(2);
+    send(1, "quickSeries", {});
+    expect(snapshot().phase).toBe("lobby");
+    expect(snapshot().tournament).toBeNull();
+    send(0, "quickSeries", {});
+    expect(snapshot().phase).toBe("playing");
+    const games = snapshot().tournament!.games;
+    send(0, "quickSeries", {});
+    expect(snapshot().tournament!.games).toEqual(games);
+  });
+});
+
+describe("07-17: pamięć wieczoru", () => {
+  const finishStoper = (send: Awaited<ReturnType<typeof drawing>>["send"]) => {
+    send(0, "move", { type: "result", deviation: 100 });
+    send(1, "move", { type: "result", deviation: 200 });
+  };
+  const rematch = (send: Awaited<ReturnType<typeof drawing>>["send"]) => {
+    vi.advanceTimersByTime(1000);
+    for (const i of [0, 1]) send(i, "rematch", {});
+    for (const i of [0, 1]) send(i, "begin", {});
+    vi.advanceTimersByTime(3000);
+  };
+
+  test("ukończona partia dopisuje tabelę, obserwator widzi to samo, scores zostają", async () => {
+    const { send, snapshot, observer } = await drawing(2, "stoper");
+    expect(snapshot()).toHaveProperty("evening", { games: 0, played: [], table: [], titles: [] });
+    finishStoper(send);
+    expect(snapshot()).toHaveProperty("evening", {
+      games: 1, played: ["stoper"], titles: [], table: [
+        { key: "p1", nick: "p1", points: 1, wins: 1 }, { key: "p2", nick: "p2", points: 0, wins: 0 },
+      ],
+    });
+    expect(snapshot(observer).evening).toEqual(snapshot().evening);
+    expect(snapshot().scores).toEqual({ p1: 1 });
+    send(0, "toLobby", {});
+    expect(snapshot().evening.games).toBe(1);
+  });
+
+  test("remis daje równe punkty, bez samodzielnego zwycięstwa", async () => {
+    const { send, snapshot } = await drawing(3, "schulte");
+    for (const [i, ms] of [[0, 10_000], [1, 10_000], [2, 20_000]]) send(i, "move", { type: "result", ms, mistakes: 0, splits: [] });
+    expect(snapshot()).toHaveProperty("evening.table", [
+      { key: "p1", nick: "p1", points: 1, wins: 0 }, { key: "p2", nick: "p2", points: 1, wins: 0 }, { key: "p3", nick: "p3", points: 0, wins: 0 },
+    ]);
+  });
+
+  test.each([false, true])("jeden grający, solo=%s: bez wpisu", async (solo) => {
+    const { send, snapshot } = solo ? await openRoom(1, { solo: "stoper" }) : await drawing(1, "stoper");
+    if (solo) send(0, "begin", {});
+    send(0, "move", { type: "result", deviation: 100 });
+    expect(snapshot().phase).toBe("over");
+    expect(snapshot()).toHaveProperty("evening", { games: 0, played: [], table: [], titles: [] });
+  });
+
+  test.each([2, 3])("wyjście podczas gry przy %i grających nie dopisuje walkoweru ani przerwania", async (n) => {
+    const { room, clients, snapshot } = await drawing(n, "stoper");
+    await room.onLeave(clients[n - 1], CloseCode.CONSENTED);
+    expect(snapshot().phase).toBe("over");
+    expect(snapshot()).toHaveProperty("evening.games", 0);
+  });
+
+  test("wyjście po grze zostawia wiersz, powrót po nickKey zmienia pisownię i zachowuje punkty", async () => {
+    const { room, clients, send, snapshot } = await drawing(2, "stoper");
+    finishStoper(send);
+    rematch(send);
+    finishStoper(send);
+    send(0, "toLobby", {});
+    await room.onLeave(clients[0], CloseCode.CONSENTED);
+    expect(snapshot(1).evening.table[0]).toEqual({ key: "p1", nick: "p1", points: 2, wins: 2 });
+    const returned = { sessionId: "returned", send: vi.fn() } as unknown as Client;
+    room.clients.push(returned);
+    clients.push(returned);
+    room.onJoin(returned, {}, { nick: "P1" });
+    expect(snapshot(1).evening.table[0]).toEqual({ key: "p1", nick: "P1", points: 2, wins: 2 });
+    expect(snapshot(1).evening.titles.every((t) => t.nick === "P1")).toBe(true);
+    // Rezerwację po powrocie dostaje nowe id sesji, punkty pozostają pod nickiem.
+    send(clients.length - 1, "ready", { ready: true });
+    send(1, "start", {});
+    vi.advanceTimersByTime(2 * 60_000);
+    expect(snapshot(1).evening.games).toBe(3);
+    expect(snapshot(1).evening.table.filter((r) => r.key === "p1")).toHaveLength(1);
+    expect(snapshot(1).evening.table.find((r) => r.key === "p1")!.points).toBeGreaterThanOrEqual(2);
+  });
+
+  test("Gomoku z samym zwycięzcą także daje punkty", async () => {
+    const { send, snapshot } = await drawing(2, "piec-w-rzedzie");
+    for (let x = 0; x < 5; x++) {
+      send(0, "move", { x, y: 0 });
+      if (x < 4) send(1, "move", { x, y: 1 });
+    }
+    expect(snapshot()).toHaveProperty("evening.table", [
+      { key: "p1", nick: "p1", points: 1, wins: 1 }, { key: "p2", nick: "p2", points: 0, wins: 0 },
+    ]);
+  });
+
+  test("turniej dopisuje każdą grę, bez dodatkowego wpisu za cały turniej", async () => {
+    const { send, snapshot } = await openRoom(2);
+    send(0, "pickTournament", { length: 3 });
+    send(0, "toggleSeat", { id: "p3" });
+    send(1, "ready", { ready: true });
+    send(0, "start", {});
+    vi.advanceTimersByTime(30 * 60_000);
+    const tournament = snapshot().tournament!;
+    expect(snapshot()).toHaveProperty("evening.games", tournament.games.length);
+    expect(snapshot().evening.played).toEqual([...new Set(tournament.games)]);
+  });
+
+  test("po 100 partiach room niesie stałą liczbę wpisów, bez historii, a podsumowanie liczone jest raz na partię", async () => {
+    const { send, snapshot } = await drawing(2, "stoper");
+    finishStoper(send);
+    rematch(send);
+    finishStoper(send);
+    const before = structuredClone(snapshot().evening);
+    const beforeSize = JSON.stringify(snapshot()).length;
+    // Wiadomość bez nowej partii korzysta z gotowego podsumowania.
+    const summary = snapshot().evening;
+    send(0, "rematch", {});
+    expect(snapshot().evening).toBe(summary);
+    for (let game = 2; game < 100; game++) {
+      rematch(send);
+      finishStoper(send);
+    }
+    const after = snapshot().evening;
+    expect(after.games).toBe(100);
+    expect(after.played).toEqual(["stoper"]);
+    expect(after.table).toHaveLength(before.table.length);
+    expect(after.titles).toHaveLength(before.titles.length);
+    expect(Object.keys(after).sort()).toEqual(["games", "played", "table", "titles"]);
+    // Zmieniają się jedynie cyfry liczników, nie liczba wierszy ani historia.
+    expect(JSON.stringify(snapshot()).length - beforeSize).toBeLessThan(100);
+  });
+});
+
 describe("07-15: reakcje", () => {
   beforeEach(() => vi.setSystemTime(new Date("2026-11-06T12:00:00Z")));
   const clearMessages = (clients: Client[]) => clients.forEach((client) => vi.mocked(client.send).mockClear());

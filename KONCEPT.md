@@ -81,6 +81,9 @@ Seria mini-gier puszczana po kolei w jednym pokoju, 1-6 graczy. To nie jest gra 
 zwykłym `startMatch` i sumuje punkty (zasady w `turniej.ts` i `ZASADY-GIER.md`). Zwycięzca trafia do rankingu pod `id` `turniej`;
 pojedyncze gry zapisują się jak zwykle.
 
+**Szybka seria** (`quickSeries`, kafel w Zestawach, tylko gospodarz w lobby) to ten sam turniej o stałej długości `QUICK_SERIES_LENGTH = 5`:
+bez ekranu ustawień i bez gotowości gości, grają wszyscy w pokoju (do 6). Pełny Turniej z ustawieniami zostaje.
+
 ## 3. Architektura
 
 ```
@@ -139,6 +142,20 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
 
 ### Reguły platformy (obowiązują każdą grę)
 
+- **Pamięć wieczoru** żyje w pokoju do jego zamknięcia, bez zapisu do SQLite. Każda ukończona partia z co najmniej dwoma
+  grającymi, także pojedyncza gra turnieju, daje punkty przez `gamePoints`: po jednym za każdego ze ściśle gorszym miejscem.
+  Remisujący dostają tyle samo; partia przerwana, walkower, solo i jeden grający nie dają wpisu.
+  Miejsca bierzemy z miejsc wyniku lub definicji gry, potem z kolejności rankingu; przy samym zwycięzcy reszta dzieli drugie miejsce.
+  Osoby rozpoznaje `nickKey`, więc wyjście i powrót zachowują punkty; pokazywana jest ostatnia pisownia nicku.
+  Tabela zachowuje także osoby, które wyszły, i sortuje po punktach, potem samodzielnych wygranych, jak turniej.
+  Po co najmniej dwóch partiach wyliczamy najwyżej trzy tytuły: najwięcej samodzielnych zwycięstw, najlepsza seria kolejnych
+  pierwszych miejsc (także remisowych; nieobecność przerywa serię), największy powrót. Powrót to największa strata punktowa
+  do ówczesnego lidera, odrobiona przez końcowego lidera tabeli; przy remisie w tabeli bierzemy wszystkich współliderów.
+  Brak zwycięstw, pierwszych miejsc albo straty pomija odpowiedni tytuł. Remis o tytuł rozstrzyga kolejność tabeli.
+  Punkty wieczoru widać przy wynikach po drugiej partii (`EveningTable`, zwięzła, nie większa od bohatera) i po dotknięciu kropek;
+  odznaka na kropce to właśnie te punkty (w turnieju dalej punkty turnieju), `scores` bez zmian.
+  `RoomView.evening` niesie tylko liczbę partii, unikalne id rozegranych gier, gotową tabelę i tytuły; historia nie idzie przez sieć.
+  Liczba wpisów widoku nie rośnie od kolejnych partii tych samych osób i gier. Dotychczasowe `scores` i ranking wygranych pozostają.
 - Po limicie tury serwer wykonuje `timeoutMove` (losowy ruch), nie przegraną. Limit odnawia się tylko,
   gdy zmienia się `waitingFor` (albo `key` z `turn`) lub ten sam gracz ma kolejny ruch.
 - Gracze bez miejsca oglądają partię. Nowy gracz dostaje miejsce sam, jeśli gra wybrana i jest wolne.

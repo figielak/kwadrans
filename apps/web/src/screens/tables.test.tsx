@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 import type { KampusStats } from "@kwadrans/games";
 import { KampusSummary } from "../games/KampusSummary.tsx";
-import { bestRoundLine, ResultDetails, ResultHero, RoundTable, ScoreTable } from "./ui.tsx";
+import { bestRoundLine, EveningTable, ResultDetails, ResultHero, RoundTable, ScoreTable } from "./ui.tsx";
 
 // P4-048: dwa wspólne wzorce wyników (Scores, ScoreTable) i jeden tabeli rund (RoundTable z wierszem celów i własną komórką).
 const src = new URL("..", import.meta.url).pathname;
@@ -253,5 +253,28 @@ describe("gry na wspólnych wzorcach", () => {
     expect(rules).toMatch(/`ScoreTable`/);
     expect(rules).toMatch(/`RoundTable`[^\n]*wiersz celów/);
     expect(rules).toMatch(/Odcień[^\n]*wyjątek/);
+  });
+});
+
+describe("EveningTable (07-18)", () => {
+  const table = [
+    { key: "ala", nick: "Ala", points: 5, wins: 2 },
+    { key: "bob", nick: "Bob", points: 3, wins: 1 },
+    { key: "cyd", nick: "Cyd", points: 3, wins: 0 },
+    { key: "dan", nick: "Dan", points: 0, wins: 0 },
+  ];
+  const evening = (games: number) => ({ games, played: ["stoper"], table, titles: [] });
+
+  test("remis dzieli miejsce, wychodzący zostaje, ty oznaczone", () => {
+    const t = text(renderToStaticMarkup(<EveningTable evening={evening(2)} present={["ala", "bob", "dan"]} meKey="bob" />));
+    for (const s of ["Wieczór", "Ala", "Bob", "Cyd", "Dan", "(ty)", "5", "wyszedł"]) expect(t).toContain(s);
+    expect(t.match(/2\./g)).toHaveLength(2);
+    expect(t).toContain("4.");
+    expect(t.match(/wyszedł/g)).toHaveLength(1);
+  });
+
+  test("przy mniej niż 2 grach tabeli nie ma", () => {
+    expect(renderToStaticMarkup(<EveningTable evening={evening(1)} present={["ala"]} meKey="ala" />)).toBe("");
+    expect(renderToStaticMarkup(<EveningTable evening={evening(0)} present={[]} meKey="ala" />)).toBe("");
   });
 });

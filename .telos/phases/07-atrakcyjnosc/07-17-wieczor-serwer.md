@@ -2,7 +2,7 @@
 id: 07-17
 title: "Etap 3: pamięć wieczoru w pokoju"
 type: code
-status: approved
+status: done
 critical: false
 effort: hard
 depends: [07-02, 07-16]
@@ -66,10 +66,15 @@ Pokój pamięta wieczór: każda partia daje punkty jak w turnieju, a widok nies
 5. `LobbyRoom.finish`: `addGame` przed ścieżkami turnieju; tabela i tytuły liczone raz na partię.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter @kwadrans/games exec vitest run src/wieczor.test.ts` → exit 0
-- [ ] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter @kwadrans/games exec vitest run src/wieczor.test.ts` → exit 0
+- [x] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
 
 ## Result
+- Pamięć wieczoru przez gamePoints i nickKey; gotowa tabela, unikalne gry i najwyżej trzy tytuły w RoomView, historia tylko na serwerze.
+- RED: test wieczoru padł na brak modułu; 10 testów pokoju padło na brak evening, przed implementacją.
+- GREEN: 17 testów wieczoru, 116 testów pokoju; typecheck i wszystkie 2845 testów PASS.
+- Potwierdzone: remisy, solo, walkower i przerwanie, powrót pod nowym id z nową pisownią, każda gra turnieju, stała liczba wpisów po 100 partiach; scores bez zmian.
+- Deviations: apps/web/src/live.test.ts, apps/web/src/live.ts, apps/web/src/screens/ui.tsx - zastane niezacommitowane zmiany użytkownika, nietknięte w 07-17; commity pominięte zgodnie z AGENTS.md (tylko na prośbę użytkownika).

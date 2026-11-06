@@ -1,6 +1,6 @@
 import type { Room } from "@colyseus/sdk";
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, nickKey, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
@@ -17,7 +17,7 @@ import { fetchRecords, watchLive, watchReact } from "../net.ts";
 import { decisionKey, VIBRATE } from "../vibrate.ts";
 import { formatBest, formatGap, formatRecord, RecordPanel } from "./Records.tsx";
 import { heroResult, reducedMotion, shouldReveal } from "./results.ts";
-import { type GameDot, GameDots, HeroSlot, IntroContext, LiveBoard, LiveGameDots, Moment, ReactionBar, ReactionOverlay, ReactionToggle, ResultDetails, ResultHero, Screen, StickyBar, type Send } from "./ui.tsx";
+import { type GameDot, GameDots, HeroSlot, IntroContext, LiveBoard, LiveGameDots, Moment, ReactionBar, ReactionOverlay, ReactionToggle, EveningTable, ResultDetails, ResultHero, Screen, StickyBar, type Send } from "./ui.tsx";
 
 interface Props {
   room: Room;
@@ -247,6 +247,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
 
   // W aktywnej partii kropki zamiast pigułek; ja pierwszy, pozostali w kolejności miejsc.
   // Gra solo nie ma kogo pokazywać.
+  const eveningPoints = new Map(view.evening.table.map((r) => [r.key, r.points]));
   const labels = initials(view.seats.map(nick));
   const dots: GameDot[] | null =
     (def.minPlayers === 1 || view.phase === "playing") && view.seats.length > 1
@@ -263,7 +264,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
               nick: nick(id),
               color: p?.color,
               me: id === me,
-              badge: table ? (table.find((r) => r.id === id)?.total ?? 0) : (view.scores[id] ?? 0),
+              badge: table ? (table.find((r) => r.id === id)?.total ?? 0) : (eveningPoints.get(nickKey(nick(id))) ?? 0),
               plus: !table && id === winner,
               fraction: def.minPlayers > 1 ? (game.waitingFor.includes(id) ? 1 : 0) : done ? 1 : progress ? progress.done / progress.total : 0,
               reading,
@@ -330,6 +331,8 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
     record: recordHint(def.id, records.before, nick(me)),
   };
 
+  const eveningTable = <EveningTable evening={view.evening} present={view.players.map((p) => nickKey(p.nick))} meKey={nickKey(nick(me))} />;
+
   // Rekordy i tabela turnieju: z bohaterem nad szczegółami, a w trakcie odsłony bez zdradzania wyniku.
   const panels = (
     <div className={reveal ? "invisible contents" : "contents"}>
@@ -344,6 +347,9 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
             underHero={!!hero}
                 />
               )}
+
+              {/* Poza turniejem (tam jest jego tabela): punkty wieczoru z wszystkich partii w pokoju. */}
+              {view.phase === "over" && !t && eveningTable}
 
               {/* Solo nie ma rywali, więc i punktów: zamiast tabeli zera jedno zdanie o postępie. */}
               {view.phase === "over" && t && view.seats.length === 1 && (
@@ -441,6 +447,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
                 </div>
               )}
             </div>
+            {dots && open && view.phase !== "over" && !t && eveningTable}
             <ul aria-label="Szczegóły graczy" className={`flex flex-wrap gap-2 ${pillsHidden ? "hidden" : ""} ${reveal ? "invisible" : ""}`}>
               {view.seats.map((id) => {
                 const p = view.players.find((pl) => pl.id === id);

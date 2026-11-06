@@ -41,6 +41,7 @@ import { zaslona } from "./zaslona.ts";
 export * from "./core.ts";
 export * from "./lobby.ts";
 export * from "./turniej.ts";
+export * from "./wieczor.ts";
 export { TRACK as CHINCZYK_TRACK, type View as ChinczykView } from "./chinczyk.ts";
 export {
   ALLOWANCE as KAMPUS_ALLOWANCE,
