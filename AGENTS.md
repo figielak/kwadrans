@@ -48,6 +48,7 @@ Przed zgłoszeniem zmiany jako gotowej: `pnpm typecheck && pnpm test` bez błęd
 ## Twarde reguły
 
 - **Serwer jest jedynym źródłem prawdy.** Klient wysyła intencje, `validateMove` jest jedynym strażnikiem.
+  Jawny wyjątek: kanał `live` to dekoracyjna liczba zgłaszana przez klienta, przekazywana rywalom bez `validateMove`; nie wpływa na stan zasad, wyniki ani rekordy.
 - **Losowość tylko z `rng`** przekazanego do `setup` i `applyMove`. Żadnego `Math.random` ani `Date.now` w zasadach.
 - **Stan gry to zwykły obiekt JSON**, `applyMove` zwraca nowy i nie zmienia poprzedniego.
 - **Ukryte informacje** filtruje `playerView`; obserwator dostaje widok dla `""`.

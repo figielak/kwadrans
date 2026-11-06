@@ -55,7 +55,10 @@ async function openRoom(n: number, options?: { solo?: string }, ip?: string) {
     const auth = ip ? room.onAuth(client, { nick: client.sessionId }, { ip, headers: new Headers() } as AuthContext) : { nick: client.sessionId };
     room.onJoin(client, {}, auth);
   }
-  const send = (player: number, type: string, raw: unknown) => handlers.get(type)!(clients[player], raw);
+  const send = (player: number, type: string, raw: unknown) => {
+    expect(handlers.has(type), `pokój obsługuje wiadomość ${type}`).toBe(true);
+    handlers.get(type)!(clients[player], raw);
+  };
   const snapshot = (player = 0): RoomView => {
     const calls = vi.mocked(clients[player].send).mock.calls;
     const latest = calls.filter(([type]) => type === "room").at(-1)!;
@@ -80,6 +83,149 @@ async function drawing(n: number, gameId = "kalambury", start = true) {
   if (gameId === "kalambury") expect((snapshot().game!.view as KalamburyView).phase).toBe("draw");
   return { room, send, snapshot, clients, observer };
 }
+
+describe("07-11: dekoracyjny kanał live", () => {
+  beforeEach(() => vi.setSystemTime(new Date("2026-11-06T12:00:00Z")));
+  const clearMessages = (clients: Client[]) => clients.forEach((client) => vi.mocked(client.send).mockClear());
+
+  test.each([2, 6])("%i grających: tylko pozostali dostają live, bez room i bez walidatora gry", async (n) => {
+    const { send, snapshot, clients } = await drawing(n, "stroop");
+    const before = structuredClone(snapshot().game);
+    const validate = vi.spyOn(GAMES.stroop, "validateMove");
+    clearMessages(clients);
+    send(0, "live", { value: 7, id: "p2", source: "timeout" });
+    expect(clients[0].send).not.toHaveBeenCalled();
+    for (const client of clients.slice(1)) expect(client.send).toHaveBeenCalledExactlyOnceWith("live", { id: "p1", value: 7 });
+    expect(validate).not.toHaveBeenCalled();
+    // Zwykła wiadomość odświeża RoomView; live sam nie rozsyła pełnego pokoju.
+    send(0, "begin", {});
+    expect(snapshot().game).toEqual({ ...before, live: { p1: 7 } });
+  });
+
+  test("obserwator nie nadaje, ale otrzymuje wartości grających", async () => {
+    const { send, snapshot, clients, observer } = await drawing(2, "stroop");
+    clearMessages(clients);
+    send(observer!, "live", { value: 99 });
+    for (const client of clients) expect(client.send).not.toHaveBeenCalled();
+    send(0, "live", { value: 3 });
+    expect(clients[observer!].send).toHaveBeenCalledExactlyOnceWith("live", { id: "p1", value: 3 });
+    send(0, "begin", {});
+    expect(snapshot().game).toHaveProperty("live", { p1: 3 });
+  });
+
+  test.each(["lobby", "intro", "countdown", "over"])("live ignorowane w fazie %s", async (phase) => {
+    const { send, snapshot, clients } = await drawing(2, "stroop", false);
+    if (phase !== "intro") for (const player of [0, 1]) send(player, "begin", {});
+    if (phase === "over" || phase === "lobby") {
+      vi.advanceTimersByTime(3000 + GAMES.stroop.turnSeconds! * 1000);
+      if (phase === "lobby") send(0, "toLobby", {});
+    }
+    clearMessages(clients);
+    send(0, "live", { value: 9 });
+    for (const client of clients) expect(client.send).not.toHaveBeenCalled();
+    send(0, "begin", {});
+    if (snapshot().game) expect(snapshot().game).toHaveProperty("live", {});
+  });
+
+  test.each([false, true])("jeden grający nie nadaje, solo=%s", async (solo) => {
+    const { send, snapshot, clients } = solo ? await openRoom(1, { solo: "stroop" }) : await drawing(1, "stroop", false);
+    send(0, "begin", {});
+    clearMessages(clients);
+    send(0, "live", { value: 9 });
+    for (const client of clients) expect(client.send).not.toHaveBeenCalled();
+    send(0, "begin", {});
+    expect(snapshot().game).toHaveProperty("live", {});
+  });
+
+  test.each(["refleks", "stoj", "stoper", "przytrzymaj", "zaslona", "rytm", "piec-w-rzedzie"])("%s: gra bez live ignoruje kanał", async (id) => {
+    const { send, snapshot, clients } = await drawing(2, id);
+    clearMessages(clients);
+    send(0, "live", { value: 9 });
+    for (const client of clients) expect(client.send).not.toHaveBeenCalled();
+    send(0, "begin", {});
+    expect(snapshot().game).toHaveProperty("live", {});
+  });
+
+  test.each([-1, 1.5, "7", 10_000, NaN, Infinity, null, undefined])("niepoprawna wartość %s jest odrzucana", async (value) => {
+    const { send, snapshot, clients } = await drawing(2, "stroop");
+    clearMessages(clients);
+    send(0, "live", { value });
+    for (const client of clients) expect(client.send).not.toHaveBeenCalled();
+    send(0, "begin", {});
+    expect(snapshot().game).toHaveProperty("live", {});
+  });
+
+  test("dwa live na sekundę od każdej osoby, nadmiar nie blokuje move ani nie odnawia limitu", async () => {
+    const { send, snapshot, clients } = await drawing(2, "stroop");
+    vi.advanceTimersByTime(20_000);
+    clearMessages(clients);
+    for (let value = 0; value < 20; value++) send(0, "live", { value });
+    expect(clients[1].send).toHaveBeenCalledTimes(2);
+    expect(clients[1].send).toHaveBeenNthCalledWith(1, "live", { id: "p1", value: 0 });
+    expect(clients[1].send).toHaveBeenNthCalledWith(2, "live", { id: "p1", value: 1 });
+    send(1, "live", { value: 10 });
+    send(1, "live", { value: 11 });
+    expect(clients[0].send).toHaveBeenCalledTimes(2);
+    send(0, "move", { type: "result", times: [500], errors: 0 });
+    expect(snapshot().game).toMatchObject({ msLeft: 70_000, live: { p1: 1, p2: 11 }, view: { results: { p1: { times: [500], errors: 0 } } } });
+    vi.advanceTimersByTime(1000);
+    clearMessages(clients);
+    send(0, "live", { value: 9999 });
+    expect(clients[1].send).toHaveBeenCalledExactlyOnceWith("live", { id: "p1", value: 9999 });
+    vi.advanceTimersByTime(69_000);
+    expect(snapshot().phase).toBe("over");
+  });
+
+  test("zwykłe wiadomości nie zużywają osobnego limitu live", async () => {
+    const { send, clients } = await drawing(2, "stroop");
+    vi.advanceTimersByTime(1000);
+    for (let i = 0; i < 10; i++) send(0, "begin", {});
+    clearMessages(clients);
+    send(0, "live", { value: 3 });
+    send(0, "live", { value: 4 });
+    expect(clients[1].send).toHaveBeenCalledTimes(2);
+  });
+
+  test("reconnect pokazuje ostatnie wartości wszystkim, bez zmiany stanu gry", async () => {
+    const { room, send, snapshot, clients } = await drawing(2, "stroop");
+    const before = structuredClone(snapshot().game!.view);
+    send(0, "live", { value: 3 });
+    send(1, "live", { value: 4 });
+    vi.spyOn(room, "allowReconnection").mockResolvedValue(clients[1]);
+    await room.onLeave(clients[1], 1006);
+    for (const player of clients.keys()) {
+      expect(snapshot(player).game).toMatchObject({ live: { p1: 3, p2: 4 }, view: before });
+    }
+  });
+
+  test("dowolne live nie zmienia wyniku, miejsc ani zapisanych rekordów", async () => {
+    const { send, snapshot } = await drawing(2, "stroop");
+    const record = vi.spyOn(stats, "recordScores");
+    send(0, "live", { value: 0 });
+    send(1, "live", { value: 9999 });
+    expect(record).not.toHaveBeenCalled();
+    send(0, "move", { type: "result", times: [500, 500], errors: 0 });
+    send(1, "move", { type: "result", times: [500], errors: 0 });
+    expect(snapshot().game).toMatchObject({ result: { winner: "p1", ranking: ["p1", "p2"] }, places: { p1: 1, p2: 2 } });
+    expect(record).toHaveBeenCalledTimes(1);
+    expect(record.mock.calls[0][1].map(({ nick, score, tie }) => ({ nick, score, tie }))).toEqual([
+      { nick: "p1", score: 2, tie: 500 }, { nick: "p2", score: 1, tie: 500 },
+    ]);
+  });
+
+  test("rewanż czyści wartości, a kolejna partia zbiera je od nowa", async () => {
+    const { send, snapshot } = await drawing(2, "stroop");
+    send(0, "live", { value: 7 });
+    for (const player of [0, 1]) send(player, "move", { type: "result", times: [500], errors: 0 });
+    for (const player of [0, 1]) send(player, "rematch", {});
+    expect(snapshot().game).toHaveProperty("live", {});
+    for (const player of [0, 1]) send(player, "begin", {});
+    vi.advanceTimersByTime(3000);
+    send(1, "live", { value: 2 });
+    send(0, "begin", {});
+    expect(snapshot().game).toHaveProperty("live", { p2: 2 });
+  });
+});
 
 describe("07-09: wspólny start mini-gry", () => {
   test.each([2, 6])("%i graczy: komplet gotowości daje 3 s, a potem pełny limit", async (n) => {

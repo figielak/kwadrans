@@ -92,6 +92,8 @@ Telefon (PWA, React)  ⇄  WebSocket  ⇄  Serwer Colyseus (Node)
 
 **Zasada:** serwer jest jedynym źródłem prawdy. Klient wysyła intencje („rzucam kośćmi”),
 serwer je waliduje, losuje, liczy nowy stan i rozsyła każdemu graczowi jego widok.
+Jawny wyjątek: kanał `live` przenosi dekoracyjną liczbę zgłaszaną przez klienta. Nie trafia do `validateMove`,
+nie zmienia stanu zasad, wyników ani rekordów; serwer sprawdza tylko dostęp, format i limit wysyłki.
 
 ### Interfejs gry
 
@@ -118,6 +120,7 @@ interface GameDefinition<State, Move> {
   turnSeconds?: number;                 // limit tury
   turn?(state: State): { key: string; seconds: number }; // limit zależny od fazy, licznik od nowa przy zmianie key
   timeoutMove?(state: State, player: PlayerId, rng: Rng): Move;  // ruch za gracza po limicie
+  live?: { kind: "score" | "round" | "survival"; total?: number }; // dekoracyjny podgląd rywali, total dla round
   record?: { lower: boolean; score(state, player): number; tie?: { lower: boolean; score(state, player): number } }; // mini-gry: wynik do rankingu rekordów i drugie kryterium
 }
 ```
@@ -175,6 +178,25 @@ reconnect, tablica wyników, rewanż, sprzątanie pokoi po godzinie bezczynnośc
 - Każda mini-gra ma jeden typ ruchu `result` (Narysuj koło wysyła go po każdej próbie, Tabela Schultego, Sudoku, Policz kropki, Kąt, Który rok?, Wieża i Balon mają jeszcze `progress`); ranking liczy wspólne `rankResults` (core.ts), zwycięzca tylko przy 2+ graczach bez remisu;
   `places` podaje miejsca z remisami (oba z jednego komparatora przez `ranked`), z których turniej liczy punkty.
   Kolor liter, Liczenie, Inny element, Obrót i Literówka dzielą `quiz.ts` i `Quiz.tsx` (Dziesiątki biorą z nich walidację i tabelę wyników), a Policz kropki i Kąt ekran `Szacowanie.tsx`. Pasek statystyk w trakcie partii to wspólne `Stats` (ui.tsx). Odświeżenie w trakcie = partia od nowa.
+
+- **Podgląd rywali (`live`)**: mini-gra deklaruje rodzaj w `GameDefinition.live`; brak pola oznacza ciszę podczas pomiaru.
+  Klient wysyła `live: { value }` (liczba całkowita 0–9999), a serwer osobnym kanałem przekazuje `live: { id, value }` wszystkim pozostałym w pokoju,
+  także obserwatorom. Nadawca nie dostaje własnej wiadomości, nie ma pełnego `update()` ani wiadomości `room` po `live`.
+  Własny limit wynosi 2/s na gracza, niezależnie od limitu 10/s dla ruchów; nadmiar przepada. Kanał działa tylko podczas partii z co najmniej dwoma grającymi,
+  po instrukcji i odliczaniu, od gracza z miejscem i w grze z polem `live`. Obserwator nie nadaje.
+  `RoomView.game.live` zawiera ostatnie wartości dla reconnectu; nowa partia, także rewanż i kolejna gra turnieju, czyści wartości.
+  Istniejący `progress` zostaje: Sekwencja, Wieża, Policz kropki, Kąt, Który rok?, Schulte, Sudoku i Balon korzystają z niego,
+  bez równoległego wysyłania tej samej rundy kanałem `live`. Wyniki i rekordy nadal pochodzą wyłącznie z normalnych ruchów gry.
+
+  | Rodzaj | Gry | Wartość i liczba etapów (`total`) |
+  |---|---|---|
+  | `score` (6) | Liczenie, Kolor liter, Inny element, Obrót, Literówka, Dziesiątki | trafienia / punkty, bez `total` |
+  | `survival` (5) | Sekwencja, W pamięci, Śledzenie, Trzy kubki, Wieża | ukończona runda / poziom, bez `total` |
+  | `round` (13) | Policz kropki, Kąt, Który rok?, Balon, Środek, Mapa, Narysuj koło, Zakupy | etap, po 10 |
+  | `round` | Tabela Schultego | znaleziona liczba, 25 |
+  | `round` | Sudoku | uzupełnione pole, 10 |
+  | `round` | Tort, Nożyczki, Odcień | etap, po 5 |
+  | brak (6) | Refleks, Stój!, Stoper, Przytrzymaj, Za zasłoną, Rytm | cisza podczas pomiaru |
 
 - **Rekordy**: po każdej skończonej mini-grze (także solo i w turnieju) serwer zapisuje wynik każdego gracza jako jedną liczbę
   (`record` w `GameDefinition`: `score` i kierunek `lower`) oraz, jeśli gra rozstrzyga remisy drugim kryterium, także je (`tie`: średnia reakcji
