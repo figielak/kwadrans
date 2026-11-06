@@ -1,6 +1,7 @@
 import { type LobbyPlayer, SLEDZENIE_BALLS, SLEDZENIE_MOVE_MS, SLEDZENIE_RADIUS, SLEDZENIE_ROUNDS, SLEDZENIE_SHOW_MS, SLEDZENIE_TARGETS, sledzeniePosition, type SledzenieView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { useLive } from "../live.ts";
 import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
@@ -53,6 +54,7 @@ export function Sledzenie({ view, me, players, ranking, onMove }: Props) {
   const [picks, setPicks] = useState<number[][]>([]);
   const [picked, setPicked] = useState<number[]>([]);
   const dots = useRef<(HTMLSpanElement | null)[]>([]);
+  useLive(picks.length);
   const color = players.find((p) => p.id === me)?.color;
 
   const round = Math.min(phase === "reveal" ? picks.length - 1 : picks.length, SLEDZENIE_ROUNDS - 1);

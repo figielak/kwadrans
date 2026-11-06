@@ -1,6 +1,7 @@
 import { GAMES, type LobbyPlayer, TORT_CAKES, type TortCake, tortError, type TortView } from "@kwadrans/games";
 import { type PointerEvent, type SVGProps, useEffect, useState } from "react";
 import { grade, Intro, RoundTable, Scores, Stats, tenth, upTo } from "../screens/ui.tsx";
+import { useLive } from "../live.ts";
 
 interface Props {
   view: TortView;
@@ -67,6 +68,7 @@ export function Tort({ view, me, players, ranking, onMove }: Props) {
   const [phase, setPhase] = useState<Phase>("intro");
   /** Pokrojone torty. */
   const [done, setDone] = useState<number[][]>([]);
+  useLive(done.length);
   /** Cięcia bieżącego tortu i to, które jest pod palcem. */
   const [cuts, setCuts] = useState<number[]>([]);
   const [held, setHeld] = useState<number | null>(null);

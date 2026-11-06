@@ -1,6 +1,7 @@
 import { type Hsb, KOLOR_COUNT, KOLOR_SHOW_MS, kolorDistance, kolorHints, kolorHsbToRgb, type KolorView, type LobbyPlayer } from "@kwadrans/games";
 import { useEffect, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { useLive } from "../live.ts";
 
 interface Props {
   view: KolorView;
@@ -81,6 +82,7 @@ export function Kolor({ view, me, players, ranking, onMove }: Props) {
   const [phase, setPhase] = useState<Phase>("intro");
   const [guesses, setGuesses] = useState<Hsb[]>([]);
   const [current, setCurrent] = useState<Hsb>(randomStart);
+  useLive(guesses.length);
   const index = phase === "reveal" ? guesses.length - 1 : guesses.length;
   const color = players.find((p) => p.id === me)?.color;
 

@@ -11,6 +11,10 @@ export interface LiveDot {
   score?: number;
   place?: number;
   fraction?: number;
+  /** Przeżycie: numer rundy rywala. */
+  round?: number;
+  /** Przeżycie: rywal oddał wynik, czyli odpadł albo skończył. */
+  out?: boolean;
   done: boolean;
 }
 
@@ -26,8 +30,12 @@ export function liveDots(def: LiveKind, room: { seats: string[]; game: { waiting
       const score = scores[i];
       return { id, score, place: score === 0 ? room.seats.length : 1 + scores.filter((s) => s > score).length, done };
     }
+    if (def.live?.kind === "survival") return { id, round: live[id] ?? 0, out: done, done };
+    // Gry z `progress` mają dokładniejszy postęp; pozostałe liczą ułamek z wartości na żywo.
     const progress = progressOf(id);
-    return { id, fraction: done ? 1 : progress ? progress.done / progress.total : undefined, done };
+    const total = def.live?.total;
+    const fraction = done ? 1 : progress ? progress.done / progress.total : total ? Math.min(1, (live[id] ?? 0) / total) : undefined;
+    return { id, fraction, done };
   });
 }
 

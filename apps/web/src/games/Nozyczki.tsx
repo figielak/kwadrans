@@ -1,6 +1,7 @@
 import { GAMES, type LobbyPlayer, nozyczkiAccepts, type NozyczkiCut, nozyczkiError, type NozyczkiPoint, NOZYCZKI_SHAPES, nozyczkiShare, nozyczkiSplit, type NozyczkiView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useState } from "react";
 import { grade, Intro, RoundTable, Scores, Stats, tenth, upTo } from "../screens/ui.tsx";
+import { useLive } from "../live.ts";
 
 interface Props {
   view: NozyczkiView;
@@ -41,6 +42,7 @@ export function Nozyczki({ view, me, players, ranking, onMove }: Props) {
   const playing = view.players.includes(me) && !(me in view.results);
   const [phase, setPhase] = useState<Phase>("intro");
   const [cuts, setCuts] = useState<NozyczkiCut[]>([]);
+  useLive(cuts.length);
   /** Prosta pod palcem: od miejsca dotknięcia do palca; liczy się dopiero puszczenie. */
   const [aim, setAim] = useState<NozyczkiCut | null>(null);
   /** Ile razy z rzędu ruch nie był cięciem; klucz potrząśnięcia i podpowiedzi. */

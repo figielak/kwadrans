@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { createLiveStore, liveActive, liveDots, throttleLive } from "./live.ts";
 
@@ -136,5 +137,45 @@ describe("throttleLive: najwyżej 2/s, najnowsza wartość wygrywa", () => {
     t.cancel();
     vi.advanceTimersByTime(1000);
     expect(send).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("liveDots: rundy i przeżycie", () => {
+  const round = { live: { kind: "round" as const, total: 4 } };
+  const survival = { live: { kind: "survival" as const } };
+
+  test("round: ułamek z total i wartości na żywo, bez punktów i miejsc", () => {
+    const [a, b] = liveDots(round, room(["a", "b"]), { a: 1 }, noProgress);
+    expect(a).toEqual({ id: "a", fraction: 0.25, done: false });
+    expect(b).toEqual({ id: "b", fraction: 0, done: false });
+  });
+
+  test("round: ułamek nie przekracza 1, a skończony ma komplet", () => {
+    const [a, b] = liveDots(round, room(["a", "b"], ["a"]), { a: 9, b: 2 }, noProgress);
+    expect(a.fraction).toBe(1);
+    expect(b).toMatchObject({ fraction: 1, done: true });
+  });
+
+  test("survival: numer rundy i odpada po wyniku", () => {
+    const [a, b, c] = liveDots(survival, room(["a", "b", "c"], ["a", "c"]), { a: 3, b: 5 }, noProgress);
+    expect(a).toEqual({ id: "a", round: 3, out: false, done: false });
+    expect(b).toEqual({ id: "b", round: 5, out: true, done: true });
+    expect(c).toEqual({ id: "c", round: 0, out: false, done: false });
+  });
+});
+
+describe("źródła: kto zgłasza live", () => {
+  const code = (name: string) => readFileSync(new URL(`./games/${name}.tsx`, import.meta.url), "utf8");
+
+  test.each(["WPamieci", "Sledzenie", "Kubki", "Srodek", "Mapa", "Tort", "Nozyczki", "Kolor", "Kolo", "Zakupy"])("%s woła useLive", (name) => {
+    expect(code(name)).toMatch(/useLive\(/);
+  });
+
+  test.each(["Refleks", "Stoj", "Stoper", "Przytrzymaj", "Zaslona", "Rytm"])("%s (cisza pomiaru) nie importuje live.ts", (name) => {
+    expect(code(name)).not.toMatch(/live\.ts|useLive/);
+  });
+
+  test.each(["Sekwencja:Simon", "Wieża:Wieza", "Kropki:Kropki", "Kąt:Kat", "Rok:Rok", "Schulte:Schulte", "Sudoku:Sudoku", "Balon:Balon"])("%s zostaje przy progress", (pair) => {
+    expect(code(pair.split(":")[1])).not.toMatch(/useLive/);
   });
 });

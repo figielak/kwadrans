@@ -2,7 +2,7 @@
 id: 07-13
 title: "Etap 2: live w grach przeżycia i postępu"
 type: code
-status: approved
+status: done
 critical: false
 effort: normal
 depends: [07-12]
@@ -47,9 +47,14 @@ Pozostałe gry przeżycia i postępu raportują rundę lub etap, więc pierście
 - Sprawdź w `/dev?n=2` po jednej grze z każdego rodzaju.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter web exec vitest run src/live.test.ts` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter web exec vitest run src/live.test.ts` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
 
 ## Result
+Dziesięć gier (W pamięci, Śledzenie, Trzy kubki, Środek, Mapa, Tort, Nożyczki, Odcień, Narysuj koło, Zakupy) woła `useLive` z liczbą ukończonych rund (Narysuj koło: próby z widoku serwera, Zakupy: liczba zaznaczonych pozycji). Cisza i gry z `progress` bez zmian.
+`liveDots`: `round` liczy ułamek z `total` (priorytet ma `progressOf`), `survival` zwraca `round` i `out`. 27 testów w `live.test.ts`, `pnpm test` zielony.
+Odbiór w `/dev?n=2` w Odcieniu: pierścień rywala 0% → 20% po pierwszej zatwierdzonej rundzie; pozostałych 9 gier tylko testem źródeł.
+Numeru rundy w grach przeżycia kropki jeszcze nie pokazują (`GameDots` dostaje tylko `score` i `place`); „Ola odpada” i numer rundy czekają na kolejne zadanie z Momentami.
+Deviations: apps/web/src/live.ts — `liveDots` musiał obsłużyć `round` z wartości na żywo i `survival`, żeby testy z zadania miały co sprawdzać

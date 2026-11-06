@@ -1,6 +1,7 @@
 import { GAMES, type LobbyPlayer, SRODEK_ACCEPT_PX, srodekError, srodekOffset, srodekProject, SRODEK_ROUNDS, type SrodekPoint, type SrodekView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useState } from "react";
 import { grade as gradeBy, Intro, RoundTable, Scores, Stats, upTo } from "../screens/ui.tsx";
+import { useLive } from "../live.ts";
 
 interface Props {
   view: SrodekView;
@@ -53,6 +54,7 @@ export function Srodek({ view, me, players, ranking, onMove }: Props) {
   const playing = view.players.includes(me) && !(me in view.results);
   const [phase, setPhase] = useState<Phase>("intro");
   const [taps, setTaps] = useState<SrodekPoint[]>([]);
+  useLive(taps.length);
   /** Punkt pod przytrzymanym palcem; liczy się dopiero miejsce puszczenia. */
   const [aim, setAim] = useState<SrodekPoint | null>(null);
   /** Ile razy z rzędu dotknięcie wypadło poza strefą; klucz potrząśnięcia i podpowiedzi. */

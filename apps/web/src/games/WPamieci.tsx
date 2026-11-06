@@ -1,6 +1,7 @@
 import { type LobbyPlayer, W_PAMIECI_MAX_ANSWER, W_PAMIECI_ROUNDS, W_PAMIECI_SHOW_MS, type WPamieciRound, type WPamieciView, wPamieciValue } from "@kwadrans/games";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { useLive } from "../live.ts";
 import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
@@ -47,6 +48,7 @@ export function WPamieci({ view, me, players, ranking, onMove }: Props) {
   const [pos, setPos] = useState(0);
   const [input, setInput] = useState("");
   const submitted = useRef(false);
+  useLive(answers.length);
   const color = players.find((p) => p.id === me)?.color;
 
   const index = phase === "reveal" ? answers.length - 1 : answers.length;
