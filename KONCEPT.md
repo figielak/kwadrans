@@ -10,7 +10,7 @@ Dev i deploy: `README.md`. Stan prac i plan: `.telos/ROADMAP.md`.
 ## 1. Założenia
 
 - **Do 6 graczy naraz** w pokoju, kilka pokoi równolegle. Limit miejsc zależy od gry
-  (Kampus Tour, Chińczyk i Labirynt 2-4, Gomoku i Statki 2); reszta ogląda.
+  (Kampus Tour, Chińczyk i Labirynt 2-4, Gomoku i Statki 2, Sabotaż 3-6 i nie wystartuje z mniejszą liczbą); reszta ogląda.
 - **Mobile-first**: telefon w pionie, bez instalacji (PWA z ikoną na ekranie głównym).
 - **Bez kont**: gracz wpisuje nick i kod pokoju. Token sesji w `localStorage` pozwala wrócić do gry po odświeżeniu strony.
   Nick jest zapamiętany po pierwszym wpisaniu (ekran główny pokazuje „Grasz jako … · zmień”), tak samo trzy ostatnie pokoje z ostatniej doby do szybkiego powrotu
@@ -71,6 +71,7 @@ rozbudowa do landmarku, wykupienie pola rywala za 2× wartość, wygrana przez b
 | Memory | `memory` | 2-6 | wspólna plansza par, układ zna tylko serwer, trzy rozmiary |
 | Kalambury | `kalambury` | 2-6 | rysowanie palcem i zgadywanie, limit per faza |
 | Labirynt | `labirynt` | 2-4 | Quoridor: krok albo ścianka, tryby 9×9 i 7×7 |
+| Sabotaż | `sabotaz` | 3-6 | zakryte stosy, licytacja i odkrywanie od góry, 6 rund bez eliminacji, punkty 2/1/0 |
 | Państwa-miasta | `panstwa-miasta` | 2-6 | wszyscy piszą naraz, STOP, głosowanie; limit per faza (`turn()`) |
 | Poprawka | (do zrobienia) | 2-6 | gra karciana typu Uno, ukryte ręce, własne karty |
 

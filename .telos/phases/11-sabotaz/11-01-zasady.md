@@ -2,7 +2,7 @@
 id: 11-01
 title: "Sabotaż: zasady i kontrakt v1"
 type: doc
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal
 depends: []
@@ -43,10 +43,12 @@ Utrwalić zaakceptowane zasady SAB-01..03 przed testami; ustalić jednoznaczny k
 - Sprawdzić zgodność SAB-01..05 i opisu końca po szóstej rundzie bez dodatkowego next.
 
 ## Acceptance
-- [ ] Sekcja rozstrzyga wszystkie ruchy, granice, timeouty i widoki; nie ma nieustalonych reguł przed TDD.
-- [ ] `pnpm typecheck && pnpm test` → exit 0
-- [ ] Zasady, katalog i procedura odbioru są zgodne z D-01..03.
+- [x] Sekcja rozstrzyga wszystkie ruchy, granice, timeouty i widoki; nie ma nieustalonych reguł przed TDD.
+- [x] `pnpm typecheck && pnpm test` → exit 0
+- [x] Zasady, katalog i procedura odbioru są zgodne z D-01..03.
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Dodano sekcję 11 „Sabotaż” w ZASADY-GIER.md (wiersz tabeli, stałe, ruchy z `nonce`/`round`/`decision`, fazy, timeouty, punkty 2/1/0, widoki, koniec bez `next` po rundzie 6, balans niepotwierdzony, brak obietnicy kwadransa).
+KONCEPT.md: wiersz katalogu `sabotaz` 3-6 i wzmianka o minimum 3 w limicie miejsc. ZASADY.md: wibracja trafionej cudzej pułapki (`useHarm`), własna pułapka jako legalne pudło, odbiór przy limicie pokoju 6.
+`pnpm typecheck && pnpm test`: exit 0 (2367 + 171 + 371 testów). Bez commita: AGENTS.md i CONTEXT wymagają prośby użytkownika.
+Deviations: AGENTS.md — zmiana sprzed zadania (widoczna w początkowym git status), nie moja, nie stage'owana
