@@ -27,6 +27,9 @@ Dev i deploy: `README.md`. Stan prac i plan: `.telos/ROADMAP.md`.
   dzień zmienia się o polskiej północy, `TZ` w docker-compose). Ranking dnia to najlepsze dzisiejsze wyniki w tej grze z dowolnej partii
   (solo, pokój, turniej), bez limitu prób i bez osobnej tabeli (`/api/daily`). Układ partii jest losowy jak zawsze.
   W rankingach gracza rozpoznaje `nickKey` (bez wielkości liter, polskich znaków i nadmiarowych spacji: „Ala” i „ala” to jedna osoba), pokazywana jest ostatnia pisownia.
+- **Koniec wieczoru**: własne wyjście z pokoju po co najmniej dwóch partiach (poza solo) pokazuje zamiast ekranu głównego podsumowanie (`Evening.tsx`): mistrz (przy remisie na szczycie współliderzy),
+  tabela, 2-3 tytuły i „Udostępnij” z krótkim tekstem (`shareText`, bez kodu pokoju i grafiki; `navigator.share`, bez niego kopiowanie, bez schowka brak przycisku), potem „Na start”.
+  Zerwane połączenie nie ma podsumowania, tylko dotychczasowy komunikat. Ostatni widok pokoju trzyma `App`, serwer bez zmian.
 - **Dostęp**: strona publiczna, ale do gry trzeba znać kod pokoju. Brak publicznej listy pokoi.
 - **Odporność na słabe Wi-Fi**: automatyczne ponowne łączenie, stan gry zawsze po stronie serwera.
 - **Tryb cichy**: domyślnie bez dźwięku (jedyny wyjątek to klik metronomu w Rytmie), ciemny motyw, wibracje zamiast powiadomień, limit czasu na turę.

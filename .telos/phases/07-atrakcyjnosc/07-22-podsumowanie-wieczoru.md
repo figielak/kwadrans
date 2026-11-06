@@ -2,7 +2,7 @@
 id: 07-22
 title: "Etap 3: podsumowanie wieczoru i udostępnienie"
 type: code
-status: approved
+status: done
 critical: false
 effort: normal
 depends: [07-18]
@@ -42,9 +42,14 @@ Przy wyjściu z pokoju wieczór dostaje zakończenie: mistrz, tabela, 2-3 tytuł
 - `App.tsx`: przed `Home`, gdy `onLeave` daje podsumowanie.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter web exec vitest run src/screens/evening.test.ts` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter web exec vitest run src/screens/evening.test.ts` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
 
 ## Result
+`evening.ts`: `shouldSummarize` (własne wyjście, 2+ gry, nie solo), `champions` (remis daje współliderów), `shareText` (mistrz albo remis, tytuły, link, bez kodu i em-dashy), odmiana „gry/gier”.
+`Evening.tsx`: mistrz, `EveningTable`, tytuły, „Udostępnij” (share, kopiowanie albo brak przycisku) i „Na start”. `App.tsx` trzyma ostatni widok i nick w refach, a po własnym wyjściu pokazuje podsumowanie przed `Home`.
+Testy: 6 w evening.test.ts; razem 2367 + 171 + 364 PASS.
+Nie sprawdzone w przeglądarce: ekran wymaga dwóch rozegranych partii, więc jego wygląd na 360×640 jest do obejrzenia na teście z ludźmi.
+Deviations: none

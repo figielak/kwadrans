@@ -1,8 +1,11 @@
 import type { Room } from "@colyseus/sdk";
 import { GAMES, type RoomView } from "@kwadrans/games";
 import { CloseCode } from "@colyseus/sdk";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { forgetRoom, resumeRoom, watchRoom } from "./net.ts";
+import { nickKey } from "@kwadrans/games";
+import { Evening } from "./screens/Evening.tsx";
+import { shouldSummarize } from "./screens/evening.ts";
 import { Home } from "./screens/Home.tsx";
 import { Game } from "./screens/Game.tsx";
 import { Lobby } from "./screens/Lobby.tsx";
@@ -16,6 +19,10 @@ export function App() {
   const [view, setView] = useState<RoomView | null>(null);
   const [dropped, setDropped] = useState(false);
   const [notice, setNotice] = useState<string>();
+  // Ostatni widok pokoju: onLeave czyści `view`, a podsumowanie wieczoru potrzebuje ostatniej tabeli.
+  const lastView = useRef<RoomView | null>(null);
+  const lastNick = useRef("");
+  const [summary, setSummary] = useState<{ evening: RoomView["evening"]; meKey: string } | null>(null);
   // Gospodarz otworzył listę mini-gier; samo otwarcie nie zmienia nic w pokoju.
   const [mini, setMini] = useState(false);
   // Ekran „Rekordy” otwarty z pokoju: lokalny jak lista mini-gier; start partii go zamyka.
@@ -36,11 +43,18 @@ export function App() {
 
   useEffect(() => {
     if (!room) return;
-    const off = watchRoom(room, setView);
+    lastView.current = null;
+    const off = watchRoom(room, (next) => {
+      lastView.current = next;
+      lastNick.current = next.players.find((p) => p.id === room.sessionId)?.nick ?? lastNick.current;
+      setView(next);
+    });
     room.onDrop(() => setDropped(true));
     room.onReconnect(() => setDropped(false));
     room.onLeave((code) => {
       forgetRoom();
+      // Własne wyjście po co najmniej dwóch partiach kończy wieczór podsumowaniem; zerwane połączenie dostaje dotychczasowy komunikat.
+      if (shouldSummarize(lastView.current, code)) setSummary({ evening: lastView.current!.evening, meKey: nickKey(lastNick.current) });
       setRoom(null);
       setView(null);
       setDropped(false);
@@ -58,6 +72,7 @@ export function App() {
       </main>
     );
   }
+  if (!room && summary) return <Evening evening={summary.evening} meKey={summary.meKey} onDone={() => setSummary(null)} />;
   if (!room) return <Home onRoom={setRoom} notice={notice} />;
   const send = (type: string, payload?: unknown) => room.send(type, payload);
   if (view && view.phase !== "lobby") return <Game room={room} view={view} me={room.sessionId} dropped={dropped} send={send} onLeave={() => room.leave()} />;
