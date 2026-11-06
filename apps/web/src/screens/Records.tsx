@@ -57,7 +57,7 @@ const formatTie = (gameId: string, n: number | null) => (n === null ? null : (FO
 /** „12 traf. · 256 ms”: wynik z drugim kryterium, jeśli gra je ma. */
 export const formatRecord = (gameId: string, { best, tie }: Score) => [formatBest(gameId, best), formatTie(gameId, tie)].filter(Boolean).join(" · ");
 /** Różnica dwóch rekordów: w głównym wyniku albo, przy równym, w drugim kryterium. */
-const formatGap = (gameId: string, { gap, onTie }: { gap: number; onTie: boolean }) =>
+export const formatGap = (gameId: string, { gap, onTie }: { gap: number; onTie: boolean }) =>
   ((onTie ? FORMAT[gameId]?.tie : (FORMAT[gameId]?.gap ?? FORMAT[gameId]?.value)) ?? String)(gap);
 
 const orderOf = (gameId: string) => GAMES[gameId].record!;
@@ -109,10 +109,12 @@ interface PanelProps {
   color?: string;
   /** Wynik z tej partii (z drugim kryterium); brak u obserwatora. */
   score?: Score;
+  /** Nad panelem stoi bohater wyników: to jego tytuł ma być największym tekstem. */
+  underHero?: boolean;
 }
 
 /** Po partii: gdzie jestem w rankingu wszech czasów, czy padł rekord i ile brakuje do osoby wyżej. */
-export function RecordPanel({ gameId, before, after, nick, color, score }: PanelProps) {
+export function RecordPanel({ gameId, before, after, nick, color, score, underHero }: PanelProps) {
   const order = orderOf(gameId);
   const now = score === undefined ? null : standing(after, nick, order);
   const title = <h2 className="label">Rekordy · {GAMES[gameId].name}</h2>;
@@ -153,7 +155,7 @@ export function RecordPanel({ gameId, before, after, nick, color, score }: Panel
 
       <div>
         <p className="flex items-baseline gap-2">
-          <span className="font-mono text-4xl font-semibold tabular-nums" style={{ color }}>
+          <span className={`font-mono ${underHero ? "text-2xl" : "text-4xl"} font-semibold tabular-nums`} style={{ color }}>
             {now.place}. miejsce
           </span>
           <span className="font-mono text-sm text-fg-muted tabular-nums">z {now.of}</span>

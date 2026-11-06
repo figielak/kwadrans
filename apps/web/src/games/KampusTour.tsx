@@ -68,6 +68,8 @@ interface Props {
   canMove: boolean;
   /** Wynik partii (także walkower bez rankingu); null w trakcie gry. */
   result: GameResult | null;
+  /** Miejsca graczy w podsumowaniu partii. */
+  hero: ReactNode;
   onMove: (move: KampusMove) => void;
   timer: ReactNode;
   actions: ReactNode;
@@ -366,7 +368,7 @@ export function boughtOut(before: Record<number, string>, after: Record<number, 
     .filter((t) => before[t] === me && after[t] !== undefined && after[t] !== me);
 }
 
-export function KampusTour({ view, me, players, dropped, scores, seated, canMove, result, onMove, timer, actions }: Props) {
+export function KampusTour({ view, me, players, dropped, scores, seated, canMove, result, onMove, timer, actions, hero }: Props) {
   const [selected, setSelected] = useState<number | null>(null);
   const stage = useStage();
   const { shown, rolling, settled, finish: finishAnimation } = useMoveAnimation(view);
@@ -1121,6 +1123,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
             color={color}
             finalWealth={wealth}
             actions={actions}
+            hero={hero}
             onClose={() => setSummaryHidden(true)}
           />
         )}

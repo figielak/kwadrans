@@ -151,6 +151,9 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
   przygaszenie u czytającego zasady, przerywany obrys u rozłączonego, kreska pod własną kropką (zawsze pierwszą), odznaka z wygranymi (w turnieju prostokątna, z punktami; zera nie widać);
   dotknięcie kropek rozwija pigułki z nickami i dokładnym postępem. W grze solo kropek nie ma.
   „Oglądasz”, komunikat o rozłączeniu, przyciski „Rewanż” i „Do lobby”. To wszystko daje `screens/Game.tsx`.
+- Wynik po partii z ludźmi: `ResultHero` (ui.tsx) z `heroResult` (`screens/results.ts`), liczony wyłącznie ze stanu. Tytuł to największy tekst ekranu, pod nim miejsca, nicki,
+  jedna liczba z `record` i różnica do osoby wyżej (bez liczby w grach bez `record`, po wyniku nieskończonym i w walkowerze; bez różnicy przy remisie). Solo bohatera nie ma, po ostatniej grze turnieju tytuł należy do turnieju.
+  Własny ekran końcowy gry trafia pod „Szczegóły” (`ResultDetails`, zwinięte), gra pozostaje zamontowana od początku partii. Kampus Tour: własny tytuł i pod nim same wiersze, bez odsłony.
 - Własny nagłówek ma tylko gra, której wspólny nie wystarcza (Państwa-miasta, Kampus Tour), i wtedy przejmuje cały jego zakres.
 
 **Z czego gra się składa**
@@ -224,7 +227,7 @@ animacja tylko go dogania na ekranie.
 
   | Keyframes | Rola | Czasy |
   |---|---|---|
-  | `stone-pop` | coś pojawia się na planszy (kamień, strzał, ścianka, karta Memory, znacznik, nowa wygrana) | `0.35s` standard; `180ms` działanie W pamięci (wyjątek: pokaz co 1,5 s) |
+  | `stone-pop` | coś pojawia się na planszy (kamień, strzał, ścianka, karta Memory, znacznik, nowa wygrana) oraz wiersz odsłony wyników | `0.35s` standard; `180ms` działanie W pamięci (wyjątek: pokaz co 1,5 s) |
   | `ring-pulse` | to można wybrać (pionek, karta, „Jeszcze raz” po prośbie innych), w pętli | `1.2s` |
   | `dice-tumble` | rzut kośćmi, pętla na czas pokazu rzutu | `0.3s` |
   | `card-in` | karta lub okno na środku ekranu (Karta Dziekanatu, oferty, podsumowanie) | `0.35s` |
@@ -253,6 +256,7 @@ animacja tylko go dogania na ekranie.
   | pływająca liczba | 1,6 s |
   | świeże osiągnięcie (`set-glow`) | 0,9 s × 4 |
   | pętla „to można wybrać” (`ring-pulse`) | 1,2 s |
+  | odsłona wyników: kolejny wiersz, od ostatniego miejsca, przy 3+ wierszach | 600 ms na wiersz |
   | pasek czasu | przejście szerokości `linear` równe krokowi odświeżania (`TICK_MS` 250 ms), z zegara, nie jednym długim przejściem |
   | pojawienie w pokazie na czas (W pamięci) | 180 ms (wyjątek: działanie co 1,5 s) |
   | Szybki Chińczyk: krok pionka i rzut | 110 ms na pole, 400 ms (wyjątek: tryb na 20 s tury) |
@@ -269,6 +273,7 @@ animacja tylko go dogania na ekranie.
   Chińczyk tak samo: pierwsze dotknięcie planszy albo dolnego paska w trakcie turlania lub marszu kończy pokaz
   (bez ruchu i bez wyboru pionka spod palca), kolejne wybiera pionek. Nowy rzut albo ruch zaczyna pokaz od poprzedniego
   widoku serwera, bez zaległej kolejki; wibracja zbicia przychodzi raz, gdy pokaz dojdzie do końca albo zostanie zastąpiony.
+  Odsłona wyników tak samo: dotknięcie gdziekolwiek stawia od razu wszystkie wiersze i tytuł, przyciski działają od początku, a odświeżenie w `over` pokazuje całość bez pokazu.
   Wyjątek: Statki po pudle trzymają stary układ plansz przez 1,2 s (`SWAP_MS`), zanim plansze się zamienią i pojawi się
   przycisk strzału; bez tego broniący nie widział, gdzie padł strzał.
 - **Kroki sekwencyjne** (pionek idzie pole po polu) to stan „pokazywany” goniący stan „docelowy” w `setTimeout`,

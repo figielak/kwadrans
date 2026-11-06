@@ -10,8 +10,8 @@ test("F4-017: Game.tsx i Lobby.tsx biorą mini-gry z MINI_GAME_IDS, bez ręcznej
   const game = read("Game.tsx");
   expect(game).toContain("MINI_GAME_IDS");
   expect(game).not.toMatch(/new Set\(\["tort"/);
-  // Kalambury mają własną tabelę „Suma punktów”, więc nie dostają drugiej listy pod spodem.
-  expect(game).toMatch(/OWN_RANKING = new Set\(\[\.\.\.MINI_GAME_IDS, "panstwa-miasta", "kalambury"\]\)/);
+  // Listę miejsc pod grą zastąpił bohater wyników (07-04).
+  expect(game).not.toContain("OWN_RANKING");
   expect(read("Lobby.tsx")).toMatch(/MINI_GAMES = MINI_GAME_IDS\.map\(\(id\) => GAMES\[id\]\)/);
 });
 

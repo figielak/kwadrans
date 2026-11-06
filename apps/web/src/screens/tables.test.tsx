@@ -2,7 +2,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
-import { RoundTable, ScoreTable } from "./ui.tsx";
+import type { KampusStats } from "@kwadrans/games";
+import { KampusSummary } from "../games/KampusSummary.tsx";
+import { ResultDetails, ResultHero, RoundTable, ScoreTable } from "./ui.tsx";
 
 // P4-048: dwa wspólne wzorce wyników (Scores, ScoreTable) i jeden tabeli rund (RoundTable z wierszem celów i własną komórką).
 const src = new URL("..", import.meta.url).pathname;
@@ -76,6 +78,96 @@ describe("RoundTable", () => {
     expect(html).not.toContain("color-mix");
     expect(text(html)).toContain("Stuknięcia w każdym balonie.");
     expect(text(html)).not.toContain("Błąd w każdej rundzie");
+  });
+});
+
+describe("ResultHero", () => {
+  const NICKS: Record<string, string> = { a: "Ala", b: "Bob", c: "Cyd" };
+  const common = { nick: (id: string) => NICKS[id], color: (id: string) => `#${id}${id}${id}`, me: "b" };
+  const hero = { title: "Wygrywa Ala", rows: [{ id: "a", place: 1 }, { id: "b", place: 2 }, { id: "c", place: 3 }] };
+
+  test("bez `score` pokazuje tytuł, miejsca i nicki; „(ty)” tylko u siebie", () => {
+    const html = renderToStaticMarkup(<ResultHero {...common} hero={hero} winner="a" />);
+    const t = text(html);
+    for (const s of ["Wygrywa Ala", "1.", "Ala", "2.", "Bob (ty)", "3.", "Cyd"]) expect(t).toContain(s);
+    expect(html).toMatch(/<h1[^>]*text-3xl/);
+    expect(html).not.toContain("invisible");
+  });
+
+  test("`me` puste: bez „(ty)”", () => {
+    expect(text(renderToStaticMarkup(<ResultHero {...common} me="" hero={hero} winner="a" />))).not.toContain("(ty)");
+  });
+
+  test("liczba i różnica w wierszu", () => {
+    const t = text(renderToStaticMarkup(<ResultHero {...common} hero={{ title: "Remis", rows: [{ id: "a", place: 1, score: "18 traf." }, { id: "b", place: 2, score: "16 traf.", gap: "o 2 traf." }] }} />));
+    for (const s of ["18 traf.", "16 traf.", "o 2 traf."]) expect(t).toContain(s);
+  });
+
+  test("odsłona: najpierw tylko ostatni wiersz, tytuł czeka na koniec", () => {
+    const html = renderToStaticMarkup(<ResultHero {...common} hero={hero} winner="a" reveal />);
+    expect(html).toMatch(/<h1[^>]*invisible/);
+    const rows = html.match(/<li[^>]*>/g)!;
+    expect(rows[0]).toContain("invisible");
+    expect(rows[1]).toContain("invisible");
+    expect(rows[2]).not.toContain("invisible");
+    expect(rows[2]).toContain("stone-pop");
+  });
+
+  test("`rowsOnly`: same wiersze, bez tytułu i odsłony", () => {
+    const html = renderToStaticMarkup(<ResultHero {...common} hero={hero} winner="a" reveal rowsOnly />);
+    expect(html).not.toContain("<h1");
+    expect(html).not.toContain("Wygrywa Ala");
+    expect(html).not.toContain("invisible");
+    expect(html).not.toContain("stone-pop");
+    expect(text(html)).toContain("Cyd");
+  });
+});
+
+describe("ResultDetails", () => {
+  test("w partii nie dokłada pudełka ani przycisku", () => {
+    const html = renderToStaticMarkup(<ResultDetails collapsible={false}><p>plansza</p></ResultDetails>);
+    expect(html).toBe('<div class="contents"><p>plansza</p></div>');
+  });
+
+  test("po partii zwinięte: przycisk „Szczegóły”, treść ukryta, ale zamontowana", () => {
+    const html = renderToStaticMarkup(<ResultDetails collapsible><p>plansza</p></ResultDetails>);
+    expect(text(html)).toContain("Szczegóły");
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).toMatch(/class="hidden"[^>]*><p>plansza/);
+  });
+});
+
+describe("Kampus Tour: wiersze pod tytułem podsumowania", () => {
+  const stats = { wealth: { a: [100], b: [90] }, rentPaid: {}, tileIncome: {}, doubles: {} } as unknown as KampusStats;
+
+  test("`hero` stoi między tytułem a wykresem", () => {
+    const html = renderToStaticMarkup(
+      <KampusSummary title="Wygrywa Ala (monopol)" winner="a" stats={stats} players={["a", "b"]} nick={(id) => id} color={() => "#fff"} finalWealth={() => 100} actions={null} hero={<p>WIERSZE</p>} onClose={() => {}} />,
+    );
+    expect(html.indexOf("Wygrywa Ala (monopol)")).toBeLessThan(html.indexOf("WIERSZE"));
+    expect(html.indexOf("WIERSZE")).toBeLessThan(html.indexOf("<figure"));
+  });
+
+  test("Game.tsx przekazuje `hero` w gałęzi kampus-tour, a KampusTour dalej do podsumowania", () => {
+    const screen = readFileSync(join(src, "screens", "Game.tsx"), "utf8");
+    expect(screen.slice(screen.indexOf('def.id === "kampus-tour"'), screen.indexOf("// Labirynt: przy wygranych"))).toMatch(/<KampusTour[\s\S]*hero=\{/);
+    expect(game("KampusTour")).toMatch(/<KampusSummary[\s\S]*hero=\{hero\}/);
+  });
+});
+
+describe("ekran po partii", () => {
+  const screen = readFileSync(join(src, "screens", "Game.tsx"), "utf8");
+
+  test("stara lista rankingu zniknęła, gry stoją w `ResultDetails`", () => {
+    expect(screen).not.toContain("OWN_RANKING");
+    expect(screen).toContain("<ResultDetails");
+    // Tytuł bohatera (30 px) ma być największy: „N. miejsce” w panelu rekordów pod nim maleje.
+    expect(screen).toContain("underHero={!!hero}");
+  });
+
+  test("ZASADY opisują bohatera, a stone-pop obejmuje odsłonę wierszy", () => {
+    expect(rules).toMatch(/`ResultHero`/);
+    expect(rules).toMatch(/\| `stone-pop` \|[^\n]*wiersz odsłony/);
   });
 });
 

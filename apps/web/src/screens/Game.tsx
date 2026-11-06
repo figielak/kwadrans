@@ -1,6 +1,6 @@
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
 import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
 import { Memory } from "../games/Memory.tsx";
@@ -12,8 +12,9 @@ import { PiecWRzedzie } from "../games/PiecWRzedzie.tsx";
 import { FleetLeft, Statki } from "../games/Statki.tsx";
 import { fetchRecords } from "../net.ts";
 import { decisionKey, VIBRATE } from "../vibrate.ts";
-import { formatRecord, RecordPanel } from "./Records.tsx";
-import { type GameDot, GameDots, IntroContext, Screen, StickyBar, type Send } from "./ui.tsx";
+import { formatBest, formatGap, formatRecord, RecordPanel } from "./Records.tsx";
+import { heroResult, reducedMotion, shouldReveal } from "./results.ts";
+import { type GameDot, GameDots, IntroContext, ResultDetails, ResultHero, Screen, StickyBar, type Send } from "./ui.tsx";
 
 interface Props {
   view: RoomView;
@@ -92,6 +93,33 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
     };
   }, [def.id, view.phase, scored]);
 
+  // Bohater wyników: nie czeka na rekordy. Po ostatniej grze turnieju tytuł należy do turnieju, więc gra zostaje na swoim ekranie.
+  const colorOf = (id: string) => view.players.find((p) => p.id === id)?.color;
+  const { record } = def;
+  const hero =
+    view.phase === "over" && !(view.tournament && isDone(view.tournament))
+      ? heroResult({
+          result: game.result,
+          places: game.places,
+          seats: view.seats,
+          scoreOf: record && ((id) => ({ best: record.score(game.view, id), tie: finite(record.tie?.score(game.view, id)) })),
+          format: (best) => formatBest(def.id, best),
+          gap: (gap) => formatGap(def.id, gap),
+          me,
+          nick,
+        })
+      : null;
+  // Decyzja przed gałęzią Kampus Tour (hooki). Poprzednia faza zapisana w efekcie: podwójny render StrictMode widzi to samo.
+  // `revealing` trzyma pokaz, gdy kolejne wiadomości (np. prośba o rewanż) przyjdą już po zmianie fazy.
+  const prevPhase = useRef<RoomView["phase"] | null>(null);
+  const revealStarts = shouldReveal(prevPhase.current, view.phase, hero?.rows.length ?? 0) && !reducedMotion;
+  const [revealing, setRevealing] = useState(false);
+  useEffect(() => {
+    prevPhase.current = view.phase;
+    setRevealing(revealStarts);
+  }, [view.phase]);
+  const reveal = revealStarts || revealing;
+
   // Kampus Tour ma własny, poziomy układ na cały ekran: gracze w rogach, licznik i rewanż w środku planszy.
   if (def.id === "kampus-tour") {
     return (
@@ -107,6 +135,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
         onMove={(move) => send("move", move)}
         timer={view.phase === "playing" && <Countdown game={game} total={def.turnSeconds} color={turnColor} />}
         actions={view.phase === "over" && <OverActions view={view} me={me} send={send} />}
+        hero={hero && <ResultHero hero={hero} me={me} nick={nick} color={colorOf} rowsOnly />}
       />
     );
   }
@@ -150,7 +179,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                 ? { done: id in sudoku.results ? SUDOKU_BLANKS : (sudoku.progress[id] ?? 0), total: SUDOKU_BLANKS }
                 : null;
   const myColor = view.players.find((p) => p.id === me)?.color;
-  const winner = view.phase === "over" ? game.result?.winner : undefined;
+  // W trakcie odsłony nagłówek nie zdradza zwycięzcy.
+  const winner = view.phase === "over" && !reveal ? game.result?.winner : undefined;
   // Turniej: w nagłówku numer gry i punkty; po ostatniej grze tytuł ogłasza zwycięzcę turnieju, nie gry.
   const t = view.tournament;
   const table = t ? standings(t, view.seats) : null;
@@ -238,6 +268,62 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
     record: recordHint(def.id, records.before, nick(me)),
   };
 
+  // Rekordy i tabela turnieju: z bohaterem nad szczegółami, a w trakcie odsłony bez zdradzania wyniku.
+  const panels = (
+    <div className={reveal ? "invisible contents" : "contents"}>
+              {view.phase === "over" && def.record && game.result?.ranking && records.after && (!seated || Number.isFinite(def.record.score(game.view, me))) && (
+                <RecordPanel
+                  gameId={def.id}
+                  before={records.before}
+                  after={records.after}
+                  nick={nick(me)}
+                  color={myColor}
+                  score={seated ? { best: def.record.score(game.view, me), tie: finite(def.record.tie?.score(game.view, me)) } : undefined}
+            underHero={!!hero}
+                />
+              )}
+
+              {/* Solo nie ma rywali, więc i punktów: zamiast tabeli zera jedno zdanie o postępie. */}
+              {view.phase === "over" && t && view.seats.length === 1 && (
+                <p className="px-1 text-sm text-fg-muted">
+                  Rozegrane gry: {gameNo}/{t.games.length}. Grasz sam, więc liczą się rekordy.
+                </p>
+              )}
+
+              {view.phase === "over" && t && view.seats.length > 1 && table && (
+                <section className="tile p-4">
+                  <h2 className="label mb-2 flex justify-between">
+                    {tournamentOver ? "Wyniki turnieju" : "Tabela turnieju"}
+                    <span className="w-14 text-right">pkt</span>
+                  </h2>
+                  <ol className="flex flex-col gap-1">
+                    {table.map((r, i) => (
+                      <li key={r.id} className="flex items-center gap-3">
+                        <span className="w-5 font-mono text-fg-muted tabular-nums">{tablePlaces(table)[i]}.</span>
+                        <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: view.players.find((p) => p.id === r.id)?.color }} aria-hidden />
+                        <span className="min-w-0 flex-1 truncate">
+                          {nick(r.id)}
+                          {r.id === me && <span className="text-fg-muted"> (ty)</span>}
+                        </span>
+                        {tournamentOver ? (
+                          <span role="img" className="flex items-center gap-1 font-mono text-sm text-fg-muted tabular-nums" aria-label={`Wygrane gry: ${r.wins}`}>
+                            <Trophy size={14} weight="fill" aria-hidden />
+                            {r.wins}
+                          </span>
+                        ) : (
+                          <span role="img" className="font-mono text-sm text-fg-muted tabular-nums" aria-label={`Za tę grę: ${r.last}`}>
+                            +{r.last}
+                          </span>
+                        )}
+                        <span className="w-14 text-right font-mono font-semibold tabular-nums">{r.total}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              )}
+    </div>
+  );
+
   return (
     <IntroContext.Provider value={intro}>
       <Screen dropped={dropped}>
@@ -258,14 +344,22 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
               </p>
             )}
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-              {/* Koniec partii: tytuł w kolorze zwycięzcy; podbicie tylko u niego, przegrany dostaje spokojną wersję. */}
-              <h1
-                className={`min-w-0 origin-left break-words ${compact ? "text-base" : "text-xl"} font-semibold ${headline === me ? "animate-[title-pop_0.5s_cubic-bezier(0.2,0.8,0.4,1)]" : ""}`}
-                style={{ color: headline ? winnerColor : myTurn ? myColor : undefined }}
-              >
-                {compact && !open && !myTurn && !turnOf && game.waitingFor.length > 1 ? `Czekamy na: ${game.waitingFor.length} graczy` : status}
-              </h1>
-              {dots && !compact && <GameDots dots={dots} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
+              {/* Koniec partii: tytuł w kolorze zwycięzcy; podbicie tylko u niego, przegrany dostaje spokojną wersję. Z bohaterem tytuł jest w nim. */}
+              {hero ? (
+                !t && <p className="label">{def.name}</p>
+              ) : (
+                <h1
+                  className={`min-w-0 origin-left break-words ${compact ? "text-base" : "text-xl"} font-semibold ${headline === me ? "animate-[title-pop_0.5s_cubic-bezier(0.2,0.8,0.4,1)]" : ""}`}
+                  style={{ color: headline ? winnerColor : myTurn ? myColor : undefined }}
+                >
+                  {compact && !open && !myTurn && !turnOf && game.waitingFor.length > 1 ? `Czekamy na: ${game.waitingFor.length} graczy` : status}
+                </h1>
+              )}
+              {dots && !compact && (
+                <div className={reveal ? "invisible" : undefined}>
+                  <GameDots dots={dots} square={!!table} open={open} onToggle={() => setOpen(!open)} />
+                </div>
+              )}
             </div>
             <div className={compact ? "flex min-h-12 items-center gap-2" : "contents"}>
               {compact && <GameDots compact dots={dots!} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
@@ -280,7 +374,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                 </div>
               )}
             </div>
-            <ul aria-label="Szczegóły graczy" className={`flex flex-wrap gap-2 ${pillsHidden ? "hidden" : ""}`}>
+            <ul aria-label="Szczegóły graczy" className={`flex flex-wrap gap-2 ${pillsHidden ? "hidden" : ""} ${reveal ? "invisible" : ""}`}>
               {view.seats.map((id) => {
                 const p = view.players.find((pl) => pl.id === id);
                 const active = id === winner || (view.phase === "playing" && game.waitingFor.includes(id));
@@ -369,129 +463,72 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           </header>
         )}
 
-        {def.id === "piec-w-rzedzie" && (
-          <PiecWRzedzie
-            view={game.view as PiecWRzedzieView}
-            players={view.players}
-            canMove={myTurn}
-            onMove={(move) => send("move", move)}
-          />
-        )}
+        {hero && <ResultHero hero={hero} winner={game.result?.winner} me={me} nick={nick} color={colorOf} reveal={reveal} onDone={() => setRevealing(false)} />}
+        {hero && panels}
 
-        {def.id === "labirynt" && <Labirynt view={game.view as LabiryntView} me={me} players={view.players} canMove={myTurn} onMove={(move) => send("move", move)} />}
+        <ResultDetails collapsible={!!hero}>
+          {def.id === "piec-w-rzedzie" && (
+            <PiecWRzedzie
+              view={game.view as PiecWRzedzieView}
+              players={view.players}
+              canMove={myTurn}
+              onMove={(move) => send("move", move)}
+            />
+          )}
 
-        {def.id === "statki" && (
-          <Statki
-            view={game.view as StatkiView}
-            me={me}
-            players={view.players}
-            canMove={myTurn}
-            onMove={(move) => send("move", move)}
-          />
-        )}
+          {def.id === "labirynt" && <Labirynt view={game.view as LabiryntView} me={me} players={view.players} canMove={myTurn} onMove={(move) => send("move", move)} />}
 
-        {def.id === "chinczyk" && (
-          <Chinczyk
-            view={game.view as ChinczykView}
-            me={me}
-            players={view.players}
-            canMove={myTurn}
-            onMove={(move) => send("move", move)}
-          />
-        )}
+          {def.id === "statki" && (
+            <Statki
+              view={game.view as StatkiView}
+              me={me}
+              players={view.players}
+              canMove={myTurn}
+              onMove={(move) => send("move", move)}
+            />
+          )}
 
-        {def.id === "memory" && <Memory view={game.view as MemoryView} players={view.players} canMove={myTurn} onMove={(move) => send("move", move)} />}
+          {def.id === "chinczyk" && (
+            <Chinczyk
+              view={game.view as ChinczykView}
+              me={me}
+              players={view.players}
+              canMove={myTurn}
+              onMove={(move) => send("move", move)}
+            />
+          )}
 
-        <MiniGame id={def.id} view={game.view} me={me} players={view.players} ranking={game.result?.ranking} winner={winner} onMove={(move) => send("move", move)} onRound={onRound} />
+          {def.id === "memory" && <Memory view={game.view as MemoryView} players={view.players} canMove={myTurn} onMove={(move) => send("move", move)} />}
 
-        {def.id === "panstwa-miasta" && (
-          <PanstwaMiasta
-            key={(game.view as PanstwaMiastaView).nonce}
-            view={game.view as PanstwaMiastaView}
-            me={me}
-            players={view.players}
-            waitingFor={game.waitingFor}
-            ranking={game.result?.ranking}
-            timer={ownHeader && <Countdown game={game} total={def.turn?.(game.view).seconds} color={turnColor} tense />}
-            onMove={(move) => send("move", move)}
-          />
-        )}
+          <MiniGame id={def.id} view={game.view} me={me} players={view.players} ranking={game.result?.ranking} winner={winner} onMove={(move) => send("move", move)} onRound={onRound} />
 
-        {def.id === "kalambury" && (
-          <Kalambury
-            key={(game.view as KalamburyView).nonce}
-            view={game.view as KalamburyView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            timer={ownHeader && <Countdown game={drawTime ?? game} total={drawTime?.total ?? def.turn?.(game.view).seconds} color={turnColor} tense />}
-            onMove={(move) => send("move", move)}
-          />
-        )}
+          {def.id === "panstwa-miasta" && (
+            <PanstwaMiasta
+              key={(game.view as PanstwaMiastaView).nonce}
+              view={game.view as PanstwaMiastaView}
+              me={me}
+              players={view.players}
+              waitingFor={game.waitingFor}
+              ranking={game.result?.ranking}
+              timer={ownHeader && <Countdown game={game} total={def.turn?.(game.view).seconds} color={turnColor} tense />}
+              onMove={(move) => send("move", move)}
+            />
+          )}
 
-        {/* Mini-gry pokazują ranking same, razem z wynikami. */}
-        {view.phase === "over" && !OWN_RANKING.has(def.id) && game.result?.ranking && game.result.ranking.length > 2 && (
-          <ol className="tile flex flex-col gap-1 p-4">
-            {game.result.ranking.map((id, i) => (
-              <li key={id} className="flex items-center gap-3">
-                <span className="w-5 font-mono text-fg-muted tabular-nums">{game.result?.places?.[id] ?? i + 1}.</span>
-                <span className="size-2.5 rounded-full" style={{ backgroundColor: view.players.find((p) => p.id === id)?.color }} aria-hidden />
-                {nick(id)}
-                {id === me && <span className="text-fg-muted"> (ty)</span>}
-              </li>
-            ))}
-          </ol>
-        )}
+          {def.id === "kalambury" && (
+            <Kalambury
+              key={(game.view as KalamburyView).nonce}
+              view={game.view as KalamburyView}
+              me={me}
+              players={view.players}
+              ranking={game.result?.ranking}
+              timer={ownHeader && <Countdown game={drawTime ?? game} total={drawTime?.total ?? def.turn?.(game.view).seconds} color={turnColor} tense />}
+              onMove={(move) => send("move", move)}
+            />
+          )}
+        </ResultDetails>
 
-        {view.phase === "over" && def.record && game.result?.ranking && records.after && (!seated || Number.isFinite(def.record.score(game.view, me))) && (
-          <RecordPanel
-            gameId={def.id}
-            before={records.before}
-            after={records.after}
-            nick={nick(me)}
-            color={myColor}
-            score={seated ? { best: def.record.score(game.view, me), tie: finite(def.record.tie?.score(game.view, me)) } : undefined}
-          />
-        )}
-
-        {/* Solo nie ma rywali, więc i punktów: zamiast tabeli zera jedno zdanie o postępie. */}
-        {view.phase === "over" && t && view.seats.length === 1 && (
-          <p className="px-1 text-sm text-fg-muted">
-            Rozegrane gry: {gameNo}/{t.games.length}. Grasz sam, więc liczą się rekordy.
-          </p>
-        )}
-
-        {view.phase === "over" && t && view.seats.length > 1 && table && (
-          <section className="tile p-4">
-            <h2 className="label mb-2 flex justify-between">
-              {tournamentOver ? "Wyniki turnieju" : "Tabela turnieju"}
-              <span className="w-14 text-right">pkt</span>
-            </h2>
-            <ol className="flex flex-col gap-1">
-              {table.map((r, i) => (
-                <li key={r.id} className="flex items-center gap-3">
-                  <span className="w-5 font-mono text-fg-muted tabular-nums">{tablePlaces(table)[i]}.</span>
-                  <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: view.players.find((p) => p.id === r.id)?.color }} aria-hidden />
-                  <span className="min-w-0 flex-1 truncate">
-                    {nick(r.id)}
-                    {r.id === me && <span className="text-fg-muted"> (ty)</span>}
-                  </span>
-                  {tournamentOver ? (
-                    <span role="img" className="flex items-center gap-1 font-mono text-sm text-fg-muted tabular-nums" aria-label={`Wygrane gry: ${r.wins}`}>
-                      <Trophy size={14} weight="fill" aria-hidden />
-                      {r.wins}
-                    </span>
-                  ) : (
-                    <span role="img" className="font-mono text-sm text-fg-muted tabular-nums" aria-label={`Za tę grę: ${r.last}`}>
-                      +{r.last}
-                    </span>
-                  )}
-                  <span className="w-14 text-right font-mono font-semibold tabular-nums">{r.total}</span>
-                </li>
-              ))}
-            </ol>
-          </section>
-        )}
+        {!hero && panels}
 
         {view.phase === "over" && (
           <StickyBar className="z-10 mt-auto">
@@ -519,8 +556,6 @@ function recordHint(gameId: string, rows: RecordRow[] | null, nick: string) {
 
 /** Wszyscy grają naraz: nie ma niczyjego „ruchu”, a licznik to limit partii. */
 const SIMULTANEOUS = new Set([...MINI_GAME_IDS, "panstwa-miasta"]);
-/** Gry z własną tabelą wyników po partii; bez nich ekran dokłada listę miejsc. */
-const OWN_RANKING = new Set([...MINI_GAME_IDS, "panstwa-miasta", "kalambury"]);
 
 const SCHULTE_LAST = SCHULTE_SIZE * SCHULTE_SIZE;
 

@@ -2,7 +2,7 @@
 id: 07-04
 title: "Etap 1: bohater wyników i odsłona po partii"
 type: code
-status: approved
+status: done
 critical: false
 effort: hard
 depends: [07-02, 07-03]
@@ -78,11 +78,16 @@ Największy tekst po partii to wynik z ludźmi: zwycięzca, miejsca, jedna liczb
 6. `KampusTour`, `KampusSummary`: prop `hero`.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter web exec vitest run src/screens/results.test.ts` → exit 0
-- [ ] `pnpm --filter web exec vitest run src/screens/tables.test.tsx` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
-- [ ] Odbiór w `/dev?n=3`: koniec daje odsłonę, odświeżenie całość od razu, rewanż znów odsłonę; walkower w Gomoku ma bohatera, solo nie
+- [x] all listed tests pass
+- [x] `pnpm --filter web exec vitest run src/screens/results.test.ts` → exit 0
+- [x] `pnpm --filter web exec vitest run src/screens/tables.test.tsx` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
+- [x] Odbiór w `/dev?n=3`: koniec daje odsłonę, odświeżenie całość od razu, rewanż znów odsłonę; walkower w Gomoku ma bohatera, solo nie
 
 ## Result
+Po partii z ludźmi największy tekst to `ResultHero` (ui.tsx) z `heroResult` (results.ts): tytuł, miejsca, jedna liczba, różnica do osoby wyżej; przy 3+ wierszach odsłona od końca co 0,6 s, tytuł ostatni, dotknięcie kończy pokaz. Kampus Tour: same wiersze w podsumowaniu.
+Testy: 227 passed w web (results.test.ts, tables.test.tsx; w tym wszystkie 30 mini-gier: wiersze z widoku obserwatora po limitach). Odbiór w przeglądarce: odsłona 001→011→111+tytuł, odświeżenie całość od razu, rewanż znów, dotknięcie kończy, walkower w Gomoku (WebSocket zamknięty kodem CONSENTED, bo UI nie ma wyjścia z partii) z jednym wierszem, solo bez bohatera.
+Decyzja: zamiast `<details>` stabilny `ResultDetails` z `aria-expanded` (`contents` w partii): `<details>` tylko po partii przemontowałby grę i zgubił wibrację szkody z ostatniego ruchu. Decyzja: po ostatniej grze turnieju bez bohatera, tytuł należy do turnieju.
+Niespodzianki: `FORMAT` zaokrągla różnicę do „0,0 s”, więc taka różnica znika; „N. miejsce” panelu rekordów (36 px) przebijało tytuł (30 px), pod bohaterem ma 24 px. W trakcie odsłony nagłówek i panele są niewidoczne, żeby nie zdradzać zwycięzcy.
+Deviations: apps/web/src/screens/Records.tsx — eksport `formatGap` i prop `underHero` (tytuł bohatera ma być największy); apps/web/src/screens/lists.test.ts — asercja wymagała `OWN_RANKING`, a zadanie usuwa tę listę

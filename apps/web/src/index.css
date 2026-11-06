@@ -221,7 +221,7 @@ body::before {
 }
 
 /* Coś pojawia się na planszy: kamień w Gomoku, strzał w Statkach, ścianka w Labiryncie, odkryta karta Memory, znacznik Mapy, działanie W pamięci,
- * nowa wygrana na pigułce i plakietce gracza. */
+ * nowa wygrana na pigułce i plakietce gracza, wiersz odsłony wyników. */
 @keyframes stone-pop {
   from {
     transform: scale(1.6);

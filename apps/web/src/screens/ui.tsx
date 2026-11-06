@@ -1,7 +1,8 @@
-import { ArrowLeft, Check, HandTap, ShareNetwork, SignOut, Timer, Trophy, WifiSlash } from "@phosphor-icons/react";
+import { ArrowLeft, CaretDown, Check, HandTap, ShareNetwork, SignOut, Timer, Trophy, WifiSlash } from "@phosphor-icons/react";
 import type { RoomView } from "@kwadrans/games";
 import { createContext, Fragment, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { autoStart } from "./intro.ts";
+import { type Hero, revealOrder } from "./results.ts";
 
 export type Send = (type: string, payload?: unknown) => void;
 
@@ -137,6 +138,106 @@ export function GameDots({ dots, square, open, onToggle, compact = false }: { do
         </span>
       ))}
     </button>
+  );
+}
+
+const REVEAL_STEP_MS = 600;
+
+/**
+ * Bohater po partii: tytuł i po wierszu na gracza. `reveal`: wiersze od ostatniego co 0,6 s, tytuł na końcu;
+ * dotknięcie gdziekolwiek kończy pokaz, a przyciski działają przez cały czas. `rowsOnly`: same wiersze pod cudzym tytułem (Kampus Tour).
+ */
+export function ResultHero({ hero, winner, me, nick, color, reveal = false, rowsOnly = false, onDone }: {
+  hero: Hero;
+  winner?: string;
+  me: string;
+  nick: (id: string) => string;
+  color: (id: string) => string | undefined;
+  reveal?: boolean;
+  rowsOnly?: boolean;
+  onDone?: () => void;
+}) {
+  const count = hero.rows.length;
+  const animated = reveal && !rowsOnly;
+  const [shown, setShown] = useState(animated ? 1 : count);
+  // Pop tylko dla wierszy z pokazu: dotknięcie stawia resztę od razu.
+  const [pop, setPop] = useState(animated);
+  useEffect(() => {
+    if (!animated) return;
+    if (shown >= count) return onDone?.();
+    const timer = setTimeout(() => setShown((n) => n + 1), REVEAL_STEP_MS);
+    const finish = () => {
+      setPop(false);
+      setShown(count);
+    };
+    window.addEventListener("pointerdown", finish);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("pointerdown", finish);
+    };
+    // `animated` i `onDone` z chwili montażu: rodzic gasi `reveal` właśnie przez `onDone`.
+  }, [shown, count]);
+
+  const visible = new Set(revealOrder(hero.rows).slice(0, shown).map((r) => r.id));
+  const list = count > 0 && (
+    <ol className={`flex flex-col gap-1 ${rowsOnly ? "text-sm" : ""}`}>
+      {hero.rows.map((r) => (
+        <li
+          key={r.id}
+          className={`flex items-center gap-3 ${visible.has(r.id) ? (pop ? "animate-[stone-pop_0.35s_ease-out]" : "") : "invisible"}`}
+        >
+          <span className="w-5 shrink-0 font-mono text-fg-muted tabular-nums">{r.place}.</span>
+          <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: color(r.id) }} aria-hidden />
+          <span className={`min-w-0 flex-1 break-words ${r.place === 1 ? "font-semibold" : ""}`}>
+            {nick(r.id)}
+            {r.id === me && <span className="font-normal text-fg-muted"> (ty)</span>}
+          </span>
+          {r.score && (
+            <span className="flex shrink-0 flex-col items-end font-mono tabular-nums">
+              <span className={r.place === 1 ? "font-semibold" : ""}>{r.score}</span>
+              {r.gap && <span className="text-xs text-fg-muted">{r.gap}</span>}
+            </span>
+          )}
+        </li>
+      ))}
+    </ol>
+  );
+  if (rowsOnly) return list || null;
+
+  const titleShown = shown >= count;
+  return (
+    <section aria-label="Wynik partii" className="tile flex flex-col gap-3 p-4">
+      {/* Największy tekst po partii; podbicie tylko u zwycięzcy, jak dotąd w nagłówku. */}
+      <h1
+        className={`origin-left text-3xl font-semibold tracking-tight break-words ${titleShown ? (winner === me ? "animate-[title-pop_0.5s_cubic-bezier(0.2,0.8,0.4,1)]" : "") : "invisible"}`}
+        style={winner ? { color: color(winner) } : undefined}
+      >
+        {hero.title}
+      </h1>
+      {list}
+    </section>
+  );
+}
+
+/**
+ * Własny ekran gry pod „Szczegółami”. Zawsze ten sam element, także w trakcie partii (bez pudełka, `contents`):
+ * `<details>` tylko po partii przemontowałby grę w chwili końca i zgubił wibrację szkody z ostatniego ruchu.
+ */
+export function ResultDetails({ collapsible, children }: { collapsible: boolean; children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!collapsible) setOpen(false);
+  }, [collapsible]);
+  return (
+    <>
+      {collapsible && (
+        <button type="button" className="-ml-2 flex min-h-12 items-center gap-1.5 self-start px-2 text-sm text-fg-muted" aria-expanded={open} onClick={() => setOpen(!open)}>
+          <CaretDown size={16} weight="bold" className={`transition-transform duration-180 ${open ? "rotate-180" : ""}`} aria-hidden />
+          Szczegóły
+        </button>
+      )}
+      <div className={collapsible && !open ? "hidden" : "contents"}>{children}</div>
+    </>
   );
 }
 
