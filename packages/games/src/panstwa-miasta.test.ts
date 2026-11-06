@@ -208,6 +208,15 @@ describe("punkty", () => {
 });
 
 describe("rundy i koniec", () => {
+  test.each([
+    { totals: { [A]: 20, [B]: 20, [C]: 10 }, places: { [A]: 1, [B]: 1, [C]: 3 } },
+    { totals: { [A]: 20, [B]: 10, [C]: 10 }, places: { [A]: 1, [B]: 2, [C]: 2 } },
+  ])("miejsca uwzględniają remis: $totals", ({ totals, places }) => {
+    const state: State = { ...game.setup([C, B, A], createRng(1)), phase: "over", totals };
+    expect(game.places?.(state)).toEqual(places);
+    expect(game.isOver(state)?.ranking?.map((p) => places[p])).toEqual(Object.values(places));
+  });
+
   test("podsumowanie, Dalej, kolejna litera; po 5 rundach ranking", () => {
     let s = game.setup([A, B], createRng(3));
     for (let r = 0; r < ROUNDS; r++) {

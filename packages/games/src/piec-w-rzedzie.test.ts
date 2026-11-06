@@ -174,6 +174,7 @@ describe("remis", () => {
 
     const full = play(interleave(a, b));
     expect(game.isOver(full)).toEqual({ ranking: [A, B] });
+    expect(game.places?.(full)).toEqual({ [A]: 1, [B]: 1 });
   });
 });
 

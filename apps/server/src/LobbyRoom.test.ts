@@ -77,6 +77,67 @@ async function drawing(n: number, gameId = "kalambury", start = true) {
   return { room, send, snapshot, clients, observer };
 }
 
+describe("07-02: miejsca po partii w widoku pokoju", () => {
+  test("Schulte: remis 1, 1, 3 widzą gracze i obserwator", async () => {
+    const { send, snapshot, observer } = await drawing(3, "schulte");
+    for (const [player, ms] of [[0, 10_000], [1, 10_000], [2, 20_000]]) {
+      send(player, "move", { type: "result", ms, mistakes: 0, splits: [] });
+    }
+    expect(snapshot().phase).toBe("over");
+    for (const player of [0, 1, 2, observer!]) {
+      expect(snapshot(player).game).toHaveProperty("places", { p1: 1, p2: 1, p3: 3 });
+    }
+  });
+
+  test("Szybki Chińczyk: miejsca pochodzą z result.places", async () => {
+    const setup = GAMES.chinczyk.setup;
+    vi.spyOn(GAMES.chinczyk, "setup").mockImplementation((players, rng, mode) => ({
+      ...setup(players, rng, mode),
+      phase: "move",
+      dice: 3,
+      pawns: { p1: [40, 41, 39, -1], p2: [0, -1, -1, -1], p3: [0, -1, -1, -1] },
+    }));
+    const { send, snapshot, observer } = await openRoom(3);
+    send(0, "pickGame", { gameId: "chinczyk" });
+    send(0, "toggleSeat", { id: "p4" });
+    send(0, "pickMode", { mode: "szybki" });
+    for (const player of [1, 2]) send(player, "ready", { ready: true });
+    send(0, "start", {});
+    send(0, "move", { type: "move", pawn: 2 });
+    expect(snapshot().phase).toBe("over");
+    expect(snapshot().game!.result).toEqual({ winner: "p1", ranking: ["p1", "p2", "p3"], places: { p1: 1, p2: 2, p3: 2 } });
+    expect(snapshot().game).toHaveProperty("places", { p1: 1, p2: 2, p3: 2 });
+    expect(snapshot(observer).game).toHaveProperty("places", { p1: 1, p2: 2, p3: 2 });
+  });
+
+  test("w toku partii miejsca są null, także po wyniku jednej osoby", async () => {
+    const { send, snapshot } = await drawing(2, "schulte");
+    expect(snapshot().game).toHaveProperty("places", null);
+    send(0, "move", { type: "result", ms: 10_000, mistakes: 0, splits: [] });
+    expect(snapshot().phase).toBe("playing");
+    expect(snapshot().game).toHaveProperty("places", null);
+  });
+
+  test("walkower nie liczy miejsc z nieukończonej mini-gry", async () => {
+    const { room, clients, snapshot } = await drawing(2, "schulte");
+    const places = vi.spyOn(GAMES.schulte, "places");
+    await room.onLeave(clients[1], CloseCode.CONSENTED);
+    expect(snapshot().game!.result).toEqual({ winner: "p1" });
+    expect(snapshot().game).toHaveProperty("places", null);
+    expect(places).not.toHaveBeenCalled();
+  });
+
+  test("Gomoku z samym zwycięzcą ma miejsca null", async () => {
+    const { send, snapshot } = await drawing(2, "piec-w-rzedzie");
+    for (let x = 0; x < 5; x++) {
+      send(0, "move", { x, y: 0 });
+      if (x < 4) send(1, "move", { x, y: 1 });
+    }
+    expect(snapshot().game!.result).toEqual({ winner: "p1" });
+    expect(snapshot().game).toHaveProperty("places", null);
+  });
+});
+
 describe.each([2, 6])("Kalambury: %i graczy", (n) => {
   test("rysujący, zgadujący i obserwator nie przyspieszają podpowiedzi, także fałszując source", async () => {
     const { send, snapshot, observer } = await drawing(n);
