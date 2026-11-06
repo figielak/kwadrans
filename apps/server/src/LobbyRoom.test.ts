@@ -417,10 +417,26 @@ describe("07-19: głosowanie Inna gra", () => {
     const vote = snapshot(1).vote!;
     await room.onLeave(clients[0], CloseCode.CONSENTED);
     expect(snapshot(1).hostId).toBe("p2");
-    expect(snapshot(1).vote!.options).toEqual(vote.options);
-    send(1, "vote", { id: vote.options[0] });
-    send(2, "vote", { id: vote.options[0] });
-    expect(snapshot(1)).toMatchObject({ phase: "playing", gameId: vote.options[0], vote: null });
+    // Sabotaż (od 3 osób) mógł trafić do opcji przy trzech; dla dwóch zostaje reszta bez zmian.
+    const left = vote.options.filter((id) => GAMES[id].minPlayers <= 2);
+    expect(snapshot(1).vote!.options).toEqual(left);
+    send(1, "vote", { id: left[0] });
+    send(2, "vote", { id: left[0] });
+    expect(snapshot(1)).toMatchObject({ phase: "playing", gameId: left[0], vote: null });
+  });
+
+  test("po wyjściu do dwóch osób Sabotaż (od 3 osób) znika z opcji głosowania", async () => {
+    // Bez zależności od losowania: szukamy głosowania, w którym Sabotaż wypadł.
+    for (let attempt = 0; attempt < 200; attempt++) {
+      const { room, snapshot, clients } = await voting(3);
+      const vote = snapshot(1).vote!;
+      if (!vote.options.includes("sabotaz")) continue;
+      await room.onLeave(clients[2], CloseCode.CONSENTED);
+      expect(snapshot(1).vote!.options).not.toContain("sabotaz");
+      expect(snapshot(1).vote!.options).toEqual(vote.options.filter((id) => id !== "sabotaz"));
+      return;
+    }
+    throw new Error("w 200 głosowaniach Sabotaż ani razu nie wypadł");
   });
 
   test("toLobby przerywa głosowanie po turnieju tak jak zwykły powrót", async () => {
