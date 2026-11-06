@@ -1023,7 +1023,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
                   </ul>
                 )}
                 {over && (summaryHidden || !view.stats) && selected === null && (
-                  <div className="flex w-full shrink-0 items-center justify-center gap-2">
+                  <div className="flex w-full shrink-0 flex-wrap items-center justify-center gap-2">
                     {actions}
                     {over && summaryHidden && view.stats && (
                       <button type="button" className="btn btn-ghost px-3 text-sm" onClick={() => setSummaryHidden(false)}>

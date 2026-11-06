@@ -1,5 +1,5 @@
 import type { Room } from "@colyseus/sdk";
-import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Play, Shuffle, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
 import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, nickKey, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
@@ -17,7 +17,8 @@ import { fetchRecords, watchLive, watchReact } from "../net.ts";
 import { decisionKey, VIBRATE } from "../vibrate.ts";
 import { formatBest, formatGap, formatRecord, RecordPanel } from "./Records.tsx";
 import { heroResult, reducedMotion, shouldReveal } from "./results.ts";
-import { type GameDot, GameDots, HeroSlot, IntroContext, LiveBoard, LiveGameDots, Moment, ReactionBar, ReactionOverlay, ReactionToggle, EveningTable, ResultDetails, ResultHero, Screen, StickyBar, type Send } from "./ui.tsx";
+import { type GameDot, GameDots, HeroSlot, IntroContext, LiveBoard, LiveGameDots, Moment, ReactionBar, ReactionOverlay, ReactionToggle, EveningTable, ResultDetails, ResultHero, Screen, StickyBar, type Send, VoteCards } from "./ui.tsx";
+import { ICONS } from "./Lobby.tsx";
 
 interface Props {
   room: Room;
@@ -187,7 +188,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
         result={game.result}
         onMove={(move) => send("move", move)}
         timer={view.phase === "playing" && <Countdown game={game} total={def.turnSeconds} color={turnColor} />}
-        actions={view.phase === "over" && <OverActions view={view} me={me} send={send} />}
+        actions={view.phase === "over" && <div className="flex w-full flex-wrap gap-2"><OverActions view={view} me={me} send={send} /></div>}
         hero={hero && <ResultHero hero={hero} me={me} nick={nick} color={colorOf} rowsOnly />}
       />
       </>
@@ -614,7 +615,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
         {reactable && view.phase === "over" && <ReactionBar onReact={react} className="mt-auto" />}
         {view.phase === "over" && (
           <StickyBar className={`z-10 ${reactable ? "" : "mt-auto"}`}>
-            <div className="flex w-full flex-col gap-2">
+            <div className="flex w-full flex-wrap gap-2">
               {t && !tournamentOver ? <NextActions view={view} me={me} send={send} countdown={<Countdown game={game} />} /> : <OverActions view={view} me={me} send={send} onLeave={onLeave} />}
             </div>
           </StickyBar>
@@ -656,8 +657,11 @@ function Progress({ done, total, color }: { done: number; total: number; color?:
   );
 }
 
-/** Rewanż rusza, gdy kliknie go każdy grający; „Do lobby” od jednej osoby kończy serię. */
-function OverActions({ view, me, send, onLeave }: { view: RoomView; me: string; send: Send; onLeave?: () => void }) {
+/**
+ * Po partii: „Rewanż” i „Inna gra” obok siebie, „Do lobby” tylko u gospodarza (zabiera wszystkich).
+ * „Inna gra” otwiera głosowanie na 3 gry; w jego trakcie rewanż znika, a karty zajmują jego miejsce.
+ */
+export function OverActions({ view, me, send, onLeave }: { view: RoomView; me: string; send: Send; onLeave?: () => void }) {
   // Gra solo z ekranu głównego nie ma lobby ani rywali: gramy jeszcze raz albo wracamy na start.
   if (view.solo) {
     return (
@@ -672,6 +676,32 @@ function OverActions({ view, me, send, onLeave }: { view: RoomView; me: string; 
       </>
     );
   }
+  const isHost = view.hostId === me;
+  const seatedMe = view.seats.includes(me);
+  const lobby = isHost && (
+    <button type="button" className={`btn btn-ghost ${view.vote ? "w-full" : "flex-1"}`} onClick={() => send("toLobby")}>
+      Do lobby
+    </button>
+  );
+  if (view.vote) {
+    const nicks = Object.fromEntries(view.players.map((p) => [p.id, p.nick]));
+    const colors = Object.fromEntries(view.players.map((p) => [p.id, p.color]));
+    return (
+      <>
+        <VoteCards
+          options={view.vote.options.map((id) => ({ id, name: GAMES[id]?.name ?? id, icon: ICONS[id] ?? Play }))}
+          votes={view.vote.votes}
+          nicks={nicks}
+          colors={colors}
+          msLeft={view.vote.msLeft}
+          me={me}
+          seated={seatedMe}
+          onVote={(id) => send("vote", { id })}
+        />
+        {lobby}
+      </>
+    );
+  }
   const seated = view.players.filter((p) => view.seats.includes(p.id));
   const wants = seated.filter((p) => p.ready);
   const waiting = seated.filter((p) => !p.ready);
@@ -683,20 +713,24 @@ function OverActions({ view, me, send, onLeave }: { view: RoomView; me: string; 
           {wants.map((p) => p.nick).join(", ")} {wants.length === 1 ? "chce" : "chcą"} rewanżu
         </p>
       )}
-      {view.seats.includes(me) && (
+      {seatedMe && (
         <button
           type="button"
-          className={`btn btn-primary flex-1 ${wants.length > 0 && !iWant ? "animate-[ring-pulse_1.2s_ease-in-out_infinite] outline-2 outline-fg" : ""}`}
+          className={`btn btn-primary min-w-0 flex-1 ${wants.length > 0 && !iWant ? "animate-[ring-pulse_1.2s_ease-in-out_infinite] outline-2 outline-fg" : ""}`}
           disabled={iWant}
           onClick={() => send("rematch")}
         >
           <ArrowCounterClockwise size={18} weight="bold" aria-hidden />
-          {iWant ? `Czekamy na: ${waiting.map((p) => p.nick).join(", ")}…` : "Rewanż"}
+          <span className="truncate">{iWant ? `Czekamy na: ${waiting.map((p) => p.nick).join(", ")}…` : "Rewanż"}</span>
         </button>
       )}
-      <button type="button" className="btn btn-ghost flex-1" onClick={() => send("toLobby")}>
-        Do lobby
-      </button>
+      {seatedMe && (
+        <button type="button" className="btn btn-ghost min-w-0 flex-1" onClick={() => send("otherGame")}>
+          <Shuffle size={18} weight="bold" aria-hidden />
+          Inna gra
+        </button>
+      )}
+      {lobby}
     </>
   );
 }
@@ -708,7 +742,7 @@ function NextActions({ view, me, send, countdown }: { view: RoomView; me: string
   const iWant = view.seats.includes(me) && !waiting.some((p) => p.id === me);
   return (
     <>
-      <p className="flex items-center justify-center gap-3 text-sm" role="status">
+      <p className="flex w-full items-center justify-center gap-3 text-sm" role="status">
         <span>
           Następna gra: <span className="font-semibold">{t.extra && t.index === t.games.length - 1 ? "dogrywka, " : ""}{GAMES[t.games[t.index]]?.name}</span>
         </span>

@@ -1,3 +1,4 @@
+import type { Icon } from "@phosphor-icons/react";
 import { ArrowLeft, CaretDown, Check, HandTap, ShareNetwork, SignOut, Smiley, Timer, Trophy, WifiSlash } from "@phosphor-icons/react";
 import { REACTIONS, type RoomView } from "@kwadrans/games";
 import { createContext, Fragment, type ReactNode, type Ref, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
@@ -34,6 +35,65 @@ export function EveningTable({ evening, present, meKey }: { evening: RoomView["e
         ))}
       </ol>
     </section>
+  );
+}
+
+/**
+ * Karty głosowania „Inna gra”: ikona, nazwa i kropki głosujących w ich kolorach, trzy w jednym rzędzie (też w poziomym Kampus Tour).
+ * Własny wybór ma obrys w moim kolorze. Obserwator widzi te same karty bez dotyku.
+ */
+export function VoteCards({ options, votes, nicks, colors, msLeft, me, seated, onVote }: {
+  options: { id: string; name: string; icon: Icon }[];
+  votes: Record<string, string>;
+  nicks: Record<string, string>;
+  colors: Record<string, string>;
+  msLeft: number;
+  me: string;
+  seated: boolean;
+  onVote: (id: string) => void;
+}) {
+  // Czas liczony od odebrania wiadomości, jak w Countdown: zegary telefonu i serwera się różnią.
+  const deadline = useMemo(() => Date.now() + msLeft, [msLeft]);
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(timer);
+  }, []);
+  const seconds = Math.max(0, Math.ceil((deadline - now) / 1000));
+  return (
+    <div className="flex w-full basis-full flex-col gap-2" role="group" aria-label="Głosowanie na następną grę">
+      <p className="flex justify-between text-sm" role="status">
+        <span className="font-semibold">{seated ? "Co dalej?" : "Głosują gracze"}</span>
+        <span className="font-mono text-fg-muted tabular-nums">{seconds} s</span>
+      </p>
+      <div className="grid grid-cols-3 gap-2">
+        {options.map(({ id, name, icon: CardIcon }) => {
+          const voters = Object.entries(votes).filter(([, vote]) => vote === id).map(([voter]) => voter);
+          const mine = votes[me] === id;
+          const label = `${name}, ${voters.length ? `głosują: ${voters.map((v) => nicks[v] ?? "?").join(", ")}` : "bez głosów"}`;
+          const body = (
+            <>
+              <CardIcon size={22} weight={mine ? "fill" : "regular"} aria-hidden />
+              <span className="text-center text-xs leading-tight break-words">{name}</span>
+              <span className="flex min-h-3 flex-wrap justify-center gap-1" aria-hidden>
+                {voters.map((v) => <span key={v} className="size-3 rounded-full" style={{ backgroundColor: colors[v] }} />)}
+              </span>
+            </>
+          );
+          const style = mine ? { borderColor: colors[me], backgroundColor: `color-mix(in srgb, ${colors[me]} 16%, transparent)` } : undefined;
+          const cls = "flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 rounded-inset border border-line p-2";
+          return seated ? (
+            <button key={id} type="button" aria-pressed={mine} aria-label={label} className={`${cls} transition-colors duration-180 enabled:hover:border-line-hover`} style={style} onClick={() => onVote(id)}>
+              {body}
+            </button>
+          ) : (
+            <div key={id} role="img" aria-label={label} className={cls}>
+              {body}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

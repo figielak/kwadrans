@@ -1,10 +1,17 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, test } from "vitest";
-import type { KampusStats } from "@kwadrans/games";
+import { describe, expect, test, vi } from "vitest";
+import { Timer } from "@phosphor-icons/react";
+import type { KampusStats, RoomView } from "@kwadrans/games";
 import { KampusSummary } from "../games/KampusSummary.tsx";
-import { bestRoundLine, EveningTable, ResultDetails, ResultHero, RoundTable, ScoreTable } from "./ui.tsx";
+import { OverActions } from "./Game.tsx";
+import { bestRoundLine, EveningTable, ResultDetails, ResultHero, RoundTable, ScoreTable, VoteCards } from "./ui.tsx";
+
+// Game.tsx przez net.ts czyta `location` już przy imporcie; testy idą w node, więc dostaje namiastkę.
+vi.hoisted(() => {
+  Object.assign(globalThis, { location: { hostname: "localhost", origin: "http://localhost", search: "" } });
+});
 
 // P4-048: dwa wspólne wzorce wyników (Scores, ScoreTable) i jeden tabeli rund (RoundTable z wierszem celów i własną komórką).
 const src = new URL("..", import.meta.url).pathname;
@@ -276,5 +283,85 @@ describe("EveningTable (07-18)", () => {
   test("przy mniej niż 2 grach tabeli nie ma", () => {
     expect(renderToStaticMarkup(<EveningTable evening={evening(1)} present={["ala"]} meKey="ala" />)).toBe("");
     expect(renderToStaticMarkup(<EveningTable evening={evening(0)} present={[]} meKey="ala" />)).toBe("");
+  });
+});
+
+describe("VoteCards (07-20)", () => {
+  const options = [
+    { id: "stoper", name: "Stoper", icon: Timer },
+    { id: "refleks", name: "Refleks", icon: Timer },
+    { id: "memory", name: "Memory", icon: Timer },
+  ];
+  const colors: Record<string, string> = { a: "#f00", b: "#0f0", c: "#00f" };
+  const render = (props: Partial<Parameters<typeof VoteCards>[0]> = {}) => renderToStaticMarkup(
+    <VoteCards
+      options={options}
+      votes={{ a: "stoper", b: "stoper", c: "memory" }}
+      nicks={{ a: "Ala", b: "Bob", c: "Cyd" }}
+      colors={colors}
+      msLeft={7000}
+      me="a"
+      seated
+      onVote={() => {}}
+      {...props}
+    />,
+  );
+
+  test("trzy karty z nazwami, kropki głosujących w ich kolorach, własny wybór zaznaczony", () => {
+    const html = render();
+    const t = text(html);
+    for (const s of ["Stoper", "Refleks", "Memory", "7 s"]) expect(t).toContain(s);
+    expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
+    expect(html).toContain('aria-label="Stoper, głosują: Ala, Bob"');
+    expect(html).toContain('aria-label="Refleks, bez głosów"');
+    expect(html).toContain("background-color:#0f0");
+    expect(html.match(/<button/g)).toHaveLength(3);
+  });
+
+  test("obserwator widzi karty bez dotyku i tekst „Głosują gracze”", () => {
+    const html = render({ seated: false, me: "x" });
+    expect(text(html)).toContain("Głosują gracze");
+    expect(html).not.toContain("<button");
+    expect(text(html)).toContain("Stoper");
+  });
+});
+
+describe("OverActions (07-20)", () => {
+  const players = ["a", "b", "c"].map((id, i) => ({ id, nick: id.toUpperCase(), color: ["#f00", "#0f0", "#00f"][i], connected: true, ready: false }));
+  const view = (extra: Partial<RoomView> = {}) => ({ solo: false, hostId: "a", players, seats: ["a", "b"], tournament: null, vote: null, ...extra }) as unknown as RoomView;
+  const render = (v: RoomView, me: string) => text(renderToStaticMarkup(<OverActions view={v} me={me} send={() => {}} />));
+
+  test("gość: Rewanż i Inna gra, bez Do lobby", () => {
+    const t = render(view(), "b");
+    expect(t).toContain("Rewanż");
+    expect(t).toContain("Inna gra");
+    expect(t).not.toContain("Do lobby");
+  });
+
+  test("gospodarz ma też Do lobby", () => {
+    expect(render(view(), "a")).toContain("Do lobby");
+  });
+
+  test("solo: Jeszcze raz i Wyjdź, bez głosowania", () => {
+    const t = render(view({ solo: true }), "a");
+    expect(t).toContain("Jeszcze raz");
+    expect(t).toContain("Wyjdź");
+    expect(t).not.toContain("Inna gra");
+  });
+
+  test("w trakcie głosowania rewanż znika, są karty; Do lobby tylko u gospodarza", () => {
+    const vote = { options: ["stoper", "refleks", "memory"], votes: { b: "stoper" }, msLeft: 8000 };
+    const host = render(view({ vote }), "a");
+    expect(host).toContain("Stoper");
+    expect(host).not.toContain("Rewanż");
+    expect(host).not.toContain("Inna gra");
+    expect(host).toContain("Do lobby");
+    expect(render(view({ vote }), "b")).not.toContain("Do lobby");
+  });
+
+  test("oglądający nie ma Rewanżu ani Inna gra; zwykłego gościa spoza miejsc nie ma co pytać", () => {
+    const t = render(view(), "c");
+    expect(t).not.toContain("Rewanż");
+    expect(t).not.toContain("Inna gra");
   });
 });
