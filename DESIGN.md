@@ -110,6 +110,8 @@ Do skopiowania: stały szkielet zamiast dowolnego opisu; ikony `fg-muted` w roli
 Status gry w kolorze gracza, pod nim kropki graczy, cienki pasek limitu (6 px, pigułka) i sekundy mono;
 tło strony przyjmuje ten sam odcień przez `--ambient`. Niżej `Stats`: trzy liczby mono 18 px, każda pod własnym `.label`,
 skrajne wyrównane do krawędzi. Pole gry zajmuje całą resztę ekranu i jest jedyną dużą plamą koloru.
+W zwiniętym nagłówku (w partii) pasek limitu stoi w jednym wierszu z kropkami, dopóki ma co najmniej 128 px (`min-w-32`); przy 5-6 kropkach na 360 px
+przechodzi do własnego wiersza pod nimi, zamiast kurczyć się do kropki.
 
 Do skopiowania: kolor gracza niesie stan (czyja tura, ile czasu), interfejs wokół zostaje szary; liczby zawsze z etykietą i `tabular-nums`.
 

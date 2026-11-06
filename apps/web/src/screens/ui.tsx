@@ -4,7 +4,7 @@ import { createContext, Fragment, type ReactNode, type Ref, useContext, useEffec
 import { createPortal } from "react-dom";
 import { liveDots, type LiveStore } from "../live.ts";
 import type { MomentStore, ReactionStore } from "../moments.ts";
-import { autoStart, introStage, startsAfterClose } from "./intro.ts";
+import { autoStart, introStage, secondsLeft, startsAfterClose } from "./intro.ts";
 import { bestRound, type Hero, revealOrder } from "./results.ts";
 
 export type Send = (type: string, payload?: unknown) => void;
@@ -701,7 +701,10 @@ export function Intro({ time, task, score, preview, onStart }: { time: ReactNode
   const live = room?.game.intro ?? false;
   const stage = introStage({ seated: room?.seated ?? true, solo: !room || room.others.length === 0, began: room?.game.began.includes(room.me) ?? false, countdown: room?.game.countdown ?? false, intro: live });
   // Termin od chwili odebrania wiadomości, jak w liczniku tury.
-  const deadline = useMemo(() => (live && room?.game.msLeft != null ? Date.now() + room.game.msLeft : null), [room?.game]);
+  const { deadline, receivedAt } = useMemo(() => {
+    const at = Date.now();
+    return { deadline: live && room?.game.msLeft != null ? at + room.game.msLeft : null, receivedAt: at };
+  }, [room?.game]);
   const [now, setNow] = useState(Date.now);
   const seen = useRef(live);
   const began = useRef(false);
@@ -733,7 +736,7 @@ export function Intro({ time, task, score, preview, onStart }: { time: ReactNode
     else if (startsAfterClose({ seen: seen.current, intro: live })) startGame();
   }, [live, room?.game.skipIntro]);
 
-  const seconds = deadline === null ? 0 : Math.max(0, Math.ceil((deadline - now) / 1000));
+  const seconds = secondsLeft({ deadline, now, receivedAt });
   return (
     <section className="tile my-auto flex flex-col gap-4 p-4">
       <div className="relative flex h-32 items-center justify-center overflow-hidden rounded-inset border border-line bg-bg" aria-hidden>

@@ -427,10 +427,11 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
                 </div>
               )}
             </div>
-            <div className={compact ? "flex min-h-12 items-center gap-2" : "contents"}>
+            <div className={compact ? "flex min-h-12 flex-wrap items-center gap-x-2 gap-y-1" : "contents"}>
               {compact && <LiveGameDots compact {...liveProps} reactions={reactionStore} dots={dots!} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
               {timer && (
-                <div className="min-w-0 flex-1">
+                // Przy 5-6 kropkach na 360 px pasek nie mieści się obok nich: z min. szerokością przechodzi do własnego wiersza zamiast kurczyć się do kropki.
+                <div className={compact ? "min-w-32 flex-1" : "min-w-0 flex-1"}>
                   <Countdown
                     game={round ?? game}
                     total={round ? QUIZ_DURATION_MS / 1000 : (def.turn?.(game.view).seconds ?? def.turnSeconds)}

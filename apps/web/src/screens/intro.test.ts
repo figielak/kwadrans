@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { autoStart, introStage, startsAfterClose } from "./intro.ts";
+import { autoStart, introStage, secondsLeft, startsAfterClose } from "./intro.ts";
 
 describe("autoStart: pomijanie instrukcji tylko na prośbę serwera", () => {
   test.each([
@@ -53,5 +53,30 @@ describe("startsAfterClose: start gry po zamknięciu instrukcji", () => {
   });
   test("instrukcja trwa: nic nie rusza", () => {
     expect(startsAfterClose({ seen: true, intro: true })).toBe(false);
+  });
+});
+
+describe("secondsLeft: cyfra odliczania nie przekracza czasu z serwera", () => {
+  // Odbiór: msLeft 3000 doszło o 10 000 ms zegara klienta.
+  const deadline = 13_000;
+  const receivedAt = 10_000;
+
+  test("zegar widoku starszy niż wiadomość (tyka co 250 ms): pierwsza cyfra to 3, nie 4", () => {
+    expect(secondsLeft({ deadline, now: 9_800, receivedAt })).toBe(3);
+  });
+  test("zaraz po odebraniu: 3", () => {
+    expect(secondsLeft({ deadline, now: 10_000, receivedAt })).toBe(3);
+  });
+  test("kolejne sekundy: 2, 1", () => {
+    expect(secondsLeft({ deadline, now: 10_001, receivedAt })).toBe(3);
+    expect(secondsLeft({ deadline, now: 11_200, receivedAt })).toBe(2);
+    expect(secondsLeft({ deadline, now: 12_100, receivedAt })).toBe(1);
+  });
+  test("termin minął: 0, bez wartości ujemnych", () => {
+    expect(secondsLeft({ deadline, now: 13_000, receivedAt })).toBe(0);
+    expect(secondsLeft({ deadline, now: 14_000, receivedAt })).toBe(0);
+  });
+  test("brak terminu: 0", () => {
+    expect(secondsLeft({ deadline: null, now: 10_000, receivedAt })).toBe(0);
   });
 });

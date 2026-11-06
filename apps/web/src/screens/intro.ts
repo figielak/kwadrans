@@ -17,6 +17,15 @@ export function introStage({ seated, solo, began, countdown, intro }: { seated: 
   return began ? "ready" : "reads";
 }
 
+/**
+ * Pełne sekundy do terminu (cyfra 3-2-1). Zegar widoku tyka co 250 ms, więc w chwili odebrania wiadomości bywa starszy
+ * od niej; bez `receivedAt` pierwsza cyfra byłaby na moment o jeden za duża („4”).
+ */
+export function secondsLeft({ deadline, now, receivedAt }: { deadline: number | null; now: number; receivedAt: number }): number {
+  if (deadline === null) return 0;
+  return Math.max(0, Math.ceil((deadline - Math.max(now, receivedAt)) / 1000));
+}
+
 /** Instrukcja zamknięta po tym, jak ją widzieliśmy: gra rusza. Po odświeżeniu już po zamknięciu (`seen` fałszywe) nic nie startuje samo. */
 export function startsAfterClose({ seen, intro }: { seen: boolean; intro: boolean }): boolean {
   return seen && !intro;
