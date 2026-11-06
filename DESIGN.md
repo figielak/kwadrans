@@ -115,6 +115,15 @@ Grupy rozdziela zwykły wyciszony nagłówek (Satoshi 14 px, `fg-muted`), bez ra
 
 Do skopiowania: przy dużej liczbie elementów kolor zostaje dla wyjątków, a porządek robi siatka i stała pozycja podpisu.
 
+### 3.6 Wynik po partii (`ResultHero` w `ui.tsx`, układ w `Game.tsx`)
+
+Po partii z ludźmi największy tekst ekranu to tytuł wyniku (Satoshi 30 px, kolor zwycięzcy; „Remis” neutralny). Pod nim kafel z miejscami: numer mono, kropka koloru, nick,
+po prawej jedna liczba mono i niżej, mniejszą szarą linią, różnica do osoby wyżej („o 179 ms”). Pod wierszami jedna szara linia najlepszej chwili („Najlepsza runda: Ola, Gdańsk, 4 km”).
+Panel rekordów pod spodem składa się do jednej linii, a pełny wraca tylko przy rekordzie, awansie albo pierwszym wyniku; jego „N. miejsce” jest wtedy mniejsze (24 px), żeby nie przebijało tytułu.
+Własny ekran końcowy gry leży pod „Szczegóły” (przycisk 48 px, zwinięty), a akcje „Rewanż” i „Do lobby” zostają w przyklejonym pasku. Solo bohatera nie ma.
+Przy 3+ graczach wiersze odsłaniają się od ostatniego co 0,6 s, tytuł na końcu; w tym czasie rząd kropek i pigułki graczy są niewidoczne, żeby nie zdradzały zwycięzcy.
+Sprawdzone na 360×640 przy 2 i 6 graczach, z obserwatorem i długim nickiem (zawija się, „(ty)” schodzi do drugiej linii). Kampus Tour ma własny tytuł, a wiersze stoją pod nim w podsumowaniu.
+
 ## 4. Stany
 
 Stan pokazują obrys, przezroczystość i waga ikony, nie nowy kolor. Opis odpowiada temu, co jest w kodzie.
