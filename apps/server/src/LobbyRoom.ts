@@ -41,6 +41,7 @@ const ROOMS_PER_IP = 3;
 // Pokoje solo liczą się osobno: wszyscy na jednym Wi-Fi mają jedno IP.
 const SOLO_ROOMS_PER_IP = 20;
 const MESSAGES_PER_SECOND = 10;
+const LIVE_PER_SECOND = 2;
 
 // ponytail: licznik w pamięci jednego procesu, wystarczy przy jednym kontenerze na Pi
 const roomsByIp = new Map<string, number>();
@@ -92,6 +93,9 @@ export class LobbyRoom extends Room {
   /** Losowy klucz pokoju do pomiaru; kody pokoi wracają, więc nie nadają się na klucz. */
   private roomKey: string = randomUUID();
   private messageCounts = new Map<string, { second: number; count: number }>();
+  private liveCounts = new Map<string, { second: number; count: number }>();
+  /** Dane dekoracyjne od klientów, nigdy nie trafiają do stanu zasad ani wyników. */
+  private liveValues: Record<string, number> = {};
 
   async onCreate(options?: { solo?: unknown }) {
     if (typeof options?.solo === "string" && MINI_GAME_IDS.includes(options.solo)) {
@@ -190,6 +194,23 @@ export class LobbyRoom extends Room {
       if (move.success) this.play(client.sessionId, move.data, { source: "client" });
     });
 
+    // Własny kanał: bez this.on, pełnego update i zużywania limitu zwykłych wiadomości.
+    this.onMessage("live", (client: Client, raw: unknown) => {
+      if (this.phase !== "playing" || this.intro || !this.match?.def.live || this.seats.length < 2 || !this.seats.includes(client.sessionId)) return;
+      const second = Math.floor(Date.now() / 1000);
+      const entry = this.liveCounts.get(client.sessionId);
+      const count = entry?.second === second ? entry.count : 0;
+      if (count >= LIVE_PER_SECOND) return;
+      this.liveCounts.set(client.sessionId, { second, count: count + 1 });
+      const parsed = ROOM_MESSAGES.live.safeParse(raw);
+      if (!parsed.success) return;
+      const { value } = parsed.data;
+      this.liveValues = { ...this.liveValues, [client.sessionId]: value };
+      for (const other of this.clients) {
+        if (other.sessionId !== client.sessionId) other.send("live", { id: client.sessionId, value });
+      }
+    });
+
     // Po partii `ready` znaczy „chcę rewanż”; rewanż rusza, gdy chcą wszyscy grający.
     this.on("rematch", (client) => {
       const player = this.players.get(client.sessionId);
@@ -249,6 +270,7 @@ export class LobbyRoom extends Room {
     }
     this.players.delete(client.sessionId);
     this.messageCounts.delete(client.sessionId);
+    this.liveCounts.delete(client.sessionId);
     if (this.hostId === client.sessionId) this.hostId = this.players.keys().next().value ?? "";
     if (this.seats.includes(client.sessionId)) {
       this.seats = this.seats.filter((s) => s !== client.sessionId);
@@ -357,6 +379,8 @@ export class LobbyRoom extends Room {
     this.match = { def, state: def.setup(this.seats, rng, this.mode ?? undefined), rng, result: null, players: this.seats.length, nicks };
     this.phase = "playing";
     this.began.clear();
+    this.liveValues = {};
+    this.liveCounts.clear();
     // Ekran instrukcji mają gry solo (te same, które lobby pokazuje jako „Szybkie”).
     this.intro = def.minPlayers === 1;
     this.countdown = false;
@@ -528,6 +552,7 @@ export class LobbyRoom extends Room {
         countdown: this.countdown,
         skipIntro: this.intro && this.skipIntro,
         began: [...this.began],
+        live: this.liveValues,
         result: match.result,
         places: match.result?.ranking ? (match.result.places ?? match.def.places?.(match.state) ?? null) : null,
       },

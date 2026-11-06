@@ -63,6 +63,7 @@ export const obrot: GameDefinition<State, Move> = {
   name: "Obrót",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "score" },
   // 30 s rundy + zapas na przeczytanie zasad i Start, jak w Kolorze liter.
   turnSeconds: 90,
   moveSchema: quizMoveSchema,

@@ -40,6 +40,7 @@ export const kat: GameDefinition<State, Move> = {
   name: "Kąt",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "round", total: ROUNDS },
   turnSeconds: TURN_SECONDS,
   // Stały klucz: ruch progress nie odnawia limitu, nawet gdy gra już tylko jedna osoba.
   turn: () => ({ key: "run", seconds: TURN_SECONDS }),

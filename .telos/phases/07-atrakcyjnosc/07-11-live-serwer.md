@@ -2,7 +2,7 @@
 id: 07-11
 title: "Etap 2: kanał live i klasyfikacja 30 mini-gier"
 type: code
-status: approved
+status: done
 critical: false
 effort: hard
 depends: [07-09]
@@ -89,10 +89,15 @@ Serwer przekazuje rywalom lekką liczbę na żywo osobnym kanałem, a każda min
 5. `LobbyRoom`: `onMessage("live")`, własny limit, mapa wartości czyszczona w `startMatch`, pole w `viewFor`.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter @kwadrans/games exec vitest run src/index.test.ts` → exit 0
-- [ ] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter @kwadrans/games exec vitest run src/index.test.ts` → exit 0
+- [x] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
 
 ## Result
+Osobny kanał `live` przekazuje dekoracyjne liczby pozostałym klientom (także obserwatorom), bez `validateMove`, `update()` i wpływu na wyniki; limit 2/s jest niezależny od zwykłych 10/s. Reconnect odtwarza wartości, nowa partia je czyści.
+Klasyfikacja wszystkich 30 mini-gier: 6 score, 5 survival, 13 round z total z istniejących stałych, 6 bez pola. Istniejący progress oraz reguły i rekordy bez zmian; wyjątek opisany w AGENTS i KONCEPT.
+RED: testy kontraktu → exit 1 (35/249 pada), testy pokoju → exit 1 (29/96 pada); dokumenty i testy zapisane przed kodem w `e9ccca3`.
+GREEN: 249/249 testów kontraktu i 96/96 pokoju (70 nowych); `pnpm typecheck`, `pnpm test` i `telos accept 07-11` PASS, scope ok; wszystkie Edge cases potwierdzone testami. Podpięcie klienta w 07-12 i 07-13.
+Deviations: none

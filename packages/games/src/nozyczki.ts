@@ -97,6 +97,7 @@ export const nozyczki: GameDefinition<State, Move> = {
   name: "Nożyczki",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "round", total: SHAPES },
   turnSeconds: 60,
   moveSchema: z.object({ type: z.literal("result"), cuts: z.array(z.object({ a: point, b: point })).max(SHAPES) }),
 

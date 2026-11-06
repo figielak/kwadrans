@@ -67,6 +67,7 @@ export const sledzenie: GameDefinition<State, Move> = {
   name: "Śledzenie",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "survival" },
   turnSeconds: 360,
   moveSchema: z.object({
     type: z.literal("result"),

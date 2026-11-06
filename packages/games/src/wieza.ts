@@ -67,6 +67,7 @@ export const wieza: GameDefinition<State, Move> = {
   name: "Wieża",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "survival" },
   turnSeconds: TURN_SECONDS,
   // Stały klucz: ruch progress nie odnawia limitu, nawet gdy gra już tylko jedna osoba.
   turn: () => ({ key: "run", seconds: TURN_SECONDS }),

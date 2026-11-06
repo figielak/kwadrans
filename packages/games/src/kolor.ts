@@ -77,6 +77,7 @@ export const kolor: GameDefinition<State, Move> = {
   name: "Odcień",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "round", total: COUNT },
   turnSeconds: 180,
   moveSchema: z.object({
     type: z.literal("result"),

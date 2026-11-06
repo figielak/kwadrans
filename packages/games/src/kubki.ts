@@ -45,6 +45,7 @@ export const kubki: GameDefinition<State, Move> = {
   name: "Trzy kubki",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "survival" },
   turnSeconds: 180,
   moveSchema: z.object({
     type: z.literal("result"),

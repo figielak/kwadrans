@@ -57,6 +57,8 @@ export interface RoomView {
     skipIntro: boolean;
     /** Kto zgłosił gotowość przyciskiem „Start” na ekranie instrukcji; po jej końcu wszyscy grający. */
     began: PlayerId[];
+    /** Ostatnie dekoracyjne wartości z kanału live, do odtworzenia podglądu po reconnect. */
+    live: Record<PlayerId, number>;
     result: GameResult | null;
     /** Miejsca z remisami po partii: result.places, potem def.places; null bez rankingu lub bez definicji miejsc. */
     places: Record<PlayerId, number> | null;
@@ -89,4 +91,6 @@ export const ROOM_MESSAGES = {
   toLobby: z.unknown(),
   // Kształt ruchu sprawdza moveSchema wybranej gry.
   move: z.unknown(),
+  // Dekoracyjny podgląd rywali; osobny kanał i limit, poza validateMove oraz wynikami gry.
+  live: z.object({ value: z.number().int().min(0).max(9999) }),
 };

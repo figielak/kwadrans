@@ -24,6 +24,7 @@ export const simon: GameDefinition<State, Move> = {
   name: "Sekwencja",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "survival" },
   turnSeconds: 300,
   turn: () => ({ key: "run", seconds: 300 }),
   moveSchema: z.object({ type: z.enum(["result", "progress"]), score: z.number().int() }),
