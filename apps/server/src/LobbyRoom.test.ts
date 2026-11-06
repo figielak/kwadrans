@@ -72,11 +72,135 @@ async function drawing(n: number, gameId = "kalambury", start = true) {
   for (let i = 1; i < n; i++) send(i, "ready", { ready: true });
   send(0, "start", {});
   if (gameId === "kalambury") send(0, "move", { type: "choose", index: 0 });
-  else if (start) for (let i = 0; i < n; i++) send(i, "begin", {});
+  else if (start) {
+    for (let i = 0; i < n; i++) send(i, "begin", {});
+    if (n > 1 && GAMES[gameId].minPlayers === 1) vi.advanceTimersByTime(3000);
+  }
   expect(snapshot().phase).toBe("playing");
   if (gameId === "kalambury") expect((snapshot().game!.view as KalamburyView).phase).toBe("draw");
   return { room, send, snapshot, clients, observer };
 }
+
+describe("07-09: wspólny start mini-gry", () => {
+  test.each([2, 6])("%i graczy: komplet gotowości daje 3 s, a potem pełny limit", async (n) => {
+    const { send, snapshot, clients, observer } = await drawing(n, "stoper", false);
+    for (let i = 0; i < n - 1; i++) send(i, "begin", {});
+    expect(snapshot().game).toMatchObject({ intro: true, countdown: false, msLeft: 15_000 });
+    if (observer !== undefined) {
+      send(observer, "begin", {});
+      expect(snapshot().game!.began).not.toContain(clients[observer].sessionId);
+    }
+    send(n - 1, "begin", {});
+    for (const player of clients.keys()) {
+      expect(snapshot(player).game).toMatchObject({ intro: true, countdown: true, msLeft: 3000 });
+    }
+    vi.advanceTimersByTime(2000);
+    const timer = rooms.at(-1)!.clock.setTimeout;
+    const calls = vi.mocked(timer).mock.calls.length;
+    send(0, "begin", {});
+    expect(snapshot().game).toMatchObject({ countdown: true, msLeft: 1000 });
+    // Każda wiadomość odnawia bezczynność pokoju, ale nie odliczanie ani limit gry.
+    expect(vi.mocked(timer).mock.calls.slice(calls).map(([, ms]) => ms)).toEqual([3_600_000]);
+    vi.advanceTimersByTime(999);
+    expect(snapshot().game!.intro).toBe(true);
+    vi.advanceTimersByTime(1);
+    expect(snapshot().game).toMatchObject({ intro: false, countdown: false, msLeft: 60_000 });
+    vi.advanceTimersByTime(59_999);
+    expect(snapshot().phase).toBe("playing");
+    vi.advanceTimersByTime(1);
+    expect(snapshot().phase).toBe("over");
+  });
+
+  test.each([false, true])("wyniki i progress są odrzucane przed sygnałem, countdown=%s", async (countdown) => {
+    const { send, snapshot, observer } = await drawing(2, "simon", false);
+    if (countdown) for (const player of [0, 1]) send(player, "begin", {});
+    const before = snapshot().game;
+    const validate = vi.spyOn(GAMES.simon, "validateMove");
+    for (const player of [0, 1, observer!]) {
+      send(player, "move", { type: "progress", score: 7 });
+      send(player, "move", { type: "result", score: 7 });
+    }
+    expect(snapshot().game).toEqual(before);
+    expect(validate).not.toHaveBeenCalled();
+    for (const player of [0, 1]) send(player, "begin", {});
+    vi.advanceTimersByTime(3000);
+    send(0, "move", { type: "progress", score: 7 });
+    expect(snapshot().game!.view).toMatchObject({ progress: { p1: 7 } });
+  });
+
+  test("reconnect podczas odliczania zachowuje pozostały czas", async () => {
+    const { room, clients, send, snapshot } = await drawing(2, "stoper", false);
+    for (const player of [0, 1]) send(player, "begin", {});
+    vi.advanceTimersByTime(1200);
+    vi.spyOn(room, "allowReconnection").mockResolvedValue(clients[1]);
+    await room.onLeave(clients[1], 1006);
+    for (const player of [0, 1, 2]) {
+      expect(snapshot(player).game).toMatchObject({ intro: true, countdown: true, msLeft: 1800, began: ["p1", "p2"] });
+    }
+    vi.advanceTimersByTime(1800);
+    expect(snapshot().game).toMatchObject({ intro: false, countdown: false, msLeft: 60_000 });
+  });
+
+  test.each([2, 3])("wyjście w odliczaniu (%i grających) gasi timer i stary callback", async (n) => {
+    const { room, send, snapshot, clients } = await drawing(n, "stoper", false);
+    for (let i = 0; i < n; i++) send(i, "begin", {});
+    const callback = vi.mocked(room.clock.setTimeout).mock.calls.find(([, ms]) => ms === 3000)![0];
+    const timeout = vi.spyOn(GAMES.stoper, "timeoutMove");
+    await room.onLeave(clients[n - 1], CloseCode.CONSENTED);
+    expect(snapshot().phase).toBe("over");
+    expect(snapshot().game).toMatchObject({ intro: false, countdown: false, msLeft: null, result: n === 2 ? { winner: "p1" } : {} });
+    callback();
+    vi.advanceTimersByTime(63_000);
+    send(0, "begin", {});
+    expect(snapshot().game).toMatchObject({ countdown: false, msLeft: null });
+    expect(timeout).not.toHaveBeenCalled();
+    send(0, "toLobby", {});
+    callback();
+    send(0, "begin", {});
+    expect(snapshot()).toMatchObject({ phase: "lobby", game: null });
+  });
+
+  test.each([false, true])("jeden grający startuje od razu, solo=%s", async (solo) => {
+    const { send, snapshot } = solo ? await openRoom(1, { solo: "stoper" }) : await drawing(1, "stoper", false);
+    expect(snapshot().game).toMatchObject({ intro: true, countdown: false, msLeft: null });
+    send(0, "begin", {});
+    expect(snapshot().game).toMatchObject({ intro: false, countdown: false, msLeft: 60_000 });
+  });
+
+  test("rewanż ma 5 s instrukcji i 3 s odliczania", async () => {
+    const { send, snapshot } = await drawing(2, "stoper");
+    for (const player of [0, 1]) send(player, "move", { type: "result", deviation: 100 });
+    for (const player of [0, 1]) send(player, "rematch", {});
+    expect(snapshot().game).toMatchObject({ intro: true, countdown: false, msLeft: 5000, began: [] });
+    vi.advanceTimersByTime(4999);
+    send(0, "begin", {});
+    expect(snapshot().game).toMatchObject({ countdown: false, msLeft: 1 });
+    vi.advanceTimersByTime(1);
+    expect(snapshot().game).toMatchObject({ intro: true, countdown: true, msLeft: 3000 });
+    vi.advanceTimersByTime(3000);
+    expect(snapshot().game).toMatchObject({ intro: false, countdown: false, msLeft: 60_000 });
+  });
+
+  test.each([false, true])("kolejna gra turnieju ma 15 s instrukcji, automatycznie=%s", async (automatic) => {
+    const { send, snapshot } = await openRoom(2);
+    send(0, "pickTournament", { length: 3 });
+    send(0, "toggleSeat", { id: "p3" });
+    send(1, "ready", { ready: true });
+    send(0, "start", {});
+    expect(snapshot().game).toMatchObject({ intro: true, countdown: false, msLeft: 15_000 });
+    for (const player of [0, 1]) send(player, "begin", {});
+    vi.advanceTimersByTime(3000 + GAMES[snapshot().gameId!].turnSeconds! * 1000);
+    expect(snapshot().phase).toBe("over");
+    if (automatic) vi.advanceTimersByTime(snapshot().game!.msLeft!);
+    else for (const player of [0, 1]) send(player, "rematch", {});
+    expect(snapshot().tournament!.index).toBe(1);
+    expect(snapshot().game).toMatchObject({ intro: true, countdown: false, msLeft: 15_000, began: [] });
+    vi.advanceTimersByTime(15_000);
+    expect(snapshot().game).toMatchObject({ intro: true, countdown: true, msLeft: 3000 });
+    vi.advanceTimersByTime(3000);
+    expect(snapshot().game).toMatchObject({ intro: false, countdown: false, msLeft: GAMES[snapshot().gameId!].turnSeconds! * 1000 });
+  });
+});
 
 describe("07-03: instrukcja i rewanż jednej osoby", () => {
   test.each([false, true])("jedna osoba bez timera instrukcji, solo=%s", async (solo) => {
@@ -94,7 +218,9 @@ describe("07-03: instrukcja i rewanż jednej osoby", () => {
     const { snapshot } = await drawing(n, "stoper", false);
     expect(snapshot().game).toMatchObject({ intro: true, msLeft: 15_000, skipIntro: false });
     vi.advanceTimersByTime(15_000);
-    expect(snapshot().game).toMatchObject({ intro: false, msLeft: 60_000, skipIntro: false });
+    expect(snapshot().game).toMatchObject({ intro: true, countdown: true, msLeft: 3000 });
+    vi.advanceTimersByTime(3000);
+    expect(snapshot().game).toMatchObject({ intro: false, countdown: false, msLeft: 60_000, skipIntro: false });
   });
 
   test("rewanż solo zachowuje zamiar przed begin i ma świeży, nieodnawialny limit", async () => {
@@ -132,7 +258,7 @@ describe("07-03: instrukcja i rewanż jednej osoby", () => {
     for (let i = 0; i < n; i++) send(i, "move", { type: "result", deviation: 100 });
     for (let i = 0; i < n; i++) send(i, "rematch", {});
     expect(snapshot().phase).toBe("playing");
-    expect(snapshot().game).toMatchObject({ intro: true, skipIntro: false, msLeft: n === 1 ? null : 15_000 });
+    expect(snapshot().game).toMatchObject({ intro: true, skipIntro: false, msLeft: n === 1 ? null : 5000 });
   });
 
   test("kolejna gra turnieju jednoosobowego czeka na Start, bez skipIntro", async () => {
@@ -406,7 +532,7 @@ describe("Sekwencja: wynik po limicie", () => {
 describe("Mini-gra: jeden termin niezależny od rywali", () => {
   const circle = Array.from({ length: 100 }, (_, i): [number, number] => [0.5 + 0.3 * Math.cos((i / 100) * 2 * Math.PI), 0.5 + 0.3 * Math.sin((i / 100) * 2 * Math.PI)]);
 
-  test("limit rusza po ostatnim Start, nie po pierwszym", async () => {
+  test("limit rusza po odliczaniu po ostatnim Start", async () => {
     const { send, snapshot } = await drawing(2, "stoper", false);
     expect(snapshot().game!.msLeft).toBe(15_000);
     send(0, "begin", {});
@@ -414,12 +540,16 @@ describe("Mini-gra: jeden termin niezależny od rywali", () => {
     send(0, "begin", {});
     expect(snapshot().game!.msLeft).toBe(10_000);
     send(1, "begin", {});
+    expect(snapshot().game).toMatchObject({ intro: true, countdown: true, msLeft: 3000 });
+    vi.advanceTimersByTime(3000);
     expect(snapshot().game!.msLeft).toBe(60_000);
   });
 
-  test("bez Start limit rusza sam po 15 s", async () => {
+  test("bez Start limit rusza po 15 s instrukcji i 3 s odliczania", async () => {
     const { snapshot } = await drawing(2, "stoper", false);
     vi.advanceTimersByTime(15_000);
+    expect(snapshot().game).toMatchObject({ intro: true, countdown: true, msLeft: 3000 });
+    vi.advanceTimersByTime(3000);
     expect(snapshot().game!.msLeft).toBe(60_000);
   });
 
@@ -469,9 +599,11 @@ describe("Mini-gra: jeden termin niezależny od rywali", () => {
     expect(snapshot().phase).toBe("over");
     send(0, "rematch", {});
     send(1, "rematch", {});
-    expect(snapshot().game!.msLeft).toBe(15_000);
+    expect(snapshot().game!.msLeft).toBe(5000);
     send(0, "begin", {});
     send(1, "begin", {});
+    expect(snapshot().game).toMatchObject({ intro: true, countdown: true, msLeft: 3000 });
+    vi.advanceTimersByTime(3000);
     expect(snapshot().game!.msLeft).toBe(60_000);
   });
 });
@@ -559,6 +691,7 @@ describe("pomiar: wpis room_games z pokoju", () => {
     first.send(1, "rematch", {});
     first.send(0, "begin", {});
     first.send(1, "begin", {});
+    vi.advanceTimersByTime(3000);
     finishRound(first);
     const second = await drawing(2, "stoper");
     finishRound(second);

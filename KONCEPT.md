@@ -140,9 +140,10 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
   gdy zmienia się `waitingFor` (albo `key` z `turn`) lub ten sam gracz ma kolejny ruch.
 - Gracze bez miejsca oglądają partię. Nowy gracz dostaje miejsce sam, jeśli gra wybrana i jest wolne.
 - Rewanż po zgodzie wszystkich grających, kolejność miejsc rotuje (poza mini-grami, gdzie wszyscy grają naraz); do lobby może wrócić każdy.
-- W mini-grach (`minPlayers: 1`) limit rusza po ekranie instrukcji: gdy wszyscy klikną „Start” albo, przy co najmniej dwóch grających, po 15 s.
-  Jeden grający czeka bez limitu instrukcji (także w zwykłym pokoju i turnieju); po godzinie bezczynności pokój jest zamykany.
-  To jeden termin dla całej partii: wynik, `progress` ani próba rywala go nie odnawiają; rewanż i kolejna gra turnieju liczą go od nowa.
+- W mini-grach (`minPlayers: 1`) przy co najmniej dwóch grających „Start” oznacza gotowość. Komplet gotowości albo upływ 15 s instrukcji
+  rozpoczyna wspólne odliczanie 3-2-1; dopiero po nim rusza pełny limit gry. Rewanż skraca instrukcję do 5 s; kolejna gra turnieju ma 15 s.
+  Jeden grający czeka bez limitu instrukcji i po „Start” rusza od razu, bez odliczania (także w zwykłym pokoju i turnieju); po godzinie bezczynności pokój jest zamykany.
+  Ruchy podczas instrukcji i odliczania są odrzucane. Limit to jeden termin dla całej partii: wynik, `progress` ani próba rywala go nie odnawiają; rewanż i kolejna gra turnieju liczą go od nowa.
 - Limit tury: 60 s w większości gier; limity pozostałych w tabeli `ZASADY-GIER.md`. Państwa-miasta i Kalambury mają limit per faza.
 - Gdy gracz z miejscem zniknie z pokoju w trakcie partii (wyjdzie sam albo nie wróci w 10 minut), partia się kończy:
   jeśli został jeden gracz, wygrywa walkowerem; przy większej liczbie kończy się bez zwycięzcy.
@@ -164,9 +165,11 @@ reconnect, tablica wyników, rewanż, sprzątanie pokoi po godzinie bezczynnośc
 
 - 1-6 graczy naraz, każdy gra u siebie to samo wyzwanie (wylosowane na serwerze), na końcu ranking.
   Partia toczy się na kliencie (opóźnienie Wi-Fi zepsułoby pomiar), serwer dostaje tylko wynik i odrzuca nierealne wartości.
-- Każda mini-gra zaczyna od ekranu instrukcji (`Intro` w ui.tsx: animowany podgląd, trzy punkty z ikonami, „Start”). Każdy klika „Start” osobno i gra od razu;
-  przy co najmniej dwóch grających po 15 s (`INTRO_SECONDS`) gra rusza sama; jeden grający czeka na „Start” bez odliczania.
-  Limit platformy startuje dopiero, gdy wystartuje ostatni gracz (wiadomość pokoju `begin`); na ekranie widać, kto już gra, a kto czyta zasady.
+- Każda mini-gra zaczyna od ekranu instrukcji (`Intro` w ui.tsx: animowany podgląd, trzy punkty z ikonami, „Start”). W pokoju z 2+ grającymi „Start” zgłasza gotowość (`begin`);
+  gdy gotowi są wszyscy albo minie 15 s (`INTRO_SECONDS`), serwer uruchamia wspólne 3-2-1 (`COUNTDOWN_SECONDS = 3`).
+  Rewanż ma 5 s instrukcji (`REMATCH_INTRO_SECONDS`), kolejna gra turnieju 15 s. W `RoomView.game` podczas odliczania `intro` i `countdown` są `true`,
+  a `msLeft` to czas do wspólnego startu. Po odliczaniu oba pola są `false` i rusza pełny limit platformy.
+  Jeden grający czeka na „Start” bez limitu instrukcji i rusza od razu bez odliczania.
   Tylko rewanż w pokoju `solo` pomija instrukcję: `RoomView.game.skipIntro` jest `true` do `begin`, potem `false`.
   Klient wysyła wtedy `begin` raz i rozpoczyna partię. Odświeżenie przed `begin` zachowuje ten zamiar, a po `begin` nie uruchamia gry samo i nie odnawia jej limitu.
 - Każda mini-gra ma jeden typ ruchu `result` (Narysuj koło wysyła go po każdej próbie, Tabela Schultego, Sudoku, Policz kropki, Kąt, Który rok?, Wieża i Balon mają jeszcze `progress`); ranking liczy wspólne `rankResults` (core.ts), zwycięzca tylko przy 2+ graczach bez remisu;
