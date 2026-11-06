@@ -2,8 +2,8 @@
 <!-- ≤ 40 lines. Maintained by `telos status set <key>=<value>`; never edit by hand.
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 07-atrakcyjnosc
-Task: 07-24
-Next: test z ludźmi po etapie 3 (prowadzi użytkownik), potem /telos:do 07-24
+Task: none
+Next: close phase 07 (/telos:done)
 Blockers: none
 Awaiting user: 08, 09, 10, 11, 12
 <!-- Blockers: "NN-MM: reason". Awaiting user: IDs only, e.g. "02:Q-01, 02:D-03" -->
