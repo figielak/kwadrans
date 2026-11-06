@@ -103,6 +103,34 @@ describe("karty gracza", () => {
   });
 });
 
+describe("układ przy 5-6 graczach", () => {
+  // Trzy rzędy kafli plus dwa rzędy akcji mają się zmieścić na 360×640; pomiar robi odbiór w przeglądarce.
+  const six = ["p1", "p2", "p3", "p4", "p5", "p6"];
+  const players = six.map((id, i) => lobby(id, `Gracz${i + 1}`, "#3b9eff"));
+
+  test("kafel stosu trzyma 52 px wysokości, czyli budżet trzech rzędów, i nie schodzi poniżej 48 px", () => {
+    const s = game.setup(six, createRng(1));
+    const markup = renderToStaticMarkup(<SabotazBoard view={view(s, "")} me="" players={players} waitingFor={game.waitingFor(s)} onMove={() => {}} draft={{}} onDraft={() => {}} />);
+    const tiles = markup.match(/<div role="group"[^>]*>/g) ?? [];
+    expect(tiles).toHaveLength(6);
+    for (const tile of tiles) {
+      expect(tile).toContain("min-h-13");
+      expect(tile).toContain("py-1.5");
+    }
+  });
+
+  test("kafel do wyboru przy odkrywaniu ma ten sam budżet", () => {
+    let s = view(game.setup(six, createRng(1))).players.reduce((acc, p) => apply(acc, p, { type: "place", kind: "safe", ...stamp(acc) }), game.setup(six, createRng(1)) as S);
+    s = bid(s, 2);
+    while (view(s).phase === "bid") s = pass(s);
+    const leader = view(s).leader!;
+    const markup = renderToStaticMarkup(<SabotazBoard view={view(s, leader)} me={leader} players={players} waitingFor={game.waitingFor(s)} onMove={() => {}} draft={{}} onDraft={() => {}} />);
+    const pick = buttons(markup).filter((b) => b.includes("aria-pressed"));
+    expect(pick.length).toBeGreaterThan(0);
+    for (const tile of pick) expect(tile).toContain("min-h-13");
+  });
+});
+
 describe("pierwsza karta i dokładanie", () => {
   test("pierwsza karta: oba rodzaje dostępne, bez wyboru zatwierdzenie nieaktywne", () => {
     const s = start();

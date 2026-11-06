@@ -23,7 +23,7 @@ const NAME: Record<SabotazKind, string> = { safe: "Przejście", trap: "Pułapka"
 const ACCUSATIVE: Record<SabotazKind, string> = { safe: "Przejście", trap: "Pułapkę" };
 const ICON = { safe: Footprints, trap: Bomb };
 
-const TILE = "flex min-h-14 flex-col justify-center gap-0.5 rounded-[10px] border px-3 py-2 text-left";
+const TILE = "flex min-h-13 flex-col justify-center gap-0.5 rounded-[10px] border px-3 py-1.5 text-left";
 
 /** Klucz szkicu: ten sam co termin decyzji na serwerze, więc cudza gotowość nie kasuje wyboru. */
 export function decisionKey(view: SabotazView) {
