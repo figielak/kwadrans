@@ -20,6 +20,7 @@ Dev i deploy: `README.md`. Stan prac i plan: `.telos/ROADMAP.md`.
   dobranych pod rekordy (cudzy rekord, do którego graczowi najbliżej, i własny do obrony), „Losowa gra” i lista wszystkich mini-gier.
   Wypełniony przycisk ekranu jest jeden: „Utwórz pokój”, a po wpisaniu pełnego kodu „Dołącz” („Utwórz pokój” przechodzi wtedy na obrys). „Zagraj” przy wyzwaniu ma zawsze obrys.
   Rankingi wygranych gier głównych i turnieju są na dole ekranu „Rekordy” (puchar w nagłówku); równe wygrane i partie to to samo miejsce.
+  Stopka pokazuje aktualną wersję strony i otwiera ekran „Co nowego” z opisem zmian w kolejnych wersjach (`CHANGELOG` w `Changelog.tsx`).
 - **Gra solo**: mini-gra z ekranu głównego to po cichu pokój na jedną osobę (`solo` w opcjach tworzenia i w `RoomView`), który od razu startuje grę:
   bez lobby, kodu, wyboru koloru i wpisu w ostatnich pokojach. Po partii „Jeszcze raz” albo „Wyjdź”; wyniki trafiają do tych samych rekordów.
   Pierwsza partia pokazuje instrukcję bez odliczania, a „Jeszcze raz” od razu uruchamia grę bez instrukcji, zawsze po decyzji gracza.
