@@ -1,7 +1,8 @@
 import { createRng, GAMES, type LobbyPlayer, type SabotazKind, type SabotazMove, type SabotazView } from "@kwadrans/games";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
-import { currentDraft, decisionKey, type Draft, moves, options, Sabotaz, SabotazBoard } from "./Sabotaz.tsx";
+import { decisionKey as vibrationKey } from "../vibrate.ts";
+import { currentDraft, decisionKey, type Draft, harmKey, moves, options, Sabotaz, SabotazBoard } from "./Sabotaz.tsx";
 
 // Testy napisane przed ekranem. Widoki pochodzą z prawdziwego playerView po legalnych ruchach:
 // - gracz widzi własną rękę i własny stos od góry, rywale i obserwator tylko liczby i odkryte karty,
@@ -10,6 +11,9 @@ import { currentDraft, decisionKey, type Draft, moves, options, Sabotaz, Sabotaz
 // - odkrywanie wybiera tylko legalny cudzy stos i pokazuje postęp,
 // - oczekujący, obserwator i nieznany me nie mają aktywnych akcji ani prywatnych danych,
 // - zakryta karta nie zdradza rodzaju w tekście, etykiecie ani atrybucie.
+// - odsłona pokazuje deklarację, kolejność odkryć, werdykt, wszystkie stosy i ręce oraz przyrosty i sumy wprost z widoku,
+// - po szóstej rundzie zostaje jej odsłona i historia wszystkich rund, bez Dalej,
+// - klucz wibracji tury zmienia się z każdą decyzją, szkoda dotyczy tylko odkrywającego cudzą Pułapkę.
 
 const A = "p1";
 const B = "p2";
@@ -37,9 +41,9 @@ const bid = (s: S, amount: number) => apply(s, turn(s), { type: "bid", amount, .
 const pass = (s: S) => apply(s, turn(s), { type: "pass", ...decided(s) });
 const reveal = (s: S, owner: string) => apply(s, turn(s), { type: "reveal", owner, ...decided(s) });
 
-function html(s: S, me: string, draft: Draft = {}) {
+function html(s: S, me: string, draft: Draft = {}, places?: Record<string, number> | null) {
   const v = view(s, me);
-  return renderToStaticMarkup(<SabotazBoard view={v} me={me} players={PLAYERS} waitingFor={game.waitingFor(s)} onMove={() => {}} draft={draft} onDraft={() => {}} />);
+  return renderToStaticMarkup(<SabotazBoard view={v} me={me} players={PLAYERS} waitingFor={game.waitingFor(s)} onMove={() => {}} places={places} draft={draft} onDraft={() => {}} />);
 }
 const text = (markup: string) => markup.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
 const buttons = (markup: string) => markup.match(/<button[^>]*>/g) ?? [];
@@ -309,5 +313,191 @@ describe("ruchy i szkice", () => {
     const markup = renderToStaticMarkup(<Sabotaz view={view(s, A)} me={A} players={PLAYERS} waitingFor={game.waitingFor(s)} onMove={() => {}} />);
     expect(markup).toContain("Twoja ręka");
     expect(markup).toContain("Runda 1 z 6");
+  });
+});
+
+describe("odsłona", () => {
+  /** A deklaruje 5: własne 2, potem B, po czym zostaje ostatni stos C odkrywany automatycznie aż do jego Pułapki. */
+  const trapSummary = () => {
+    let s = placeAll(initials(start(), { [C]: "trap" }));
+    s = bid(s, 6);
+    s = pass(pass(s));
+    s = reveal(s, B);
+    return reveal(s, B);
+  };
+  /** Lista odkryć z odsłony ostatniej rundy, od pierwszego. */
+  const revealList = (markup: string) => (markup.match(/<ol[^>]*>.*?<\/ol>/)?.[0].match(/<li[^>]*>.*?<\/li>/g) ?? []).map(text);
+
+  test("pokazuje deklarację, kolejność odkryć i kończącą Pułapkę, także dla wymuszonej sekwencji", () => {
+    const s = trapSummary();
+    expect(view(s).phase).toBe("summary");
+    const markup = html(s, A);
+    expect(text(markup)).toMatch(/Deklaracja\s*6/);
+    const list = revealList(markup);
+    expect(list).toHaveLength(6);
+    expect(list.map((item) => item.match(/Ania|Bartek|Celina/)?.[0])).toEqual(["Ania", "Ania", "Bartek", "Bartek", "Celina", "Celina"]);
+    expect(list.slice(0, 5).every((item) => item.includes("Przejście"))).toBe(true);
+    expect(list[5]).toContain("Pułapka");
+  });
+
+  test("jeden werdykt: punkty biorą się z widoku, bez doliczania w kliencie", () => {
+    const markup = text(html(trapSummary(), ""));
+    expect(markup).toContain("Ania wpada na Pułapkę: Celina");
+    expect(markup.match(/\+1/g)).toHaveLength(1);
+    expect(markup).not.toContain("+2");
+  });
+
+  test("sukces i własna Pułapka mają własny werdykt", () => {
+    const success = text(html(pass(pass(bid(initials(start()), 1))), ""));
+    expect(success).toContain("Ania odkrywa 1 z 1");
+    expect(success.match(/\+2/g)).toHaveLength(1);
+    const own = text(html(pass(pass(bid(initials(start(), { [A]: "trap" }), 1))), ""));
+    expect(own).toContain("Ania wpada na własną Pułapkę");
+    expect(own).not.toMatch(/\+[12]/);
+  });
+
+  test("ujawnia wszystkie stosy od góry i pozostałe ręce każdego, także obserwatorowi", () => {
+    const markup = text(html(trapSummary(), ""));
+    for (const nick of ["Ania", "Bartek", "Celina"]) expect(markup).toContain(nick);
+    expect(markup).toMatch(/Stos.*Przejście.*Pułapka/);
+    expect(markup).toMatch(/Ręka/);
+    expect(view(trapSummary()).history[0].stacks[C]).toEqual(["trap", "safe"]);
+    const celina = html(trapSummary(), "").match(/<li[^>]*data-player="p3"[^>]*>.*?<\/li>/)?.[0] ?? "";
+    expect(text(celina).indexOf("Przejście")).toBeLessThan(text(celina).indexOf("Pułapka"));
+  });
+
+  test("sumy pochodzą z widoku i są posortowane malejąco", () => {
+    const s = trapSummary();
+    const markup = text(html(s, ""));
+    expect(markup).toContain("Suma punktów");
+    expect(markup.indexOf("Celina", markup.indexOf("Suma punktów"))).toBeLessThan(markup.indexOf("Ania", markup.indexOf("Suma punktów")));
+  });
+
+  test("Dalej wysyła next, po własnym Dalej gracz czeka na resztę", () => {
+    const s = trapSummary();
+    expect(moves(view(s, A)).next()).toEqual({ type: "next", ...stamp(s) });
+    expect(game.validateMove(s, A, moves(view(s, A)).next())).toBe(true);
+    const fresh = html(s, A);
+    expect(buttonWith(fresh, "Dalej")).not.toMatch(/\sdisabled=/);
+    expect(buttonWith(fresh, "Dalej")).toContain("btn-player");
+    const after = apply(s, A, { type: "next", ...stamp(s) });
+    const waiting = html(after, A);
+    expect(waiting).not.toContain("Dalej");
+    expect(buttonWith(waiting, "Czekamy na: Bartek, Celina")).toMatch(/\sdisabled=/);
+  });
+
+  test("obserwator w odsłonie nie ma przycisku, a zastany stan nie animuje się", () => {
+    const markup = html(trapSummary(), "");
+    expect(buttons(markup)).toEqual([]);
+    expect(markup).not.toContain("animate-[");
+  });
+
+  test("poprzednie rundy są w historii, a bieżąca runda jej nie ujawnia", () => {
+    const first = trapSummary();
+    const round = (s: S) => view(s).players.reduce((acc, p) => apply(acc, p, { type: "next", ...stamp(acc) }), s);
+    const second = pass(pass(bid(initials(round(first)), 1)));
+    expect(view(second).phase).toBe("summary");
+    expect(text(html(second, ""))).toContain("Runda 1");
+    expect(text(html(second, ""))).toContain("Celina");
+    const live = initials(round(first));
+    // Ekran decyzji musi się zmieścić na 360×640: historia jest w odsłonie, a sumy na kaflach.
+    expect(text(html(live, ""))).not.toContain("Poprzednie rundy");
+    expect(text(html(live, ""))).not.toContain("Pułapka");
+    expect(text(html(live, ""))).toMatch(/Celina.*1\s*pkt/);
+  });
+
+  describe("koniec partii", () => {
+    /** Sześć rund, w każdej startujący deklaruje 1 na własnym Przejściu. */
+    const finished = () => {
+      let s = start();
+      for (let r = 0; r < 6; r++) {
+        s = pass(pass(bid(initials(s), 1)));
+        if (r < 5) s = view(s).players.reduce((acc, p) => apply(acc, p, { type: "next", ...stamp(acc) }), s);
+      }
+      return s;
+    };
+
+    test("zostaje szósta odsłona i historia wszystkich rund, bez Dalej", () => {
+      const s = finished();
+      expect(view(s).phase).toBe("over");
+      const markup = html(s, A);
+      for (let round = 1; round <= 6; round++) expect(text(markup)).toContain(`Runda ${round}`);
+      expect(markup).not.toContain("Dalej");
+      expect(buttons(markup)).toEqual([]);
+      expect(revealList(markup)).toHaveLength(1);
+    });
+
+    test("miejsca bierze wprost z serwera, z remisem", () => {
+      const markup = text(html(finished(), "", {}, { [A]: 1, [B]: 1, [C]: 1 }));
+      expect(markup.match(/1\./g)?.length).toBeGreaterThanOrEqual(3);
+    });
+
+    test("bez miejsc z serwera ekran ich nie zgaduje", () => {
+      expect(text(html(finished(), "", {}, null))).not.toMatch(/\b1\./);
+    });
+  });
+});
+
+describe("wibracje", () => {
+  const keys = (s: S, me: string) => vibrationKey("sabotaz", view(s, me), me, game.waitingFor(s));
+
+  test("dwa kolejne odkrycia tej samej osoby to dwie decyzje", () => {
+    let s = placeAll(initials(start()));
+    s = pass(pass(bid(s, 5)));
+    const first = keys(s, A);
+    expect(first).not.toBeNull();
+    s = reveal(s, B);
+    expect(view(s).turn).toBe(A);
+    expect(keys(s, A)).not.toBeNull();
+    expect(keys(s, A)).not.toBe(first);
+  });
+
+  test("cudza gotowość w pierwszych kartach i odsłonie nie zmienia klucza", () => {
+    const initial = start();
+    const before = keys(initial, A);
+    expect(before).not.toBeNull();
+    expect(keys(apply(initial, B, { type: "place", kind: "safe", ...stamp(initial) }), A)).toBe(before);
+    const summary = pass(pass(bid(initials(start()), 1)));
+    const atSummary = keys(summary, A);
+    expect(atSummary).not.toBeNull();
+    expect(keys(apply(summary, B, { type: "next", ...stamp(summary) }), A)).toBe(atSummary);
+  });
+
+  test("obserwator i osoba bez decyzji dostają null", () => {
+    const placing = initials(start());
+    expect(keys(placing, "")).toBeNull();
+    expect(keys(placing, B)).toBeNull();
+    expect(keys(placing, A)).not.toBeNull();
+  });
+
+  test("klucz rozróżnia rundy i rewanże", () => {
+    const one = keys(start(), A);
+    const rematch = game.setup([A, B, C], createRng(2));
+    expect(vibrationKey("sabotaz", view(rematch, A), A, game.waitingFor(rematch))).not.toBe(one);
+  });
+
+  test("inne gry zachowują dotychczasowy klucz", () => {
+    expect(vibrationKey("memory", {}, A, [A])).toBe("turn");
+    expect(vibrationKey("memory", {}, A, [B])).toBeNull();
+  });
+
+  const foreign = () => reveal(pass(pass(bid(initials(start(), { [C]: "trap" }), 2))), C);
+
+  test("szkoda: tylko odkrywający cudzą Pułapkę, klucz zawiera nonce, rundę, odkrywającego i właściciela", () => {
+    const s = foreign();
+    const { nonce, round } = view(s);
+    expect(harmKey(view(s, A), A)).toBe(`${nonce}:${round}:${A}:${C}`);
+    expect(harmKey(view(s, B), B)).toBeNull();
+    expect(harmKey(view(s, C), C)).toBeNull();
+    expect(harmKey(view(s, ""), "")).toBeNull();
+  });
+
+  test("własna Pułapka, sukces i trwająca runda nie dają szkody", () => {
+    const own = pass(pass(bid(initials(start(), { [A]: "trap" }), 1)));
+    expect(harmKey(view(own, A), A)).toBeNull();
+    const success = pass(pass(bid(initials(start()), 1)));
+    expect(harmKey(view(success, A), A)).toBeNull();
+    const next = view(foreign()).players.reduce((acc, p) => apply(acc, p, { type: "next", ...stamp(acc) }), foreign());
+    expect(harmKey(view(next, A), A)).toBeNull();
   });
 });

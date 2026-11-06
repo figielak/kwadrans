@@ -1,6 +1,8 @@
 import { Bomb, Check, Footprints, Minus, Plus } from "@phosphor-icons/react";
-import { initials, type LobbyPlayer, SABOTAZ_ROUNDS, type SabotazKind, type SabotazMove, type SabotazView } from "@kwadrans/games";
+import { initials, type LobbyPlayer, SABOTAZ_ROUNDS, type SabotazKind, type SabotazMove, type SabotazRound, type SabotazView } from "@kwadrans/games";
 import { useState } from "react";
+import { Scores, StickyBar, useFresh } from "../screens/ui.tsx";
+import { useHarm } from "../vibrate.ts";
 
 interface Props {
   view: SabotazView;
@@ -8,6 +10,8 @@ interface Props {
   players: LobbyPlayer[];
   waitingFor: string[];
   onMove: (move: SabotazMove) => void;
+  /** Miejsca po partii z serwera (remisy); bez nich ekran ich nie zgaduje. */
+  places?: Record<string, number> | null;
 }
 
 /** Lokalny szkic wyboru; serwer nic o nim nie wie. */
@@ -38,6 +42,7 @@ export function moves(view: SabotazView) {
     bid: (amount: number): SabotazMove => ({ type: "bid", amount, ...decided }),
     pass: (): SabotazMove => ({ type: "pass", ...decided }),
     reveal: (owner: string): SabotazMove => ({ type: "reveal", owner, ...decided }),
+    next: (): SabotazMove => ({ type: "next", ...stamp }),
   };
 }
 
@@ -58,6 +63,14 @@ export function options(view: SabotazView, me: string, waitingFor: string[]) {
   };
 }
 
+/** Szkoda od rywala: tylko odkrywający cudzą Pułapkę w właśnie rozstrzygniętej próbie. */
+export function harmKey(view: SabotazView, me: string): string | null {
+  if (view.phase !== "summary" && view.phase !== "over") return null;
+  const last = view.history[view.history.length - 1];
+  if (!last || last.round !== view.round || last.outcome !== "foreign-trap" || last.leader !== me) return null;
+  return `${view.nonce}:${view.round}:${me}:${last.trapOwner}`;
+}
+
 const coveredLabel = (count: number) => {
   if (count === 1) return "1 zakryta";
   const tens = count % 100;
@@ -75,7 +88,116 @@ function Card({ kind, count }: { kind: SabotazKind; count?: number }) {
   );
 }
 
-export function SabotazBoard({ view, me, players, waitingFor, onMove, draft, onDraft }: Props & { draft: Draft; onDraft: (draft: Draft) => void }) {
+/** Werdykt z zapisu rundy; punkty podaje serwer. */
+function verdict(round: SabotazRound, nick: (id: string | null) => string) {
+  if (round.outcome === "success") return { text: `${nick(round.leader)} odkrywa ${round.bid} z ${round.bid}:`, gain: round.gains[round.leader] };
+  if (round.outcome === "foreign-trap") return { text: `${nick(round.leader)} wpada na Pułapkę: ${nick(round.trapOwner)}`, gain: round.gains[round.trapOwner!] };
+  return { text: `${nick(round.leader)} wpada na własną Pułapkę, bez punktów`, gain: 0 };
+}
+
+function RoundDetails({ round, nick, fresh = false }: { round: SabotazRound; nick: (id: string | null) => string; fresh?: boolean }) {
+  const { text, gain } = verdict(round, nick);
+  return (
+    <div className="flex flex-col gap-2">
+      <p className={`relative font-medium ${fresh ? "animate-[stone-pop_0.35s_ease-out]" : ""}`}>
+        {text}
+        {gain > 0 && <span className="ml-1 font-mono font-semibold tabular-nums">+{gain}</span>}
+        {fresh && gain > 0 && (
+          <span className="pointer-events-none absolute -top-2 right-0 animate-[float-up_1.6s_ease-out_forwards] font-mono font-semibold tabular-nums" aria-hidden="true">
+            +{gain}
+          </span>
+        )}
+      </p>
+      <p className="text-sm">
+        Deklaracja <span className="font-mono font-semibold tabular-nums">{round.bid}</span>
+      </p>
+      <span className="label">Kolejność odkryć</span>
+      <ol className="flex list-inside list-decimal flex-col gap-0.5 text-sm">
+        {round.reveals.map((reveal, i) => (
+          <li key={i}>
+            {nick(reveal.owner)} <Card kind={reveal.kind} />
+          </li>
+        ))}
+      </ol>
+      <ul className="flex flex-col gap-2 text-sm">
+        {Object.keys(round.stacks).map((id) => (
+          <li key={id} data-player={id} className="rounded-[10px] border border-line px-3 py-2">
+            <span className="font-medium">{nick(id)}</span>
+            <span className="mt-0.5 flex flex-wrap items-center gap-x-2 text-fg-muted">
+              <span className="text-xs">Stos:</span>
+              {[...round.stacks[id]].reverse().map((kind, i) => (
+                <Card key={i} kind={kind} />
+              ))}
+            </span>
+            <span className="flex flex-wrap items-center gap-x-2 text-fg-muted">
+              <span className="text-xs">Ręka:</span>
+              {KINDS.every((kind) => round.hands[id][kind] === 0) && <span className="text-xs">pusta</span>}
+              {KINDS.filter((kind) => round.hands[id][kind] > 0).map((kind) => (
+                <Card key={kind} kind={kind} count={round.hands[id][kind]} />
+              ))}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function RoundSummary({ view, me, players, waitingFor, onMove, places, fresh }: Props & { fresh: boolean }) {
+  const player = (id: string | null) => players.find((p) => p.id === id);
+  const nick = (id: string | null) => player(id)?.nick ?? "?";
+  const last = view.history[view.history.length - 1];
+  const earlier = view.history.slice(0, -1);
+  const color = player(me)?.color ?? "var(--color-fg-muted)";
+  const seated = view.players.includes(me);
+  const others = waitingFor.filter((id) => id !== me);
+  const rows = [...view.players].sort((a, b) => view.totals[b] - view.totals[a]);
+  return (
+    <div className="flex flex-1 flex-col gap-3">
+      <span className="label">Runda {last.round + 1} z {SABOTAZ_ROUNDS}</span>
+      <RoundDetails round={last} nick={nick} fresh={fresh} />
+      <p className="label -mb-2 px-1">Suma punktów</p>
+      <Scores
+        rows={rows.map((id) => ({
+          id,
+          nick: places ? `${places[id]}. ${nick(id)}` : nick(id),
+          color: player(id)?.color,
+          me: id === me,
+          score: String(view.totals[id]),
+        }))}
+      />
+      {earlier.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <span className="label">Poprzednie rundy</span>
+          {earlier.map((round) => (
+            <details key={round.round} className="rounded-[10px] border border-line px-3">
+              <summary className="flex min-h-12 cursor-pointer items-center text-sm">Runda {round.round + 1}</summary>
+              <div className="pb-3">
+                <RoundDetails round={round} nick={nick} />
+              </div>
+            </details>
+          ))}
+        </div>
+      )}
+      {view.phase === "summary" && seated && (
+        <StickyBar className="mt-auto">
+          <button type="button" className="btn btn-player w-full" style={{ backgroundColor: color }} disabled={!waitingFor.includes(me)} onClick={() => onMove(moves(view).next())}>
+            {waitingFor.includes(me) ? "Dalej" : `Czekamy na: ${others.map(nick).join(", ")}…`}
+          </button>
+        </StickyBar>
+      )}
+    </div>
+  );
+}
+
+export function SabotazBoard({ view, me, players, waitingFor, onMove, places, draft, onDraft }: Props & { draft: Draft; onDraft: (draft: Draft) => void }) {
+  // Zastane po wejściu albo odświeżeniu leży od razu; animuje się tylko to, co stało się przy graczu.
+  const { isNew } = useFresh([...view.reveals.map((_, i) => `reveal:${view.round}:${i}`), ...view.history.map((round) => `round:${round.round}`)]);
+  const finished = view.phase === "summary" || view.phase === "over";
+  if (finished && view.history.length > 0) {
+    const round = view.history[view.history.length - 1].round;
+    return <RoundSummary view={view} me={me} players={players} waitingFor={waitingFor} onMove={onMove} places={places} fresh={isNew(`round:${round}`)} />;
+  }
   const player = (id: string | null) => players.find((p) => p.id === id);
   const nick = (id: string | null) => player(id)?.nick ?? "?";
   const colorOf = (id: string | null) => player(id)?.color ?? "var(--color-fg-muted)";
@@ -152,11 +274,14 @@ export function SabotazBoard({ view, me, players, waitingFor, onMove, draft, onD
                 <span>
                   <span className="font-mono tabular-nums">{count}</span> zakr.
                 </span>
+                <span>
+                  <span className="font-mono tabular-nums">{view.totals[id]}</span> pkt
+                </span>
                 {leads && <span className="font-semibold text-fg">Lider</span>}
                 {passed && <span>Pas</span>}
               </span>
               {revealed.length > 0 && (
-                <span className="flex flex-wrap gap-x-2">
+                <span className={`flex flex-wrap gap-x-2 ${view.reveals.some((r, n) => r.owner === id && isNew(`reveal:${view.round}:${n}`)) ? "animate-[stone-pop_0.35s_ease-out]" : ""}`}>
                   {KINDS.filter((k) => revealed.some((r) => r.kind === k)).map((k) => (
                     <Card key={k} kind={k} count={revealed.filter((r) => r.kind === k).length} />
                   ))}
@@ -262,5 +387,6 @@ export function SabotazBoard({ view, me, players, waitingFor, onMove, draft, onD
 export function Sabotaz(props: Props) {
   const key = decisionKey(props.view);
   const [stored, setStored] = useState<Stored>({ key, draft: {} });
+  useHarm(harmKey(props.view, props.me));
   return <SabotazBoard {...props} draft={currentDraft(stored, key)} onDraft={(draft) => setStored({ key, draft })} />;
 }

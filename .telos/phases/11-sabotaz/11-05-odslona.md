@@ -2,7 +2,7 @@
 id: 11-05
 title: "Sabotaż: odsłony, historia i wibracje"
 type: code
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: hard
 depends: ["11-04"]
@@ -57,11 +57,14 @@ Dodać odsłonę rundy, pełną historię i czytelną reakcję na odkrycia bez u
 4. apps/web/src/games/Sabotaz.tsx: wykorzystać useFresh/useHarm i istniejące animacje; odbiór zdarzeń, reconnect i reduced motion w 11-07.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm typecheck && pnpm test` → exit 0
-- [ ] `pnpm --filter web build` → exit 0
-- [ ] Historia i wynik nie zależą od lokalnych animacji; szczegóły nadają się do ResultDetails.
+- [x] all listed tests pass
+- [x] `pnpm typecheck && pnpm test` → exit 0
+- [x] `pnpm --filter web build` → exit 0
+- [x] Historia i wynik nie zależą od lokalnych animacji; szczegóły nadają się do ResultDetails.
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+RED: `vitest run src/games/Sabotaz.test.tsx src/vibrate.test.ts` → exit 1: brak odsłony, harmKey i useHarm w Sabotaz.tsx.
+Odsłona i koniec partii z samego View: werdykt, deklaracja, kolejność odkryć, wszystkie stosy od góry i ręce, sumy, miejsca z serwera (bez zgadywania) i zwijana historia rund; Dalej w StickyBar, po nim czekanie, po końcu bez Dalej. decisionKey dla Sabotażu, harmKey tylko dla odkrywającego cudzą Pułapkę; stone-pop i float-up tylko dla nowych zdarzeń.
+Testy: 68 w dwóch plikach, razem 2478 + 186 + 418; build i typecheck czyste. Odbiór zdarzeń na żywo, reconnect i reduced motion w 11-07.
+Decyzja: historia tylko w odsłonie i po końcu (ekran decyzji ma się zmieścić na 360×640), a sumy punktów doszły na kafle stosów. Odbiega to od pierwszej wersji testu 'Poprzednie rundy' w trakcie rundy, którą zmieniłem przed implementacją.
+Deviations: AGENTS.md — zmiana użytkownika sprzed zadania, nie commitowana
