@@ -2,7 +2,7 @@
 id: 07-09
 title: "Etap 2: wspólny start na serwerze"
 type: code
-status: approved
+status: done
 critical: false
 effort: hard
 depends: [07-08]
@@ -63,9 +63,14 @@ W pokoju z 2+ grającymi „Start” znaczy gotowość, a serwer daje wspólne 3
 5. `LobbyRoom`: wiadomość `move` odrzucana przy trwającej instrukcji.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
 
 ## Result
+Serwer zbiera gotowość i daje wspólne 3-2-1, po którym rusza pełny limit mini-gry; ruchy przed sygnałem są odrzucane. Rewanż ma 5 s instrukcji, kolejna gra turnieju 15 s, jedna osoba startuje bez odliczania.
+RED: `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 1, 27/67 testów pada przed kodem (brak countdown, wcześniejsze ruchy i stary czas rewanżu); dokumenty i testy zapisane najpierw w `0b80c39`.
+GREEN: 67/67 testów pokoju (12 nowych), `pnpm typecheck` i `pnpm test` → exit 0; `telos accept 07-09` PASS, zakres poprawny, ręcznie potwierdzone wszystkie Edge cases.
+`skipIntro` z 07-03 zachowane jako trzeci argument `startMatch`; obsługa gotowości i odliczania na kliencie pozostaje zadaniem 07-10.
+Deviations: none

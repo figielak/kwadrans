@@ -9,6 +9,10 @@ export const MAX_PLAYERS = PLAYER_COLORS.length;
 export const NICK_MAX = 16;
 /** Limit instrukcji mini-gry przy 2+ grających; jedna osoba czeka na Start bez odliczania. */
 export const INTRO_SECONDS = 15;
+/** Instrukcja po rewanżu; kolejna gra turnieju zachowuje INTRO_SECONDS. */
+export const REMATCH_INTRO_SECONDS = 5;
+/** Wspólne odliczanie po instrukcji przy 2+ grających. */
+export const COUNTDOWN_SECONDS = 3;
 
 export interface LobbyPlayer {
   id: PlayerId;
@@ -43,13 +47,15 @@ export interface RoomView {
     view: unknown;
     /** Na kogo czekamy: gracz na turze albo kilku naraz (np. rozstawianie statków). */
     waitingFor: PlayerId[];
-    /** Ile zostało do końca tury; liczone od chwili odebrania wiadomości (zegary telefonu i serwera się różnią). */
+    /** Ile zostało do końca instrukcji, odliczania albo tury; liczone od odebrania wiadomości (zegary telefonu i serwera się różnią). */
     msLeft: number | null;
-    /** Trwa instrukcja: limit gry jeszcze nie ruszył, msLeft to czas do startu przy 2+ grających, inaczej null. */
+    /** Trwa instrukcja lub odliczanie: limit gry jeszcze nie ruszył; przy jednym grającym msLeft jest null. */
     intro: boolean;
+    /** Trwa wspólne 3-2-1; intro pozostaje true, msLeft liczy czas do startu gry. */
+    countdown: boolean;
     /** Tylko rewanż w pokoju solo: klient pomija instrukcję i wysyła begin; po begin false. */
     skipIntro: boolean;
-    /** Kto kliknął już „Start” na ekranie instrukcji. */
+    /** Kto zgłosił gotowość przyciskiem „Start” na ekranie instrukcji; po jej końcu wszyscy grający. */
     began: PlayerId[];
     result: GameResult | null;
     /** Miejsca z remisami po partii: result.places, potem def.places; null bez rankingu lub bez definicji miejsc. */
