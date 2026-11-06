@@ -5,7 +5,7 @@ import { describe, expect, test, vi } from "vitest";
 import { Timer } from "@phosphor-icons/react";
 import type { KampusStats, RoomView } from "@kwadrans/games";
 import { KampusSummary } from "../games/KampusSummary.tsx";
-import { OverActions } from "./Game.tsx";
+import { isSimultaneous, OverActions } from "./Game.tsx";
 import { bestRoundLine, EveningTable, ResultDetails, ResultHero, RoundTable, ScoreTable, VoteCards } from "./ui.tsx";
 
 // Game.tsx przez net.ts czyta `location` już przy imporcie; testy idą w node, więc dostaje namiastkę.
@@ -323,6 +323,18 @@ describe("VoteCards (07-20)", () => {
     expect(text(html)).toContain("Głosują gracze");
     expect(html).not.toContain("<button");
     expect(text(html)).toContain("Stoper");
+  });
+});
+
+describe("równoczesność w nagłówku (11-06)", () => {
+  test("Sabotaż: pierwsze karty i odsłona są równoczesne, układanie, licytacja i odkrywanie po kolei", () => {
+    for (const phase of ["initial", "summary"]) expect(isSimultaneous("sabotaz", { phase }), phase).toBe(true);
+    for (const phase of ["place", "bid", "reveal", "over"]) expect(isSimultaneous("sabotaz", { phase }), phase).toBe(false);
+  });
+
+  test("dotychczasowe gry zachowują klasyfikację", () => {
+    for (const id of ["panstwa-miasta", "stoper", "refleks"]) expect(isSimultaneous(id, {}), id).toBe(true);
+    for (const id of ["memory", "statki", "kalambury", "kampus-tour"]) expect(isSimultaneous(id, { phase: "initial" }), id).toBe(false);
   });
 });
 

@@ -14,6 +14,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Labirynt | `labirynt` | 2-4 | 60 s | planszowa, po kolei |
 | Państwa-miasta | `panstwa-miasta` | 2-6 | zależny od fazy | równoczesna |
 | Kalambury | `kalambury` | 2-6 | zależny od fazy | równoczesna, ukryty stan |
+| Sabotaż | `sabotaz` | 3-6 | 30 s pierwsze karty, 60 s ruch, 15 s odsłona | po kolei, ukryty stan (pierwsze karty i odsłona równocześnie) |
 | Refleks | `refleks` | 1-6 | 60 s | mini-gra |
 | Sekwencja | `simon` | 1-6 | 300 s | mini-gra |
 | Stoper | `stoper` | 1-6 | 60 s | mini-gra |
@@ -968,3 +969,119 @@ Seria mini-gier puszczana po kolei w jednym pokoju. To nie jest gra z rejestru `
 - Nic nie jest ukryte: widok to cały stan.
 - Ekran: dotknięcie pola z kropką tylko wybiera krok (duch pionka); ruch wysyła „Idź w górę” / „Przeskocz w lewo” / „Idź w prawo i w dół”
   (kierunek tak, jak widzi go gracz) albo drugie dotknięcie tego samego pola. Ścianka jak dotąd: podgląd, „Obróć”, „Postaw”.
+
+## 11. Sabotaż (`sabotaz`)
+
+Własny wariant gry zakrytych kart i licytacji, inspirowany mechaniką znaną ze Skull. Punktacja, nazwy i oprawa są własne;
+nie deklarujemy zgodności z zasadami oryginału. Wersja 1 bez specjalnych kart, niszczenia ręki, drużyn, czatu i trybów (`modes` brak).
+
+- 3-6 graczy, 6 rund bez eliminacji: każdy gra do końca. Różnica wobec Blefu: gracze sami wybierają zawartość stosów, a porażka licytacji nie wyrzuca z partii.
+- Stałe w `sabotaz.ts` (w `index.ts` z przedrostkiem `SABOTAZ_`): `ROUNDS = 6`, `SAFE_CARDS = 3`, `TRAP_CARDS = 1`,
+  `INITIAL_SECONDS = 30`, `TURN_SECONDS = 60`, `SUMMARY_SECONDS = 15`, `SUCCESS_POINTS = 2`, `TRAP_POINTS = 1`.
+- **Karty**: „Przejście” (`safe`) i „Pułapka” (`trap`). W każdej rundzie każdy dostaje świeży komplet 3 Przejść i 1 Pułapki; nic nie przechodzi między rundami.
+  Ręka to liczności rodzajów, a nie identyfikatory kopii (karty bezpieczne są wymienne). Stos to lista rodzajów od dołu do góry;
+  nowa karta ląduje na wierzchu. `T` to liczba wszystkich kart na stole (suma stosów), w rundzie od `N` do `4N`.
+- **Runda w stanie to `round` 0..5**, w UI „Runda 1..6”. Stan ma też `nonce` z `rng` w `setup` (odróżnia partię od rewanżu, czyści lokalne zaznaczenia na ekranie).
+  Rozpoczyna `players[round % N]`: jawna rotacja inicjatywy, niezależna od punktów.
+
+### Ruchy
+
+Każdy ruch jest obiektem z `type` i niesie `nonce` oraz `round`; ruch z innym `nonce` lub `round` niż stan odpada.
+Ruchy turowe (`place`, `bid`, `pass`, `reveal`) niosą też `decision`, czyli numer decyzji w rundzie, który musi równać się numerowi w stanie
+(każdy przyjęty ruch turowy, także timeoutu, podnosi go o 1; zaległy ruch z poprzedniej decyzji odpada). Ruchy równoczesne (`place` w `initial`, `next`) numeru nie mają.
+
+| Ruch | Faza | Znaczenie |
+|---|---|---|
+| `{ type: "place", kind: "safe" \| "trap" }` | `initial`, `place` | karta z ręki na własny stos |
+| `{ type: "bid", amount }` | `place`, `bid` | otwarcie licytacji albo podbicie, `amount` całkowite |
+| `{ type: "pass" }` | `bid` | pas do końca tej licytacji |
+| `{ type: "reveal", owner }` | `reveal` | odsłonięcie wierzchniej karty niepustego cudzego stosu |
+| `{ type: "next" }` | `summary` | gotowość do następnej rundy |
+
+`validateMove` jest jedynym strażnikiem: sprawdza `nonce`, `round`, `decision`, fazę, tego, kto ma ruch, dostępność rodzaju w ręce,
+zakres `amount` i niepusty stos. **Duplikat `place` w `initial` albo `next` w `summary` od gracza, który już jest gotowy, odpada.**
+
+### Pierwsza karta (`initial`, 30 s wspólnie)
+
+- Wszyscy naraz i potajemnie wybierają jedną kartę z ręki na własny pusty stos (`place`). Zatwierdzenie jest nieodwołalne.
+  Jawna jest tylko gotowość („wyłożył pierwszą kartę”), nigdy rodzaj; po wyłożeniu ręka ma 3 karty.
+- Gdy wszyscy zatwierdzili, rusza układanie (`place`) od rozpoczynającego.
+- Termin jest jeden dla fazy: gotowość jednej osoby ani numer decyzji go nie odnawiają. Po limicie każdy, kto nie zatwierdził, dostaje automatycznie „Przejście”.
+
+### Dokładanie albo otwarcie licytacji (`place`, 60 s na decyzję)
+
+W swojej turze gracz robi jedno z dwojga:
+- `place`: karta z ręki na wierzch własnego stosu, ruch przechodzi do następnej osoby w kolejności miejsc;
+- `bid` z `amount` od 1 do `T`: otwiera licytację, gracz zostaje liderem.
+
+Nie można pasować, zaglądać do cudzych stosów, zmieniać kolejności stosu ani zabierać karty. Z pustą ręką trzeba otworzyć licytację.
+Po pierwszej deklaracji dokładanie jest zamknięte do końca rundy. Limit: serwer otwiera licytację na 1 zamiast dokładać kartę.
+
+### Licytacja (`bid`, 60 s na decyzję)
+
+- Wolno podać liczbę większą od aktualnej i nie większą od `T`, albo spasować. Pas wyklucza tylko z tej licytacji; karty pasującego zostają na stole.
+- Po podbiciu poprzedni lider może później podbić ponownie albo spasować (jego pas jest wtedy ostateczny).
+- Ruch dostaje następna po osobie, która właśnie działała, w kolejności miejsc, pomijając spasowanych i aktualnego lidera.
+- Deklaracja `T` nie kończy licytacji sama: pozostali mogą już tylko spasować.
+- Gdy wszyscy poza liderem spasowali, lider zaczyna odkrywanie z celem `K` równym jego deklaracji. Liczba pasów w rundzie to najwyżej `N - 1`,
+  podbić wraz z otwarciem najwyżej `T`, więc licytacja zawsze się kończy. Limit: pas.
+
+### Odkrywanie (`reveal`)
+
+- Lider musi odsłonić `K` kart bezpiecznych; liczba oznacza łącznie z własnymi. Odkrywa się zawsze wierzchnią kartę wybranego stosu, nie spod wierzchu, i nie wolno przerwać próby dobrowolnie.
+- **Najpierw własny stos od góry.** Serwer odkrywa tę wymuszoną część automatycznie, bez ruchu gracza, aż do: pułapki, osiągnięcia celu albo wyczerpania stosu.
+  Gdy `K` jest mniejsze od własnego stosu, reszty nie odkrywa się, więc Pułapka pod bezpieczną kartą może zostać zakryta (np. przy deklaracji 1).
+- Potem lider wybiera, z którego niepustego cudzego stosu odsłonić wierzchnią kartę (`reveal`, osobna decyzja, numer decyzji rośnie). Może za każdym razem wybrać innego właściciela.
+- **Pułapka kończy próbę natychmiast**; osiągnięcie celu kończy ją sukcesem i dalszych kart się nie odkrywa.
+- Gdy pozostaje dokładnie jeden niepusty cudzy stos, serwer automatycznie odkrywa z niego kolejne karty, aż do celu albo pierwszej pułapki
+  (wymuszona sekwencja jednym zapisem; wynik nie zależy od obejrzenia animacji). Zapisywana jest cała kolejność odkryć w `reveals` (właściciel i rodzaj), także automatyczna.
+- Limit: serwer odsłania wierzch losowego legalnego cudzego stosu (`rng`). Wymuszona własna część nie czeka na limit.
+
+### Punkty i odsłona (`summary`, 15 s wspólnie)
+
+| Wynik próby | Lider | Właściciel pułapki | Pozostali |
+|---|---|---|---|
+| sukces (cel osiągnięty bez pułapki) | +2 | n/d | 0 |
+| cudza pułapka | 0 | +1 | 0 |
+| własna pułapka (jej właścicielem jest lider) | 0 | brak punktu | 0 |
+
+Ujemnych punktów nie ma, karty nie przechodzą do następnej rundy. Liczy się tylko pierwsza napotkana pułapka (dalsze karty nigdy nie są odkrywane).
+Wynik gracza po partii to 0-12 (6 rund po maksymalnie 2 punkty).
+
+- Odsłona pokazuje wszystkie stosy i pozostałe ręce tej rundy, zwycięską deklarację, kolejność odkryć, pułapkę kończącą próbę, przyrosty i sumy.
+  Treść kart jest jawna dopiero w odsłonie (i w historii zakończonych rund).
+- Następna runda rusza po `next` od wszystkich grających albo po 15 s (`next` za każdego, kto jeszcze nie kliknął), ze świeżymi czterema kartami i kolejnym rozpoczynającym.
+- **Po szóstej rundzie** (`round` 5) stan przechodzi od razu w `over`, bez fazy `summary` i bez dodatkowego `next`; odsłona ostatniej rundy zostaje w widoku.
+- Wygrywa największa suma punktów. Remis na szczycie to brak zwycięzcy (`rankResults`); równe dalsze sumy mają wspólne miejsca (`places` przez `rankPlaces`, 1, 1, 3, ...).
+
+### Limity i skończoność
+
+- Klucz `turn()` to `nonce:runda:faza` w `initial` i `summary` (wspólny termin) oraz `nonce:runda:faza:decyzja` w `place`, `bid` i `reveal` (każda nowa decyzja liczy 60 s od nowa).
+  Szkice lokalne i ruchy innych osób w `initial` terminu nie przedłużają.
+- Limity zawsze wykonuje `timeoutMove` tym samym `validateMove`: `initial` Przejście, `place` otwarcie na 1, `bid` pas, `reveal` losowy legalny cudzy stos, `summary` `next`.
+  Nie ma automatycznej przegranej za nieobecność.
+- `waitingFor`: `initial` i `summary` gracze bez gotowości, `place` i `bid` jedna osoba, `reveal` lider, `over` pusto.
+- Runda ma najwyżej `3N` dołożeń po pierwszych kartach, `T <= 4N` podbić z otwarciem, `N - 1` pasów i `T` odkryć, a partia 6 rund, więc zawsze się kończy.
+  Nie ma jednak twardego limitu czasu partii: pełne wykorzystanie 60 s na decyzję wydłuża grę. **Nie obiecujemy kwadransa.**
+- Wyjście gracza w trakcie partii: walkower według reguł platformy (`KONCEPT.md` sekcja 3). Reconnect zachowuje karty, pas i termin; nic nie jest losowane od nowa.
+
+### Widoki (`playerView`)
+
+- **Gracz**: własna ręka (liczności), kolejność własnego stosu od dołu, publiczne wielkości wszystkich stosów i rąk, gotowość, tura, lider, deklaracja, pasy,
+  odsłonięte karty (`reveals`), punkty i historia zakończonych rund. W `initial` wielkość stosu może zdradzać gotowość, nigdy rodzaj.
+  W `reveal` nieodkryte cudze karty pozostają tajne, własne nieodkryte zna ich właściciel.
+- **Obserwator** (`""`, także nieznane id) widzi tylko stan publiczny: wielkości, deklarację, pasy, turę, odkryte karty i punkty. Nie widzi niczyjej ręki ani zakrytych kart.
+- W `summary` i `over` widok niesie pełne karty tylko zakończonych rund (ostatnia jest jawna po `over`); przed odsłoną żadna zakryta karta nie występuje w widoku, także w historii.
+- Pole z treścią zakrytej karty nigdy nie trafia do etykiety DOM ani wiadomości WebSocket cudzej osoby.
+
+### Ekran i odbiór
+
+- Stosy w siatce 2×3 (nick, liczba kart, pas, lider, odkryty wierzch), własne karty na dole jako dwa typy z licznością, osobne zatwierdzenie 48 px.
+  Licytacja: duża liczba z „-” i „+”, „Licytuj” i „Pas”. Odkrywanie: „3 z 5” i „Odkryj u ...”. Instrukcja wyjaśnia, że cel mniejszy od własnego stosu nie odkrywa reszty.
+- Odbiór w `/dev`: przy limicie 6 osób w pokoju komplet 6 grających sprawdza się bez obserwatora, a widok obserwatora przy 6 graczach testami `playerView(state, "")`
+  i `viewFor`, bez siódmego połączenia. Odbiór 3 grających obejmuje obserwatora na żywo.
+
+### Balans
+
+Nie jest potwierdzony. Do sprawdzenia w próbie z ludźmi: długość licytacji, premia 2/1 (czy właściciel cudzej pułapki nie ma zbyt łatwo),
+łatwość zapamiętania własnego stosu i skłonność do zawsze bezpiecznej deklaracji 1.

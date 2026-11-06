@@ -64,7 +64,7 @@ describe("pomyłka: 60", () => {
 });
 
 describe("szkoda od rywala: raz na zdarzenie, bez powtórki po wejściu", () => {
-  test.each(["Statki", "KampusTour", "PanstwaMiasta"])("%s używa useHarm", (game) => {
+  test.each(["Statki", "KampusTour", "PanstwaMiasta", "Sabotaz"])("%s używa useHarm", (game) => {
     expect(read(`games/${game}.tsx`)).toMatch(/useHarm\(/);
   });
 

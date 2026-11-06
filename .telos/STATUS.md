@@ -1,11 +1,11 @@
 # Status
 <!-- ≤ 40 lines. Maintained by `telos status set <key>=<value>`; never edit by hand.
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
-Phase: 07-atrakcyjnosc
+Phase: 11-sabotaz
 Task: none
-Next: close phase 07 (/telos:done)
+Next: /telos:plan
 Blockers: none
-Awaiting user: 08, 09, 10, 11, 12
+Awaiting user: 08, 09, 10, 12
 <!-- Blockers: "NN-MM: reason". Awaiting user: IDs only, e.g. "02:Q-01, 02:D-03" -->
 
 ## Carry-over
@@ -15,6 +15,6 @@ Awaiting user: 08, 09, 10, 11, 12
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
-- 07-23 done: odbiór wieczoru na 360×640, przyciski po partii w dwóch rzędach
-- 07-22 done: podsumowanie wieczoru przy wyjściu i udostępnienie
-- 07-21 done: lobby pod grę, kod w pasku od 2 osób, życzenia gości (wish)
+- 11-sabotaz closed: gra sabotaz (3-6 graczy) gotowa, v1 przyjęte, balans niezmierzony
+- 11-08 done: v1 przyjęte przez użytkownika, balans bez pomiarów (jawne odstępstwo)
+- 11-07 done: odbiór techniczny 3 + obserwator i 6 graczy, U1 naprawione w 11-09

@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, CaretRight, Info, Play, Plus, Shuffle, SquaresFo
 import { cleanNick, GAMES, MINI_GAME_IDS, NICK_MAX, type RecordRow, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, standing } from "@kwadrans/games";
 import { useEffect, useState } from "react";
 import type { Room } from "@colyseus/sdk";
+import { Changelog, VERSION } from "./Changelog.tsx";
 import { ICONS } from "./Lobby.tsx";
 import { MiniGameGrid } from "./MiniGames.tsx";
 import { formatBest, Records } from "./Records.tsx";
@@ -54,7 +55,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
   const [notice, setNotice] = useState(closedNotice);
   const [soloError, setSoloError] = useState("");
   const [busy, setBusy] = useState<Busy>(null);
-  const [screen, setScreen] = useState<"records" | "all" | null>(null);
+  const [screen, setScreen] = useState<"records" | "all" | "changelog" | null>(null);
   const [recent, setRecent] = useState(recentRooms);
   /** Które z ostatnich pokoi jeszcze istnieją (kod → liczba graczy); dopóki serwer nie odpowie, sekcji nie ma. */
   const [alive, setAlive] = useState<Record<string, number>>({});
@@ -104,6 +105,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
 
   const me = cleanNick(nick);
   if (screen === "records") return <Records nick={me} onBack={() => setScreen(null)} onPlay={play} />;
+  if (screen === "changelog") return <Changelog onBack={() => setScreen(null)} />;
   if (screen === "all") {
     return (
       <Screen dropped={false}>
@@ -363,6 +365,12 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
           </ul>
         </section>
       )}
+
+      <footer className="mt-auto flex justify-center">
+        <button type="button" className="min-h-12 px-2 text-sm text-fg-muted disabled:opacity-40" disabled={!!busy} onClick={() => setScreen("changelog")}>
+          Wersja <span className="font-mono tabular-nums">{VERSION}</span> · Co nowego
+        </button>
+      </footer>
     </main>
   );
 }

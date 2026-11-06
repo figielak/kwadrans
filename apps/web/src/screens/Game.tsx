@@ -1,6 +1,6 @@
 import type { Room } from "@colyseus/sdk";
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Play, Shuffle, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, nickKey, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, nickKey, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, type SabotazView, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
@@ -9,6 +9,7 @@ import { MiniGame } from "../games/MiniGame.tsx";
 import { Kalambury } from "../games/Kalambury.tsx";
 import { PanstwaMiasta } from "../games/PanstwaMiasta.tsx";
 import { Labirynt } from "../games/Labirynt.tsx";
+import { Sabotaz } from "../games/Sabotaz.tsx";
 import { PiecWRzedzie } from "../games/PiecWRzedzie.tsx";
 import { FleetLeft, Statki } from "../games/Statki.tsx";
 import { createLiveStore, liveActive, LiveContext, type LiveValues } from "../live.ts";
@@ -97,10 +98,11 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
   // Poświata tła w kolorze gracza, na którego czekamy; poza turą jednej osoby zostaje akcent.
   // Kalambury: zawsze kolor rysującego, bo czekamy na zgadujących, a uwaga jest na rysunku.
   // Państwa-miasta: wszyscy działają naraz, więc u każdego, na kogo czekamy, jego własny kolor (pasek limitu i poświata).
+  const simultaneous = isSimultaneous(def.id, game.view);
   const focus =
     def.id === "kalambury"
       ? (game.view as KalamburyView).drawer
-      : def.id === "panstwa-miasta"
+      : def.id === "panstwa-miasta" || (def.id === "sabotaz" && simultaneous)
         ? game.waitingFor.includes(me)
           ? me
           : undefined
@@ -306,10 +308,10 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
       : myTurn
         ? (game.view as { phase?: string }).phase === "placing"
           ? "Ustaw statki"
-          : SIMULTANEOUS.has(def.id)
+          : simultaneous
             ? def.name // wszyscy grają naraz, więc to nie jest niczyj „ruch”
             : "Twój ruch"
-        : turnOf && !SIMULTANEOUS.has(def.id)
+        : turnOf && !simultaneous
           ? <>Ruch: <span style={{ color: turnColor }}>{nick(turnOf)}</span></>
           : `Czekamy na: ${waitingNicks}`;
 
@@ -442,8 +444,8 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
                   <Countdown
                     game={round ?? game}
                     total={round ? QUIZ_DURATION_MS / 1000 : (def.turn?.(game.view).seconds ?? def.turnSeconds)}
-                    color={myTurn ? myColor : SIMULTANEOUS.has(def.id) ? undefined : turnColor}
-                    label={compact ? undefined : round ? "Czas" : SIMULTANEOUS.has(def.id) ? "Limit" : undefined}
+                    color={myTurn ? myColor : simultaneous ? undefined : turnColor}
+                    label={compact ? undefined : round ? "Czas" : simultaneous ? "Limit" : undefined}
                   />
                 </div>
               )}
@@ -607,6 +609,18 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
               onMove={(move) => send("move", move)}
             />
           )}
+
+          {def.id === "sabotaz" && (
+            <Sabotaz
+              key={(game.view as SabotazView).nonce}
+              view={game.view as SabotazView}
+              me={me}
+              players={view.players}
+              waitingFor={game.waitingFor}
+              places={game.places}
+              onMove={(move) => send("move", move)}
+            />
+          )}
           </ResultDetails>
         </HeroSlot.Provider>
 
@@ -640,6 +654,12 @@ function recordHint(gameId: string, rows: RecordRow[] | null, nick: string) {
 
 /** Wszyscy grają naraz: nie ma niczyjego „ruchu”, a licznik to limit partii. */
 const SIMULTANEOUS = new Set([...MINI_GAME_IDS, "panstwa-miasta"]);
+
+/** Sabotaż jest równoczesny tylko w pierwszych kartach i odsłonie; układanie, licytacja i odkrywanie idą po kolei. */
+export const isSimultaneous = (gameId: string, view: unknown) => {
+  const { phase } = view as { phase?: string };
+  return SIMULTANEOUS.has(gameId) || (gameId === "sabotaz" && (phase === "initial" || phase === "summary"));
+};
 
 const SCHULTE_LAST = SCHULTE_SIZE * SCHULTE_SIZE;
 

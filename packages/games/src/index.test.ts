@@ -1,5 +1,21 @@
 import { describe, expect, test } from "vitest";
-import { createRng, GAMES, MINI_GAME_IDS, ROOM_MESSAGES, soloState } from "./index.ts";
+import {
+  createRng,
+  GAMES,
+  MINI_GAME_IDS,
+  ROOM_MESSAGES,
+  SABOTAZ_INITIAL_SECONDS,
+  SABOTAZ_ROUNDS,
+  SABOTAZ_SAFE_CARDS,
+  SABOTAZ_SUCCESS_POINTS,
+  SABOTAZ_SUMMARY_SECONDS,
+  SABOTAZ_TRAP_CARDS,
+  SABOTAZ_TRAP_POINTS,
+  SABOTAZ_TURN_SECONDS,
+  type SabotazMove,
+  type SabotazView,
+  soloState,
+} from "./index.ts";
 
 // Kontrakt wspólny dla każdej gry z rejestru, sprawdzany na losowych partiach granych ruchami po limicie czasu:
 // - ruch po limicie czasu każdego gracza, na którego czekamy, przechodzi przez moveSchema i validateMove,
@@ -23,7 +39,7 @@ const EAGER: Record<string, (rng: () => number) => unknown[]> = {
 
 test("rejestr: id z sieci nie trafia w pola prototypu obiektu, a klucz to id gry", () => {
   for (const id of ["constructor", "toString", "__proto__", "hasOwnProperty", "nie-ma-takiej"]) expect(GAMES[id], id).toBeUndefined();
-  expect(Object.keys(GAMES)).toHaveLength(38);
+  expect(Object.keys(GAMES)).toHaveLength(39);
   for (const [id, game] of Object.entries(GAMES)) expect(game.id).toBe(id);
 });
 
@@ -103,7 +119,7 @@ const CASES = Object.values(GAMES).flatMap((game) =>
 describe.each(CASES)("$name: kontrakt", ({ game, mode }) => {
   test("walidacja z trzema argumentami zachowuje kontekst klienta", () => {
     const rng = createRng(1);
-    const state = game.setup(["p1", "p2"].slice(0, game.minPlayers), rng, mode);
+    const state = game.setup(["p1", "p2", "p3", "p4", "p5", "p6"].slice(0, game.minPlayers), rng, mode);
     const player = game.waitingFor(state)[0];
     const move = game.timeoutMove!(state, player, rng);
     expect(game.validateMove(state, player, move)).toBe(game.validateMove(state, player, move, { source: "client" }));
@@ -174,6 +190,57 @@ describe.each(CASES)("$name: kontrakt", ({ game, mode }) => {
   });
 });
 
+describe("Sabotaż w rejestrze", () => {
+  test("jest grą główną 3-6 osób, bez rekordu, podglądu i trybów", () => {
+    const game = GAMES.sabotaz;
+    expect(game.id).toBe("sabotaz");
+    expect(MINI_GAME_IDS).not.toContain("sabotaz");
+    expect(game.minPlayers).toBe(3);
+    expect(game.maxPlayers).toBe(6);
+    expect(game).not.toHaveProperty("record");
+    expect(game).not.toHaveProperty("live");
+    expect(game).not.toHaveProperty("modes");
+  });
+
+  test("stałe są eksportowane z przedrostkiem SABOTAZ_", () => {
+    expect([SABOTAZ_ROUNDS, SABOTAZ_SAFE_CARDS, SABOTAZ_TRAP_CARDS]).toEqual([6, 3, 1]);
+    expect([SABOTAZ_INITIAL_SECONDS, SABOTAZ_TURN_SECONDS, SABOTAZ_SUMMARY_SECONDS]).toEqual([30, 60, 15]);
+    expect([SABOTAZ_SUCCESS_POINTS, SABOTAZ_TRAP_POINTS]).toEqual([2, 1]);
+  });
+
+  test("kontrakt startuje od minPlayers: świeża gra czeka na trzy osoby, nie dwie", () => {
+    const players = ["p1", "p2", "p3", "p4", "p5", "p6"].slice(0, GAMES.sabotaz.minPlayers);
+    expect(GAMES.sabotaz.waitingFor(GAMES.sabotaz.setup(players, createRng(1)))).toEqual(["p1", "p2", "p3"]);
+  });
+
+  // Same timeouty licytują 1 i kończą na własnej karcie, więc nie dowodzą odkrywania: tę fazę przechodzi sterowana partia.
+  test.each([3, 6])("%i graczy: deklaracja większa od własnego stosu prowadzi przez odkrywanie do końca partii", (n) => {
+    const game = GAMES.sabotaz;
+    const players = ["p1", "p2", "p3", "p4", "p5", "p6"].slice(0, n);
+    const rng = createRng(4);
+    const view = (state: unknown) => game.playerView(state, "") as SabotazView;
+    const phases = (visited.sabotaz ??= new Set());
+    const seenPhases = new Set<string>();
+    let s = game.setup(players, rng);
+    for (let steps = 0; !game.isOver(s); steps++) {
+      if (steps > MAX_STEPS) throw new Error("partia się nie kończy");
+      const { phase, nonce, round, decision, stackSizes } = view(s);
+      const player = game.waitingFor(s)[0];
+      const fallback = game.timeoutMove!(s, player, rng) as SabotazMove;
+      expect(game.moveSchema.safeParse(fallback).success, JSON.stringify(fallback)).toBe(true);
+      expect(game.validateMove(s, player, fallback, { source: "timeout" }), JSON.stringify(fallback)).toBe(true);
+      const total = Object.values(stackSizes).reduce((sum, size) => sum + size, 0);
+      const move: SabotazMove = phase === "place" ? { type: "bid", amount: total, nonce, round, decision } : fallback;
+      expect(game.validateMove(s, player, move), JSON.stringify(move)).toBe(true);
+      phases.add(phase);
+      seenPhases.add(phase);
+      s = game.applyMove(s, player, move, rng);
+    }
+    expect(seenPhases).toContain("reveal");
+    expect(view(s).history).toHaveLength(SABOTAZ_ROUNDS);
+  });
+});
+
 test("losowe partie przeszły przez każdą fazę gier wielofazowych (timeoutMove sprawdzony w każdej)", () => {
   const expected: Record<string, string[]> = {
     "kampus-tour": ["pick", "roll", "card", "buy", "buyout", "build", "sell", "juwenalia"],
@@ -181,6 +248,7 @@ test("losowe partie przeszły przez każdą fazę gier wielofazowych (timeoutMov
     statki: ["placing", "battle"],
     "panstwa-miasta": ["write", "vote", "summary"],
     kalambury: ["choose", "draw", "reveal"],
+    sabotaz: ["initial", "place", "bid", "reveal", "summary"],
   };
   for (const [id, phases] of Object.entries(expected)) expect([...visited[id]].sort(), id).toEqual([...phases].sort());
 });

@@ -1,10 +1,10 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { PLAYER_COLORS, type RoomView } from "@kwadrans/games";
+import { GAMES, MINI_GAME_IDS, PLAYER_COLORS, type RoomView } from "@kwadrans/games";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test } from "vitest";
-import { Lobby, wishDots } from "./Lobby.tsx";
+import { BLURBS, ICONS, Lobby, wishDots } from "./Lobby.tsx";
 
 // P4-034: lista mini-gier z rejestru, Sudoku montuje się po nonce, Turniej ma jeden przyklejony pasek.
 const src = new URL(".", import.meta.url).pathname;
@@ -30,6 +30,38 @@ test("lobby sześciu osób pokazuje dostępne gry przed zablokowanymi", () => {
 test("lobby przed wyborem gry nie zasłania listy paskiem bez akcji", () => {
   expect(lobby(2)).not.toContain("sticky bottom-0");
   expect(lobby(6)).not.toContain("sticky bottom-0");
+});
+
+test("11-06: Sabotaż w lobby ma nazwę, ikonę, opis i limit 3-6, a nie jest mini-grą ani grą z rekordem", () => {
+  const html = lobby(3);
+  expect(html).toContain("Sabotaż");
+  expect(html).toContain("3-6 os.");
+  expect(ICONS.sabotaz).toBeDefined();
+  expect(BLURBS.sabotaz).toMatch(/Pułapk/);
+  expect(BLURBS.sabotaz).not.toMatch(/kwadrans|Skull|—/i);
+  expect(MINI_GAME_IDS).not.toContain("sabotaz");
+  expect(GAMES.sabotaz.record).toBeUndefined();
+});
+
+test("11-06: przy dwóch osobach Sabotaż stoi wśród gier zablokowanych, za dostępnymi", () => {
+  const html = lobby(2);
+  expect(html).toContain("Sabotaż");
+  expect(html.indexOf("Memory")).toBeLessThan(html.indexOf("Sabotaż"));
+});
+
+test("11-06: Game montuje Sabotaż po nonce z ruchem, miejscami i oczekującymi", () => {
+  const game = read("Game.tsx");
+  expect(game).toMatch(/<Sabotaz\s+key=\{\(game\.view as SabotazView\)\.nonce\}/);
+  const mount = game.slice(game.indexOf("<Sabotaz"), game.indexOf("/>", game.indexOf("<Sabotaz")));
+  for (const prop of ["me={me}", "players={view.players}", "waitingFor={game.waitingFor}", "places={game.places}", 'send("move", move)']) expect(mount).toContain(prop);
+  expect(game.indexOf("<ResultDetails")).toBeLessThan(game.indexOf("<Sabotaz"));
+  expect(game.indexOf("<Sabotaz")).toBeLessThan(game.indexOf("</ResultDetails>"));
+});
+
+test("11-06: status, kolor i etykieta limitu korzystają z jednej informacji o równoczesności", () => {
+  const game = read("Game.tsx");
+  expect(game).not.toContain("SIMULTANEOUS.has(def.id)");
+  expect(game.match(/\bsimultaneous\b/g)!.length).toBeGreaterThanOrEqual(4);
 });
 
 test("F4-017: Game.tsx i Lobby.tsx biorą mini-gry z MINI_GAME_IDS, bez ręcznej listy id", () => {
