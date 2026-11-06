@@ -57,7 +57,9 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
 - Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Refleks, Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon, W pamięci, Tort, Zakupy, Za zasłoną, Nożyczki, Trzy kubki),
   w reszcie ufa klientowi.
 - Partia zaczyna się ekranem instrukcji (platforma, nie zasady gry): każdy klika „Start” osobno (wiadomość pokoju `begin`) i gra od razu,
-  po `INTRO_SECONDS` (15 s) gra rusza sama. Limit tury startuje, gdy wystartują wszyscy albo minie 15 s; wynik oddany wcześniej go nie uruchamia.
+  przy co najmniej dwóch grających po `INTRO_SECONDS` (15 s) gra rusza sama. Jeden grający czeka na „Start” bez odliczania, także w zwykłym pokoju i turnieju.
+  Limit tury startuje, gdy wystartują wszyscy albo minie 15 s przy 2+ grających; wynik oddany wcześniej go nie uruchamia.
+  „Jeszcze raz” w pokoju `solo` pomija instrukcję i od razu zaczyna nową partię po decyzji gracza. Pierwsza partia, zwykły rewanż oraz kolejna gra turnieju pokazują instrukcję.
 - `waitingFor` = gracze bez wyniku. Po limicie `timeoutMove` wpisuje najgorszy możliwy wynik.
 - Koniec, gdy wszyscy oddali wynik. Ranking liczy `rankResults` (core.ts): zwycięzca tylko przy 2+ graczach i bez remisu
   na pierwszym miejscu; gra solo nie ma zwycięzcy (nie nabija statystyk).

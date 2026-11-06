@@ -1,4 +1,4 @@
-import { type Client, CloseCode } from "@colyseus/core";
+import { type AuthContext, type Client, CloseCode } from "@colyseus/core";
 import { GAMES, KALAMBURY_HALF_SECONDS, type KalamburyView, type RoomView, type ZakupyView } from "@kwadrans/games";
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -35,7 +35,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-async function openRoom(n: number, options?: { solo?: string }) {
+async function openRoom(n: number, options?: { solo?: string }, ip?: string) {
   const room = new LobbyRoom();
   rooms.push(room);
   const handlers = new Map<string, (client: Client, raw: unknown) => void>();
@@ -52,7 +52,8 @@ async function openRoom(n: number, options?: { solo?: string }) {
   const clients = Array.from({ length: n + Number(observer !== undefined) }, (_, i) => ({ sessionId: `p${i + 1}`, send: vi.fn() } as unknown as Client));
   for (const client of clients) {
     room.clients.push(client);
-    room.onJoin(client, {}, { nick: client.sessionId });
+    const auth = ip ? room.onAuth(client, { nick: client.sessionId }, { ip, headers: new Headers() } as AuthContext) : { nick: client.sessionId };
+    room.onJoin(client, {}, auth);
   }
   const send = (player: number, type: string, raw: unknown) => handlers.get(type)!(clients[player], raw);
   const snapshot = (player = 0): RoomView => {
@@ -76,6 +77,121 @@ async function drawing(n: number, gameId = "kalambury", start = true) {
   if (gameId === "kalambury") expect((snapshot().game!.view as KalamburyView).phase).toBe("draw");
   return { room, send, snapshot, clients, observer };
 }
+
+describe("07-03: instrukcja i rewanż jednej osoby", () => {
+  test.each([false, true])("jedna osoba bez timera instrukcji, solo=%s", async (solo) => {
+    const { room, snapshot } = solo ? await openRoom(1, { solo: "stoper" }) : await drawing(1, "stoper", false);
+    expect(snapshot().game).toMatchObject({ intro: true, msLeft: null, skipIntro: false });
+    expect(room.clock.setTimeout).not.toHaveBeenCalledWith(expect.any(Function), 15_000);
+    const timeout = vi.spyOn(GAMES.stoper, "timeoutMove");
+    vi.advanceTimersByTime(60_000);
+    expect(timeout).not.toHaveBeenCalled();
+    expect(snapshot().phase).toBe("playing");
+    expect(snapshot().game!.intro).toBe(true);
+  });
+
+  test.each([2, 6])("%i grających: instrukcja nadal ma 15 sekund", async (n) => {
+    const { snapshot } = await drawing(n, "stoper", false);
+    expect(snapshot().game).toMatchObject({ intro: true, msLeft: 15_000, skipIntro: false });
+    vi.advanceTimersByTime(15_000);
+    expect(snapshot().game).toMatchObject({ intro: false, msLeft: 60_000, skipIntro: false });
+  });
+
+  test("rewanż solo zachowuje zamiar przed begin i ma świeży, nieodnawialny limit", async () => {
+    const { room, send, snapshot, clients } = await openRoom(1, { solo: "stoper" });
+    send(0, "begin", {});
+    expect(snapshot().game).toMatchObject({ intro: false, msLeft: 60_000, skipIntro: false });
+    vi.advanceTimersByTime(50_000);
+    send(0, "move", { type: "result", deviation: 100 });
+    expect(snapshot().phase).toBe("over");
+    send(0, "rematch", {});
+    expect(snapshot().game).toMatchObject({ intro: true, msLeft: null, skipIntro: true });
+
+    // Ponowne połączenie przed begin zachowuje pole pominięcia instrukcji.
+    vi.spyOn(room, "allowReconnection").mockResolvedValue(clients[0]);
+    await room.onLeave(clients[0], 1006);
+    expect(snapshot().game).toMatchObject({ intro: true, skipIntro: true });
+    vi.advanceTimersByTime(5000);
+    send(0, "begin", {});
+    expect(snapshot().game).toMatchObject({ intro: false, msLeft: 60_000, skipIntro: false });
+
+    // Odświeżenie po begin nie wznawia auto-startu, kolejne begin nie odnawia czasu.
+    vi.advanceTimersByTime(5000);
+    await room.onLeave(clients[0], 1006);
+    send(0, "begin", {});
+    expect(snapshot().game).toMatchObject({ intro: false, msLeft: 55_000, skipIntro: false });
+    expect(snapshot().phase).toBe("playing");
+    vi.advanceTimersByTime(54_999);
+    expect(snapshot().phase).toBe("playing");
+    vi.advanceTimersByTime(1);
+    expect(snapshot().phase).toBe("over");
+  });
+
+  test.each([1, 2])("zwykły rewanż %i grających pokazuje instrukcję", async (n) => {
+    const { send, snapshot } = await drawing(n, "stoper");
+    for (let i = 0; i < n; i++) send(i, "move", { type: "result", deviation: 100 });
+    for (let i = 0; i < n; i++) send(i, "rematch", {});
+    expect(snapshot().phase).toBe("playing");
+    expect(snapshot().game).toMatchObject({ intro: true, skipIntro: false, msLeft: n === 1 ? null : 15_000 });
+  });
+
+  test("kolejna gra turnieju jednoosobowego czeka na Start, bez skipIntro", async () => {
+    const { send, snapshot, clients } = await openRoom(1);
+    send(0, "pickTournament", { length: 3 });
+    send(0, "toggleSeat", { id: clients[1].sessionId });
+    send(0, "start", {});
+    expect(snapshot().game).toMatchObject({ intro: true, msLeft: null, skipIntro: false });
+    send(0, "begin", {});
+    const seconds = GAMES[snapshot().gameId!].turnSeconds!;
+    vi.advanceTimersByTime(seconds * 1000);
+    expect(snapshot().phase).toBe("over");
+    send(0, "rematch", {});
+    expect(snapshot().tournament!.index).toBe(1);
+    expect(snapshot().game).toMatchObject({ intro: true, msLeft: null, skipIntro: false });
+    vi.advanceTimersByTime(15_000);
+    expect(snapshot().game!.intro).toBe(true);
+  });
+
+  test("instrukcja solo żyje przez 59:59, po godzinie pokój się zamyka", async () => {
+    const { room, snapshot } = await openRoom(1, { solo: "stoper" });
+    const disconnect = vi.spyOn(room, "disconnect").mockResolvedValue([]);
+    const timeout = vi.spyOn(GAMES.stoper, "timeoutMove");
+    vi.advanceTimersByTime(3_599_000);
+    expect(disconnect).not.toHaveBeenCalled();
+    expect(timeout).not.toHaveBeenCalled();
+    expect(snapshot().game!.intro).toBe(true);
+    vi.advanceTimersByTime(1000);
+    expect(disconnect).toHaveBeenCalledTimes(1);
+  });
+
+  test.each([CloseCode.CONSENTED, 1006])("wyjście z instrukcji (%i) bez wyniku, dispose zwalnia limit solo na IP", async (code) => {
+    const ip = `test-intro-${code}`;
+    const { room, clients, snapshot } = await openRoom(1, { solo: "stoper" }, ip);
+    for (let i = 1; i < 20; i++) await openRoom(1, { solo: "stoper" }, ip);
+    const extra = new LobbyRoom();
+    rooms.push(extra);
+    await extra.onCreate({ solo: "stoper" });
+    const auth = () => extra.onAuth(clients[0], { nick: "Nowy" }, { ip, headers: new Headers() } as AuthContext);
+    expect(auth).toThrow("Masz już otwarte za dużo pokoi.");
+    const record = vi.spyOn(stats, "record");
+    const scores = vi.spyOn(stats, "recordScores");
+    const entries = vi.spyOn(stats, "recordRoomGame");
+    const reconnect = vi.spyOn(room, "allowReconnection").mockRejectedValue(new Error("nie wrócił"));
+    await room.onLeave(clients[0], code);
+    expect(snapshot().phase).toBe("over");
+    expect(snapshot().game!.result).toEqual({});
+    expect(record).not.toHaveBeenCalled();
+    expect(scores).not.toHaveBeenCalled();
+    expect(entries).toHaveBeenCalledWith(expect.objectContaining({ players: 1, outcome: "aborted" }));
+    if (code === CloseCode.CONSENTED) expect(reconnect).not.toHaveBeenCalled();
+    else expect(reconnect).toHaveBeenCalledWith(clients[0], 600);
+    room.onDispose();
+    rooms.splice(rooms.indexOf(room), 1);
+    room.clock.clear();
+    room.clock.stop();
+    expect(auth).not.toThrow();
+  });
+});
 
 describe("07-02: miejsca po partii w widoku pokoju", () => {
   test("Schulte: remis 1, 1, 3 widzą gracze i obserwator", async () => {
