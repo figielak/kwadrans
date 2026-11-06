@@ -679,7 +679,8 @@ export function OverActions({ view, me, send, onLeave }: { view: RoomView; me: s
   const isHost = view.hostId === me;
   const seatedMe = view.seats.includes(me);
   const lobby = isHost && (
-    <button type="button" className={`btn btn-ghost ${view.vote ? "w-full" : "flex-1"}`} onClick={() => send("toLobby")}>
+    // Mała akcja pod rzędem Rewanż / Inna gra: trzy przyciski w jednym rzędzie ucinały napisy na 360 px.
+    <button type="button" className="btn btn-ghost w-full text-sm text-fg-muted" onClick={() => send("toLobby")}>
       Do lobby
     </button>
   );

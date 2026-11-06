@@ -150,7 +150,7 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
   w mini-grach pierścień postępu z ruchu `progress` (pełny po oddaniu wyniku), w grach po kolei pełny pierścień u gracza z ruchem,
   przygaszenie u czytającego zasady, przerywany obrys u rozłączonego, kreska pod własną kropką (zawsze pierwszą), odznaka z wygranymi (w turnieju prostokątna, z punktami; zera nie widać);
   dotknięcie kropek rozwija pigułki z nickami i dokładnym postępem. W grze solo kropek nie ma.
-  „Oglądasz”, komunikat o rozłączeniu, przyciski „Rewanż” i „Do lobby”. To wszystko daje `screens/Game.tsx`.
+  „Oglądasz”, komunikat o rozłączeniu, przyciski „Rewanż” i „Inna gra” obok siebie oraz małe „Do lobby” pod nimi (tylko gospodarz). To wszystko daje `screens/Game.tsx`.
 - Wynik po partii z ludźmi: `ResultHero` (ui.tsx) z `heroResult` (`screens/results.ts`), liczony wyłącznie ze stanu. Tytuł to największy tekst ekranu, pod nim miejsca, nicki,
   jedna liczba z `record` i różnica do osoby wyżej (bez liczby w grach bez `record`, po wyniku nieskończonym i w walkowerze; bez różnicy przy remisie). Solo bohatera nie ma, po ostatniej grze turnieju tytuł należy do turnieju.
   Własny ekran końcowy gry trafia pod „Szczegóły” (`ResultDetails`, zwinięte), gra pozostaje zamontowana od początku partii. Kampus Tour: własny tytuł i pod nim same wiersze, bez odsłony.
@@ -201,7 +201,7 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
   a głosowanie i podsumowanie przewijają odpowiedzi pionowo. Przy 4+ osobach każda kategoria ma graczy
   w wierszach. Bez przewijania w bok, z pełną treścią i celami głosu minimum 48 px.
   Odbiór formularza wymaga fizycznego Androida z klawiaturą (U02); sama symulacja viewportu nie wystarcza.
-  Wyniki partii i odsłony rund mogą przewijać się pionowo. Rewanż/Do lobby, akcje solo i przejście
+  Wyniki partii i odsłony rund mogą przewijać się pionowo. Rewanż/Inna gra/Do lobby, akcje solo i przejście
   turnieju pozostają w StickyBar; ostatni wiersz treści musi dać się przewinąć ponad pasek.
   Kampus Tour zachowuje własny układ poziomy: decyzje, poziomy budowy i zamknięcie okna mają
   minimum 48 px mierzone po skalowaniu sceny. Podsumowanie może przewijać treść ze stałymi akcjami;

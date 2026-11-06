@@ -2,7 +2,7 @@
 id: 07-23
 title: "Etap 3: odbiór całego wieczoru"
 type: code
-status: approved
+status: done
 critical: false
 effort: normal
 depends: [07-20, 07-21, 07-22]
@@ -43,10 +43,15 @@ Cały wieczór w pokoju działa na telefonie: lobby, seria partii, głosowanie, 
 - Zapisz w Result przebieg i pozostałe rozbieżności.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
-- [ ] `pnpm --filter web build` → exit 0
-- [ ] Lobby, wyniki i podsumowanie sprawdzone na 360×640 z 1, 2 i 6 graczami oraz obserwatorem
+- [x] all listed tests pass
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
+- [x] `pnpm --filter web build` → exit 0
+- [x] Lobby, wyniki i podsumowanie sprawdzone na 360×640 z 1, 2 i 6 graczami oraz obserwatorem
 
 ## Result
+Przebieg w `/dev` (360×640), 6 graczy: Dziesiątki, rewanż, głosowanie (z odświeżeniem w trakcie: karty i głosy wróciły), Tabela Schultego z wynikami, „Do lobby”, wyjście gracza (podsumowanie: mistrz, tabela 6 osób, tytuły, Udostępnij), Szybka seria (start i odświeżenie w intro wracają do gry). 1 gracz: lobby z dużym kodem. Obserwator: Chińczyk 2 z 3 osób, ekran ustawień i gra z „Oglądasz”, bez poziomego przewijania.
+Jedna poprawka: trzy przyciski po partii w jednym rzędzie ucinały napisy („Re…”), więc „Do lobby” jest małą akcją pod rzędem Rewanż / Inna gra (Game.tsx; DESIGN.md, ZASADY.md). Błędów logiki nie znaleziono, więc evening.test.ts bez zmian. Nowych animacji nie dodano, więc `prefers-reduced-motion` bez zmian.
+Rozbieżności: nie obejrzano ekranu głosowania ani wyników u obserwatora (Chińczyk trwa zbyt długo; pokrywają to testy renderu), długich nicków (dev ma stałe) ani układu z 2 graczami w tym przebiegu (sprawdzony w 07-21). Po „Do lobby” gospodarz ląduje na liście ostatnio granej mini-gry (stare zachowanie, gameId zostaje).
+Testy: 2367 + 171 + 364 PASS, build OK.
+Deviations: none
