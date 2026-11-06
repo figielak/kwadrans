@@ -1,3 +1,4 @@
+import type { Room } from "@colyseus/sdk";
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
 import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
@@ -10,13 +11,15 @@ import { PanstwaMiasta } from "../games/PanstwaMiasta.tsx";
 import { Labirynt } from "../games/Labirynt.tsx";
 import { PiecWRzedzie } from "../games/PiecWRzedzie.tsx";
 import { FleetLeft, Statki } from "../games/Statki.tsx";
-import { fetchRecords } from "../net.ts";
+import { createLiveStore, liveActive, LiveContext } from "../live.ts";
+import { fetchRecords, watchLive } from "../net.ts";
 import { decisionKey, VIBRATE } from "../vibrate.ts";
 import { formatBest, formatGap, formatRecord, RecordPanel } from "./Records.tsx";
 import { heroResult, reducedMotion, shouldReveal } from "./results.ts";
-import { type GameDot, GameDots, HeroSlot, IntroContext, ResultDetails, ResultHero, Screen, StickyBar, type Send } from "./ui.tsx";
+import { type GameDot, GameDots, HeroSlot, IntroContext, LiveBoard, LiveGameDots, ResultDetails, ResultHero, Screen, StickyBar, type Send } from "./ui.tsx";
 
 interface Props {
+  room: Room;
   view: RoomView;
   me: string;
   dropped: boolean;
@@ -24,11 +27,20 @@ interface Props {
   onLeave: () => void;
 }
 
-export function Game({ view, me, dropped, send, onLeave }: Props) {
+export function Game({ room, view, me, dropped, send, onLeave }: Props) {
   const game = view.game!;
   const def = GAMES[view.gameId!];
   const nick = (id: string | undefined) => view.players.find((p) => p.id === id)?.nick ?? "Gracz";
   const seated = view.seats.includes(me);
+  // Wartości na żywo: magazyn poza stanem Reacta, kropki czytają go same.
+  const [liveStore] = useState(createLiveStore);
+  useEffect(() => watchLive(room, (m) => liveStore.set(m.id, m.value)), [room, liveStore]);
+  useEffect(() => liveStore.sync(game.live, game.intro), [game, liveStore]);
+  const liveOn = liveActive(def, view.seats, me);
+  const liveChannel = useMemo(
+    () => (liveOn ? { send: (value: number) => room.send("live", { value }), report: (value: number) => liveStore.report(me, value) } : null),
+    [liveOn, room, me, liveStore],
+  );
   const myTurn = view.phase === "playing" && game.waitingFor.includes(me);
   const waitingNicks = game.waitingFor.filter((id) => id !== me).map(nick).join(" i ");
 
@@ -222,6 +234,10 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           .sort((a, b) => Number(b.me) - Number(a.me))
       : null;
 
+  // Punkty i miejsca przy kropkach tylko w trakcie pomiaru; po końcu mówi bohater.
+  const liveNow = view.phase === "playing" && !game.intro && !!def.live && view.seats.length > 1;
+  const liveProps = { store: liveStore, def, room: liveNow ? { seats: view.seats, game } : null, progressOf };
+
   // Gra po kolei: jedna osoba ma ruch. Jej kolor (`turnColor`, jak poświata) dostaje tytuł i pasek limitu, też u czekających.
   const turnOf = view.phase === "playing" && game.waitingFor.length === 1 ? game.waitingFor[0] : undefined;
 
@@ -332,6 +348,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
 
   return (
     <IntroContext.Provider value={intro}>
+    <LiveContext.Provider value={liveChannel}>
       <Screen dropped={dropped}>
         {/* Gra solo nie ma lobby, więc z trwającej partii wychodzi się prosto na ekran główny. */}
         {view.solo && view.phase === "playing" && (
@@ -363,12 +380,12 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
               )}
               {dots && !compact && (
                 <div className={reveal ? "invisible" : undefined}>
-                  <GameDots dots={dots} square={!!table} open={open} onToggle={() => setOpen(!open)} />
+                  <LiveGameDots {...liveProps} dots={dots} square={!!table} open={open} onToggle={() => setOpen(!open)} />
                 </div>
               )}
             </div>
             <div className={compact ? "flex min-h-12 items-center gap-2" : "contents"}>
-              {compact && <GameDots compact dots={dots!} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
+              {compact && <LiveGameDots compact {...liveProps} dots={dots!} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
               {timer && (
                 <div className="min-w-0 flex-1">
                   <Countdown
@@ -469,6 +486,11 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           </header>
         )}
 
+        {/* Kto skończył i obserwator oglądają pozostałych na żywo. */}
+        {liveNow && def.live?.kind === "score" && (!seated || !game.waitingFor.includes(me)) && (
+          <LiveBoard {...liveProps} nick={nick} color={(id) => view.players.find((p) => p.id === id)?.color} me={me} />
+        )}
+
         {hero && <ResultHero hero={hero} winner={game.result?.winner} me={me} nick={nick} color={colorOf} reveal={reveal} onDone={() => setRevealing(false)} slot={setSlot} />}
         {hero && panels}
 
@@ -546,6 +568,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           </StickyBar>
         )}
       </Screen>
+    </LiveContext.Provider>
     </IntroContext.Provider>
   );
 }

@@ -2,7 +2,7 @@
 id: 07-12
 title: "Etap 2: kropki na żywo i gry na punkty"
 type: code
-status: approved
+status: done
 critical: false
 effort: hard
 depends: [07-10, 07-11]
@@ -62,10 +62,15 @@ Rywala czuć w trakcie partii: w sześciu grach na punkty kropki pokazują trafi
 5. `Quiz.tsx` (5 gier naraz), `Dziesiatki.tsx`: `useLive(trafienia)`.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter web exec vitest run src/live.test.ts` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
-- [ ] Odbiór w `/dev?n=2` w Liczeniu: trafienia rywala widać w trakcie, gra działa płynnie
+- [x] all listed tests pass
+- [x] `pnpm --filter web exec vitest run src/live.test.ts` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
+- [x] Odbiór w `/dev?n=2` w Liczeniu: trafienia rywala widać w trakcie, gra działa płynnie
 
 ## Result
+`live.ts`: magazyn poza Reactem, `liveDots`, `throttleLive`, `liveActive`, `LiveContext`, `useLive`; `watchLive` w `net.ts`. Quiz (5 gier) i Dziesiątki zgłaszają wynik; kropki pokazują wynik i miejsce, a kto skończył i obserwator widzą listę `LiveBoard`.
+14 testów w `live.test.ts`, `pnpm test` zielony. Odbiór w `/dev?n=2` (Liczenie): wynik rywala rośnie w trakcie, po przerwie dochodzi ostatnia wartość, rewanż startuje od zera, tap najwyżej 5 ms; obserwator dołączony w trakcie widzi 6 do 0 od razu.
+Gry z punktami (Obrót, Literówka) wysyłają punkty widoczne u gracza, nie gołe trafienia, żeby miejsce zgadzało się z ich wynikiem. Miejsc nie widać, póki nikt nie punktuje; `liveDots` zwraca wtedy ostatnie ex aequo.
+Stany „skończył” na `LiveBoard` nie widziałem na ekranie: w Liczeniu grający kończą razem, a `done` pokrywa test.
+Deviations: apps/web/src/App.tsx — `Game` potrzebuje obiektu `room` do `watchLive`, jednowierszowy prop

@@ -58,7 +58,7 @@ export function App() {
   }
   if (!room) return <Home onRoom={setRoom} notice={notice} />;
   const send = (type: string, payload?: unknown) => room.send(type, payload);
-  if (view && view.phase !== "lobby") return <Game view={view} me={room.sessionId} dropped={dropped} send={send} onLeave={() => room.leave()} />;
+  if (view && view.phase !== "lobby") return <Game room={room} view={view} me={room.sessionId} dropped={dropped} send={send} onLeave={() => room.leave()} />;
   const me = room.sessionId;
   const screen = { me, dropped, send, onLeave: () => room.leave() };
   const def = view?.gameId ? GAMES[view.gameId] : undefined;

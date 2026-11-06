@@ -1,5 +1,6 @@
 import { DZIESIATKI_SIDE, DZIESIATKI_TARGET, type DziesiatkiView, dziesiatkiTake, type LobbyPlayer, QUIZ_DURATION_MS, type QuizMove } from "@kwadrans/games";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLive } from "../live.ts";
 import { Intro, Stats } from "../screens/ui.tsx";
 import { BLOCK_MS, Results } from "./Quiz.tsx";
 import { VIBRATE } from "../vibrate.ts";
@@ -42,6 +43,7 @@ export function Dziesiatki({ view, me, players, ranking, winner, onMove, onRound
   /** Ostatnia dwójka: zielony błysk przy parze, czerwony z potrząśnięciem przy pomyłce. */
   const [flash, setFlash] = useState<{ cells: number[]; ok: boolean; id: number } | null>(null);
   const run = useRef({ start: 0, shownAt: 0, pairs: 0, times: [] as number[], errors: 0, streak: 0, timer: 0, accepting: false, blockedUntil: 0, sent: false });
+  useLive(run.current.times.length);
 
   function start() {
     const t = Math.round(performance.now());

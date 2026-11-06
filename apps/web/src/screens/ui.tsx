@@ -1,7 +1,8 @@
 import { ArrowLeft, CaretDown, Check, HandTap, ShareNetwork, SignOut, Timer, Trophy, WifiSlash } from "@phosphor-icons/react";
 import type { RoomView } from "@kwadrans/games";
-import { createContext, Fragment, type ReactNode, type Ref, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, Fragment, type ReactNode, type Ref, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { liveDots, type LiveStore } from "../live.ts";
 import { autoStart, introStage, startsAfterClose } from "./intro.ts";
 import { bestRound, type Hero, revealOrder } from "./results.ts";
 
@@ -94,6 +95,9 @@ export interface GameDot {
   connected: boolean;
   /** Stan słownie, do `aria-label`. */
   status?: string;
+  /** Na żywo w grach na punkty: dekoracja, wynik liczy serwer. */
+  score?: number;
+  place?: number;
 }
 
 /**
@@ -107,7 +111,7 @@ export function GameDots({ dots, square, open, onToggle, compact = false }: { do
         <span
           key={d.id}
           role="img"
-          aria-label={`${d.nick}${d.me ? " (ty)" : ""}${d.status ? `, ${d.status}` : ""}${d.badge ? `, ${square ? "punkty w turnieju" : "wygrane partie"}: ${d.badge}` : ""}`}
+          aria-label={`${d.nick}${d.me ? " (ty)" : ""}${d.status ? `, ${d.status}` : ""}${d.badge ? `, ${square ? "punkty w turnieju" : "wygrane partie"}: ${d.badge}` : ""}${d.score !== undefined ? `, wynik: ${d.score}` : ""}${d.place !== undefined ? `, miejsce: ${d.place}` : ""}`}
           // Rozłączony ma przerywany obrys zamiast pierścienia: samo przygaszenie znaczy „czyta zasady”.
           className={`relative grid size-9 place-items-center rounded-full ${d.connected ? "" : "border border-dashed border-fg-muted"}`}
           style={d.connected ? { background: `conic-gradient(${d.color} ${d.fraction * 100}%, var(--color-line) 0)` } : undefined}
@@ -131,6 +135,16 @@ export function GameDots({ dots, square, open, onToggle, compact = false }: { do
               {d.badge}
             </span>
           )}
+          {d.score !== undefined && (
+            <span className="absolute -right-1 -bottom-1 grid h-4 min-w-4 place-items-center rounded-full border border-line bg-surface px-0.5 font-mono text-[10px] leading-none text-fg tabular-nums" aria-hidden>
+              {d.score}
+            </span>
+          )}
+          {d.place !== undefined && (
+            <span className="absolute -top-1 -left-1 grid h-4 min-w-4 place-items-center rounded-full border border-line bg-surface px-0.5 font-mono text-[10px] leading-none text-fg-muted tabular-nums" aria-hidden>
+              {d.place}.
+            </span>
+          )}
           {d.plus && (
             <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono tabular-nums text-sm" style={{ color: d.color }} aria-hidden>
               +1
@@ -139,6 +153,47 @@ export function GameDots({ dots, square, open, onToggle, compact = false }: { do
         </span>
       ))}
     </button>
+  );
+}
+
+type LiveProps = {
+  store: LiveStore;
+  def: Parameters<typeof liveDots>[0];
+  /** `null` poza pomiarem: kropki bez wartości na żywo. */
+  room: Parameters<typeof liveDots>[1] | null;
+  progressOf: Parameters<typeof liveDots>[3];
+};
+
+/** Kropki z wartościami na żywo. Czytają magazyn same, więc nowa wiadomość nie renderuje gry. Miejsc nie ma, póki nikt nie punktuje. */
+export function LiveGameDots({ store, def, room, progressOf, dots, ...rest }: LiveProps & Parameters<typeof GameDots>[0]) {
+  const live = useSyncExternalStore(store.subscribe, store.get);
+  if (!room) return <GameDots dots={dots} {...rest} />;
+  const rows = liveDots(def, room, live, progressOf);
+  const scoring = rows.some((r) => r.score);
+  const merged = dots.map((d) => {
+    const row = rows.find((r) => r.id === d.id);
+    return { ...d, fraction: row?.fraction ?? d.fraction, score: row?.score, place: scoring ? row?.place : undefined };
+  });
+  return <GameDots dots={merged} {...rest} />;
+}
+
+/** Gracze na żywo u tego, kto skończył, i u obserwatora: zamiast samego czekania. */
+export function LiveBoard({ store, def, room, progressOf, nick, color, me }: LiveProps & { nick: (id: string) => string; color: (id: string) => string | undefined; me: string }) {
+  const live = useSyncExternalStore(store.subscribe, store.get);
+  if (!room) return null;
+  const rows = [...liveDots(def, room, live, progressOf)].sort((a, b) => (a.place ?? 0) - (b.place ?? 0));
+  return (
+    <ul className="tile flex flex-col gap-1.5 p-3" aria-label="Wyniki na żywo">
+      {rows.map((r) => (
+        <li key={r.id} className="flex items-center gap-2 text-sm">
+          <span className="w-5 font-mono text-fg-muted tabular-nums">{r.place}.</span>
+          <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: color(r.id) }} aria-hidden />
+          <span className="min-w-0 flex-1 truncate">{nick(r.id)}{r.id === me && " (ty)"}</span>
+          <span className="text-xs text-fg-muted">{r.done ? "skończył" : "gra"}</span>
+          <span className="w-8 text-right font-mono font-semibold tabular-nums">{r.score}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
