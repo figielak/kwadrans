@@ -1,12 +1,36 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { RoomView } from "@kwadrans/games";
+import { PLAYER_COLORS, type RoomView } from "@kwadrans/games";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test } from "vitest";
-import { wishDots } from "./Lobby.tsx";
+import { Lobby, wishDots } from "./Lobby.tsx";
 
 // P4-034: lista mini-gier z rejestru, Sudoku montuje się po nonce, Turniej ma jeden przyklejony pasek.
 const src = new URL(".", import.meta.url).pathname;
 const read = (file: string) => readFileSync(join(src, file), "utf8");
+
+const lobby = (n: number) => {
+  const view: RoomView = {
+    code: "ABCD", hostId: "p1", phase: "lobby", solo: false, gameId: null, mode: null,
+    players: Array.from({ length: n }, (_, i) => ({ id: `p${i + 1}`, nick: `Gracz ${i + 1}`, color: PLAYER_COLORS[i], connected: true, ready: false })),
+    seats: [], tournament: null, markedBy: {}, scores: {}, game: null, wishes: {}, vote: null,
+    evening: { games: 0, played: [], table: [], titles: [] },
+  };
+  return renderToStaticMarkup(createElement(Lobby, { view, me: "p1", dropped: false, send: () => {}, onLeave: () => {}, onMini: () => {} }));
+};
+
+test("lobby sześciu osób pokazuje dostępne gry przed zablokowanymi", () => {
+  const html = lobby(6);
+  for (const name of ["Memory", "Państwa-miasta", "Kalambury"]) expect(html.indexOf(name)).toBeLessThan(html.indexOf("Gomoku"));
+  expect(html).toContain("Gomoku");
+  expect(html).toContain("tylko 2 os.");
+});
+
+test("lobby przed wyborem gry nie zasłania listy paskiem bez akcji", () => {
+  expect(lobby(2)).not.toContain("sticky bottom-0");
+  expect(lobby(6)).not.toContain("sticky bottom-0");
+});
 
 test("F4-017: Game.tsx i Lobby.tsx biorą mini-gry z MINI_GAME_IDS, bez ręcznej listy id", () => {
   const game = read("Game.tsx");

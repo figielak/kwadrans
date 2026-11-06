@@ -95,7 +95,9 @@ Kod jest tu treścią ekranu, więc dostaje rozmiar plakatu, a instrukcja pod ni
 Do skopiowania: gdy ekran ma jedną informację do przekazania, powiększ ją i wycisz resztę, zamiast dodawać ramki i kolory.
 
 Ten rozmiar kod ma tylko, gdy gracz jest sam w pokoju i musi go przekazać. Od dwóch osób zwija się do `TopBar` (kod mono 18 px z udostępnianiem), kolory stoją w jednej linii bez podpisu,
-a gracze bez wybranej gry to zwięzłe znaczniki zamiast wierszy, żeby „Szybka seria” i gry mieściły się w pierwszym ekranie 360×640 także przy sześciu osobach.
+a gracze bez wybranej gry to znaczniki w dwóch kolumnach ze skracanymi nickami. Zestawy i gry mają zwięzłe kafle z ikoną obok tekstu;
+gry pasujące do liczby osób stoją przed zablokowanymi, żeby „Szybka seria” i dostępne gry były na pierwszym ekranie 360×640 także przy sześciu osobach.
+Przed wyborem gry lobby nie ma przyklejonego paska z samą podpowiedzią; pasek startu i gotowości pojawia się na ekranie wybranej gry.
 Życzenia gości to kropki ich kolorów w rogu kafla gry (`WishMarks`), z nickami dla czytników ekranu; własny wybór gościa jest zaznaczony jak wybrana gra.
 
 ### 3.3 Ekran instrukcji mini-gry (`Intro` w `ui.tsx`)

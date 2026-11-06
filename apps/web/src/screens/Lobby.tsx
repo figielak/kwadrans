@@ -77,7 +77,8 @@ export function Lobby({ view, me, dropped, send, onLeave, onMini }: Props) {
   const alone = view.players.length === 1;
   // Gość nie wybiera gry, tylko wskazuje, w co chce grać; drugie dotknięcie zdejmuje życzenie.
   const wish = (id: string) => send("wish", { id: myWish === id ? null : id });
-  const games = Object.values(GAMES).filter((g) => g.minPlayers > 1);
+  const games = Object.values(GAMES).filter((g) => g.minPlayers > 1)
+    .sort((a, b) => Number(view.players.length > a.maxPlayers) - Number(view.players.length > b.maxPlayers));
 
   return (
     <Screen dropped={dropped}>
@@ -88,13 +89,13 @@ export function Lobby({ view, me, dropped, send, onLeave, onMini }: Props) {
       {/* Gospodarz: szerokie kafle prowadzą do serii, turnieju i listy mini-gier (zbiory, nie pojedyncze gry), gry główne otwierają ekran gry (Setup.tsx).
           Gość dotyka gier, żeby pokazać, w co chce grać (kropka jego koloru); decyduje gospodarz. */}
       <section className="flex flex-col gap-2">
-        <h2 className="label px-1">Zestawy</h2>
+        <h2 className="sr-only">Zestawy</h2>
         {isHost && <Tile wide icon={Lightning} name="Szybka seria" hint={`${QUICK_SERIES_LENGTH} losowych gier`} onClick={() => send("quickSeries")} />}
         {isHost ? (
           // Zbiory obok siebie, żeby Szybka seria i gry zmieściły się w pierwszym ekranie.
           <div className="grid grid-cols-2 gap-2">
-            <Tile icon={GameController} name="Mini-gry" hint={`${MINI_GAMES.length} gier`} onClick={onMini} />
-            <Tile icon={Trophy} name="Turniej" hint={`1-${MAX_PLAYERS} os.`} onClick={() => send("pickTournament", { length: DEFAULT_LENGTH })} />
+            <Tile compact icon={GameController} name="Mini-gry" hint={`${MINI_GAMES.length} gier`} onClick={onMini} />
+            <Tile compact icon={Trophy} name="Turniej" hint={`1-${MAX_PLAYERS} os.`} onClick={() => send("pickTournament", { length: DEFAULT_LENGTH })} />
           </div>
         ) : (
           <Tile wide icon={GameController} name="Mini-gry" hint={`${MINI_GAMES.length} gier, także solo`} onClick={onMini} />
@@ -111,13 +112,13 @@ export function Lobby({ view, me, dropped, send, onLeave, onMini }: Props) {
               players={view.players.length}
               picked={isHost ? undefined : myWish === g.id}
               wishes={wishes[g.id]}
+              compact
               onClick={() => (isHost ? send("pickGame", { gameId: g.id }) : wish(g.id))}
             />
           ))}
         </div>
       </section>
 
-      <StartBar view={view} me={me} send={send} />
     </Screen>
   );
 }
@@ -136,9 +137,10 @@ export function wishDots(view: Pick<RoomView, "players" | "wishes">): Record<str
 export function Players({ view, me, send }: { view: RoomView; me: string; send: Send }) {
   const isHost = view.hostId === me;
   const def = picked(view);
+  const compact = !def && view.players.length > 1;
   return (
-    <section className="tile">
-      <div className="mb-3 flex items-baseline justify-between">
+    <section className={`tile ${compact ? "p-3" : ""}`}>
+      <div className={`${compact ? "mb-1" : "mb-3"} flex items-baseline justify-between`}>
         <h2 className="label">Gracze</h2>
         <span className="font-mono text-sm text-fg-muted tabular-nums">
           W pokoju {view.players.length}/{MAX_PLAYERS}
@@ -146,20 +148,20 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
       </div>
       {!def ? (
         // Nic jeszcze nie wybrane: gracze to tylko kto jest w pokoju, więc zwięzłe znaczniki oszczędzają miejsce gier (6 osób to nie 6 wierszy).
-        <ul className="flex flex-wrap gap-1.5" aria-label="Gracze w pokoju">
+        <ul className={compact ? "grid grid-cols-2 gap-1.5" : "flex flex-wrap gap-1.5"} aria-label="Gracze w pokoju">
           {view.players.map((p) => (
             <li
               key={p.id}
-              className={`flex min-h-9 max-w-full items-center gap-2 rounded-full px-3 text-sm ${p.connected ? "" : "border border-dashed border-line"}`}
+              className={`flex min-w-0 max-w-full items-center gap-2 rounded-full text-sm ${compact ? "min-h-7 px-2" : "min-h-9 px-3"} ${p.connected ? "" : "border border-dashed border-line"}`}
               style={{ backgroundColor: `color-mix(in srgb, ${p.color} 12%, transparent)` }}
             >
               <span className={`size-2.5 shrink-0 rounded-full ${p.connected ? "" : "opacity-40"}`} style={{ backgroundColor: p.color }} aria-hidden />
-              <span className="truncate">
+              <span className="truncate" title={p.nick}>
                 {p.nick}
                 {p.id === me && <span className="text-fg-muted"> (ty)</span>}
               </span>
               {!p.connected && <span className="text-xs text-fg-muted">rozłączony</span>}
-              {p.id === view.hostId && <Crown size={14} weight="fill" aria-label="Gospodarz" />}
+              {p.id === view.hostId && <Crown size={14} weight="fill" className="shrink-0" aria-label="Gospodarz" />}
             </li>
           ))}
         </ul>
@@ -308,11 +310,11 @@ export const MINI_GAMES = MINI_GAME_IDS.map((id) => GAMES[id]);
 type Wish = { id: string; nick: string; color: string };
 
 /** Życzenia gości przy grze: kropki ich kolorów w rogu kafla, dla czytników ekranu nicki. */
-export function WishMarks({ wishes }: { wishes?: Wish[] }) {
+export function WishMarks({ wishes, compact }: { wishes?: Wish[]; compact?: boolean }) {
   if (!wishes?.length) return null;
   return (
     <>
-      <span className="absolute top-2 right-2 flex gap-1" aria-hidden>
+      <span className={`absolute ${compact ? "bottom-2" : "top-2"} right-2 flex gap-1`} aria-hidden>
         {wishes.map((w) => <span key={w.id} className="size-2.5 rounded-full" style={{ backgroundColor: w.color }} />)}
       </span>
       <span className="sr-only">Chcą zagrać: {wishes.map((w) => w.nick).join(", ")}</span>
@@ -321,27 +323,36 @@ export function WishMarks({ wishes }: { wishes?: Wish[] }) {
 }
 
 /** Kafel w siatce gier: ikona, nazwa i jedna linijka pod spodem; `wide` to wiersz na całą szerokość, `dim` przygasza bez blokowania. */
-export function Tile({ icon: TileIcon, name, hint, picked, disabled, dim, wide, wishes, onClick }: { icon: Icon; name: string; hint: string; picked?: boolean; disabled?: boolean; dim?: boolean; wide?: boolean; wishes?: Wish[]; onClick: () => void }) {
+export function Tile({ icon: TileIcon, name, hint, picked, disabled, dim, wide, compact, wishes, onClick }: { icon: Icon; name: string; hint: string; picked?: boolean; disabled?: boolean; dim?: boolean; wide?: boolean; compact?: boolean; wishes?: Wish[]; onClick: () => void }) {
   return (
     <button
       type="button"
       aria-pressed={picked}
       disabled={disabled}
-      className={`relative flex rounded-inset border p-3 text-left transition-[color,background-color,border-color,opacity] duration-180 ${wide ? "min-h-14 items-center gap-3" : "min-h-20 flex-col items-start gap-1"} ${
+      className={`relative flex rounded-inset border text-left transition-[color,background-color,border-color,opacity] duration-180 ${compact ? "min-h-14 items-center gap-2 p-2" : wide ? "min-h-14 items-center gap-3 p-3" : "min-h-20 flex-col items-start gap-1 p-3"} ${
         picked ? "border-accent bg-accent-soft" : "border-line enabled:hover:border-line-hover"
       } ${disabled ? "opacity-40" : dim ? "opacity-60" : ""}`}
       onClick={onClick}
     >
-      <TileIcon size={22} weight={picked ? "fill" : "regular"} aria-hidden />
-      <span className="leading-tight">{name}</span>
-      <span className={`font-mono text-xs text-fg-muted tabular-nums ${wide ? "ml-auto" : ""}`}>{hint}</span>
-      <WishMarks wishes={wishes} />
+      <TileIcon size={compact ? 20 : 22} className="shrink-0" weight={picked ? "fill" : "regular"} aria-hidden />
+      {compact ? (
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-sm leading-tight">{name}</span>
+          <span className="font-mono text-xs text-fg-muted tabular-nums">{hint}</span>
+        </span>
+      ) : (
+        <>
+          <span className="leading-tight">{name}</span>
+          <span className={`font-mono text-xs text-fg-muted tabular-nums ${wide ? "ml-auto" : ""}`}>{hint}</span>
+        </>
+      )}
+      <WishMarks wishes={wishes} compact={compact} />
     </button>
   );
 }
 
 /** Kafel gry; nieaktywny, gdy w pokoju jest więcej osób, niż gra ma miejsc, przygaszony (ale do wybrania), gdy graczy brakuje. */
-export function GameTile({ game: g, players, picked, wishes, onClick }: { game: { id: string; name: string; minPlayers: number; maxPlayers: number }; players: number; picked?: boolean; wishes?: Wish[]; onClick: () => void }) {
+export function GameTile({ game: g, players, picked, compact, wishes, onClick }: { game: { id: string; name: string; minPlayers: number; maxPlayers: number }; players: number; picked?: boolean; compact?: boolean; wishes?: Wish[]; onClick: () => void }) {
   const tooMany = players > g.maxPlayers;
   const missing = g.minPlayers - players;
   return (
@@ -353,6 +364,7 @@ export function GameTile({ game: g, players, picked, wishes, onClick }: { game: 
       wishes={wishes}
       dim={missing > 0}
       disabled={tooMany}
+      compact={compact}
       onClick={onClick}
     />
   );
