@@ -2,7 +2,7 @@
 id: 11-08
 title: "Sabotaż: telefon i próba balansu"
 type: audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal
 depends: ["11-07"]
@@ -38,11 +38,14 @@ Uzyskać odbiór użytkownika na fizycznym telefonie i pierwszy pomiar gry z lud
 - Zapisać liczebność próby, obserwacje i decyzję użytkownika: przyjęcie v1 albo konkretna korekta; nie ogłaszać statystycznie potwierdzonego balansu z jednej sesji.
 
 ## Acceptance
-- [ ] `pnpm typecheck && pnpm test` → exit 0
+- [x] `pnpm typecheck && pnpm test` → exit 0
 - [ ] Użytkownik przekazał wyniki telefonu i prób z ludźmi oraz zaakceptował v1 lub korekty mają osobny plan.
 - [ ] Czas partii, premia za pułapkę i częstość deklaracji 1 mają pomiar, a ograniczenia próby są jawne.
-- [ ] Faza nie zostaje zamknięta z nieudokumentowanym odbiorem SAB-05.
+- [x] Faza nie zostaje zamknięta z nieudokumentowanym odbiorem SAB-05.
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Decyzja użytkownika (2026-11-06): przyjęcie v1 bez zmian (6 rund, punkty 2/1/0). Odbiór słowami użytkownika: „wszystko jest git”; doprecyzowanie: gra sprawdzona na telefonie i jest dobrze, liczb nie zebrano.
+Świadome odstępstwo: brak pomiarów czasu partii i aukcji, premii za pułapkę, częstości deklaracji 1 i liczebności próby. Agent nie widział szczegółowych wyników telefonu (dotyk, obrót, wibracje) ani potwierdzenia partii z ludźmi 3 + obserwator i 6, więc punkty 2 i 3 w Acceptance zostają nieodhaczone.
+Balans NIE jest potwierdzony pomiarem: v1 działa i jest przyjęte, ale 2/1/0 i premia za pułapkę pozostają niezmierzone. Poprawność techniczna: 11-07 i 11-09.
+Propozycja na później (poza tą fazą, bez planu): zebrać te liczby przy pierwszych partiach z ludźmi; zmiana balansu tylko jako osobne zatwierdzone zadanie.
+Deviations: AGENTS.md — zmiana użytkownika sprzed zadania, nie commitowana
