@@ -81,8 +81,10 @@ export class LobbyRoom extends Room {
   private match: Match | null = null;
   private turnTimer?: Timer;
   private turnEndsAt: number | null = null;
-  /** Ekran instrukcji mini-gry: limit rusza dopiero, gdy wystartują wszyscy albo minie INTRO_SECONDS. */
+  /** Ekran instrukcji mini-gry: limit rusza po Start wszystkich albo po INTRO_SECONDS przy 2+ grających. */
   private intro = false;
+  /** Rewanż w pokoju solo: klient pomija instrukcję i wysyła begin. */
+  private skipIntro = false;
   private began = new Set<string>();
   /** Losowy klucz pokoju do pomiaru; kody pokoi wracają, więc nie nadają się na klucz. */
   private roomKey: string = randomUUID();
@@ -343,10 +345,10 @@ export class LobbyRoom extends Room {
     // więc rotacja nic nie daje, a tylko przestawia graczy w nagłówku i tabeli.
     if (def.minPlayers > 1) this.seats = [...this.seats.slice(1), this.seats[0]];
     this.resetReady();
-    this.startMatch(def);
+    this.startMatch(def, this.solo);
   }
 
-  private startMatch(def: GameDefinition<unknown, unknown>) {
+  private startMatch(def: GameDefinition<unknown, unknown>, skipIntro = false) {
     const rng = newRng();
     const nicks = this.seats.map((id) => this.players.get(id)?.nick ?? "?");
     this.match = { def, state: def.setup(this.seats, rng, this.mode ?? undefined), rng, result: null, players: this.seats.length, nicks };
@@ -354,8 +356,11 @@ export class LobbyRoom extends Room {
     this.began.clear();
     // Ekran instrukcji mają gry solo (te same, które lobby pokazuje jako „Szybkie”).
     this.intro = def.minPlayers === 1;
-    if (!this.intro) return this.startTurnTimer();
+    this.skipIntro = this.intro && skipIntro;
     this.turnTimer?.clear();
+    this.turnEndsAt = null;
+    if (!this.intro) return this.startTurnTimer();
+    if (this.seats.length === 1) return;
     this.turnEndsAt = Date.now() + INTRO_SECONDS * 1000;
     this.turnTimer = this.clock.setTimeout(() => {
       this.endIntro();
@@ -365,6 +370,7 @@ export class LobbyRoom extends Room {
 
   private endIntro() {
     this.intro = false;
+    this.skipIntro = false;
     this.began = new Set(this.seats);
     this.startTurnTimer();
   }
@@ -499,6 +505,7 @@ export class LobbyRoom extends Room {
         waitingFor: match.def.waitingFor(match.state),
         msLeft: this.turnEndsAt && Math.max(0, this.turnEndsAt - Date.now()),
         intro: this.intro,
+        skipIntro: this.intro && this.skipIntro,
         began: [...this.began],
         result: match.result,
         places: match.result?.ranking ? (match.result.places ?? match.def.places?.(match.state) ?? null) : null,

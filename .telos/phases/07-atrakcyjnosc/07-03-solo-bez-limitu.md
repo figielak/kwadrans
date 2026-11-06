@@ -2,7 +2,7 @@
 id: 07-03
 title: "Etap 1: solo bez limitu instrukcji, „Jeszcze raz” od razu"
 type: code
-status: approved
+status: done
 critical: false
 effort: hard
 depends: [07-01]
@@ -67,11 +67,16 @@ Gracz sam nie ma licznika na ekranie instrukcji, a „Jeszcze raz” w grze solo
 5. `intro.ts`, `Intro` w `ui.tsx`: auto-start przez `autoStart`, ten sam `started`.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
-- [ ] `pnpm --filter web exec vitest run src/screens/intro.test.ts` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
-- [ ] Odbiór w `/dev?n=1`: brak napisu „Start automatycznie”, „Jeszcze raz” od razu w grze
+- [x] all listed tests pass
+- [x] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
+- [x] `pnpm --filter web exec vitest run src/screens/intro.test.ts` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
+- [x] Odbiór w `/dev?n=1`: brak napisu „Start automatycznie”, „Jeszcze raz” od razu w grze
 
 ## Result
+RED: `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 1: 9 nowych testów wykrywa timer instrukcji jednej osoby i brak `skipIntro`; 46 testów przechodzi.
+Instrukcja jednej osoby bez timera; rewanż solo przekazuje `skipIntro` do `begin`; pozostałe rewanże i turniej zachowują instrukcję. Dokumenty i testy zapisane przed kodem w c3d3fbd; test klienta był czerwony z powodu brakującego `intro.ts`.
+GREEN: 55 testów LobbyRoom i 5 testów intro; pełne `pnpm typecheck`, `pnpm test`, `pnpm --filter web build` → exit 0; `telos accept 07-03` PASS, oba MANUAL potwierdzone.
+Przeglądarka `/dev?n=1`, ramka 360×640: bez odliczania, rewanż od razu w grze, StrictMode wysyła begin raz; odświeżenie przed begin startuje raz, po begin nic nie startuje samo; bez przewijania, Start 48 px. Serwery dev pozostawione uruchomione z bazą /tmp/kwadrans-07-03.db.
+Deviations: ZASADY.md — dopasowanie nadrzędnej reguły instrukcji mini-gry do zatwierdzonej zmiany, aby nie pozostawić sprzeczności z KONCEPT.md i ZASADY-GIER.md.

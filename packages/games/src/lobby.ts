@@ -7,7 +7,7 @@ export const PLAYER_COLORS = ["#3b9eff", "#ffc53d", "#46a758", "#8e7cff", "#0ac5
 
 export const MAX_PLAYERS = PLAYER_COLORS.length;
 export const NICK_MAX = 16;
-/** Tyle trwa ekran instrukcji mini-gry; potem gra rusza sama, żeby nikt nie blokował pozostałych. */
+/** Limit instrukcji mini-gry przy 2+ grających; jedna osoba czeka na Start bez odliczania. */
 export const INTRO_SECONDS = 15;
 
 export interface LobbyPlayer {
@@ -45,8 +45,10 @@ export interface RoomView {
     waitingFor: PlayerId[];
     /** Ile zostało do końca tury; liczone od chwili odebrania wiadomości (zegary telefonu i serwera się różnią). */
     msLeft: number | null;
-    /** Trwa ekran instrukcji mini-gry: limit jeszcze nie ruszył, a msLeft liczy czas do automatycznego startu. */
+    /** Trwa instrukcja: limit gry jeszcze nie ruszył, msLeft to czas do startu przy 2+ grających, inaczej null. */
     intro: boolean;
+    /** Tylko rewanż w pokoju solo: klient pomija instrukcję i wysyła begin; po begin false. */
+    skipIntro: boolean;
     /** Kto kliknął już „Start” na ekranie instrukcji. */
     began: PlayerId[];
     result: GameResult | null;

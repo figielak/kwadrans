@@ -1,6 +1,7 @@
 import { ArrowLeft, Check, HandTap, ShareNetwork, SignOut, Timer, Trophy, WifiSlash } from "@phosphor-icons/react";
 import type { RoomView } from "@kwadrans/games";
 import { createContext, Fragment, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { autoStart } from "./intro.ts";
 
 export type Send = (type: string, payload?: unknown) => void;
 
@@ -418,7 +419,8 @@ export const IntroContext = createContext<{
 
 /**
  * Ekran instrukcji mini-gry: podgląd, trzy punkty (czas, co zrobić, jak liczone są punkty) i „Start”.
- * Limit gry jeszcze nie tyka; gdy serwer zamknie instrukcję (wszyscy wystartowali albo minęło INTRO_SECONDS), gra rusza sama.
+ * Limit gry jeszcze nie tyka; serwer zamyka instrukcję po Start wszystkich albo po INTRO_SECONDS przy 2+ grających.
+ * Rewanż solo pomija instrukcję na prośbę serwera, z tym samym zabezpieczeniem przed podwójnym startem.
  */
 export function Intro({ time, task, score, preview, onStart }: { time: ReactNode; task: ReactNode; score: ReactNode; preview: ReactNode; onStart: () => void }) {
   const room = useContext(IntroContext);
@@ -443,9 +445,10 @@ export function Intro({ time, task, score, preview, onStart }: { time: ReactNode
 
   // Po odświeżeniu w trakcie partii instrukcja jest już zamknięta: wtedy nic nie rusza samo, tyka zwykły limit.
   useEffect(() => {
+    if (room && autoStart(room.game)) start();
     if (live) seen.current = true;
     else if (seen.current) start();
-  }, [live]);
+  }, [live, room?.game.skipIntro]);
 
   return (
     <section className="tile my-auto flex flex-col gap-4 p-4">
