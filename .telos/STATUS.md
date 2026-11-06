@@ -3,7 +3,7 @@
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 11-sabotaz
 Task: none
-Next: close phase 11 (/telos:done)
+Next: /telos:plan
 Blockers: none
 Awaiting user: 08, 09, 10, 12
 <!-- Blockers: "NN-MM: reason". Awaiting user: IDs only, e.g. "02:Q-01, 02:D-03" -->
@@ -15,6 +15,6 @@ Awaiting user: 08, 09, 10, 12
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
+- 11-sabotaz closed: gra sabotaz (3-6 graczy) gotowa, v1 przyjęte, balans niezmierzony
 - 11-08 done: v1 przyjęte przez użytkownika, balans bez pomiarów (jawne odstępstwo)
 - 11-07 done: odbiór techniczny 3 + obserwator i 6 graczy, U1 naprawione w 11-09
-- 11-09 done: kafle stosów 52 px, faza place przy 5-6 graczach bez przewijania
