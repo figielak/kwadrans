@@ -123,3 +123,52 @@ export function createMomentStore() {
 }
 
 export type MomentStore = ReturnType<typeof createMomentStore>;
+
+const REACTION_MS = 1200;
+
+/** Pasek reakcji: grający w mini-grze dopiero po oddaniu wyniku, żeby nic nie odciągało od pomiaru. Sam w pokoju nie ma do kogo. */
+export function canReact({ mini, phase, seated, waiting, people }: { mini: boolean; phase: "playing" | "over" | "lobby"; seated: boolean; waiting: boolean; people: number }): boolean {
+  if (people < 2 || phase === "lobby") return false;
+  return !(phase === "playing" && mini && seated && waiting);
+}
+
+export type Reaction = { id: string; index: number };
+
+/** Widoczne reakcje poza stanem Reacta. Wstrzymane (pomiar u grającego) czekają po jednej od osoby i nie budzą nikogo do końca pomiaru. */
+export function createReactionStore() {
+  let visible: (Reaction & { key: number })[] = [];
+  let key = 0;
+  let held = false;
+  const pending = new Map<string, Reaction>();
+  const listeners = new Set<() => void>();
+  const notify = () => listeners.forEach((l) => l());
+  function put(reaction: Reaction) {
+    const item = { ...reaction, key: ++key };
+    visible = [...visible, item];
+    notify();
+    setTimeout(() => {
+      visible = visible.filter((r) => r.key !== item.key);
+      notify();
+    }, REACTION_MS);
+  }
+  return {
+    get: () => visible,
+    subscribe(listener: () => void) {
+      listeners.add(listener);
+      return () => void listeners.delete(listener);
+    },
+    showReaction(reaction: Reaction) {
+      if (held) pending.set(reaction.id, reaction);
+      else put(reaction);
+    },
+    setHeld(next: boolean) {
+      held = next;
+      if (held) return;
+      const waiting = [...pending.values()];
+      pending.clear();
+      waiting.forEach(put);
+    },
+  };
+}
+
+export type ReactionStore = ReturnType<typeof createReactionStore>;

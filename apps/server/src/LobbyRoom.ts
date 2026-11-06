@@ -94,6 +94,7 @@ export class LobbyRoom extends Room {
   private roomKey: string = randomUUID();
   private messageCounts = new Map<string, { second: number; count: number }>();
   private liveCounts = new Map<string, { second: number; count: number }>();
+  private reactCounts = new Map<string, number>();
   /** Dane dekoracyjne od klientów, nigdy nie trafiają do stanu zasad ani wyników. */
   private liveValues: Record<string, number> = {};
 
@@ -211,6 +212,17 @@ export class LobbyRoom extends Room {
       }
     });
 
+    // Reakcje jak live: bez this.on i pełnego update, jedna na sekundę od osoby. Zły kształt nie zużywa limitu; nadawca też dostaje, bo tak widzi, że przeszło.
+    this.onMessage("react", (client: Client, raw: unknown) => {
+      if (this.phase === "lobby" || this.clients.length < 2) return;
+      const parsed = ROOM_MESSAGES.react.safeParse(raw);
+      if (!parsed.success) return;
+      const second = Math.floor(Date.now() / 1000);
+      if (this.reactCounts.get(client.sessionId) === second) return;
+      this.reactCounts.set(client.sessionId, second);
+      for (const other of this.clients) other.send("react", { id: client.sessionId, index: parsed.data.index });
+    });
+
     // Po partii `ready` znaczy „chcę rewanż”; rewanż rusza, gdy chcą wszyscy grający.
     this.on("rematch", (client) => {
       const player = this.players.get(client.sessionId);
@@ -271,6 +283,7 @@ export class LobbyRoom extends Room {
     this.players.delete(client.sessionId);
     this.messageCounts.delete(client.sessionId);
     this.liveCounts.delete(client.sessionId);
+    this.reactCounts.delete(client.sessionId);
     if (this.hostId === client.sessionId) this.hostId = this.players.keys().next().value ?? "";
     if (this.seats.includes(client.sessionId)) {
       this.seats = this.seats.filter((s) => s !== client.sessionId);

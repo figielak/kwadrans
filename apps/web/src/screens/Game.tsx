@@ -12,12 +12,12 @@ import { Labirynt } from "../games/Labirynt.tsx";
 import { PiecWRzedzie } from "../games/PiecWRzedzie.tsx";
 import { FleetLeft, Statki } from "../games/Statki.tsx";
 import { createLiveStore, liveActive, LiveContext, type LiveValues } from "../live.ts";
-import { createMomentStore, leadChange, leaderOf, leadText, momentFrom } from "../moments.ts";
-import { fetchRecords, watchLive } from "../net.ts";
+import { canReact, createMomentStore, createReactionStore, leadChange, leaderOf, leadText, momentFrom } from "../moments.ts";
+import { fetchRecords, watchLive, watchReact } from "../net.ts";
 import { decisionKey, VIBRATE } from "../vibrate.ts";
 import { formatBest, formatGap, formatRecord, RecordPanel } from "./Records.tsx";
 import { heroResult, reducedMotion, shouldReveal } from "./results.ts";
-import { type GameDot, GameDots, HeroSlot, IntroContext, LiveBoard, LiveGameDots, Moment, ResultDetails, ResultHero, Screen, StickyBar, type Send } from "./ui.tsx";
+import { type GameDot, GameDots, HeroSlot, IntroContext, LiveBoard, LiveGameDots, Moment, ReactionBar, ReactionOverlay, ReactionToggle, ResultDetails, ResultHero, Screen, StickyBar, type Send } from "./ui.tsx";
 
 interface Props {
   room: Room;
@@ -64,6 +64,13 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
     });
   }, [def.live?.kind, view.phase, view.players, me, liveStore, momentStore]);
   const myTurn = view.phase === "playing" && game.waitingFor.includes(me);
+  // Reakcje: u grającego w mini-grze czekają do końca pomiaru, więc nic nie rusza się w trakcie.
+  const [reactionStore] = useState(createReactionStore);
+  useEffect(() => watchReact(room, (m) => reactionStore.showReaction(m)), [room, reactionStore]);
+  const measuring = def.minPlayers === 1 && view.phase === "playing" && seated && myTurn;
+  useEffect(() => reactionStore.setHeld(measuring), [measuring, reactionStore]);
+  const reactable = canReact({ mini: def.minPlayers === 1, phase: view.phase, seated, waiting: myTurn, people: view.players.length });
+  const react = (index: number) => send("react", { index });
   const waitingNicks = game.waitingFor.filter((id) => id !== me).map(nick).join(" i ");
 
   // Tryb cichy: krótka wibracja zamiast dźwięku, gdy czeka na mnie nowa decyzja (tura albo nowa faza).
@@ -159,6 +166,16 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
   // Kampus Tour ma własny, poziomy układ na cały ekran: gracze w rogach, licznik i rewanż w środku planszy.
   if (def.id === "kampus-tour") {
     return (
+      <>
+      {/* Układ poziomy jest zajęty, więc pasek dopiero na ekranie końcowym; reakcje innych widać zawsze. */}
+      <ReactionOverlay store={reactionStore} anchored={[]} color={colorOf} landscape />
+      {reactable && view.phase === "over" && (
+        <div className="landscape pointer-events-none z-50">
+          <div className="pointer-events-auto absolute top-1 left-1/2 -translate-x-1/2">
+            <ReactionBar onReact={react} className="rounded-full border border-line bg-surface p-1" />
+          </div>
+        </div>
+      )}
       <KampusTour
         view={game.view as KampusTourView}
         me={me}
@@ -173,6 +190,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
         actions={view.phase === "over" && <OverActions view={view} me={me} send={send} />}
         hero={hero && <ResultHero hero={hero} me={me} nick={nick} color={colorOf} rowsOnly />}
       />
+      </>
     );
   }
 
@@ -373,6 +391,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
     <LiveContext.Provider value={liveChannel}>
       <Screen dropped={dropped}>
         <Moment store={momentStore} color={(id) => view.players.find((p) => p.id === id)?.color} />
+        <ReactionOverlay store={reactionStore} anchored={dots && !ownHeader && !reveal ? dots.map((d) => d.id) : []} color={colorOf} />
         {/* Gra solo nie ma lobby, więc z trwającej partii wychodzi się prosto na ekran główny. */}
         {view.solo && view.phase === "playing" && (
           <button type="button" className="-my-2 -ml-2 flex min-h-12 items-center gap-1.5 self-start px-2 text-sm text-fg-muted" onClick={onLeave}>
@@ -401,14 +420,15 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
                   {compact && !open && !myTurn && !turnOf && game.waitingFor.length > 1 ? `Czekamy na: ${game.waitingFor.length} graczy` : status}
                 </h1>
               )}
+              {reactable && view.phase === "playing" && <ReactionToggle onReact={react} />}
               {dots && !compact && (
                 <div className={reveal ? "invisible" : undefined}>
-                  <LiveGameDots {...liveProps} dots={dots} square={!!table} open={open} onToggle={() => setOpen(!open)} />
+                  <LiveGameDots {...liveProps} reactions={reactionStore} dots={dots} square={!!table} open={open} onToggle={() => setOpen(!open)} />
                 </div>
               )}
             </div>
             <div className={compact ? "flex min-h-12 items-center gap-2" : "contents"}>
-              {compact && <LiveGameDots compact {...liveProps} dots={dots!} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
+              {compact && <LiveGameDots compact {...liveProps} reactions={reactionStore} dots={dots!} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
               {timer && (
                 <div className="min-w-0 flex-1">
                   <Countdown
@@ -583,8 +603,9 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
 
         {!hero && panels}
 
+        {reactable && view.phase === "over" && <ReactionBar onReact={react} className="mt-auto" />}
         {view.phase === "over" && (
-          <StickyBar className="z-10 mt-auto">
+          <StickyBar className={`z-10 ${reactable ? "" : "mt-auto"}`}>
             <div className="flex w-full flex-col gap-2">
               {t && !tournamentOver ? <NextActions view={view} me={me} send={send} countdown={<Countdown game={game} />} /> : <OverActions view={view} me={me} send={send} onLeave={onLeave} />}
             </div>

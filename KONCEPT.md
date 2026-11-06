@@ -158,6 +158,8 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
   gdy gospodarz wybierze grę. Mini-gry mają zasady narzucone z góry, bez trybów.
 - Turniej ma ekran ustawień (`TournamentSetup` w `Setup.tsx`): `pickTournament` (gospodarz) ustawia liczbę gier, `markGame` (każdy) zaznacza jedną grę; obie kasują gotowość gości.
   W trakcie turnieju `gameId` to bieżąca gra, a `tournament` w `RoomView` niesie listę gier i punkty; „Dalej” między grami to wiadomość `rematch`.
+- **Reakcje**: sześć emotek (`REACTIONS`, wiadomość `react: { index }`) od każdego w pokoju, także obserwatora, w trakcie partii i po niej; serwer rozsyła `react: { id, index }` wszystkim, także nadawcy.
+  Osobny limit 1/s, poza limitem 10 wiadomości/s, więc emotki nie zjadają ruchów; bez pełnego `update()`. Grający w mini-grze ma pasek dopiero po oddaniu wyniku, a cudze reakcje widzi po końcu swojego pomiaru.
 - Limit 3 pokoi na IP (pokoje gry solo liczone osobno, do 20: wszyscy na jednym Wi-Fi mają jedno IP), rate limit 10 wiadomości/s na klienta. IP pochodzi z `cf-connecting-ip`, a `maxPayload` WebSocket to 32 KB (rysunek Koła do 1000 punktów).
 
 **Platforma (skorupa)** jest wspólna dla wszystkich gier: pokoje z 4-znakowym kodem

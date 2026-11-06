@@ -84,6 +84,68 @@ async function drawing(n: number, gameId = "kalambury", start = true) {
   return { room, send, snapshot, clients, observer };
 }
 
+describe("07-15: reakcje", () => {
+  beforeEach(() => vi.setSystemTime(new Date("2026-11-06T12:00:00Z")));
+  const clearMessages = (clients: Client[]) => clients.forEach((client) => vi.mocked(client.send).mockClear());
+
+  test("reakcja idzie do wszystkich, także nadawcy, bez wysyłki room", async () => {
+    const { send, clients } = await drawing(2, "stroop");
+    clearMessages(clients);
+    send(0, "react", { index: 3, id: "p2" });
+    for (const client of clients) expect(client.send).toHaveBeenCalledExactlyOnceWith("react", { id: "p1", index: 3 });
+  });
+
+  test("obserwator może reagować", async () => {
+    const { send, clients, observer } = await drawing(2, "stroop");
+    clearMessages(clients);
+    send(observer!, "react", { index: 0 });
+    expect(clients[0].send).toHaveBeenCalledExactlyOnceWith("react", { id: clients[observer!].sessionId, index: 0 });
+  });
+
+  test("limit 1/s od osoby nie blokuje ruchów ani innych osób", async () => {
+    const { send, snapshot, clients } = await drawing(2, "stroop");
+    clearMessages(clients);
+    for (let i = 0; i < 20; i++) send(0, "react", { index: 1 });
+    expect(clients[1].send).toHaveBeenCalledTimes(1);
+    send(1, "react", { index: 2 });
+    expect(clients[0].send).toHaveBeenCalledTimes(2);
+    send(0, "move", { type: "result", times: [500], errors: 0 });
+    expect(snapshot().game).toMatchObject({ view: { results: { p1: { times: [500], errors: 0 } } } });
+    vi.advanceTimersByTime(1000);
+    clearMessages(clients);
+    send(0, "react", { index: 1 });
+    expect(clients[1].send).toHaveBeenCalledTimes(1);
+  });
+
+  test.each([{ index: -1 }, { index: 6 }, { index: 1.5 }, { index: "1" }, {}, null])("zły kształt %j odpada i nie zużywa limitu", async (raw) => {
+    const { send, clients } = await drawing(2, "stroop");
+    clearMessages(clients);
+    send(0, "react", raw);
+    for (const client of clients) expect(client.send).not.toHaveBeenCalled();
+    send(0, "react", { index: 5 });
+    expect(clients[1].send).toHaveBeenCalledExactlyOnceWith("react", { id: "p1", index: 5 });
+  });
+
+  test("po partii działa, w lobby i w pokoju solo nie ma komu", async () => {
+    const { send, clients } = await drawing(2, "stroop");
+    vi.advanceTimersByTime(GAMES.stroop.turnSeconds! * 1000);
+    clearMessages(clients);
+    send(0, "react", { index: 1 });
+    expect(clients[1].send).toHaveBeenCalledExactlyOnceWith("react", { id: "p1", index: 1 });
+    send(0, "toLobby", {});
+    vi.advanceTimersByTime(1000);
+    clearMessages(clients);
+    send(0, "react", { index: 1 });
+    for (const client of clients) expect(client.send).not.toHaveBeenCalled();
+
+    const solo = await openRoom(1, { solo: "stroop" });
+    solo.clients.slice(1).forEach((client) => solo.room.clients.splice(solo.room.clients.indexOf(client), 1));
+    clearMessages(solo.clients);
+    solo.send(0, "react", { index: 1 });
+    expect(solo.clients[0].send).not.toHaveBeenCalled();
+  });
+});
+
 describe("07-11: dekoracyjny kanał live", () => {
   beforeEach(() => vi.setSystemTime(new Date("2026-11-06T12:00:00Z")));
   const clearMessages = (clients: Client[]) => clients.forEach((client) => vi.mocked(client.send).mockClear());

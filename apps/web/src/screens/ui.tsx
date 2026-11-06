@@ -1,9 +1,9 @@
-import { ArrowLeft, CaretDown, Check, HandTap, ShareNetwork, SignOut, Timer, Trophy, WifiSlash } from "@phosphor-icons/react";
-import type { RoomView } from "@kwadrans/games";
+import { ArrowLeft, CaretDown, Check, HandTap, ShareNetwork, SignOut, Smiley, Timer, Trophy, WifiSlash } from "@phosphor-icons/react";
+import { REACTIONS, type RoomView } from "@kwadrans/games";
 import { createContext, Fragment, type ReactNode, type Ref, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { liveDots, type LiveStore } from "../live.ts";
-import type { MomentStore } from "../moments.ts";
+import type { MomentStore, ReactionStore } from "../moments.ts";
 import { autoStart, introStage, startsAfterClose } from "./intro.ts";
 import { bestRound, type Hero, revealOrder } from "./results.ts";
 
@@ -99,6 +99,8 @@ export interface GameDot {
   /** Na żywo w grach na punkty: dekoracja, wynik liczy serwer. */
   score?: number;
   place?: number;
+  /** Reakcje nadawcy, które właśnie się unoszą. */
+  reactions?: { key: number; index: number }[];
 }
 
 /**
@@ -146,6 +148,11 @@ export function GameDots({ dots, square, open, onToggle, compact = false }: { do
               {d.place}.
             </span>
           )}
+          {d.reactions?.map((r) => (
+            <span key={r.key} className="pointer-events-none absolute bottom-full left-1/2 z-20 -translate-x-1/2 animate-[reaction-float_1.2s_ease-out_forwards] text-xl leading-none" aria-hidden>
+              {REACTIONS[r.index]}
+            </span>
+          ))}
           {d.plus && (
             <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono tabular-nums text-sm" style={{ color: d.color }} aria-hidden>
               +1
@@ -166,16 +173,69 @@ type LiveProps = {
 };
 
 /** Kropki z wartościami na żywo. Czytają magazyn same, więc nowa wiadomość nie renderuje gry. Miejsc nie ma, póki nikt nie punktuje. */
-export function LiveGameDots({ store, def, room, progressOf, dots, ...rest }: LiveProps & Parameters<typeof GameDots>[0]) {
+export function LiveGameDots({ store, reactions, def, room, progressOf, dots, ...rest }: LiveProps & { reactions: ReactionStore } & Parameters<typeof GameDots>[0]) {
   const live = useSyncExternalStore(store.subscribe, store.get);
-  if (!room) return <GameDots dots={dots} {...rest} />;
-  const rows = liveDots(def, room, live, progressOf);
+  const floating = useSyncExternalStore(reactions.subscribe, reactions.get);
+  const rows = room ? liveDots(def, room, live, progressOf) : [];
   const scoring = rows.some((r) => r.score);
   const merged = dots.map((d) => {
     const row = rows.find((r) => r.id === d.id);
-    return { ...d, fraction: row?.fraction ?? d.fraction, score: row?.score, place: scoring ? row?.place : undefined };
+    const own = floating.filter((r) => r.id === d.id);
+    return { ...d, fraction: row?.fraction ?? d.fraction, score: row?.score, place: scoring ? row?.place : undefined, reactions: own.length ? own : undefined };
   });
   return <GameDots dots={merged} {...rest} />;
+}
+
+/** Sześć emotek, pola 48 px: mieszczą się w 360 px. Nazwy tylko dla czytników ekranu. */
+const REACTION_NAMES = ["Super", "Śmieszne", "Wow", "Smutne", "Ogień", "Brawo"];
+export function ReactionBar({ onReact, className = "" }: { onReact: (index: number) => void; className?: string }) {
+  return (
+    <div className={`flex justify-center gap-1 ${className}`} role="group" aria-label="Reakcje">
+      {REACTIONS.map((emoji, i) => (
+        <button key={emoji} type="button" className="grid size-12 place-items-center rounded-full text-2xl leading-none transition-colors duration-100 active:bg-line-hover" aria-label={REACTION_NAMES[i]} onClick={() => onReact(i)}>
+          {emoji}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** Ekran partii nie ma miejsca na pasek: jeden przycisk, a pasek otwiera się nad planszą i niczego nie przesuwa. */
+export function ReactionToggle({ onReact }: { onReact: (index: number) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative -my-3 ml-auto">
+      <button type="button" className="grid size-12 place-items-center text-fg-muted" aria-expanded={open} aria-label={open ? "Zwiń reakcje" : "Pokaż reakcje"} onClick={() => setOpen(!open)}>
+        <Smiley size={24} aria-hidden />
+      </button>
+      {open && (
+        <ReactionBar
+          className="absolute top-full right-0 z-40 rounded-full border border-line bg-surface p-1"
+          onReact={(i) => {
+            onReact(i);
+            setOpen(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Reakcje bez kropki, nad którą mogłyby się unieść: obserwator, Kampus Tour, własne nagłówki gier, ekran po partii. Kropka koloru mówi, od kogo. */
+export function ReactionOverlay({ store, anchored, color, landscape = false }: { store: ReactionStore; anchored: string[]; color: (id: string) => string | undefined; landscape?: boolean }) {
+  const floating = useSyncExternalStore(store.subscribe, store.get).filter((r) => !anchored.includes(r.id));
+  const row = (
+    <div className="pointer-events-none fixed inset-x-0 top-14 z-50 flex justify-center gap-3" aria-hidden>
+      {floating.map((r) => (
+        <span key={r.key} className="flex animate-[reaction-float_1.2s_ease-out_forwards] items-center gap-1 text-2xl leading-none">
+          <span className="size-2 rounded-full" style={{ backgroundColor: color(r.id) }} />
+          {REACTIONS[r.index]}
+        </span>
+      ))}
+    </div>
+  );
+  // Kampus Tour w pionie jest obrócony: nakładka obraca się razem z nim.
+  return landscape ? <div className="landscape pointer-events-none z-50">{row}</div> : row;
 }
 
 /** Gracze na żywo u tego, kto skończył, i u obserwatora: zamiast samego czekania. */

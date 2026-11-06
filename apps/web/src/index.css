@@ -245,6 +245,22 @@ body::before {
   }
 }
 
+/* Reakcja: emotka jednorazowo unosi się nad kropką nadawcy i gaśnie. */
+@keyframes reaction-float {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-28px) scale(1);
+  }
+}
+
 /* Liczba 3-2-1 na ekranie instrukcji: ta sama animacja pojawienia, nowy klucz co sekundę. */
 .intro-count {
   animation: stone-pop 0.35s ease-out;
@@ -415,6 +431,11 @@ body::before {
 
   /* Moment stoi bez ruchu; po 1,2 s usuwa go magazyn. Skrócona animacja ukryłaby go od razu. */
   [class*="animate-[moment-in"] {
+    animation: none !important;
+  }
+
+  /* Reakcja tak samo: stoi nad kropką, po 1,2 s usuwa ją magazyn. */
+  [class*="animate-[reaction-float"] {
     animation: none !important;
   }
 }

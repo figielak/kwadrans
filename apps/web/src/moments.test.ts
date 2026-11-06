@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { canShowMoment, createMomentStore, leadChange, leadText, momentFrom } from "./moments.ts";
+import { canReact, canShowMoment, createMomentStore, createReactionStore, leadChange, leadText, momentFrom } from "./moments.ts";
 
 const names: Record<string, string> = { a: "Ola", b: "Ewa", c: "Jan" };
 const nick = (id: string) => names[id] ?? "Gracz";
@@ -167,5 +167,86 @@ describe("Moment w CSS i katalogu", () => {
     const code = ui.slice(ui.indexOf("export function Moment("));
     expect(code).toContain("pointer-events-none");
     expect(code).toContain('role="status"');
+  });
+});
+
+describe("canReact: kiedy pasek reakcji", () => {
+  const base = { mini: false, phase: "playing" as const, seated: true, waiting: true, people: 2 };
+
+  test("gra turowa: także we własnej turze", () => {
+    expect(canReact(base)).toBe(true);
+    expect(canReact({ ...base, waiting: false })).toBe(true);
+  });
+
+  test("mini-gra: w trakcie pomiaru nie, po oddaniu wyniku tak", () => {
+    expect(canReact({ ...base, mini: true })).toBe(false);
+    expect(canReact({ ...base, mini: true, waiting: false })).toBe(true);
+  });
+
+  test("obserwator zawsze, także w mini-grze", () => {
+    expect(canReact({ ...base, mini: true, seated: false, waiting: false })).toBe(true);
+  });
+
+  test("po partii każdy, a sam w pokoju nikt", () => {
+    expect(canReact({ ...base, mini: true, phase: "over", waiting: false })).toBe(true);
+    expect(canReact({ ...base, people: 1, waiting: false, phase: "over" })).toBe(false);
+  });
+});
+
+describe("showReaction: wstrzymanie w trakcie pomiaru", () => {
+  beforeEach(() => void vi.useFakeTimers());
+  afterEach(() => void vi.useRealTimers());
+
+  test("bez wstrzymania od razu, po 1,2 s znika", () => {
+    const store = createReactionStore();
+    store.showReaction({ id: "a", index: 2 });
+    expect(store.get().map((r) => [r.id, r.index])).toEqual([["a", 2]]);
+    vi.advanceTimersByTime(1200);
+    expect(store.get()).toEqual([]);
+  });
+
+  test("u grającego czeka do końca pomiaru i wtedy wychodzi, po jednej od osoby", () => {
+    const store = createReactionStore();
+    const listener = vi.fn();
+    store.subscribe(listener);
+    store.setHeld(true);
+    store.showReaction({ id: "a", index: 1 });
+    store.showReaction({ id: "a", index: 2 });
+    store.showReaction({ id: "b", index: 3 });
+    expect(store.get()).toEqual([]);
+    expect(listener).not.toHaveBeenCalled();
+    store.setHeld(false);
+    expect(store.get().map((r) => [r.id, r.index])).toEqual([["a", 2], ["b", 3]]);
+    vi.advanceTimersByTime(1200);
+    expect(store.get()).toEqual([]);
+  });
+
+  test("dwie reakcje jednej osoby mają różne klucze", () => {
+    const store = createReactionStore();
+    store.showReaction({ id: "a", index: 1 });
+    store.showReaction({ id: "a", index: 1 });
+    const [first, second] = store.get();
+    expect(first.key).not.toBe(second.key);
+  });
+});
+
+describe("reakcje w CSS i katalogu", () => {
+  const css = readFileSync(new URL("./index.css", import.meta.url), "utf8");
+  const rules = readFileSync(new URL("../../../ZASADY.md", import.meta.url), "utf8");
+  const ui = readFileSync(new URL("./screens/ui.tsx", import.meta.url), "utf8");
+
+  test("reaction-float ma wiersz katalogu z czasem 1,2 s", () => {
+    expect(rules).toMatch(/\| `reaction-float` \|[^|]+\| `1\.2s` \|/);
+    expect(ui).toContain("animate-[reaction-float_1.2s");
+  });
+
+  test("przy prefers-reduced-motion bez unoszenia, ale widoczna", () => {
+    const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
+    expect(reduced).toMatch(/\[class\*="animate-\[reaction-float"\] \{\s*animation: none !important;/);
+  });
+
+  test("pola paska mają min. 48 px", () => {
+    const bar = ui.slice(ui.indexOf("export function ReactionBar("));
+    expect(bar.slice(0, bar.indexOf("\n}\n"))).toContain("size-12");
   });
 });

@@ -73,6 +73,9 @@ export function cleanNick(raw: unknown): string | null {
 }
 
 /** Schematy wiadomości od klienta do pokoju; serwer odrzuca wszystko, co do nich nie pasuje. */
+/** Sześć reakcji pod kropkami: emotki systemowe, indeks idzie przez sieć. */
+export const REACTIONS = ["👍", "😂", "😮", "😭", "🔥", "👏"] as const;
+
 export const ROOM_MESSAGES = {
   // null: gospodarz wraca z ekranu gry do listy gier.
   pickGame: z.object({ gameId: z.string().nullable() }),
@@ -93,4 +96,6 @@ export const ROOM_MESSAGES = {
   move: z.unknown(),
   // Dekoracyjny podgląd rywali; osobny kanał i limit, poza validateMove oraz wynikami gry.
   live: z.object({ value: z.number().int().min(0).max(9999) }),
+  // Emotka z REACTIONS; osobny kanał i limit, jak live.
+  react: z.object({ index: z.number().int().min(0).max(5) }),
 };
