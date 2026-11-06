@@ -213,8 +213,9 @@ describe("rundy i koniec", () => {
     { totals: { [A]: 20, [B]: 10, [C]: 10 }, places: { [A]: 1, [B]: 2, [C]: 2 } },
   ])("miejsca uwzględniają remis: $totals", ({ totals, places }) => {
     const state: State = { ...game.setup([C, B, A], createRng(1)), phase: "over", totals };
+    const expectedPlaces: Record<string, number> = places;
     expect(game.places?.(state)).toEqual(places);
-    expect(game.isOver(state)?.ranking?.map((p) => places[p])).toEqual(Object.values(places));
+    expect(game.isOver(state)?.ranking?.map((p) => expectedPlaces[p])).toEqual(Object.values(places));
   });
 
   test("podsumowanie, Dalej, kolejna litera; po 5 rundach ranking", () => {

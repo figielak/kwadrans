@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type GameDefinition, type PlayerId, type Rng, shuffle } from "./core.ts";
+import { type GameDefinition, type PlayerId, rankPlaces, type Rng, shuffle } from "./core.ts";
 
 export const SIZE = 32;
 export const ROUNDS = 20;
@@ -315,6 +315,8 @@ function endTurn(s: State): State {
 const finish = (s: State): State => (s.doubles > 0 && s.doubles < 3 ? { ...s, phase: "roll" } : endTurn(s));
 
 const alive = (s: State) => s.players.filter((p) => !s.bankrupt.includes(p));
+const byWealth = (s: State) => (a: PlayerId, b: PlayerId) =>
+  Number(b === s.monopoly) - Number(a === s.monopoly) || wealth(s, b) - wealth(s, a);
 
 function goBankrupt(s: State, player: PlayerId, to: PlayerId[]): State {
   const cash = { ...s.cash, [player]: 0 };
@@ -691,11 +693,19 @@ export const kampusTour: GameDefinition<State, Move> = {
     // Monopolista wygrywa niezależnie od majątku.
     const alive = s.players
       .filter((p) => !s.bankrupt.includes(p))
-      .sort((a, b) => Number(b === s.monopoly) - Number(a === s.monopoly) || wealth(s, b) - wealth(s, a));
+      .sort(byWealth(s));
     const ranking = [...alive, ...[...s.bankrupt].reverse()];
     // Równy majątek na górze po limicie rund: remis bez zwycięzcy, jak w pozostałych grach.
     const tie = !s.monopoly && alive.length > 1 && wealth(s, alive[0]) === wealth(s, alive[1]);
     return tie ? { ranking } : { winner: ranking[0], ranking };
+  },
+
+  places(s) {
+    const living = alive(s);
+    const places = rankPlaces(living, Object.fromEntries(living.map((p) => [p, p])), byWealth(s));
+    // Bankruci są za żyjącymi, każdy na osobnym miejscu, od ostatniego bankructwa.
+    s.bankrupt.forEach((p, i) => { places[p] = s.players.length - i; });
+    return places;
   },
 
   waitingFor: (s) =>

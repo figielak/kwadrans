@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type GameDefinition, normalize, type PlayerId, rankResults } from "./core.ts";
+import { type GameDefinition, normalize, type PlayerId, rankPlaces, rankResults } from "./core.ts";
 
 export const CATEGORIES = ["Państwo", "Miasto", "Zwierzę", "Roślina", "Rzecz", "Imię"] as const;
 /** Bez Ą Ć Ę Ń Ó Ś Ź Ż Q V X Y: na nie prawie nic nie ma. Bez Ł: z państw jest tylko Łotwa, więc ta runda byłaby słabsza od innych. */
@@ -139,6 +139,7 @@ export const panstwaMiasta: GameDefinition<State, Move> = {
   },
 
   isOver: (state) => (state.phase === "over" ? rankResults(state.players, state.totals, (a, b) => b - a) : null),
+  places: (state) => rankPlaces(state.players, state.totals, (a, b) => b - a),
 
   waitingFor: (state) => {
     const not = (list: PlayerId[]) => state.players.filter((p) => !list.includes(p));

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type GameDefinition, normalize, type PlayerId, rankResults, shuffle } from "./core.ts";
+import { type GameDefinition, normalize, type PlayerId, rankPlaces, rankResults, shuffle } from "./core.ts";
 import { WORDS } from "./kalambury-dane.ts";
 
 export const MODES = [
@@ -209,6 +209,7 @@ export const kalambury: GameDefinition<State, Move> = {
   },
 
   isOver: (s) => (s.phase === "over" ? rankResults(s.players, s.totals, (a, b) => b - a) : null),
+  places: (s) => rankPlaces(s.players, s.totals, (a, b) => b - a),
 
   waitingFor: (s) => {
     if (s.phase === "choose") return [s.drawer];

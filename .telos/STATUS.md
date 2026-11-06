@@ -2,8 +2,8 @@
 <!-- ≤ 40 lines. Maintained by `telos status set <key>=<value>`; never edit by hand.
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 07-atrakcyjnosc
-Task: 07-02
-Next: /telos:do
+Task: 07-03
+Next: /telos:do-hard 07-03
 Blockers: none
 Awaiting user: 08, 09, 10, 11, 12
 <!-- Blockers: "NN-MM: reason". Awaiting user: IDs only, e.g. "02:Q-01, 02:D-03" -->
@@ -15,6 +15,6 @@ Awaiting user: 08, 09, 10, 11, 12
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
+- 07-02 done: miejsca po partii z remisami z serwera
 - 07-01 done: pomiar partii room_games i metrics
 - 07 wycofana: pliki fazy usunięte, wiersz w ROADMAP wrócił na planned
-- 07-02 done: testy pomiaru room_games i metrics (RED)

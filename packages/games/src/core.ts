@@ -28,7 +28,7 @@ export interface GameDefinition<State, Move> {
   /** Widok stanu dla konkretnego gracza: tu ukrywamy informacje. Obserwator dostaje widok dla "". */
   playerView(state: State, player: PlayerId): unknown;
   isOver(state: State): GameResult | null;
-  /** Miejsca po końcu gry (od 1, remis = to samo miejsce). Mają je mini-gry: turniej liczy z nich punkty. */
+  /** Miejsca po końcu gry (od 1, remis = to samo miejsce): mini-gry i gry główne z remisami. Turniej liczy z nich punkty. */
   places?(state: State): Record<PlayerId, number>;
   /** Na kogo czekamy (ruch po kolei: jedna osoba; faza równoczesna: kilka); [] po końcu gry. */
   waitingFor(state: State): PlayerId[];

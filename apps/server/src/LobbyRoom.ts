@@ -501,6 +501,7 @@ export class LobbyRoom extends Room {
         intro: this.intro,
         began: [...this.began],
         result: match.result,
+        places: match.result?.ranking ? (match.result.places ?? match.def.places?.(match.state) ?? null) : null,
       },
     };
   }

@@ -50,6 +50,8 @@ export interface RoomView {
     /** Kto kliknął już „Start” na ekranie instrukcji. */
     began: PlayerId[];
     result: GameResult | null;
+    /** Miejsca z remisami po partii: result.places, potem def.places; null bez rankingu lub bez definicji miejsc. */
+    places: Record<PlayerId, number> | null;
   } | null;
 }
 

@@ -2,7 +2,7 @@
 id: 07-02
 title: "Etap 1: miejsca po partii w widoku pokoju, także w grach głównych"
 type: code
-status: approved
+status: done
 critical: false
 effort: normal
 depends: [07-01]
@@ -57,10 +57,15 @@ Klient dostaje od serwera gotowe miejsca po partii, także przy remisach w grach
 - `lobby.ts` i `viewFor`: `result.ranking ? result.places ?? def.places?.(state) ?? null : null`.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter @kwadrans/games exec vitest run src/memory.test.ts` → exit 0
-- [ ] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter @kwadrans/games exec vitest run src/memory.test.ts` → exit 0
+- [x] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
 
 ## Result
+RED: testy pięciu gier → exit 1 (12 asercji: brak `places`); testy LobbyRoom → exit 1 (5 asercji: brak `game.places`).
+Dodano `places` w pięciu grach i `RoomView.game.places`: pierwszeństwo `result.places`, potem `def.places`; bez rankingu `null`.
+GREEN: 312 testów pięciu gier i 44 testy LobbyRoom; pełne `pnpm typecheck` i `pnpm test` → exit 0; `telos accept 07-02` PASS (MANUAL potwierdzone, SCOPE ok).
+Zwycięzcy, punktacja, rekordy i naliczanie turnieju bez zmian; kontrakt opisany w KONCEPT §3.
+Deviations: apps/server/src/stats.test.ts — brak bieżących zmian; telos accept przypisuje plik do 07-02 z historycznego commita bca0694 (poprzednia, wycofana rozpiska fazy), którego testy pomiaru należą obecnie do ukończonego 07-01.

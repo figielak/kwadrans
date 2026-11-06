@@ -111,7 +111,7 @@ interface GameDefinition<State, Move> {
   applyMove(state: State, player: PlayerId, move: Move, rng: Rng): State;
   playerView(state: State, player: PlayerId): unknown; // ukrywanie informacji; obserwator dostaje ""
   isOver(state: State): { winner?: PlayerId; ranking?: PlayerId[]; places?: Record<PlayerId, number> } | null; // places: równe dalsze miejsca (Szybki Chińczyk)
-  places?(state: State): Record<PlayerId, number>; // mini-gry: miejsca po końcu (od 1, remis = to samo), dla turnieju
+  places?(state: State): Record<PlayerId, number>; // mini-gry i gry główne z remisami: miejsca po końcu (od 1, remis = to samo); punkty turnieju
   waitingFor(state: State): PlayerId[]; // jedna osoba albo kilka w fazie równoczesnej; [] po końcu
   turnSeconds?: number;                 // limit tury
   turn?(state: State): { key: string; seconds: number }; // limit zależny od fazy, licznik od nowa przy zmianie key
@@ -125,6 +125,10 @@ Kontekst `validateMove` pochodzi z miejsca wywołania w serwerze: wiadomość gr
 ruch zegara `source: "timeout"`. Brak kontekstu oznacza klienta, więc wywołania z trzema argumentami pozostają poprawne.
 Kontekst nie jest częścią ruchu ani JSON klienta; pole `source` przesłane przez klienta nie daje uprawnień timeoutu.
 Każdy ruch po limicie nadal przechodzi przez `validateMove`. Podpowiedź `hint` Kalamburów jest dozwolona tylko z kontekstem timeoutu.
+Serwer przekazuje gotowe miejsca po partii w `RoomView.game.places`: przy wyniku z `ranking` bierze najpierw `result.places`,
+potem `def.places(state)`, a gdy obu brak, zwraca `null`. W trakcie partii i po zakończeniu bez rankingu (np. walkowerze)
+również zwraca `null`. Miejsca uwzględniają remisy, nie zmieniają zwycięzcy ani punktacji. Poza mini-grami `places` mają
+Memory, Kalambury, Państwa-miasta, Kampus Tour i Gomoku (pełna plansza bez wygranej: obaj na pierwszym miejscu).
 Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResults`, `rankPlaces`, `ranked`, `byCompletion` (ukończenie przed timeoutem), `shuffle`, `average`, `byHitsThenAverage`, `byScoreThenAverage`,
 `normalize`, `nickKey`, `initials` (inicjały na kropkach graczy), `standing`, `compareRecords`, `soloState`, `dailyGame`, `withSum` (losowanie o stałej sumie, żeby każda partia miała tyle samo do zdobycia).
 
