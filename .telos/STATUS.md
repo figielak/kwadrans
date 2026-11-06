@@ -2,8 +2,8 @@
 <!-- ≤ 40 lines. Maintained by `telos status set <key>=<value>`; never edit by hand.
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 07-atrakcyjnosc
-Task: 07-08
-Next: /telos:do
+Task: 07-09
+Next: /telos:do-hard 07-09
 Blockers: none
 Awaiting user: 08, 09, 10, 11, 12
 <!-- Blockers: "NN-MM: reason". Awaiting user: IDs only, e.g. "02:Q-01, 02:D-03" -->
@@ -15,6 +15,6 @@ Awaiting user: 08, 09, 10, 11, 12
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
+- 07-08 pominięte decyzją użytkownika: bez testu z ludźmi przed etapem 2
 - 07-07 done: odbiór etapu 1 na 360x640, DESIGN 3.6
 - 07-06 done: znajomi na górze ekranu głównego
-- 07-05 done: linia najlepszej rundy i zwinięty panel rekordów

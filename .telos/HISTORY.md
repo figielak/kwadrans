@@ -20,6 +20,7 @@
      kinds: decision | phase | revert | remove | quick | profile | init
      ref: NN, NN-MM, ADR NNN, quick, telos
      Archive is installed first; after an interrupted write it may duplicate live Log rows. -->
+- 2026-11-06 decision 07-08: Test z ludźmi przed etapem 2 pominięty decyzją użytkownika; etap 2 bez punktu odniesienia, pierwszy test to 07-24
 - 2026-11-05 remove quick: Bezpośrednia zależność zod w apps/server psuje dołączanie do pokoju
 - 2026-11-05 remove quick: Osobne losowanie trudności na planszę zastąpione potasowanymi kompletami
 - 2026-11-05 remove quick: Losowy cel Stopera i losowe tempo Rytmu dawały nierówne szanse rekordów
