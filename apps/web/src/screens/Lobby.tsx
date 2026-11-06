@@ -1,6 +1,7 @@
 import {
   Angle,
   ArrowsClockwise,
+  Bomb,
   Boat,
   Brain,
   Buildings,
@@ -379,6 +380,7 @@ export const ICONS: Record<string, Icon> = {
   "kampus-tour": Buildings,
   "panstwa-miasta": GlobeHemisphereEast,
   kalambury: PencilSimple,
+  sabotaz: Bomb,
   refleks: Lightning,
   simon: SquaresFour,
   stoper: Timer,
@@ -425,6 +427,7 @@ export const BLURBS: Record<string, string> = {
   "kampus-tour": "Planszówka ekonomiczna: rzut dwiema kośćmi, kupujesz pola kampusu, rozbudowujesz je i zbierasz czynsz. Wygrywa ostatni wypłacalny albo najbogatszy po 20 rundach.",
   "panstwa-miasta": "5 rund, każda na inną literę i 6 kategorii. Kto pierwszy odda kartkę, daje STOP, potem głosujecie nad odpowiedziami.",
   kalambury: "Po kolei rysujecie palcem hasło wybrane z trzech, reszta zgaduje na czacie. Im szybciej trafisz, tym więcej punktów.",
+  sabotaz: "Dokładasz zakryte karty na swój stos, potem licytujecie, ile Przejść odkryjecie. Udana deklaracja daje 2 punkty, a cudza Pułapka 1 punkt jej właścicielowi. 6 rund, bez eliminacji.",
   refleks: "Dotknij pola, gdy zmieni kolor. 12 zmian, liczy się średni czas reakcji, falstart to 1000 ms.",
   simon: "Powtarzasz coraz dłuższą sekwencję 4 kolorów. Liczy się najdłuższa seria.",
   stoper: "Licznik znika po 3 s. Dotknij dokładnie po 10 sekundach, wygrywa najmniejsza odchyłka.",

@@ -2,7 +2,7 @@
 id: 11-06
 title: "Sabotaż: lobby i wspólny ekran gry"
 type: code
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: hard
 depends: ["11-05"]
@@ -59,11 +59,14 @@ Udostępnić Sabotaż w lobby oraz wspólnym ekranie gry z fazowymi statusami i 
 4. apps/web/src/games/Sabotaz.test.tsx: uzupełnić testy współpracy publicznego View z czasem i wynikiem; sprawdzić regresje innych gier.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm typecheck && pnpm test` → exit 0
-- [ ] `pnpm --filter web build` → exit 0
-- [ ] Z lobby można uruchomić Sabotaż; wspólne akcje po grze i rewanż działają w odbiorze 11-07.
+- [x] all listed tests pass
+- [x] `pnpm typecheck && pnpm test` → exit 0
+- [x] `pnpm --filter web build` → exit 0
+- [x] Z lobby można uruchomić Sabotaż; wspólne akcje po grze i rewanż działają w odbiorze 11-07.
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+RED: `vitest run src/screens/lists.test.ts src/screens/tables.test.tsx` → exit 1: brak ikony i opisu, brak montowania Sabotaz i isSimultaneous.
+Lobby ma ikonę Bomb i opis, Game montuje Sabotaz po nonce w ResultDetails z waitingFor, places i onMove. `isSimultaneous(id, view)` jest jedyną informacją dla statusu, koloru i etykiety limitu: Sabotaż równoczesny tylko w initial i summary, pozostałe gry bez zmian.
+Testy: 10 nowych; 2478 + 187 + 428 w trzech kolejnych pełnych uruchomieniach, build i typecheck czyste. Publiczny View wystarcza do def.turn (30/60/15 s, ten sam klucz co stan); remis i wspólne miejsca idą przez heroResult.
+Start z lobby sprawdzony tylko przez testy handlerów (11-03) i montowania; ekran w przeglądarce, wspólne akcje i rewanż czekają na odbiór w 11-07.
+Deviations: AGENTS.md — zmiana użytkownika sprzed zadania, nie commitowana

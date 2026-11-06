@@ -2,8 +2,8 @@
 <!-- ≤ 40 lines. Maintained by `telos status set <key>=<value>`; never edit by hand.
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 11-sabotaz
-Task: 11-06
-Next: /telos:do-hard 11-06
+Task: 11-07
+Next: /telos:do
 Blockers: none
 Awaiting user: 08, 09, 10, 12
 <!-- Blockers: "NN-MM: reason". Awaiting user: IDs only, e.g. "02:Q-01, 02:D-03" -->
@@ -15,6 +15,6 @@ Awaiting user: 08, 09, 10, 12
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
+- 11-06 done: Sabotaż w lobby i na wspólnym ekranie gry
 - 11-05 done: odsłona, historia, klucze decyzji i szkody Sabotażu
 - 11-04 done: ekran decyzji Sabotażu z wyborem i zatwierdzeniem, 28 testów
-- 11-03 done: Sabotaż w rejestrze, zegar i poufność w pokoju, wiadomość max 8914 B

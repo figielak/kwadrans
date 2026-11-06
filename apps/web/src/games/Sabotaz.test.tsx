@@ -1,6 +1,7 @@
 import { createRng, GAMES, type LobbyPlayer, type SabotazKind, type SabotazMove, type SabotazView } from "@kwadrans/games";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
+import { heroResult } from "../screens/results.ts";
 import { decisionKey as vibrationKey } from "../vibrate.ts";
 import { currentDraft, decisionKey, type Draft, harmKey, moves, options, Sabotaz, SabotazBoard } from "./Sabotaz.tsx";
 
@@ -499,5 +500,60 @@ describe("wibracje", () => {
     expect(harmKey(view(success, A), A)).toBeNull();
     const next = view(foreign()).players.reduce((acc, p) => apply(acc, p, { type: "next", ...stamp(acc) }), foreign());
     expect(harmKey(view(next, A), A)).toBeNull();
+  });
+});
+
+describe("współpraca z nagłówkiem i wynikiem", () => {
+  test("limit czytany z publicznego widoku daje 30, 60 i 15 s oraz ten sam klucz co stan", () => {
+    const steps: [S, number][] = [
+      [start(), 30],
+      [initials(start()), 60],
+      [bid(initials(start()), 1), 60],
+      [pass(pass(bid(placeAll(initials(start())), 4))), 60],
+      [pass(pass(bid(initials(start()), 1))), 15],
+    ];
+    for (const [s, seconds] of steps) {
+      expect(game.turn!(view(s)).seconds).toBe(seconds);
+      expect(game.turn!(view(s)).key).toBe(game.turn!(s).key);
+    }
+  });
+
+  test("widok obserwatora wystarcza do limitu, bez rąk i stosów w stanie", () => {
+    const observed = view(initials(start()));
+    expect(observed).not.toHaveProperty("hands");
+    expect(observed).not.toHaveProperty("stacks");
+    expect(() => game.turn!(observed)).not.toThrow();
+  });
+
+  const played = (winners: string[]) => {
+    let s = start();
+    winners.forEach((winner, r) => {
+      s = initials(s);
+      s = bid(s, 1);
+      while (view(s).phase === "bid") s = turn(s) === winner ? bid(s, 2) : pass(s);
+      while (view(s).phase === "reveal") s = reveal(s, view(s).players.find((p) => p !== view(s).leader && view(s).stackSizes[p] > 0)!);
+      if (r < winners.length - 1) s = view(s).players.reduce((acc, p) => apply(acc, p, { type: "next", ...stamp(acc) }), s);
+    });
+    return s;
+  };
+
+  const hero = (s: S, me = "") => {
+    const result = game.isOver(s)!;
+    return heroResult({ result, places: game.places!(s), seats: view(s).players, me, nick: (id) => PLAYERS.find((p) => p.id === id)?.nick ?? "?" });
+  };
+
+  test("remis: neutralny tytuł i miejsca serwera, bez fikcyjnego zwycięzcy", () => {
+    const s = played([A, B, A, B, A, B]);
+    expect(game.isOver(s)?.winner).toBeUndefined();
+    const result = hero(s);
+    expect(result?.title).toBe("Remis");
+    expect(result?.rows.map((row) => [row.id, row.place])).toEqual([[A, 1], [B, 1], [C, 3]]);
+  });
+
+  test("wygrana: zwycięzca i wspólne dalsze miejsca z serwera, bez liczby rekordu", () => {
+    const result = hero(played([A, A, A, A, A, A]), A);
+    expect(result?.title).toBe("Wygrywasz!");
+    expect(result?.rows.map((row) => [row.id, row.place])).toEqual([[A, 1], [B, 2], [C, 2]]);
+    expect(result?.rows.every((row) => row.score === undefined)).toBe(true);
   });
 });
