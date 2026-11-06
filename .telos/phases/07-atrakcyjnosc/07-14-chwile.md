@@ -2,7 +2,7 @@
 id: 07-14
 title: "Etap 2: wspólny komunikat Moment"
 type: code
-status: approved
+status: done
 critical: false
 effort: hard
 depends: [07-12]
@@ -66,10 +66,15 @@ Ważne chwile dostają jeden wspólny, krótki komunikat w kolorze gracza, któr
 5. `/dev?n=2`: Memory, Statki, Chińczyk, Liczenie; układ poziomy Kampusu.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter web exec vitest run src/moments.test.ts` → exit 0
-- [ ] `pnpm --filter web exec vitest run src/animations.test.ts` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter web exec vitest run src/moments.test.ts` → exit 0
+- [x] `pnpm --filter web exec vitest run src/animations.test.ts` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
 
 ## Result
+`moments.ts`: `momentFrom` (Memory, Statki, Chińczyk, Kampus Tour, pięć gier przeżycia), `leadChange`, `canShowMoment`, magazyn komunikatów poza Reactem. `<Moment />` w `ui.tsx`, nieklikalny, `role="status"`, 1,2 s, najwyżej jeden na 3 s, tylko w trakcie partii; Kampus ogłasza komplet po dojściu pionka.
+30 testów w `moments.test.ts`, `pnpm test` zielony. `moment-in` w katalogu ZASADY §5, przy `prefers-reduced-motion` `animation: none`, bo skrócona animacja ukryłaby komunikat od razu. D-04 w DESIGN §1.
+Odbiór w `/dev?n=2`: Liczenie („Gracz 2 prowadzi” i „Prowadzisz!”, pierwsze punkty bez komunikatu, dotknięcia przechodzą) i Memory („Masz parę!”, „Gracz 1 ma parę”). Statki, Chińczyk, komplet i układ poziomy Kampusu oraz reduced motion tylko testami, nie na ekranie.
+Komplet rund w grze przeżycia nie daje „odpada”. Zmiana prowadzenia porównuje z ostatnim stanem z liderem, żeby remis po drodze jej nie gubił. Asercje `moment-in` są w `moments.test.ts`, bo `animations.test.ts` jest poza scope, a jego ogólny test i tak obejmuje nową nazwę.
+Deviations: none

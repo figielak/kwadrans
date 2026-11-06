@@ -229,6 +229,22 @@ body::before {
   }
 }
 
+/* Wspólny komunikat Moment: jednorazowo wjeżdża, stoi do końca 1,2 s i gaśnie. */
+@keyframes moment-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  15%,
+  85% {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 /* Liczba 3-2-1 na ekranie instrukcji: ta sama animacja pojawienia, nowy klucz co sekundę. */
 .intro-count {
   animation: stone-pop 0.35s ease-out;
@@ -395,5 +411,10 @@ body::before {
   /* Klatka końcowa float-up ma opacity 0, więc skrócona animacja ukryłaby liczbę od razu. */
   [class*="animate-[float-up"] {
     animation: float-still 1.6s ease-out forwards !important;
+  }
+
+  /* Moment stoi bez ruchu; po 1,2 s usuwa go magazyn. Skrócona animacja ukryłaby go od razu. */
+  [class*="animate-[moment-in"] {
+    animation: none !important;
   }
 }

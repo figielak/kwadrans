@@ -56,6 +56,8 @@ import {
 } from "@kwadrans/games";
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
 import { useHarm } from "../vibrate.ts";
+import { createMomentStore, momentFrom } from "../moments.ts";
+import { Moment } from "../screens/ui.tsx";
 import { KampusSummary } from "./KampusSummary.tsx";
 
 interface Props {
@@ -377,6 +379,15 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
   // Podczas animacji widać zdarzenia sprzed rzutu; nowe pojawiają się po dojściu pionka.
   const settledEvents = useRef(view.events);
   if (settled) settledEvents.current = view.events;
+  // Komplet ogłaszamy razem z resztą zdarzeń: po dojściu pionka, żeby nie uprzedzać rzutu.
+  const [momentStore] = useState(createMomentStore);
+  const momentEvents = useRef(settledEvents.current);
+  useEffect(() => {
+    const prev = momentEvents.current;
+    momentEvents.current = settledEvents.current;
+    const moment = momentFrom("kampus-tour", { events: prev }, { events: settledEvents.current }, me, (id) => players.find((p) => p.id === id)?.nick ?? "Gracz");
+    if (moment) momentStore.show(moment);
+  }, [settledEvents.current]);
   // Gotówka i pola tak samo: zmieniają się dopiero po dojściu pionka.
   const settledCash = useRef(view.cash);
   const settledOwners = useRef(view.owners);
@@ -761,6 +772,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
 
   return (
     <main className="landscape grid place-items-center overflow-hidden">
+      <Moment store={momentStore} color={(id) => players.find((p) => p.id === id)?.color} />
       <div
         className="relative flex items-center justify-center p-2 px-21 [&_.btn]:min-h-[var(--kampus-touch)] [&_.btn]:min-w-[var(--kampus-touch)]"
         style={{ width: stage.width, height: STAGE_H, zoom: stage.scale, "--kampus-touch": `${Math.ceil(48 / stage.scale) + 1}px` } as CSSProperties}

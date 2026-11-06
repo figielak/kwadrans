@@ -242,6 +242,7 @@ animacja tylko go dogania na ekranie.
   | `tile-hit` | trafienie: zielony błysk kafelka | `0.35s` |
   | `tile-miss` | pomyłka: czerwony błysk z potrząśnięciem | `0.35s` |
   | `piece-fall` | ucięty kawałek klocka Wieży spada po wyniku | `0.5s` |
+  | `moment-in` | wspólny komunikat `Moment` o ważnej chwili (para, zatopienie, zbicie, komplet, odpadnięcie, zmiana prowadzenia); przy `prefers-reduced-motion` stoi bez ruchu | `1.2s` |
   | `shake` | ruch zignorowany bez kary: potrząśnięcie bez koloru (Środek, Nożyczki) | `0.3s` |
 
   `card-in` (okno) i `stone-pop` (element planszy) to różne sytuacje; „showtime” nie jest nazwą animacji.
@@ -256,6 +257,7 @@ animacja tylko go dogania na ekranie.
   | rzut kośćmi | 700 ms |
   | pływająca liczba | 1,6 s |
   | świeże osiągnięcie (`set-glow`) | 0,9 s × 4 |
+  | komunikat `Moment` (`moment-in`), najwyżej jeden na 3 s, nigdy w grach ciszy pomiaru | 1,2 s |
   | pętla „to można wybrać” (`ring-pulse`) | 1,2 s |
   | odsłona wyników: kolejny wiersz, od ostatniego miejsca, przy 3+ wierszach | 600 ms na wiersz |
   | pasek czasu | przejście szerokości `linear` równe krokowi odświeżania (`TICK_MS` 250 ms), z zegara, nie jednym długim przejściem |

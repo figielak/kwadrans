@@ -3,6 +3,7 @@ import type { RoomView } from "@kwadrans/games";
 import { createContext, Fragment, type ReactNode, type Ref, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { liveDots, type LiveStore } from "../live.ts";
+import type { MomentStore } from "../moments.ts";
 import { autoStart, introStage, startsAfterClose } from "./intro.ts";
 import { bestRound, type Hero, revealOrder } from "./results.ts";
 
@@ -194,6 +195,20 @@ export function LiveBoard({ store, def, room, progressOf, nick, color, me }: Liv
         </li>
       ))}
     </ul>
+  );
+}
+
+/** Wspólny komunikat o ważnej chwili, w kolorze gracza, którego dotyczy. Nieklikalny i poza układem: nie zjada dotknięć ani nie przesuwa gry. */
+export function Moment({ store, color }: { store: MomentStore; color: (id: string) => string | undefined }) {
+  const moment = useSyncExternalStore(store.subscribe, store.get);
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-3 z-50 flex justify-center px-4" role="status">
+      {moment && (
+        <span key={moment.id} className="animate-[moment-in_1.2s_ease-out_forwards] rounded-full border border-line bg-surface px-4 py-1.5 text-sm font-semibold" style={{ color: color(moment.playerId) }}>
+          {moment.text}
+        </span>
+      )}
+    </div>
   );
 }
 

@@ -11,12 +11,13 @@ import { PanstwaMiasta } from "../games/PanstwaMiasta.tsx";
 import { Labirynt } from "../games/Labirynt.tsx";
 import { PiecWRzedzie } from "../games/PiecWRzedzie.tsx";
 import { FleetLeft, Statki } from "../games/Statki.tsx";
-import { createLiveStore, liveActive, LiveContext } from "../live.ts";
+import { createLiveStore, liveActive, LiveContext, type LiveValues } from "../live.ts";
+import { createMomentStore, leadChange, leaderOf, leadText, momentFrom } from "../moments.ts";
 import { fetchRecords, watchLive } from "../net.ts";
 import { decisionKey, VIBRATE } from "../vibrate.ts";
 import { formatBest, formatGap, formatRecord, RecordPanel } from "./Records.tsx";
 import { heroResult, reducedMotion, shouldReveal } from "./results.ts";
-import { type GameDot, GameDots, HeroSlot, IntroContext, LiveBoard, LiveGameDots, ResultDetails, ResultHero, Screen, StickyBar, type Send } from "./ui.tsx";
+import { type GameDot, GameDots, HeroSlot, IntroContext, LiveBoard, LiveGameDots, Moment, ResultDetails, ResultHero, Screen, StickyBar, type Send } from "./ui.tsx";
 
 interface Props {
   room: Room;
@@ -41,6 +42,27 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
     () => (liveOn ? { send: (value: number) => room.send("live", { value }), report: (value: number) => liveStore.report(me, value) } : null),
     [liveOn, room, me, liveStore],
   );
+  // Chwile: poprzedni widok w refie, po zmianie gry w turnieju nie ma z czym porównać. Kampus Tour porównuje sam, po dojściu pionka.
+  const [momentStore] = useState(createMomentStore);
+  const seenView = useRef<{ id: string; view: unknown } | null>(null);
+  useEffect(() => {
+    const prev = seenView.current?.id === def.id ? seenView.current.view : null;
+    seenView.current = { id: def.id, view: game.view };
+    if (view.phase !== "playing" || def.id === "kampus-tour") return;
+    const moment = momentFrom(def.id, prev, game.view, me, nick);
+    if (moment) momentStore.show(moment);
+  }, [game.view, def.id]);
+  // Zmiana prowadzenia: odniesieniem jest ostatni stan z liderem, żeby remis po drodze nie gubił zmiany. Bez stanu Reacta, więc gra się nie renderuje.
+  const leadBase = useRef<LiveValues>({});
+  useEffect(() => {
+    if (def.live?.kind !== "score" || view.phase !== "playing") return;
+    return liveStore.subscribe(() => {
+      const live = liveStore.get();
+      const who = leadChange(leadBase.current, live);
+      if (leaderOf(live) || !Object.keys(live).length) leadBase.current = live;
+      if (who) momentStore.show({ text: leadText(who, me, nick), playerId: who });
+    });
+  }, [def.live?.kind, view.phase, view.players, me, liveStore, momentStore]);
   const myTurn = view.phase === "playing" && game.waitingFor.includes(me);
   const waitingNicks = game.waitingFor.filter((id) => id !== me).map(nick).join(" i ");
 
@@ -350,6 +372,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
     <IntroContext.Provider value={intro}>
     <LiveContext.Provider value={liveChannel}>
       <Screen dropped={dropped}>
+        <Moment store={momentStore} color={(id) => view.players.find((p) => p.id === id)?.color} />
         {/* Gra solo nie ma lobby, więc z trwającej partii wychodzi się prosto na ekran główny. */}
         {view.solo && view.phase === "playing" && (
           <button type="button" className="-my-2 -ml-2 flex min-h-12 items-center gap-1.5 self-start px-2 text-sm text-fg-muted" onClick={onLeave}>
