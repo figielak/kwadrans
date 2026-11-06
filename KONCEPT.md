@@ -15,9 +15,10 @@ Dev i deploy: `README.md`. Stan prac i plan: `.telos/ROADMAP.md`.
 - **Bez kont**: gracz wpisuje nick i kod pokoju. Token sesji w `localStorage` pozwala wrócić do gry po odświeżeniu strony.
   Nick jest zapamiętany po pierwszym wpisaniu (ekran główny pokazuje „Grasz jako … · zmień”), tak samo trzy ostatnie pokoje z ostatniej doby do szybkiego powrotu
   (sekcja „Wróć do pokoju”: tylko pokoje, w których było co najmniej 2 graczy i które jeszcze istnieją, sprawdza to `/api/rooms`).
-- **Ekran główny**: sekcja „Sam” stoi wyżej niż „Ze znajomymi” (przy wejściu z linku `/?kod=` odwrotnie). „Sam” to wyzwanie dnia, do dwóch gier
+- **Ekran główny**: sekcja „Ze znajomymi” stoi wyżej niż „Sam”, bo najwięcej radości daje gra z innymi (zawsze, także przy wejściu z linku `/?kod=`).
+  „Ze znajomymi” łączy „Utwórz pokój” i pole kodu. „Sam” to wyzwanie dnia, do dwóch gier
   dobranych pod rekordy (cudzy rekord, do którego graczowi najbliżej, i własny do obrony), „Losowa gra” i lista wszystkich mini-gier.
-  „Ze znajomymi” łączy pole kodu i „Utwórz pokój”. Wypełniony przycisk ekranu jest jeden: „Zagraj” przy wyzwaniu, a po wpisaniu pełnego kodu „Dołącz” („Zagraj” przechodzi wtedy na obrys).
+  Wypełniony przycisk ekranu jest jeden: „Utwórz pokój”, a po wpisaniu pełnego kodu „Dołącz” („Utwórz pokój” przechodzi wtedy na obrys). „Zagraj” przy wyzwaniu ma zawsze obrys.
   Rankingi wygranych gier głównych i turnieju są na dole ekranu „Rekordy” (puchar w nagłówku); równe wygrane i partie to to samo miejsce.
 - **Gra solo**: mini-gra z ekranu głównego to po cichu pokój na jedną osobę (`solo` w opcjach tworzenia i w `RoomView`), który od razu startuje grę:
   bez lobby, kodu, wyboru koloru i wpisu w ostatnich pokojach. Po partii „Jeszcze raz” albo „Wyjdź”; wyniki trafiają do tych samych rekordów.

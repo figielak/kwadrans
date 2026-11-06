@@ -2,7 +2,7 @@
 id: 07-06
 title: "Etap 1: znajomi na górze ekranu głównego"
 type: code
-status: approved
+status: done
 critical: false
 effort: normal
 depends: []
@@ -42,9 +42,13 @@ Ekran główny zaprasza do gry ze znajomymi: sekcja „Ze znajomymi” jest na g
 - Sprawdź 360×640 z nickiem, ostatnimi pokojami i długą nazwą wyzwania.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter web exec vitest run src/hierarchy.test.ts` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter web exec vitest run src/hierarchy.test.ts` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
 
 ## Result
+KONCEPT §1 i DESIGN §3.1 zmienione przed kodem razem z testem (stary F4-066 zastąpiony dwoma testami 07-06). `Home.tsx`: sekcja „Ze znajomymi” zawsze nad „Sam” (warunek `codeFromUrl()` usunięty), „Utwórz pokój” to pełnej szerokości wypełniony przycisk, pod nim „Albo dołącz kodem” z polem i „Dołącz” (wypełnione dopiero po pełnym kodzie); „Zagraj” przy wyzwaniu zawsze obrys.
+Testy: 256 w web zielone, w tym 2 nowe w hierarchy.test.ts (RED: 2 asercje o brakującej zmianie). Odbiór 360×640: „Utwórz pokój” kończy się na 316 px z 640, jedyny `btn-primary` to „Utwórz pokój”, z kodem z linku `/?kod=ABCD` „Dołącz”, bez poziomego przewijania.
+Pole kodu ma teraz widoczną etykietę „Albo dołącz kodem” zamiast `aria-label`. Nie sprawdzałem sekcji „Wróć do pokoju” na ekranie (leży pod „Sam”, więc nie wpływa na widoczność „Utwórz pokój”).
+Deviations: none

@@ -6,10 +6,25 @@ import { expect, test } from "vitest";
 const src = new URL(".", import.meta.url).pathname;
 const read = (file: string) => readFileSync(join(src, file), "utf8");
 
-test("F4-066: z pełnym kodem „Zagraj” traci wypełnienie na rzecz „Dołącz”", () => {
+test("07-06: jedyny wypełniony przycisk to „Utwórz pokój”, z pełnym kodem „Dołącz”; „Zagraj” zawsze obrys", () => {
   const home = read("screens/Home.tsx");
   expect(home).not.toContain('className="btn btn-primary w-full"');
-  expect(home).toContain('className={`btn w-full ${full ? "btn-ghost" : "btn-primary"}`}');
+  // „Utwórz pokój” oddaje wypełnienie po pełnym kodzie, „Dołącz” je przejmuje.
+  expect(home).toContain('className={`btn w-full ${full ? "btn-ghost" : "btn-primary"}`} disabled={!!busy} onClick={() => go("create")}');
+  expect(home).toContain('className={`btn shrink-0 ${full ? "btn-primary" : "btn-ghost"}`}');
+  // „Zagraj” przy wyzwaniu: bez btn-primary w żadnym stanie.
+  const daily = home.slice(home.indexOf("play(daily.gameId)") - 120, home.indexOf("play(daily.gameId)"));
+  expect(daily).toContain('className="btn btn-ghost w-full"');
+  expect(daily).not.toContain("btn-primary");
+  // Jedyne wystąpienia btn-primary w pliku to dwa warunkowe powyżej.
+  expect(home.match(/btn-primary/g)).toHaveLength(2);
+});
+
+test("07-06: „Ze znajomymi” stoi przed „Sam”, także przy wejściu z linku", () => {
+  const home = read("screens/Home.tsx");
+  expect(home).toContain("{[friends, solo]}");
+  expect(home).not.toContain("codeFromUrl() ? [friends, solo]");
+  expect(home).not.toContain("[solo, friends]");
 });
 
 test("F4-068: przycisk listy mini-gier mieści się w kolumnie przy powiększonym tekście", () => {

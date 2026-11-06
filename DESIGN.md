@@ -77,11 +77,12 @@ Hierarchię robi kontrast kroju i jasności, nie rozmiar: większość ekranu to
 
 Te fragmenty najlepiej oddają styl. Nowy ekran powinien wyglądać jak ich rodzeństwo.
 
-### 3.1 Karta „Sam” na ekranie głównym (`Home.tsx`)
+### 3.1 Karta „Ze znajomymi” na ekranie głównym (`Home.tsx`)
 
-Najlepszy przykład hierarchii. Od góry: ikona gry w kwadracie `accent-soft`, nazwa pogrubiona i jedna linia stanu,
-potem jedyny wypełniony przycisk ekranu („Zagraj”) na pełną szerokość, pod nim dwa równe przyciski z obrysem.
-Wzrok ląduje na czerwieni bez żadnego nagłówka, a „Dołącz” w sąsiedniej karcie przejmuje wypełnienie dopiero po wpisaniu pełnego kodu (wtedy „Zagraj” ma obrys, D4-066).
+Najlepszy przykład hierarchii. Sekcja stoi na górze, bo najwięcej radości daje gra z innymi. Od góry: jedyny wypełniony przycisk ekranu
+(„Utwórz pokój”) na pełną szerokość, pod nim linia „Albo dołącz kodem” i pole kodu z przyciskiem „Dołącz”. Wzrok ląduje na czerwieni bez żadnego nagłówka,
+a „Dołącz” przejmuje wypełnienie dopiero po wpisaniu pełnego kodu (wtedy „Utwórz pokój” ma obrys). Karta „Sam” pod spodem ma tylko obrysy:
+ikona gry w kwadracie `accent-soft`, nazwa pogrubiona, jedna linia stanu i „Zagraj” z obrysem (D4-066, D1).
 
 Do skopiowania: jedna akcja wypełniona, pozostałe `btn-ghost`; podpis sekcji z małą ikoną leży nad kaflem, nie w nim.
 
@@ -125,7 +126,7 @@ Podpowiedź wykresu zostaje po dotknięciu, mysz chowa ją po zjechaniu z wykres
 |---|---|---|
 | focus (klawiatura) | obrys 2 px `accent`, odsunięty o 2 px | `.btn`, `.field`, suwak koloru |
 | pole w edycji | ramka `accent` zamiast `line-hover` | kod pokoju, nick |
-| przycisk nieaktywny | krycie 40%, bez reakcji na dotyk | „Dołącz” bez pełnego kodu (dodatkowo `btn-ghost` zamiast `btn-primary`) |
+| przycisk nieaktywny | krycie 40%, bez reakcji na dotyk | „Dołącz” bez pełnego kodu (dodatkowo `btn-ghost` zamiast `btn-primary`; z pełnym kodem to on jest wypełniony) |
 | kafel zaznaczony | ramka `accent`, tło `accent-soft`, ikona `fill`, `aria-pressed` | wybrana gra w lobby |
 | kafel przygaszony, ale do wybrania | krycie 60%, podpis mówi dlaczego („brakuje 1 gracza”) | gra, do której jest za mało osób |
 | kafel nieaktywny | krycie 40%, `disabled`, podpis mówi dlaczego („max 2 os.”) | gra, do której jest za dużo osób |
