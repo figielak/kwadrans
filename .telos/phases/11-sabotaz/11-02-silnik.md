@@ -2,7 +2,7 @@
 id: 11-02
 title: "Sabotaż: testy przed kodem i silnik rund"
 type: code
-status: in-progress # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: true
 effort: hard
 depends: ["11-01"]
@@ -75,12 +75,14 @@ Zbudować kompletny silnik SAB-01..03 z testami zapisanymi i commitowanymi przed
 5. packages/games/src/sabotaz.test.ts: przejść RED → GREEN bez osłabiania asercji; odnotować osobno dowód kolejności testy/commit/kod.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter @kwadrans/games exec vitest run src/sabotaz.test.ts` → exit 0
-- [ ] `pnpm typecheck && pnpm test` → exit 0
-- [ ] Osobny commit pełnych testów poprzedza sabotaz.ts; brak nieautoryzowanych commitów i zmian testów pod kod.
+- [x] all listed tests pass
+- [x] `pnpm --filter @kwadrans/games exec vitest run src/sabotaz.test.ts` → exit 0
+- [x] `pnpm typecheck && pnpm test` → exit 0
+- [x] Osobny commit pełnych testów poprzedza sabotaz.ts; brak nieautoryzowanych commitów i zmian testów pod kod.
 
 ## Result
 RED: pnpm --filter @kwadrans/games exec vitest run src/sabotaz.test.ts → exit 1: brak modułu ./sabotaz.ts (przed implementacją). Czeka na prośbę o osobny commit testów.
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Silnik `sabotaz.ts` wg 11-01: fazy, aukcja, automatyczny własny i ostatni cudzy stos, punkty 2/1/0, historia, jawny widok, timeouty, turn; bez wpisu w GAMES (podpięcie w 11-06).
+Testy: 103 w `sabotaz.test.ts`, razem 2470 + 171 + 371; `pnpm typecheck` czysty. GREEN za pierwszym razem, plik testów bez zmian od commita 49b0763, który poprzedza kod.
+Odkryte karty zostają w `stacks`, a zakrytą resztę wyznacza `reveals`, więc historia ma pełne stosy bez dodatkowego pola. RED zapisany wyżej. Praca przeniesiona na gałąź `faza/11-sabotaz` (decyzja użytkownika).
+Deviations: ZASADY-GIER.md — przedrostek SABOTAZ_ dotyczy index.ts, nie sabotaz.ts (w commicie 80b2588); AGENTS.md — zmiana użytkownika sprzed zadania, nie commitowana
