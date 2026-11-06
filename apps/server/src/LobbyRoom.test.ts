@@ -84,6 +84,80 @@ async function drawing(n: number, gameId = "kalambury", start = true) {
   return { room, send, snapshot, clients, observer };
 }
 
+describe("07-21: życzenia gości", () => {
+  test("gość wskazuje grę, zmienia ją, null kasuje; każdy ma jedno życzenie", async () => {
+    const { send, snapshot } = await openRoom(3);
+    expect(snapshot().wishes).toEqual({});
+    send(1, "wish", { id: "kampus-tour" });
+    send(2, "wish", { id: "stoper" });
+    expect(snapshot().wishes).toEqual({ p2: "kampus-tour", p3: "stoper" });
+    send(1, "wish", { id: "memory" });
+    expect(snapshot().wishes).toEqual({ p2: "memory", p3: "stoper" });
+    send(1, "wish", { id: null });
+    expect(snapshot().wishes).toEqual({ p3: "stoper" });
+  });
+
+  test("gospodarz wybiera sam: jego życzenie nic nie robi; gra spoza GAMES odpada", async () => {
+    const { send, snapshot } = await openRoom(2);
+    send(0, "wish", { id: "stoper" });
+    send(1, "wish", { id: "nie-ma-takiej" });
+    send(1, "wish", { nope: 1 });
+    expect(snapshot().wishes).toEqual({});
+  });
+
+  test("poza lobby życzenia nic nie robią", async () => {
+    const { send, snapshot } = await drawing(2, "stoper");
+    send(1, "wish", { id: "memory" });
+    expect(snapshot().wishes).toEqual({});
+    for (let i = 0; i < 2; i++) send(i, "move", { type: "result", deviation: 100 + i });
+    expect(snapshot().phase).toBe("over");
+    send(1, "wish", { id: "memory" });
+    expect(snapshot().wishes).toEqual({});
+  });
+
+  test("start, pickGame i Szybka seria czyszczą życzenia", async () => {
+    const a = await openRoom(2);
+    a.send(1, "wish", { id: "stoper" });
+    a.send(0, "pickGame", { gameId: "stoper" });
+    expect(a.snapshot().wishes).toEqual({});
+
+    const b = await openRoom(2);
+    b.send(0, "pickGame", { gameId: "stoper" });
+    b.send(1, "wish", { id: "memory" });
+    expect(b.snapshot().wishes).toEqual({ p2: "memory" });
+    // openRoom(2) dodaje trzeciego uczestnika, który też dostaje miejsce w mini-grze.
+    b.send(1, "ready", { ready: true });
+    b.send(2, "ready", { ready: true });
+    b.send(0, "start", {});
+    expect(b.snapshot()).toMatchObject({ phase: "playing", wishes: {} });
+
+    const c = await openRoom(2);
+    c.send(1, "wish", { id: "stoper" });
+    c.send(0, "quickSeries", {});
+    expect(c.snapshot().wishes).toEqual({});
+  });
+
+  test("wyjście gracza zabiera jego życzenie", async () => {
+    const { room, send, snapshot, clients } = await openRoom(3);
+    send(1, "wish", { id: "stoper" });
+    send(2, "wish", { id: "memory" });
+    await room.onLeave(clients[1], CloseCode.CONSENTED);
+    expect(snapshot().wishes).toEqual({ p3: "memory" });
+  });
+
+  test("po powrocie do lobby nie ma starych życzeń", async () => {
+    const { send, snapshot } = await openRoom(2);
+    send(0, "pickGame", { gameId: "stoper" });
+    send(1, "ready", { ready: true });
+    send(0, "start", {});
+    for (let i = 0; i < 2; i++) send(i, "begin", {});
+    vi.advanceTimersByTime(3000);
+    for (let i = 0; i < 2; i++) send(i, "move", { type: "result", deviation: 100 + i });
+    send(0, "toLobby", {});
+    expect(snapshot()).toMatchObject({ phase: "lobby", wishes: {} });
+  });
+});
+
 describe("07-19: głosowanie Inna gra", () => {
   const saved = { ...GAMES };
   afterEach(() => {

@@ -172,7 +172,9 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
 - Limit tury: 60 s w większości gier; limity pozostałych w tabeli `ZASADY-GIER.md`. Państwa-miasta i Kalambury mają limit per faza.
 - Gdy gracz z miejscem zniknie z pokoju w trakcie partii (wyjdzie sam albo nie wróci w 10 minut), partia się kończy:
   jeśli został jeden gracz, wygrywa walkowerem; przy większej liczbie kończy się bez zwycięzcy.
-- Lobby: gospodarz wybiera grę i daje start, goście potwierdzają gotowość; każdy może zmienić swój kolor
+- Lobby: gospodarz wybiera grę i daje start, goście potwierdzają gotowość albo wskazują, w co chcą grać (`wish`, tylko w lobby, `null` kasuje, jedno życzenie na osobę;
+  widać je jako kropkę gracza przy grze, `RoomView.wishes`; start, wybór gry i Szybka seria je czyszczą, wyjście gracza też). Sam w pokoju gracz widzi duży kod; od dwóch osób kod
+  zwija się do paska u góry, a kolory stoją w jednej linii, żeby gry były na pierwszym ekranie; każdy może zmienić swój kolor
   (poza partią); link `/?kod=ABCD` z przyciskiem udostępniania. Lista w lobby to gry główne oraz kafle „Turniej” i „Mini-gry”.
 - Gra główna (`minPlayers > 1`) po wybraniu otwiera u wszystkich ekran gry (`Setup.tsx`): opis, tryb (jeśli gra ma `modes`;
   zmiana trybu kasuje gotowość gości), gracze i start; gospodarz wraca do listy gier przez `pickGame` z `null`.

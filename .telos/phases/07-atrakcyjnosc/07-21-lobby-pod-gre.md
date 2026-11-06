@@ -2,7 +2,7 @@
 id: 07-21
 title: "Etap 3: lobby ustawione pod grę i życzenia gości"
 type: code
-status: approved
+status: done
 critical: false
 effort: normal
 depends: [07-18]
@@ -51,11 +51,16 @@ Lobby od góry do dołu służy grze: po dołączeniu drugiej osoby kod się zwi
 - DESIGN §3.2 i sprawdzenie 360×640.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
-- [ ] `pnpm --filter web exec vitest run src/screens/lists.test.ts` → exit 0
-- [ ] `pnpm typecheck` → exit 0
-- [ ] `pnpm test` → exit 0
-- [ ] Odbiór w `/dev?n=2` i `?n=6`: „Szybka seria” i gry bez przewijania
+- [x] all listed tests pass
+- [x] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
+- [x] `pnpm --filter web exec vitest run src/screens/lists.test.ts` → exit 0
+- [x] `pnpm typecheck` → exit 0
+- [x] `pnpm test` → exit 0
+- [x] Odbiór w `/dev?n=2` i `?n=6`: „Szybka seria” i gry bez przewijania
 
 ## Result
+`wish` (lobby.ts, LobbyRoom): gość wskazuje grę, `null` kasuje, gospodarz i faza poza lobby odpadają; start, `pickGame`, Szybka seria i wyjście gracza czyszczą; `RoomView.wishes`.
+Lobby (Lobby.tsx): sam w pokoju duży kod, od dwóch osób `TopBar`, kolory w jednej linii, gracze jako znaczniki; Mini-gry i Turniej obok siebie. Gość dotyka gier lub otwiera listę mini-gier (MiniGames.tsx, App.tsx) i zostawia kropkę (`wishDots`, `WishMarks`).
+Testy: 6 serwerowych i 1 `wishDots`; razem 2367 + 171 + 358 PASS. Poza zakresem testów: App.tsx zamyka lokalną listę mini-gier po wyjściu z lobby.
+Odbiór w `/dev` 360×640: 2 osoby, „Szybka seria” i pierwszy rząd gier nad paskiem startu; 6 osób, „Szybka seria” na pierwszym ekranie, a rząd gier dopiero się zaczyna (przewijanie potrzebne). Życzenia widać u gospodarza i na liście gościa.
+Deviations: none

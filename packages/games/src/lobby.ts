@@ -46,6 +46,8 @@ export interface RoomView {
   scores: Record<PlayerId, number>;
   /** Gotowe podsumowanie wieczoru. Historia partii zostaje na serwerze. */
   evening: { games: number; played: string[]; table: EveningRow[]; titles: EveningTitle[] };
+  /** Życzenia gości w lobby: id gracza → id gry, w którą chce zagrać. Czyszczone startem, wyborem gry i Szybką serią. */
+  wishes: Record<PlayerId, string>;
   /** Trwające głosowanie „Inna gra”; faza zostaje `over`, a null znaczy brak głosowania. */
   vote: { options: string[]; votes: Record<PlayerId, string>; msLeft: number } | null;
   game: {
@@ -89,6 +91,8 @@ export const ROOM_MESSAGES = {
   pickGame: z.object({ gameId: z.string().nullable() }),
   // Wybór turnieju i zmiana liczby gier (gospodarz); zakres sprawdza cleanConfig.
   pickTournament: z.object({ length: z.number() }),
+  // Życzenie gościa w lobby: gra, w którą chce zagrać; null zdejmuje życzenie.
+  wish: z.object({ id: z.string().nullable() }),
   // Szybka seria (gospodarz): od razu QUICK_SERIES_LENGTH losowych mini-gier dla wszystkich w pokoju.
   quickSeries: z.unknown(),
   // Zaznaczenie jednej gry turnieju: na pewno, bez albo z powrotem losowo. Może każdy w pokoju.

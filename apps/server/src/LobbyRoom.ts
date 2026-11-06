@@ -96,6 +96,8 @@ export class LobbyRoom extends Room {
   private eveningView: RoomView["evening"] = { games: 0, played: [], table: [], titles: [] };
   /** Trwające głosowanie „Inna gra”, zawsze w fazie `over`; koniec liczy `turnTimer`. */
   private vote: { options: string[]; votes: Record<string, string> } | null = null;
+  /** Życzenia gości w lobby: gracz → gra. */
+  private wishes: Record<string, string> = {};
   private match: Match | null = null;
   private turnTimer?: Timer;
   private turnEndsAt: number | null = null;
@@ -131,6 +133,7 @@ export class LobbyRoom extends Room {
       this.gameId = gameId;
       this.tournament = null;
       this.markedBy = {};
+      this.wishes = {};
       this.mode = def ? defaultMode(def) : null;
       this.seats = def ? [...this.players.keys()].slice(0, def.maxPlayers) : [];
       this.resetReady();
@@ -156,7 +159,16 @@ export class LobbyRoom extends Room {
       this.seats = [...this.players.keys()].slice(0, MAX_PLAYERS);
       this.tournament = begin(create(config), MINI_GAME_IDS, newRng());
       this.markedBy = {};
+      this.wishes = {};
       this.startTournamentGame();
+    });
+
+    // Życzenie gościa: kropka przy grze, nic więcej; gospodarz wybiera sam. Gra spoza rejestru odpada.
+    this.on("wish", (client, { id }) => {
+      if (!this.players.has(client.sessionId) || this.isHost(client) || this.phase !== "lobby") return;
+      if (id !== null && !GAMES[id]) return;
+      const { [client.sessionId]: _, ...rest } = this.wishes;
+      this.wishes = id === null ? rest : { ...rest, [client.sessionId]: id };
     });
 
     // Gry turnieju zaznacza każdy w pokoju; spory rozstrzygają gracze między sobą, nie aplikacja.
@@ -203,6 +215,7 @@ export class LobbyRoom extends Room {
       if (!this.isHost(client) || this.phase !== "lobby" || (!def && !this.tournament)) return;
       if (this.seats.length < (def?.minPlayers ?? 1) || this.seats.length > this.maxSeats()) return;
       if (this.seats.some((id) => id !== this.hostId && !this.players.get(id)?.ready)) return;
+      this.wishes = {};
       if (def) return this.startMatch(def);
       this.tournament = begin(this.tournament!, MINI_GAME_IDS, newRng());
       this.startTournamentGame();
@@ -340,6 +353,7 @@ export class LobbyRoom extends Room {
     this.messageCounts.delete(client.sessionId);
     this.liveCounts.delete(client.sessionId);
     this.reactCounts.delete(client.sessionId);
+    delete this.wishes[client.sessionId];
     if (this.hostId === client.sessionId) this.hostId = this.players.keys().next().value ?? "";
     if (this.seats.includes(client.sessionId)) {
       this.seats = this.seats.filter((s) => s !== client.sessionId);
@@ -657,6 +671,7 @@ export class LobbyRoom extends Room {
       markedBy: this.markedBy,
       scores: this.scores,
       evening: this.eveningView,
+      wishes: this.wishes,
       vote: this.vote && { ...this.vote, msLeft: Math.max(0, (this.turnEndsAt ?? 0) - Date.now()) },
       game: match && {
         // Obserwator dostaje widok gracza "", czyli bez czyichkolwiek ukrytych informacji.

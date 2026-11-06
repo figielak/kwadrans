@@ -23,6 +23,8 @@ export function App() {
   const inLobby = view?.phase === "lobby";
   useEffect(() => {
     if (!inLobby) setRecords(false);
+    // Po partii lista mini-gier nie wraca sama, także u gościa, który ją przeglądał.
+    if (!inLobby) setMini(false);
   }, [inLobby]);
 
   useEffect(() => {
@@ -65,10 +67,11 @@ export function App() {
   if (view?.tournament) return <TournamentSetup view={view} {...screen} />;
   // Gra główna ma własny ekran przed partią; mini-gry wybiera się na osobnej liście.
   if (view && def && def.minPlayers > 1) return <Setup view={view} {...screen} />;
-  if (view && (def || (mini && view.hostId === me))) {
+  // Listę mini-gier otwiera też gość: tam dotyka gier jako życzeń.
+  if (view && (def || mini)) {
     const back = () => {
       setMini(false);
-      send("pickGame", { gameId: null });
+      if (view.hostId === me) send("pickGame", { gameId: null });
     };
     if (records) {
       const self = view.players.find((p) => p.id === me);

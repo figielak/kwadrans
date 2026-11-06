@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import type { RoomView } from "@kwadrans/games";
 import { expect, test } from "vitest";
+import { wishDots } from "./Lobby.tsx";
 
 // P4-034: lista mini-gier z rejestru, Sudoku montuje się po nonce, Turniej ma jeden przyklejony pasek.
 const src = new URL(".", import.meta.url).pathname;
@@ -23,4 +25,24 @@ test("F4-156: Turniej nie owija StartBar drugim przyklejonym paskiem", () => {
   const setup = read("Setup.tsx");
   expect(setup).not.toContain('className="sticky bottom-0');
   expect(setup).toMatch(/<StartBar[^>]*note=/);
+});
+
+test("07-21: wishDots przypisuje kropki do gier, gracz, który wyszedł, znika", () => {
+  const players = [
+    { id: "a", nick: "Ala", color: "#f00", connected: true, ready: false },
+    { id: "b", nick: "Bob", color: "#0f0", connected: true, ready: false },
+    { id: "c", nick: "Cyd", color: "#00f", connected: true, ready: false },
+  ];
+  const view = (wishes: Record<string, string>, who = players) => ({ players: who, wishes }) as unknown as RoomView;
+  expect(wishDots(view({}))).toEqual({});
+  const dots = wishDots(view({ b: "stoper", c: "stoper", a: "memory" }));
+  expect(dots.stoper).toEqual([
+    { id: "b", nick: "Bob", color: "#0f0" },
+    { id: "c", nick: "Cyd", color: "#00f" },
+  ]);
+  expect(dots.memory).toEqual([{ id: "a", nick: "Ala", color: "#f00" }]);
+  // Życzenie nieobecnego (wyszedł, serwer jeszcze go nie skasował) nie daje kropki.
+  const left = wishDots(view({ b: "stoper", c: "stoper" }, players.filter((p) => p.id !== "c")));
+  expect(left.stoper).toEqual([{ id: "b", nick: "Bob", color: "#0f0" }]);
+  expect(wishDots(view({ c: "stoper" }, players.filter((p) => p.id !== "c")))).toEqual({});
 });

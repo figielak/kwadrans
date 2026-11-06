@@ -2,7 +2,7 @@ import { Play, Shuffle, Trophy } from "@phosphor-icons/react";
 import { GAMES, MAX_PLAYERS, nickKey, type RecordRow, type RoomView, standing } from "@kwadrans/games";
 import { useEffect, useState } from "react";
 import { fetchRecords } from "../net.ts";
-import { BLURBS, ICONS, MINI_GAMES, StartBar } from "./Lobby.tsx";
+import { BLURBS, ICONS, MINI_GAMES, StartBar, WishMarks, wishDots } from "./Lobby.tsx";
 import { formatBest, formatRecord, RecordList } from "./Records.tsx";
 import { PlayerDots, Screen, type Send, TopBar } from "./ui.tsx";
 
@@ -42,11 +42,13 @@ interface GridProps {
   color?: string;
   picked?: string | null;
   disabled?: boolean;
+  /** Życzenia gości: gra → kropki graczy. */
+  wishes?: ReturnType<typeof wishDots>;
   onPick: (gameId: string) => void;
 }
 
 /** Kafle wszystkich mini-gier w kategoriach, z miejscem gracza w rekordach; w pokoju wybiera grę, na ekranie głównym od razu ją startuje. */
-export function MiniGameGrid({ records, nick, color, picked, disabled, onPick }: GridProps) {
+export function MiniGameGrid({ records, nick, color, picked, disabled, wishes, onPick }: GridProps) {
   return SECTIONS.map(([title, ids]) => (
     <section key={title}>
       <h3 className="mb-2 px-1 text-sm text-fg-muted">{title}</h3>
@@ -60,7 +62,7 @@ export function MiniGameGrid({ records, nick, color, picked, disabled, onPick }:
               type="button"
               aria-pressed={picked === undefined ? undefined : picked === id}
               disabled={disabled}
-              className={`flex min-h-20 flex-col items-start gap-1 rounded-inset border p-2 text-left transition-colors duration-180 ${
+              className={`relative flex min-h-20 flex-col items-start gap-1 rounded-inset border p-2 text-left transition-colors duration-180 ${
                 picked === id ? "border-accent bg-accent-soft" : "border-line hover:border-line-hover"
               }`}
               onClick={() => onPick(id)}
@@ -71,6 +73,7 @@ export function MiniGameGrid({ records, nick, color, picked, disabled, onPick }:
               <span className="mt-auto font-mono text-xs text-fg-muted tabular-nums" style={place === 1 ? { color } : undefined}>
                 {place ? `${place}. miejsce` : records ? "nie grane" : records === undefined && "Wczytywanie…"}
               </span>
+              <WishMarks wishes={wishes?.[id]} />
             </button>
           );
         })}
@@ -92,6 +95,11 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
   const mine = (gameId: string) => records?.[gameId]?.find((r) => self && nickKey(r.nick) === nickKey(self.nick));
   const top = def && records?.[def.id]?.[0];
 
+  const wishes = wishDots(view);
+  const myWish = view.wishes[me];
+  // Gość bez wybranej gry dotyka gier jak życzeń; wybiera gospodarz. Drugie dotknięcie zdejmuje życzenie.
+  const browsing = !isHost && !def;
+
   function random() {
     const others = MINI_GAMES.filter((g) => g.id !== view.gameId);
     send("pickGame", { gameId: others[Math.floor(Math.random() * others.length)].id });
@@ -99,7 +107,7 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
 
   return (
     <Screen dropped={dropped}>
-      <TopBar code={view.code} onBack={isHost ? onBack : undefined} onLeave={onLeave}>
+      <TopBar code={view.code} onBack={isHost || browsing ? onBack : undefined} onLeave={onLeave}>
         <PlayerDots view={view} />
       </TopBar>
 
@@ -116,7 +124,17 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
         </button>
       </div>
 
-      {isHost && <MiniGameGrid records={records} nick={self?.nick ?? null} color={self?.color} picked={view.gameId} onPick={(gameId) => send("pickGame", { gameId })} />}
+      {browsing && <p className="px-1 text-sm text-fg-muted">Dotknij gry, w którą chcesz zagrać. Wybiera gospodarz.</p>}
+      {(isHost || browsing) && (
+        <MiniGameGrid
+          records={records}
+          nick={self?.nick ?? null}
+          color={self?.color}
+          picked={isHost ? view.gameId : (myWish ?? null)}
+          wishes={wishes}
+          onPick={(gameId) => (isHost ? send("pickGame", { gameId }) : send("wish", { id: myWish === gameId ? null : gameId }))}
+        />
+      )}
 
       {!isHost && def && (
         <>
