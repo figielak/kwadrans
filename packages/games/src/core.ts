@@ -28,7 +28,7 @@ export interface GameDefinition<State, Move> {
   /** Widok stanu dla konkretnego gracza: tu ukrywamy informacje. Obserwator dostaje widok dla "". */
   playerView(state: State, player: PlayerId): unknown;
   isOver(state: State): GameResult | null;
-  /** Miejsca po końcu gry (od 1, remis = to samo miejsce). Mają je mini-gry: turniej liczy z nich punkty. */
+  /** Miejsca po końcu gry (od 1, remis = to samo miejsce): mini-gry i gry główne z remisami. Turniej liczy z nich punkty. */
   places?(state: State): Record<PlayerId, number>;
   /** Na kogo czekamy (ruch po kolei: jedna osoba; faza równoczesna: kilka); [] po końcu gry. */
   waitingFor(state: State): PlayerId[];
@@ -37,6 +37,8 @@ export interface GameDefinition<State, Move> {
   /** Zamiast turnSeconds: limit zależny od fazy. Odlicza od nowa tylko przy zmianie key (np. STOP w Państwach-miastach). */
   turn?(state: State): { key: string; seconds: number };
   timeoutMove?(state: State, player: PlayerId, rng: Rng): Move;
+  /** Dekoracyjny podgląd rywali, poza stanem zasad i wynikami; `round` podaje liczbę etapów w `total`. */
+  live?: { kind: "score" | "round" | "survival"; total?: number };
   /**
    * Mini-gry: główny wynik gracza po końcu partii jako liczba, do rankingu rekordów; `lower` = mniej znaczy lepiej.
    * `tie` to drugie kryterium, którym gra rozstrzyga remisy (np. średnia reakcji); wynik nieskończony znaczy „brak”.

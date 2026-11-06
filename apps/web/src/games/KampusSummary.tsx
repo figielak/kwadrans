@@ -13,11 +13,13 @@ interface Props {
   /** Majątek końcowy (jak w rankingu): ostatni punkt wykresu. */
   finalWealth: (id: string) => number;
   actions: ReactNode;
+  /** Miejsca graczy pod tytułem (wiersze `ResultHero`). */
+  hero: ReactNode;
   onClose: () => void;
 }
 
 /** Podsumowanie partii: wykres majątku po rundach i kilka ciekawostek. */
-export function KampusSummary({ title, winner, stats, players, nick, color, finalWealth, actions, onClose }: Props) {
+export function KampusSummary({ title, winner, stats, players, nick, color, finalWealth, actions, hero, onClose }: Props) {
   // Ostatni punkt: majątek końcowy, chyba że koniec rundy już go zapisał (koniec po limicie rund).
   const series = players.map((id) => {
     const history = stats.wealth[id] ?? [];
@@ -45,35 +47,38 @@ export function KampusSummary({ title, winner, stats, players, nick, color, fina
         <h2 className="text-center text-lg font-semibold" style={winner ? { color: color(winner) } : undefined}>
           {title}
         </h2>
-        <div className="flex min-h-0 gap-4 overflow-y-auto">
-          <WealthChart series={series} nick={nick} color={color} />
-          {!rent && !tile && !doubles && <p className="w-40 shrink-0 text-xs text-fg-muted">Za krótka partia na ciekawostki.</p>}
-          <dl className="flex w-40 shrink-0 flex-col gap-2 text-xs empty:hidden">
-            {rent && (
-              <div>
-                <dt className="label">Najwięcej czynszu zapłacił(a)</dt>
-                <dd>
-                  {who(rent[0])} · {rent[1]} zł
-                </dd>
-              </div>
-            )}
-            {tile && (
-              <div>
-                <dt className="label">Najbardziej dochodowe pole</dt>
-                <dd>
-                  <span className="font-semibold">{BOARD[Number(tile[0])].name}</span> · {tile[1]} zł
-                </dd>
-              </div>
-            )}
-            {doubles && (
-              <div>
-                <dt className="label">Najwięcej dubletów</dt>
-                <dd>
-                  {who(doubles[0])} · {doubles[1]}
-                </dd>
-              </div>
-            )}
-          </dl>
+        <div className="flex min-h-0 flex-col gap-2 overflow-y-auto">
+          {hero}
+          <div className="flex gap-4">
+            <WealthChart series={series} nick={nick} color={color} />
+            {!rent && !tile && !doubles && <p className="w-40 shrink-0 text-xs text-fg-muted">Za krótka partia na ciekawostki.</p>}
+            <dl className="flex w-40 shrink-0 flex-col gap-2 text-xs empty:hidden">
+              {rent && (
+                <div>
+                  <dt className="label">Najwięcej czynszu zapłacił(a)</dt>
+                  <dd>
+                    {who(rent[0])} · {rent[1]} zł
+                  </dd>
+                </div>
+              )}
+              {tile && (
+                <div>
+                  <dt className="label">Najbardziej dochodowe pole</dt>
+                  <dd>
+                    <span className="font-semibold">{BOARD[Number(tile[0])].name}</span> · {tile[1]} zł
+                  </dd>
+                </div>
+              )}
+              {doubles && (
+                <div>
+                  <dt className="label">Najwięcej dubletów</dt>
+                  <dd>
+                    {who(doubles[0])} · {doubles[1]}
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </div>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           {actions}

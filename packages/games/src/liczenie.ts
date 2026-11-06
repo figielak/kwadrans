@@ -55,6 +55,7 @@ export const liczenie: GameDefinition<State, Move> = {
   name: "Liczenie",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "score" },
   // 30 s rundy + zapas na przeczytanie zasad i Start; przy 60 s późny Start ucinał rundę w połowie.
   turnSeconds: 90,
   moveSchema: quizMoveSchema,

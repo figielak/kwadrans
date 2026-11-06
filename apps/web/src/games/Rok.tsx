@@ -119,6 +119,7 @@ export function Rok({ view, me, players, ranking, onMove }: Props) {
             perfect={0}
             close={Infinity}
             unit="lata"
+            shortUnit="l."
             format={(d, i, id) => (d === 0 ? "0" : signed(view.answers[id][i] - view.events[i].year))}
             caption="Pomyłka w latach w każdej rundzie: plus to za późno, minus za wcześnie. Zielony: dokładnie."
           >

@@ -1,5 +1,6 @@
 import { type LobbyPlayer, QUIZ_DURATION_MS, QUIZ_BLOCK_MS, type QuizMove } from "@kwadrans/games";
 import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLive } from "../live.ts";
 import { Intro, ScoreTable, Stats } from "../screens/ui.tsx";
 import { VIBRATE } from "../vibrate.ts";
 
@@ -120,6 +121,8 @@ export function Quiz({ view, me, players, ranking, winner, task, preview, questi
   /** Ostatnio dotknięta odpowiedź: zielony błysk przy trafieniu, czerwony z potrząśnięciem przy pomyłce. */
   const [flash, setFlash] = useState<{ i: number; ok: boolean; id: number } | null>(null);
   const run = useRef({ start: 0, shownAt: 0, times: [] as number[], errors: 0, streak: 0, timer: 0, accepting: false, blockedUntil: 0, sent: false });
+  // Rośnie przy trafieniu; gry z punktami pokazują rywalom to samo, co gracz widzi u siebie.
+  useLive(points ? points(run.current) : run.current.times.length);
 
   function next(at = Math.round(performance.now())) {
     run.current.shownAt = at;

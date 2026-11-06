@@ -1,6 +1,7 @@
-import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import type { Room } from "@colyseus/sdk";
+import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Play, Shuffle, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, nickKey, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
 import { Memory } from "../games/Memory.tsx";
@@ -10,12 +11,17 @@ import { PanstwaMiasta } from "../games/PanstwaMiasta.tsx";
 import { Labirynt } from "../games/Labirynt.tsx";
 import { PiecWRzedzie } from "../games/PiecWRzedzie.tsx";
 import { FleetLeft, Statki } from "../games/Statki.tsx";
-import { fetchRecords } from "../net.ts";
+import { createLiveStore, liveActive, LiveContext, type LiveValues } from "../live.ts";
+import { canReact, createMomentStore, createReactionStore, leadChange, leaderOf, leadText, momentFrom } from "../moments.ts";
+import { fetchRecords, watchLive, watchReact } from "../net.ts";
 import { decisionKey, VIBRATE } from "../vibrate.ts";
-import { formatRecord, RecordPanel } from "./Records.tsx";
-import { type GameDot, GameDots, IntroContext, Screen, StickyBar, type Send } from "./ui.tsx";
+import { formatBest, formatGap, formatRecord, RecordPanel } from "./Records.tsx";
+import { heroResult, reducedMotion, shouldReveal } from "./results.ts";
+import { type GameDot, GameDots, HeroSlot, IntroContext, LiveBoard, LiveGameDots, Moment, ReactionBar, ReactionOverlay, ReactionToggle, EveningTable, ResultDetails, ResultHero, Screen, StickyBar, type Send, VoteCards } from "./ui.tsx";
+import { ICONS } from "./Lobby.tsx";
 
 interface Props {
+  room: Room;
   view: RoomView;
   me: string;
   dropped: boolean;
@@ -23,12 +29,49 @@ interface Props {
   onLeave: () => void;
 }
 
-export function Game({ view, me, dropped, send, onLeave }: Props) {
+export function Game({ room, view, me, dropped, send, onLeave }: Props) {
   const game = view.game!;
   const def = GAMES[view.gameId!];
   const nick = (id: string | undefined) => view.players.find((p) => p.id === id)?.nick ?? "Gracz";
   const seated = view.seats.includes(me);
+  // Wartości na żywo: magazyn poza stanem Reacta, kropki czytają go same.
+  const [liveStore] = useState(createLiveStore);
+  useEffect(() => watchLive(room, (m) => liveStore.set(m.id, m.value)), [room, liveStore]);
+  useEffect(() => liveStore.sync(game.live, game.intro), [game, liveStore]);
+  const liveOn = liveActive(def, view.seats, me);
+  const liveChannel = useMemo(
+    () => (liveOn ? { send: (value: number) => room.send("live", { value }), report: (value: number) => liveStore.report(me, value) } : null),
+    [liveOn, room, me, liveStore],
+  );
+  // Chwile: poprzedni widok w refie, po zmianie gry w turnieju nie ma z czym porównać. Kampus Tour porównuje sam, po dojściu pionka.
+  const [momentStore] = useState(createMomentStore);
+  const seenView = useRef<{ id: string; view: unknown } | null>(null);
+  useEffect(() => {
+    const prev = seenView.current?.id === def.id ? seenView.current.view : null;
+    seenView.current = { id: def.id, view: game.view };
+    if (view.phase !== "playing" || def.id === "kampus-tour") return;
+    const moment = momentFrom(def.id, prev, game.view, me, nick);
+    if (moment) momentStore.show(moment);
+  }, [game.view, def.id]);
+  // Zmiana prowadzenia: odniesieniem jest ostatni stan z liderem, żeby remis po drodze nie gubił zmiany. Bez stanu Reacta, więc gra się nie renderuje.
+  const leadBase = useRef<LiveValues>({});
+  useEffect(() => {
+    if (def.live?.kind !== "score" || view.phase !== "playing") return;
+    return liveStore.subscribe(() => {
+      const live = liveStore.get();
+      const who = leadChange(leadBase.current, live);
+      if (leaderOf(live) || !Object.keys(live).length) leadBase.current = live;
+      if (who) momentStore.show({ text: leadText(who, me, nick), playerId: who });
+    });
+  }, [def.live?.kind, view.phase, view.players, me, liveStore, momentStore]);
   const myTurn = view.phase === "playing" && game.waitingFor.includes(me);
+  // Reakcje: u grającego w mini-grze czekają do końca pomiaru, więc nic nie rusza się w trakcie.
+  const [reactionStore] = useState(createReactionStore);
+  useEffect(() => watchReact(room, (m) => reactionStore.showReaction(m)), [room, reactionStore]);
+  const measuring = def.minPlayers === 1 && view.phase === "playing" && seated && myTurn;
+  useEffect(() => reactionStore.setHeld(measuring), [measuring, reactionStore]);
+  const reactable = canReact({ mini: def.minPlayers === 1, phase: view.phase, seated, waiting: myTurn, people: view.players.length });
+  const react = (index: number) => send("react", { index });
   const waitingNicks = game.waitingFor.filter((id) => id !== me).map(nick).join(" i ");
 
   // Tryb cichy: krótka wibracja zamiast dźwięku, gdy czeka na mnie nowa decyzja (tura albo nowa faza).
@@ -92,9 +135,48 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
     };
   }, [def.id, view.phase, scored]);
 
+  // Bohater wyników: nie czeka na rekordy. Po ostatniej grze turnieju tytuł należy do turnieju, więc gra zostaje na swoim ekranie.
+  const colorOf = (id: string) => view.players.find((p) => p.id === id)?.color;
+  const { record } = def;
+  const hero =
+    view.phase === "over" && !(view.tournament && isDone(view.tournament))
+      ? heroResult({
+          result: game.result,
+          places: game.places,
+          seats: view.seats,
+          scoreOf: record && ((id) => ({ best: record.score(game.view, id), tie: finite(record.tie?.score(game.view, id)) })),
+          format: (best) => formatBest(def.id, best),
+          gap: (gap) => formatGap(def.id, gap),
+          me,
+          nick,
+        })
+      : null;
+  // Decyzja przed gałęzią Kampus Tour (hooki). Poprzednia faza zapisana w efekcie: podwójny render StrictMode widzi to samo.
+  // `revealing` trzyma pokaz, gdy kolejne wiadomości (np. prośba o rewanż) przyjdą już po zmianie fazy.
+  const prevPhase = useRef<RoomView["phase"] | null>(null);
+  const revealStarts = shouldReveal(prevPhase.current, view.phase, hero?.rows.length ?? 0) && !reducedMotion;
+  const [revealing, setRevealing] = useState(false);
+  useEffect(() => {
+    prevPhase.current = view.phase;
+    setRevealing(revealStarts);
+  }, [view.phase]);
+  const reveal = revealStarts || revealing;
+  // Miejsce na linię najlepszej rundy: stoi w bohaterze, a pisze do niego tabela rund spod „Szczegółów”.
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+
   // Kampus Tour ma własny, poziomy układ na cały ekran: gracze w rogach, licznik i rewanż w środku planszy.
   if (def.id === "kampus-tour") {
     return (
+      <>
+      {/* Układ poziomy jest zajęty, więc pasek dopiero na ekranie końcowym; reakcje innych widać zawsze. */}
+      <ReactionOverlay store={reactionStore} anchored={[]} color={colorOf} landscape />
+      {reactable && view.phase === "over" && (
+        <div className="landscape pointer-events-none z-50">
+          <div className="pointer-events-auto absolute top-1 left-1/2 -translate-x-1/2">
+            <ReactionBar onReact={react} className="rounded-full border border-line bg-surface p-1" />
+          </div>
+        </div>
+      )}
       <KampusTour
         view={game.view as KampusTourView}
         me={me}
@@ -106,8 +188,10 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
         result={game.result}
         onMove={(move) => send("move", move)}
         timer={view.phase === "playing" && <Countdown game={game} total={def.turnSeconds} color={turnColor} />}
-        actions={view.phase === "over" && <OverActions view={view} me={me} send={send} />}
+        actions={view.phase === "over" && <div className="flex w-full flex-wrap gap-2"><OverActions view={view} me={me} send={send} /></div>}
+        hero={hero && <ResultHero hero={hero} me={me} nick={nick} color={colorOf} rowsOnly />}
       />
+      </>
     );
   }
 
@@ -150,7 +234,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                 ? { done: id in sudoku.results ? SUDOKU_BLANKS : (sudoku.progress[id] ?? 0), total: SUDOKU_BLANKS }
                 : null;
   const myColor = view.players.find((p) => p.id === me)?.color;
-  const winner = view.phase === "over" ? game.result?.winner : undefined;
+  // W trakcie odsłony nagłówek nie zdradza zwycięzcy.
+  const winner = view.phase === "over" && !reveal ? game.result?.winner : undefined;
   // Turniej: w nagłówku numer gry i punkty; po ostatniej grze tytuł ogłasza zwycięzcę turnieju, nie gry.
   const t = view.tournament;
   const table = t ? standings(t, view.seats) : null;
@@ -163,6 +248,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
 
   // W aktywnej partii kropki zamiast pigułek; ja pierwszy, pozostali w kolejności miejsc.
   // Gra solo nie ma kogo pokazywać.
+  const eveningPoints = new Map(view.evening.table.map((r) => [r.key, r.points]));
   const labels = initials(view.seats.map(nick));
   const dots: GameDot[] | null =
     (def.minPlayers === 1 || view.phase === "playing") && view.seats.length > 1
@@ -179,7 +265,7 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
               nick: nick(id),
               color: p?.color,
               me: id === me,
-              badge: table ? (table.find((r) => r.id === id)?.total ?? 0) : (view.scores[id] ?? 0),
+              badge: table ? (table.find((r) => r.id === id)?.total ?? 0) : (eveningPoints.get(nickKey(nick(id))) ?? 0),
               plus: !table && id === winner,
               fraction: def.minPlayers > 1 ? (game.waitingFor.includes(id) ? 1 : 0) : done ? 1 : progress ? progress.done / progress.total : 0,
               reading,
@@ -189,6 +275,10 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           })
           .sort((a, b) => Number(b.me) - Number(a.me))
       : null;
+
+  // Punkty i miejsca przy kropkach tylko w trakcie pomiaru; po końcu mówi bohater.
+  const liveNow = view.phase === "playing" && !game.intro && !!def.live && view.seats.length > 1;
+  const liveProps = { store: liveStore, def, room: liveNow ? { seats: view.seats, game } : null, progressOf };
 
   // Gra po kolei: jedna osoba ma ruch. Jej kolor (`turnColor`, jak poświata) dostaje tytuł i pasek limitu, też u czekających.
   const turnOf = view.phase === "playing" && game.waitingFor.length === 1 ? game.waitingFor[0] : undefined;
@@ -233,14 +323,82 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
 
   const intro = {
     game,
+    seated,
+    me,
+    myNick: nick(me),
+    myColor: myColor ?? "",
     others: view.seats.filter((id) => id !== me).map((id) => ({ id, nick: nick(id), color: view.players.find((p) => p.id === id)?.color ?? "", began: game.began.includes(id) })),
     begin: () => send("begin"),
     record: recordHint(def.id, records.before, nick(me)),
   };
 
+  const eveningTable = <EveningTable evening={view.evening} present={view.players.map((p) => nickKey(p.nick))} meKey={nickKey(nick(me))} />;
+
+  // Rekordy i tabela turnieju: z bohaterem nad szczegółami, a w trakcie odsłony bez zdradzania wyniku.
+  const panels = (
+    <div className={reveal ? "invisible contents" : "contents"}>
+              {view.phase === "over" && def.record && game.result?.ranking && records.after && (!seated || Number.isFinite(def.record.score(game.view, me))) && (
+                <RecordPanel
+                  gameId={def.id}
+                  before={records.before}
+                  after={records.after}
+                  nick={nick(me)}
+                  color={myColor}
+                  score={seated ? { best: def.record.score(game.view, me), tie: finite(def.record.tie?.score(game.view, me)) } : undefined}
+            underHero={!!hero}
+                />
+              )}
+
+              {/* Poza turniejem (tam jest jego tabela): punkty wieczoru z wszystkich partii w pokoju. */}
+              {view.phase === "over" && !t && eveningTable}
+
+              {/* Solo nie ma rywali, więc i punktów: zamiast tabeli zera jedno zdanie o postępie. */}
+              {view.phase === "over" && t && view.seats.length === 1 && (
+                <p className="px-1 text-sm text-fg-muted">
+                  Rozegrane gry: {gameNo}/{t.games.length}. Grasz sam, więc liczą się rekordy.
+                </p>
+              )}
+
+              {view.phase === "over" && t && view.seats.length > 1 && table && (
+                <section className="tile p-4">
+                  <h2 className="label mb-2 flex justify-between">
+                    {tournamentOver ? "Wyniki turnieju" : "Tabela turnieju"}
+                    <span className="w-14 text-right">pkt</span>
+                  </h2>
+                  <ol className="flex flex-col gap-1">
+                    {table.map((r, i) => (
+                      <li key={r.id} className="flex items-center gap-3">
+                        <span className="w-5 font-mono text-fg-muted tabular-nums">{tablePlaces(table)[i]}.</span>
+                        <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: view.players.find((p) => p.id === r.id)?.color }} aria-hidden />
+                        <span className="min-w-0 flex-1 truncate">
+                          {nick(r.id)}
+                          {r.id === me && <span className="text-fg-muted"> (ty)</span>}
+                        </span>
+                        {tournamentOver ? (
+                          <span role="img" className="flex items-center gap-1 font-mono text-sm text-fg-muted tabular-nums" aria-label={`Wygrane gry: ${r.wins}`}>
+                            <Trophy size={14} weight="fill" aria-hidden />
+                            {r.wins}
+                          </span>
+                        ) : (
+                          <span role="img" className="font-mono text-sm text-fg-muted tabular-nums" aria-label={`Za tę grę: ${r.last}`}>
+                            +{r.last}
+                          </span>
+                        )}
+                        <span className="w-14 text-right font-mono font-semibold tabular-nums">{r.total}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              )}
+    </div>
+  );
+
   return (
     <IntroContext.Provider value={intro}>
+    <LiveContext.Provider value={liveChannel}>
       <Screen dropped={dropped}>
+        <Moment store={momentStore} color={(id) => view.players.find((p) => p.id === id)?.color} />
+        <ReactionOverlay store={reactionStore} anchored={dots && !ownHeader && !reveal ? dots.map((d) => d.id) : []} color={colorOf} />
         {/* Gra solo nie ma lobby, więc z trwającej partii wychodzi się prosto na ekran główny. */}
         {view.solo && view.phase === "playing" && (
           <button type="button" className="-my-2 -ml-2 flex min-h-12 items-center gap-1.5 self-start px-2 text-sm text-fg-muted" onClick={onLeave}>
@@ -258,19 +416,29 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
               </p>
             )}
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-              {/* Koniec partii: tytuł w kolorze zwycięzcy; podbicie tylko u niego, przegrany dostaje spokojną wersję. */}
-              <h1
-                className={`min-w-0 origin-left break-words ${compact ? "text-base" : "text-xl"} font-semibold ${headline === me ? "animate-[title-pop_0.5s_cubic-bezier(0.2,0.8,0.4,1)]" : ""}`}
-                style={{ color: headline ? winnerColor : myTurn ? myColor : undefined }}
-              >
-                {compact && !open && !myTurn && !turnOf && game.waitingFor.length > 1 ? `Czekamy na: ${game.waitingFor.length} graczy` : status}
-              </h1>
-              {dots && !compact && <GameDots dots={dots} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
+              {/* Koniec partii: tytuł w kolorze zwycięzcy; podbicie tylko u niego, przegrany dostaje spokojną wersję. Z bohaterem tytuł jest w nim. */}
+              {hero ? (
+                !t && <p className="label">{def.name}</p>
+              ) : (
+                <h1
+                  className={`min-w-0 origin-left break-words ${compact ? "text-base" : "text-xl"} font-semibold ${headline === me ? "animate-[title-pop_0.5s_cubic-bezier(0.2,0.8,0.4,1)]" : ""}`}
+                  style={{ color: headline ? winnerColor : myTurn ? myColor : undefined }}
+                >
+                  {compact && !open && !myTurn && !turnOf && game.waitingFor.length > 1 ? `Czekamy na: ${game.waitingFor.length} graczy` : status}
+                </h1>
+              )}
+              {reactable && view.phase === "playing" && <ReactionToggle onReact={react} />}
+              {dots && !compact && (
+                <div className={reveal ? "invisible" : undefined}>
+                  <LiveGameDots {...liveProps} reactions={reactionStore} dots={dots} square={!!table} open={open} onToggle={() => setOpen(!open)} />
+                </div>
+              )}
             </div>
-            <div className={compact ? "flex min-h-12 items-center gap-2" : "contents"}>
-              {compact && <GameDots compact dots={dots!} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
+            <div className={compact ? "flex min-h-12 flex-wrap items-center gap-x-2 gap-y-1" : "contents"}>
+              {compact && <LiveGameDots compact {...liveProps} reactions={reactionStore} dots={dots!} square={!!table} open={open} onToggle={() => setOpen(!open)} />}
               {timer && (
-                <div className="min-w-0 flex-1">
+                // Przy 5-6 kropkach na 360 px pasek nie mieści się obok nich: z min. szerokością przechodzi do własnego wiersza zamiast kurczyć się do kropki.
+                <div className={compact ? "min-w-32 flex-1" : "min-w-0 flex-1"}>
                   <Countdown
                     game={round ?? game}
                     total={round ? QUIZ_DURATION_MS / 1000 : (def.turn?.(game.view).seconds ?? def.turnSeconds)}
@@ -280,7 +448,8 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
                 </div>
               )}
             </div>
-            <ul aria-label="Szczegóły graczy" className={`flex flex-wrap gap-2 ${pillsHidden ? "hidden" : ""}`}>
+            {dots && open && view.phase !== "over" && !t && eveningTable}
+            <ul aria-label="Szczegóły graczy" className={`flex flex-wrap gap-2 ${pillsHidden ? "hidden" : ""} ${reveal ? "invisible" : ""}`}>
               {view.seats.map((id) => {
                 const p = view.players.find((pl) => pl.id === id);
                 const active = id === winner || (view.phase === "playing" && game.waitingFor.includes(id));
@@ -369,138 +538,90 @@ export function Game({ view, me, dropped, send, onLeave }: Props) {
           </header>
         )}
 
-        {def.id === "piec-w-rzedzie" && (
-          <PiecWRzedzie
-            view={game.view as PiecWRzedzieView}
-            players={view.players}
-            canMove={myTurn}
-            onMove={(move) => send("move", move)}
-          />
+        {/* Kto skończył i obserwator oglądają pozostałych na żywo. */}
+        {liveNow && def.live?.kind === "score" && (!seated || !game.waitingFor.includes(me)) && (
+          <LiveBoard {...liveProps} nick={nick} color={(id) => view.players.find((p) => p.id === id)?.color} me={me} />
         )}
 
-        {def.id === "labirynt" && <Labirynt view={game.view as LabiryntView} me={me} players={view.players} canMove={myTurn} onMove={(move) => send("move", move)} />}
+        {hero && <ResultHero hero={hero} winner={game.result?.winner} me={me} nick={nick} color={colorOf} reveal={reveal} onDone={() => setRevealing(false)} slot={setSlot} />}
+        {hero && panels}
 
-        {def.id === "statki" && (
-          <Statki
-            view={game.view as StatkiView}
-            me={me}
-            players={view.players}
-            canMove={myTurn}
-            onMove={(move) => send("move", move)}
-          />
-        )}
+        <HeroSlot.Provider value={slot}>
+          <ResultDetails collapsible={!!hero}>
+          {def.id === "piec-w-rzedzie" && (
+            <PiecWRzedzie
+              view={game.view as PiecWRzedzieView}
+              players={view.players}
+              canMove={myTurn}
+              onMove={(move) => send("move", move)}
+            />
+          )}
 
-        {def.id === "chinczyk" && (
-          <Chinczyk
-            view={game.view as ChinczykView}
-            me={me}
-            players={view.players}
-            canMove={myTurn}
-            onMove={(move) => send("move", move)}
-          />
-        )}
+          {def.id === "labirynt" && <Labirynt view={game.view as LabiryntView} me={me} players={view.players} canMove={myTurn} onMove={(move) => send("move", move)} />}
 
-        {def.id === "memory" && <Memory view={game.view as MemoryView} players={view.players} canMove={myTurn} onMove={(move) => send("move", move)} />}
+          {def.id === "statki" && (
+            <Statki
+              view={game.view as StatkiView}
+              me={me}
+              players={view.players}
+              canMove={myTurn}
+              onMove={(move) => send("move", move)}
+            />
+          )}
 
-        <MiniGame id={def.id} view={game.view} me={me} players={view.players} ranking={game.result?.ranking} winner={winner} onMove={(move) => send("move", move)} onRound={onRound} />
+          {def.id === "chinczyk" && (
+            <Chinczyk
+              view={game.view as ChinczykView}
+              me={me}
+              players={view.players}
+              canMove={myTurn}
+              onMove={(move) => send("move", move)}
+            />
+          )}
 
-        {def.id === "panstwa-miasta" && (
-          <PanstwaMiasta
-            key={(game.view as PanstwaMiastaView).nonce}
-            view={game.view as PanstwaMiastaView}
-            me={me}
-            players={view.players}
-            waitingFor={game.waitingFor}
-            ranking={game.result?.ranking}
-            timer={ownHeader && <Countdown game={game} total={def.turn?.(game.view).seconds} color={turnColor} tense />}
-            onMove={(move) => send("move", move)}
-          />
-        )}
+          {def.id === "memory" && <Memory view={game.view as MemoryView} players={view.players} canMove={myTurn} onMove={(move) => send("move", move)} />}
 
-        {def.id === "kalambury" && (
-          <Kalambury
-            key={(game.view as KalamburyView).nonce}
-            view={game.view as KalamburyView}
-            me={me}
-            players={view.players}
-            ranking={game.result?.ranking}
-            timer={ownHeader && <Countdown game={drawTime ?? game} total={drawTime?.total ?? def.turn?.(game.view).seconds} color={turnColor} tense />}
-            onMove={(move) => send("move", move)}
-          />
-        )}
+          <MiniGame id={def.id} view={game.view} me={me} players={view.players} ranking={game.result?.ranking} winner={winner} onMove={(move) => send("move", move)} onRound={onRound} />
 
-        {/* Mini-gry pokazują ranking same, razem z wynikami. */}
-        {view.phase === "over" && !OWN_RANKING.has(def.id) && game.result?.ranking && game.result.ranking.length > 2 && (
-          <ol className="tile flex flex-col gap-1 p-4">
-            {game.result.ranking.map((id, i) => (
-              <li key={id} className="flex items-center gap-3">
-                <span className="w-5 font-mono text-fg-muted tabular-nums">{game.result?.places?.[id] ?? i + 1}.</span>
-                <span className="size-2.5 rounded-full" style={{ backgroundColor: view.players.find((p) => p.id === id)?.color }} aria-hidden />
-                {nick(id)}
-                {id === me && <span className="text-fg-muted"> (ty)</span>}
-              </li>
-            ))}
-          </ol>
-        )}
+          {def.id === "panstwa-miasta" && (
+            <PanstwaMiasta
+              key={(game.view as PanstwaMiastaView).nonce}
+              view={game.view as PanstwaMiastaView}
+              me={me}
+              players={view.players}
+              waitingFor={game.waitingFor}
+              ranking={game.result?.ranking}
+              timer={ownHeader && <Countdown game={game} total={def.turn?.(game.view).seconds} color={turnColor} tense />}
+              onMove={(move) => send("move", move)}
+            />
+          )}
 
-        {view.phase === "over" && def.record && game.result?.ranking && records.after && (!seated || Number.isFinite(def.record.score(game.view, me))) && (
-          <RecordPanel
-            gameId={def.id}
-            before={records.before}
-            after={records.after}
-            nick={nick(me)}
-            color={myColor}
-            score={seated ? { best: def.record.score(game.view, me), tie: finite(def.record.tie?.score(game.view, me)) } : undefined}
-          />
-        )}
+          {def.id === "kalambury" && (
+            <Kalambury
+              key={(game.view as KalamburyView).nonce}
+              view={game.view as KalamburyView}
+              me={me}
+              players={view.players}
+              ranking={game.result?.ranking}
+              timer={ownHeader && <Countdown game={drawTime ?? game} total={drawTime?.total ?? def.turn?.(game.view).seconds} color={turnColor} tense />}
+              onMove={(move) => send("move", move)}
+            />
+          )}
+          </ResultDetails>
+        </HeroSlot.Provider>
 
-        {/* Solo nie ma rywali, więc i punktów: zamiast tabeli zera jedno zdanie o postępie. */}
-        {view.phase === "over" && t && view.seats.length === 1 && (
-          <p className="px-1 text-sm text-fg-muted">
-            Rozegrane gry: {gameNo}/{t.games.length}. Grasz sam, więc liczą się rekordy.
-          </p>
-        )}
+        {!hero && panels}
 
-        {view.phase === "over" && t && view.seats.length > 1 && table && (
-          <section className="tile p-4">
-            <h2 className="label mb-2 flex justify-between">
-              {tournamentOver ? "Wyniki turnieju" : "Tabela turnieju"}
-              <span className="w-14 text-right">pkt</span>
-            </h2>
-            <ol className="flex flex-col gap-1">
-              {table.map((r, i) => (
-                <li key={r.id} className="flex items-center gap-3">
-                  <span className="w-5 font-mono text-fg-muted tabular-nums">{tablePlaces(table)[i]}.</span>
-                  <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: view.players.find((p) => p.id === r.id)?.color }} aria-hidden />
-                  <span className="min-w-0 flex-1 truncate">
-                    {nick(r.id)}
-                    {r.id === me && <span className="text-fg-muted"> (ty)</span>}
-                  </span>
-                  {tournamentOver ? (
-                    <span role="img" className="flex items-center gap-1 font-mono text-sm text-fg-muted tabular-nums" aria-label={`Wygrane gry: ${r.wins}`}>
-                      <Trophy size={14} weight="fill" aria-hidden />
-                      {r.wins}
-                    </span>
-                  ) : (
-                    <span role="img" className="font-mono text-sm text-fg-muted tabular-nums" aria-label={`Za tę grę: ${r.last}`}>
-                      +{r.last}
-                    </span>
-                  )}
-                  <span className="w-14 text-right font-mono font-semibold tabular-nums">{r.total}</span>
-                </li>
-              ))}
-            </ol>
-          </section>
-        )}
-
+        {reactable && view.phase === "over" && <ReactionBar onReact={react} className="mt-auto" />}
         {view.phase === "over" && (
-          <StickyBar className="z-10 mt-auto">
-            <div className="flex w-full flex-col gap-2">
+          <StickyBar className={`z-10 ${reactable ? "" : "mt-auto"}`}>
+            <div className="flex w-full flex-wrap gap-2">
               {t && !tournamentOver ? <NextActions view={view} me={me} send={send} countdown={<Countdown game={game} />} /> : <OverActions view={view} me={me} send={send} onLeave={onLeave} />}
             </div>
           </StickyBar>
         )}
       </Screen>
+    </LiveContext.Provider>
     </IntroContext.Provider>
   );
 }
@@ -519,8 +640,6 @@ function recordHint(gameId: string, rows: RecordRow[] | null, nick: string) {
 
 /** Wszyscy grają naraz: nie ma niczyjego „ruchu”, a licznik to limit partii. */
 const SIMULTANEOUS = new Set([...MINI_GAME_IDS, "panstwa-miasta"]);
-/** Gry z własną tabelą wyników po partii; bez nich ekran dokłada listę miejsc. */
-const OWN_RANKING = new Set([...MINI_GAME_IDS, "panstwa-miasta", "kalambury"]);
 
 const SCHULTE_LAST = SCHULTE_SIZE * SCHULTE_SIZE;
 
@@ -538,8 +657,11 @@ function Progress({ done, total, color }: { done: number; total: number; color?:
   );
 }
 
-/** Rewanż rusza, gdy kliknie go każdy grający; „Do lobby” od jednej osoby kończy serię. */
-function OverActions({ view, me, send, onLeave }: { view: RoomView; me: string; send: Send; onLeave?: () => void }) {
+/**
+ * Po partii: „Rewanż” i „Inna gra” obok siebie, „Do lobby” tylko u gospodarza (zabiera wszystkich).
+ * „Inna gra” otwiera głosowanie na 3 gry; w jego trakcie rewanż znika, a karty zajmują jego miejsce.
+ */
+export function OverActions({ view, me, send, onLeave }: { view: RoomView; me: string; send: Send; onLeave?: () => void }) {
   // Gra solo z ekranu głównego nie ma lobby ani rywali: gramy jeszcze raz albo wracamy na start.
   if (view.solo) {
     return (
@@ -554,6 +676,33 @@ function OverActions({ view, me, send, onLeave }: { view: RoomView; me: string; 
       </>
     );
   }
+  const isHost = view.hostId === me;
+  const seatedMe = view.seats.includes(me);
+  const lobby = isHost && (
+    // Mała akcja pod rzędem Rewanż / Inna gra: trzy przyciski w jednym rzędzie ucinały napisy na 360 px.
+    <button type="button" className="btn btn-ghost w-full text-sm text-fg-muted" onClick={() => send("toLobby")}>
+      Do lobby
+    </button>
+  );
+  if (view.vote) {
+    const nicks = Object.fromEntries(view.players.map((p) => [p.id, p.nick]));
+    const colors = Object.fromEntries(view.players.map((p) => [p.id, p.color]));
+    return (
+      <>
+        <VoteCards
+          options={view.vote.options.map((id) => ({ id, name: GAMES[id]?.name ?? id, icon: ICONS[id] ?? Play }))}
+          votes={view.vote.votes}
+          nicks={nicks}
+          colors={colors}
+          msLeft={view.vote.msLeft}
+          me={me}
+          seated={seatedMe}
+          onVote={(id) => send("vote", { id })}
+        />
+        {lobby}
+      </>
+    );
+  }
   const seated = view.players.filter((p) => view.seats.includes(p.id));
   const wants = seated.filter((p) => p.ready);
   const waiting = seated.filter((p) => !p.ready);
@@ -565,20 +714,24 @@ function OverActions({ view, me, send, onLeave }: { view: RoomView; me: string; 
           {wants.map((p) => p.nick).join(", ")} {wants.length === 1 ? "chce" : "chcą"} rewanżu
         </p>
       )}
-      {view.seats.includes(me) && (
+      {seatedMe && (
         <button
           type="button"
-          className={`btn btn-primary flex-1 ${wants.length > 0 && !iWant ? "animate-[ring-pulse_1.2s_ease-in-out_infinite] outline-2 outline-fg" : ""}`}
+          className={`btn btn-primary min-w-0 flex-1 ${wants.length > 0 && !iWant ? "animate-[ring-pulse_1.2s_ease-in-out_infinite] outline-2 outline-fg" : ""}`}
           disabled={iWant}
           onClick={() => send("rematch")}
         >
           <ArrowCounterClockwise size={18} weight="bold" aria-hidden />
-          {iWant ? `Czekamy na: ${waiting.map((p) => p.nick).join(", ")}…` : "Rewanż"}
+          <span className="truncate">{iWant ? `Czekamy na: ${waiting.map((p) => p.nick).join(", ")}…` : "Rewanż"}</span>
         </button>
       )}
-      <button type="button" className="btn btn-ghost flex-1" onClick={() => send("toLobby")}>
-        Do lobby
-      </button>
+      {seatedMe && (
+        <button type="button" className="btn btn-ghost min-w-0 flex-1" onClick={() => send("otherGame")}>
+          <Shuffle size={18} weight="bold" aria-hidden />
+          Inna gra
+        </button>
+      )}
+      {lobby}
     </>
   );
 }
@@ -590,7 +743,7 @@ function NextActions({ view, me, send, countdown }: { view: RoomView; me: string
   const iWant = view.seats.includes(me) && !waiting.some((p) => p.id === me);
   return (
     <>
-      <p className="flex items-center justify-center gap-3 text-sm" role="status">
+      <p className="flex w-full items-center justify-center gap-3 text-sm" role="status">
         <span>
           Następna gra: <span className="font-semibold">{t.extra && t.index === t.games.length - 1 ? "dogrywka, " : ""}{GAMES[t.games[t.index]]?.name}</span>
         </span>

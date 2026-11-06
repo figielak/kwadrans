@@ -1,6 +1,7 @@
 import { KUBKI_ROUNDS, KUBKI_SHOW_MS, kubkiBallAt, kubkiSwapMs, type KubkiView, type LobbyPlayer } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats } from "../screens/ui.tsx";
+import { useLive } from "../live.ts";
 import { VIBRATE } from "../vibrate.ts";
 
 interface Props {
@@ -50,6 +51,7 @@ export function Kubki({ view, me, players, ranking, onMove }: Props) {
   /** Wskazane miejsca z zakończonych rund. */
   const [picks, setPicks] = useState<number[]>([]);
   const cups = useRef<(HTMLDivElement | null)[]>([]);
+  useLive(picks.length);
   const color = players.find((p) => p.id === me)?.color;
 
   const round = Math.min(phase === "reveal" ? picks.length - 1 : picks.length, KUBKI_ROUNDS - 1);

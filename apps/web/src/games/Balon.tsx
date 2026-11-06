@@ -90,6 +90,7 @@ export function Balon({ view, me, players, ranking, onMove }: Props) {
             perfect={0}
             close={0}
             unit=""
+            best={false}
             format={(n) => n}
             // Stuknięcia, nie błąd: kolor mówi, czy balon pękł, nikt nie ma „najlepszego” w rundzie.
             tone={(n, i) =>

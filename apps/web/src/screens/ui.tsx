@@ -1,6 +1,101 @@
-import { ArrowLeft, Check, HandTap, ShareNetwork, SignOut, Timer, Trophy, WifiSlash } from "@phosphor-icons/react";
-import type { RoomView } from "@kwadrans/games";
-import { createContext, Fragment, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
+import type { Icon } from "@phosphor-icons/react";
+import { ArrowLeft, CaretDown, Check, HandTap, ShareNetwork, SignOut, Smiley, Timer, Trophy, WifiSlash } from "@phosphor-icons/react";
+import { REACTIONS, type RoomView } from "@kwadrans/games";
+import { createContext, Fragment, type ReactNode, type Ref, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
+import { liveDots, type LiveStore } from "../live.ts";
+import type { MomentStore, ReactionStore } from "../moments.ts";
+import { autoStart, introStage, secondsLeft, startsAfterClose } from "./intro.ts";
+import { bestRound, type Hero, revealOrder } from "./results.ts";
+
+/**
+ * Tabela wieczoru: punkty za wszystkie partie w pokoju. Tylko przy 2+ grach, zwięzła (jeden wiersz na osobę, bez tytułów),
+ * żeby przy wynikach nie była większa od bohatera. Remis dzieli miejsce; kto wyszedł, zostaje i jest przygaszony.
+ */
+export function EveningTable({ evening, present, meKey }: { evening: RoomView["evening"]; present: string[]; meKey: string }) {
+  if (evening.games < 2 || evening.table.length === 0) return null;
+  const places = evening.table.map((r) => 1 + evening.table.filter((o) => o.points > r.points).length);
+  return (
+    <section className="tile px-4 py-3" aria-label="Tabela wieczoru">
+      <h2 className="label mb-1.5 flex justify-between">
+        Wieczór · {evening.games} {evening.games % 10 >= 2 && evening.games % 10 <= 4 && (evening.games < 12 || evening.games > 14) ? "gry" : "gier"}
+        <span>pkt</span>
+      </h2>
+      <ol className="flex flex-col gap-0.5 text-sm">
+        {evening.table.map((r, i) => (
+          <li key={r.key} className={`flex items-center gap-2 ${present.includes(r.key) ? "" : "text-fg-muted"}`}>
+            <span className="w-5 font-mono text-fg-muted tabular-nums">{places[i]}.</span>
+            <span className="min-w-0 flex-1 truncate">
+              {r.nick}
+              {r.key === meKey && <span className="text-fg-muted"> (ty)</span>}
+              {!present.includes(r.key) && <span className="text-xs"> · wyszedł</span>}
+            </span>
+            <span className="font-mono font-semibold tabular-nums">{r.points}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+/**
+ * Karty głosowania „Inna gra”: ikona, nazwa i kropki głosujących w ich kolorach, trzy w jednym rzędzie (też w poziomym Kampus Tour).
+ * Własny wybór ma obrys w moim kolorze. Obserwator widzi te same karty bez dotyku.
+ */
+export function VoteCards({ options, votes, nicks, colors, msLeft, me, seated, onVote }: {
+  options: { id: string; name: string; icon: Icon }[];
+  votes: Record<string, string>;
+  nicks: Record<string, string>;
+  colors: Record<string, string>;
+  msLeft: number;
+  me: string;
+  seated: boolean;
+  onVote: (id: string) => void;
+}) {
+  // Czas liczony od odebrania wiadomości, jak w Countdown: zegary telefonu i serwera się różnią.
+  const deadline = useMemo(() => Date.now() + msLeft, [msLeft]);
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(timer);
+  }, []);
+  const seconds = Math.max(0, Math.ceil((deadline - now) / 1000));
+  return (
+    <div className="flex w-full basis-full flex-col gap-2" role="group" aria-label="Głosowanie na następną grę">
+      <p className="flex justify-between text-sm" role="status">
+        <span className="font-semibold">{seated ? "Co dalej?" : "Głosują gracze"}</span>
+        <span className="font-mono text-fg-muted tabular-nums">{seconds} s</span>
+      </p>
+      <div className="grid grid-cols-3 gap-2">
+        {options.map(({ id, name, icon: CardIcon }) => {
+          const voters = Object.entries(votes).filter(([, vote]) => vote === id).map(([voter]) => voter);
+          const mine = votes[me] === id;
+          const label = `${name}, ${voters.length ? `głosują: ${voters.map((v) => nicks[v] ?? "?").join(", ")}` : "bez głosów"}`;
+          const body = (
+            <>
+              <CardIcon size={22} weight={mine ? "fill" : "regular"} aria-hidden />
+              <span className="text-center text-xs leading-tight break-words">{name}</span>
+              <span className="flex min-h-3 flex-wrap justify-center gap-1" aria-hidden>
+                {voters.map((v) => <span key={v} className="size-3 rounded-full" style={{ backgroundColor: colors[v] }} />)}
+              </span>
+            </>
+          );
+          const style = mine ? { borderColor: colors[me], backgroundColor: `color-mix(in srgb, ${colors[me]} 16%, transparent)` } : undefined;
+          const cls = "flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 rounded-inset border border-line p-2";
+          return seated ? (
+            <button key={id} type="button" aria-pressed={mine} aria-label={label} className={`${cls} transition-colors duration-180 enabled:hover:border-line-hover`} style={style} onClick={() => onVote(id)}>
+              {body}
+            </button>
+          ) : (
+            <div key={id} role="img" aria-label={label} className={cls}>
+              {body}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export type Send = (type: string, payload?: unknown) => void;
 
@@ -80,7 +175,7 @@ export interface GameDot {
   nick: string;
   color?: string;
   me: boolean;
-  /** Wygrane partie w pokoju albo punkty turnieju; zera nie pokazujemy. */
+  /** Punkty wieczoru w pokoju albo punkty turnieju; zera nie pokazujemy. */
   badge: number;
   /** „+1” nad kropką zwycięzcy. */
   plus: boolean;
@@ -91,6 +186,10 @@ export interface GameDot {
   connected: boolean;
   /** Stan słownie, do `aria-label`. */
   status?: string;
+  /** Na żywo w grach na punkty: dekoracja, wynik liczy serwer. */
+  score?: number;
+  /** Reakcje nadawcy, które właśnie się unoszą. */
+  reactions?: { key: number; index: number }[];
 }
 
 /**
@@ -104,7 +203,7 @@ export function GameDots({ dots, square, open, onToggle, compact = false }: { do
         <span
           key={d.id}
           role="img"
-          aria-label={`${d.nick}${d.me ? " (ty)" : ""}${d.status ? `, ${d.status}` : ""}${d.badge ? `, ${square ? "punkty w turnieju" : "wygrane partie"}: ${d.badge}` : ""}`}
+          aria-label={`${d.nick}${d.me ? " (ty)" : ""}${d.status ? `, ${d.status}` : ""}${d.badge ? `, ${square ? "punkty w turnieju" : "punkty wieczoru"}: ${d.badge}` : ""}${d.score !== undefined ? `, wynik: ${d.score}` : ""}`}
           // Rozłączony ma przerywany obrys zamiast pierścienia: samo przygaszenie znaczy „czyta zasady”.
           className={`relative grid size-9 place-items-center rounded-full ${d.connected ? "" : "border border-dashed border-fg-muted"}`}
           style={d.connected ? { background: `conic-gradient(${d.color} ${d.fraction * 100}%, var(--color-line) 0)` } : undefined}
@@ -128,6 +227,16 @@ export function GameDots({ dots, square, open, onToggle, compact = false }: { do
               {d.badge}
             </span>
           )}
+          {d.score !== undefined && (
+            <span className="absolute -right-1 -bottom-1 grid h-4 min-w-4 place-items-center rounded-full border border-line bg-surface px-0.5 font-mono text-[10px] leading-none text-fg tabular-nums" aria-hidden>
+              {d.score}
+            </span>
+          )}
+          {d.reactions?.map((r) => (
+            <span key={r.key} className="pointer-events-none absolute bottom-full left-1/2 z-20 -translate-x-1/2 animate-[reaction-float_1.2s_ease-out_forwards] text-xl leading-none" aria-hidden>
+              {REACTIONS[r.index]}
+            </span>
+          ))}
           {d.plus && (
             <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 animate-[float-up_1.6s_ease-out_forwards] font-mono tabular-nums text-sm" style={{ color: d.color }} aria-hidden>
               +1
@@ -136,6 +245,217 @@ export function GameDots({ dots, square, open, onToggle, compact = false }: { do
         </span>
       ))}
     </button>
+  );
+}
+
+type LiveProps = {
+  store: LiveStore;
+  def: Parameters<typeof liveDots>[0];
+  /** `null` poza pomiarem: kropki bez wartości na żywo. */
+  room: Parameters<typeof liveDots>[1] | null;
+  progressOf: Parameters<typeof liveDots>[3];
+};
+
+/** Kropki z wartościami na żywo. Czytają magazyn same, więc nowa wiadomość nie renderuje gry. */
+export function LiveGameDots({ store, reactions, def, room, progressOf, dots, ...rest }: LiveProps & { reactions: ReactionStore } & Parameters<typeof GameDots>[0]) {
+  const live = useSyncExternalStore(store.subscribe, store.get);
+  const floating = useSyncExternalStore(reactions.subscribe, reactions.get);
+  const rows = room ? liveDots(def, room, live, progressOf) : [];
+  const merged = dots.map((d) => {
+    const row = rows.find((r) => r.id === d.id);
+    const own = floating.filter((r) => r.id === d.id);
+    return { ...d, fraction: row?.fraction ?? d.fraction, score: row?.score, reactions: own.length ? own : undefined };
+  });
+  return <GameDots dots={merged} {...rest} />;
+}
+
+/** Sześć emotek, pola 48 px: mieszczą się w 360 px. Nazwy tylko dla czytników ekranu. */
+const REACTION_NAMES = ["Super", "Śmieszne", "Wow", "Smutne", "Ogień", "Brawo"];
+export function ReactionBar({ onReact, className = "" }: { onReact: (index: number) => void; className?: string }) {
+  return (
+    <div className={`flex justify-center gap-1 ${className}`} role="group" aria-label="Reakcje">
+      {REACTIONS.map((emoji, i) => (
+        <button key={emoji} type="button" className="grid size-12 place-items-center rounded-full text-2xl leading-none transition-colors duration-100 active:bg-line-hover" aria-label={REACTION_NAMES[i]} onClick={() => onReact(i)}>
+          {emoji}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** Ekran partii nie ma miejsca na pasek: jeden przycisk, a pasek otwiera się nad planszą i niczego nie przesuwa. */
+export function ReactionToggle({ onReact }: { onReact: (index: number) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative -my-3 ml-auto">
+      <button type="button" className="grid size-12 place-items-center text-fg-muted" aria-expanded={open} aria-label={open ? "Zwiń reakcje" : "Pokaż reakcje"} onClick={() => setOpen(!open)}>
+        <Smiley size={24} aria-hidden />
+      </button>
+      {open && (
+        <ReactionBar
+          className="absolute top-full right-0 z-40 rounded-full border border-line bg-surface p-1"
+          onReact={(i) => {
+            onReact(i);
+            setOpen(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Reakcje bez kropki, nad którą mogłyby się unieść: obserwator, Kampus Tour, własne nagłówki gier, ekran po partii. Kropka koloru mówi, od kogo. */
+export function ReactionOverlay({ store, anchored, color, landscape = false }: { store: ReactionStore; anchored: string[]; color: (id: string) => string | undefined; landscape?: boolean }) {
+  const floating = useSyncExternalStore(store.subscribe, store.get).filter((r) => !anchored.includes(r.id));
+  const row = (
+    <div className="pointer-events-none fixed inset-x-0 top-14 z-50 flex justify-center gap-3" aria-hidden>
+      {floating.map((r) => (
+        <span key={r.key} className="flex animate-[reaction-float_1.2s_ease-out_forwards] items-center gap-1 text-2xl leading-none">
+          <span className="size-2 rounded-full" style={{ backgroundColor: color(r.id) }} />
+          {REACTIONS[r.index]}
+        </span>
+      ))}
+    </div>
+  );
+  // Kampus Tour w pionie jest obrócony: nakładka obraca się razem z nim.
+  return landscape ? <div className="landscape pointer-events-none z-50">{row}</div> : row;
+}
+
+/** Gracze na żywo u tego, kto skończył, i u obserwatora: zamiast samego czekania. */
+export function LiveBoard({ store, def, room, progressOf, nick, color, me }: LiveProps & { nick: (id: string) => string; color: (id: string) => string | undefined; me: string }) {
+  const live = useSyncExternalStore(store.subscribe, store.get);
+  if (!room) return null;
+  const rows = [...liveDots(def, room, live, progressOf)].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  return (
+    <ul className="tile flex flex-col gap-1.5 p-3" aria-label="Wyniki na żywo">
+      {rows.map((r) => (
+        <li key={r.id} className="flex items-center gap-2 text-sm">
+          <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: color(r.id) }} aria-hidden />
+          <span className="min-w-0 flex-1 truncate">{nick(r.id)}{r.id === me && " (ty)"}</span>
+          <span className="text-xs text-fg-muted">{r.done ? "skończył" : "gra"}</span>
+          <span className="w-8 text-right font-mono font-semibold tabular-nums">{r.score}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Wspólny komunikat o ważnej chwili, w kolorze gracza, którego dotyczy. Nieklikalny i poza układem: nie zjada dotknięć ani nie przesuwa gry. */
+export function Moment({ store, color }: { store: MomentStore; color: (id: string) => string | undefined }) {
+  const moment = useSyncExternalStore(store.subscribe, store.get);
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-3 z-50 flex justify-center px-4" role="status">
+      {moment && (
+        <span key={moment.id} className="animate-[moment-in_1.2s_ease-out_forwards] rounded-full border border-line bg-surface px-4 py-1.5 text-sm font-semibold" style={{ color: color(moment.playerId) }}>
+          {moment.text}
+        </span>
+      )}
+    </div>
+  );
+}
+
+const REVEAL_STEP_MS = 600;
+
+/** Miejsce w bohaterze na linię najlepszej rundy z gry; poza ekranem po partii (np. „Rekordy”) brak, więc linii nie ma. */
+export const HeroSlot = createContext<HTMLElement | null>(null);
+
+/**
+ * Bohater po partii: tytuł i po wierszu na gracza. `reveal`: wiersze od ostatniego co 0,6 s, tytuł na końcu;
+ * dotknięcie gdziekolwiek kończy pokaz, a przyciski działają przez cały czas. `rowsOnly`: same wiersze pod cudzym tytułem (Kampus Tour).
+ */
+export function ResultHero({ hero, winner, me, nick, color, reveal = false, rowsOnly = false, onDone, slot }: {
+  hero: Hero;
+  winner?: string;
+  me: string;
+  nick: (id: string) => string;
+  color: (id: string) => string | undefined;
+  reveal?: boolean;
+  rowsOnly?: boolean;
+  onDone?: () => void;
+  slot?: Ref<HTMLDivElement>;
+}) {
+  const count = hero.rows.length;
+  const animated = reveal && !rowsOnly;
+  const [shown, setShown] = useState(animated ? 1 : count);
+  // Pop tylko dla wierszy z pokazu: dotknięcie stawia resztę od razu.
+  const [pop, setPop] = useState(animated);
+  useEffect(() => {
+    if (!animated) return;
+    if (shown >= count) return onDone?.();
+    const timer = setTimeout(() => setShown((n) => n + 1), REVEAL_STEP_MS);
+    const finish = () => {
+      setPop(false);
+      setShown(count);
+    };
+    window.addEventListener("pointerdown", finish);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("pointerdown", finish);
+    };
+    // `animated` i `onDone` z chwili montażu: rodzic gasi `reveal` właśnie przez `onDone`.
+  }, [shown, count]);
+
+  const visible = new Set(revealOrder(hero.rows).slice(0, shown).map((r) => r.id));
+  const list = count > 0 && (
+    <ol className={`flex flex-col gap-1 ${rowsOnly ? "text-sm" : ""}`}>
+      {hero.rows.map((r) => (
+        <li
+          key={r.id}
+          className={`flex items-center gap-3 ${visible.has(r.id) ? (pop ? "animate-[stone-pop_0.35s_ease-out]" : "") : "invisible"}`}
+        >
+          <span className="w-5 shrink-0 font-mono text-fg-muted tabular-nums">{r.place}.</span>
+          <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: color(r.id) }} aria-hidden />
+          <span className={`min-w-0 flex-1 break-words ${r.place === 1 ? "font-semibold" : ""}`}>
+            {nick(r.id)}
+            {r.id === me && <span className="font-normal text-fg-muted"> (ty)</span>}
+          </span>
+          {r.score && (
+            <span className="flex shrink-0 flex-col items-end font-mono tabular-nums">
+              <span className={r.place === 1 ? "font-semibold" : ""}>{r.score}</span>
+              {r.gap && <span className="text-xs text-fg-muted">{r.gap}</span>}
+            </span>
+          )}
+        </li>
+      ))}
+    </ol>
+  );
+  if (rowsOnly) return list || null;
+
+  const titleShown = shown >= count;
+  return (
+    <section aria-label="Wynik partii" className="tile flex flex-col gap-3 p-4">
+      {/* Największy tekst po partii; podbicie tylko u zwycięzcy, jak dotąd w nagłówku. */}
+      <h1
+        className={`origin-left text-3xl font-semibold tracking-tight break-words ${titleShown ? (winner === me ? "animate-[title-pop_0.5s_cubic-bezier(0.2,0.8,0.4,1)]" : "") : "invisible"}`}
+        style={winner ? { color: color(winner) } : undefined}
+      >
+        {hero.title}
+      </h1>
+      {list}
+      {slot && <div ref={slot} className={`text-sm text-fg-muted empty:hidden ${titleShown ? "" : "invisible"}`} />}
+    </section>
+  );
+}
+
+/**
+ * Własny ekran gry pod „Szczegółami”. Zawsze ten sam element, także w trakcie partii (bez pudełka, `contents`):
+ * `<details>` tylko po partii przemontowałby grę w chwili końca i zgubił wibrację szkody z ostatniego ruchu.
+ */
+export function ResultDetails({ collapsible, children }: { collapsible: boolean; children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!collapsible) setOpen(false);
+  }, [collapsible]);
+  return (
+    <>
+      {collapsible && (
+        <button type="button" className="-ml-2 flex min-h-12 items-center gap-1.5 self-start px-2 text-sm text-fg-muted" aria-expanded={open} onClick={() => setOpen(!open)}>
+          <CaretDown size={16} weight="bold" className={`transition-transform duration-180 ${open ? "rotate-180" : ""}`} aria-hidden />
+          Szczegóły
+        </button>
+      )}
+      <div className={collapsible && !open ? "hidden" : "contents"}>{children}</div>
+    </>
   );
 }
 
@@ -301,6 +621,27 @@ export const tenth = (n: number) => decimal(n, 1);
 export const grade = (d: number, perfect: number, close: number) =>
   d <= perfect ? { text: "text-success", stroke: "stroke-success" } : d <= close ? { text: "", stroke: "stroke-fg" } : { text: "text-warning", stroke: "stroke-warning" };
 
+/** „Najlepsza runda: Ola, Gdańsk, 4 km”; null, gdy gra nie ma błędów do porównania (`best`) albo najlepszej chwili nie ma jednej. */
+export function bestRoundLine({ rows, heads, labels, unit, shortUnit, format, best = true }: {
+  rows: { id: string; nick: string; errors: number[] }[];
+  heads: ReactNode[];
+  labels?: string[];
+  unit: string;
+  shortUnit?: string;
+  format: (d: number, round: number, row: string) => ReactNode;
+  best?: boolean;
+}) {
+  const top = best ? bestRound(rows) : null;
+  if (!top) return null;
+  const head = heads[top.round];
+  const name = labels?.[top.round] ?? (typeof head === "number" ? `runda ${head}` : head);
+  const cell = format(top.error, top.round, top.id);
+  const value = typeof cell === "string" || typeof cell === "number" ? cell : top.error;
+  const short = shortUnit ?? unit;
+  const nick = rows.find((r) => r.id === top.id)!.nick;
+  return `Najlepsza runda: ${nick}, ${name}, ${value}${short === "%" || !short ? short : ` ${short}`}`;
+}
+
 /**
  * Tabela rund po mini-grze „na oko”: rundy w kolumnach, gracze w wierszach, w komórce błąd rundy (mniej lepiej).
  * Jedyny najmniejszy błąd w rundzie ma tło w kolorze gracza; przy remisie albo jednym graczu nikt.
@@ -317,6 +658,9 @@ export function RoundTable({
   goal,
   tone,
   caption,
+  labels,
+  shortUnit,
+  best = true,
 }: {
   heads: ReactNode[];
   /** Pusta lista `errors` = gracz nie odpowiedział (limit czasu). `score` (opcjonalny) stoi w wierszu gracza; `null` = gra…. */
@@ -337,14 +681,23 @@ export function RoundTable({
   tone?: (d: number, round: number) => { className: string; label?: string };
   /** Własny podpis pod tabelą zamiast opisu błędu i progów. */
   caption?: ReactNode;
+  /** Nazwy rund do linii najlepszej rundy (miasta w Mapie). */
+  labels?: string[];
+  /** Jednostka w linii najlepszej rundy, gdy `unit` to cały opis („% tortu do przełożenia”); pusta, gdy zapis komórki ma ją już w sobie. */
+  shortUnit?: string;
+  /** false: bez linii najlepszej rundy (Balon: stuknięcia, nie błąd; Przytrzymaj: cisza pomiaru). */
+  best?: boolean;
 }) {
+  const slot = useContext(HeroSlot);
+  const line = slot && bestRoundLine({ rows, heads, labels, unit, shortUnit, format, best });
   const played = rows.filter((r) => r.errors.length);
-  const best = (round: number) => {
+  const bestIn = (round: number) => {
     const sorted = [...played].sort((a, b) => a.errors[round] - b.errors[round]);
     return !tone && sorted.length > 1 && sorted[0].errors[round] < sorted[1].errors[round] ? sorted[0].id : null;
   };
   return (
     <section className="tile flex flex-col gap-2 p-3">
+      {line && slot && createPortal(<p>{line}</p>, slot)}
       <div className="grid gap-1 text-center font-mono text-xs tabular-nums" style={{ gridTemplateColumns: `repeat(${heads.length}, minmax(0, 1fr))` }}>
         {heads.map((head, i) => (
           <span key={i} className="text-fg-muted">
@@ -380,8 +733,8 @@ export function RoundTable({
                   role="img"
                   key={i}
                   aria-label={own?.label}
-                  className={`rounded-inset border py-1 ${own ? own.className : `${grade(d, perfect, close).text} ${d <= perfect ? "font-semibold" : ""}`} ${best(i) === r.id ? "" : "border-line"}`}
-                  style={best(i) === r.id ? { borderColor: r.color, backgroundColor: `color-mix(in srgb, ${r.color} 28%, transparent)` } : undefined}
+                  className={`rounded-inset border py-1 ${own ? own.className : `${grade(d, perfect, close).text} ${d <= perfect ? "font-semibold" : ""}`} ${bestIn(i) === r.id ? "" : "border-line"}`}
+                  style={bestIn(i) === r.id ? { borderColor: r.color, backgroundColor: `color-mix(in srgb, ${r.color} 28%, transparent)` } : undefined}
                 >
                   {format(d, i, r.id)}
                 </span>
@@ -410,6 +763,10 @@ export function StickyBar({ children, className = "" }: { children: ReactNode; c
 /** To, czego ekran instrukcji potrzebuje z pokoju; podaje `Game.tsx`, żeby nie przeciągać tego przez propsy każdej gry. */
 export const IntroContext = createContext<{
   game: NonNullable<RoomView["game"]>;
+  seated: boolean;
+  me: string;
+  myNick: string;
+  myColor: string;
   others: { id: string; nick: string; color: string; began: boolean }[];
   begin: () => void;
   /** Rekord gry do pobicia, jedna linia pod przyciskiem „Start”. */
@@ -418,39 +775,61 @@ export const IntroContext = createContext<{
 
 /**
  * Ekran instrukcji mini-gry: podgląd, trzy punkty (czas, co zrobić, jak liczone są punkty) i „Start”.
- * Limit gry jeszcze nie tyka; gdy serwer zamknie instrukcję (wszyscy wystartowali albo minęło INTRO_SECONDS), gra rusza sama.
+ * Limit gry jeszcze nie tyka; serwer zamyka instrukcję po Start wszystkich albo po INTRO_SECONDS przy 2+ grających.
+ * Rewanż solo pomija instrukcję na prośbę serwera, z tym samym zabezpieczeniem przed podwójnym startem.
  */
 export function Intro({ time, task, score, preview, onStart }: { time: ReactNode; task: ReactNode; score: ReactNode; preview: ReactNode; onStart: () => void }) {
   const room = useContext(IntroContext);
   const live = room?.game.intro ?? false;
+  const stage = introStage({ seated: room?.seated ?? true, solo: !room || room.others.length === 0, began: room?.game.began.includes(room.me) ?? false, countdown: room?.game.countdown ?? false, intro: live });
   // Termin od chwili odebrania wiadomości, jak w liczniku tury.
-  const deadline = useMemo(() => (live && room?.game.msLeft != null ? Date.now() + room.game.msLeft : null), [room?.game]);
+  const { deadline, receivedAt } = useMemo(() => {
+    const at = Date.now();
+    return { deadline: live && room?.game.msLeft != null ? at + room.game.msLeft : null, receivedAt: at };
+  }, [room?.game]);
   const [now, setNow] = useState(Date.now);
   const seen = useRef(live);
+  const began = useRef(false);
   const started = useRef(false);
 
-  function start() {
+  function startGame() {
     if (started.current) return;
     started.current = true;
-    room?.begin();
     onStart();
   }
 
+  // „Gotowy” zgłasza się raz. Przy 2+ grających pomiar rusza dopiero po zamknięciu instrukcji przez serwer (po 3-2-1).
+  function ready() {
+    if (began.current) return;
+    began.current = true;
+    room?.begin();
+    if (!room || room.others.length === 0) startGame();
+  }
+
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 250);
+    const id = setInterval(() => setNow(Date.now()), stage === "countdown" ? 100 : 250);
     return () => clearInterval(id);
-  }, []);
+  }, [stage === "countdown"]);
 
   // Po odświeżeniu w trakcie partii instrukcja jest już zamknięta: wtedy nic nie rusza samo, tyka zwykły limit.
   useEffect(() => {
+    if (room && autoStart(room.game)) ready();
     if (live) seen.current = true;
-    else if (seen.current) start();
-  }, [live]);
+    else if (startsAfterClose({ seen: seen.current, intro: live })) startGame();
+  }, [live, room?.game.skipIntro]);
 
+  const seconds = secondsLeft({ deadline, now, receivedAt });
   return (
     <section className="tile my-auto flex flex-col gap-4 p-4">
       <div className="relative flex h-32 items-center justify-center overflow-hidden rounded-inset border border-line bg-bg" aria-hidden>
         {preview}
+        {stage === "countdown" && (
+          <div className="absolute inset-0 flex items-center justify-center bg-bg/80">
+            <span key={seconds} className="intro-count text-6xl font-bold tabular-nums">
+              {seconds}
+            </span>
+          </div>
+        )}
       </div>
       <ul className="flex flex-col gap-1.5">
         {(
@@ -467,11 +846,19 @@ export function Intro({ time, task, score, preview, onStart }: { time: ReactNode
         ))}
       </ul>
       <div className="flex flex-col gap-1">
-        <button type="button" className="btn btn-primary w-full" onClick={start}>
-          Start
-        </button>
-        {deadline !== null && (
-          <p className="text-center text-sm text-fg-muted tabular-nums">Start automatycznie za {Math.max(0, Math.ceil((deadline - now) / 1000))} s</p>
+        {stage === "reads" && (
+          <button type="button" className="btn btn-primary w-full" onClick={ready}>
+            {room && room.others.length > 0 ? "Gotowy" : "Start"}
+          </button>
+        )}
+        {stage === "ready" && <p className="text-center text-fg-muted">Czekamy na pozostałych</p>}
+        {stage === "countdown" && (
+          <p className="text-center text-fg-muted" role="status">
+            Start za {seconds}
+          </p>
+        )}
+        {(stage === "reads" || stage === "watching") && deadline !== null && room && room.others.length > 0 && (
+          <p className="text-center text-sm text-fg-muted tabular-nums">Start automatycznie za {seconds} s</p>
         )}
         {room?.record && <p className="text-center text-sm text-fg-muted tabular-nums">{room.record}</p>}
       </div>
@@ -480,9 +867,15 @@ export function Intro({ time, task, score, preview, onStart }: { time: ReactNode
           {room.others.map((p) => (
             <li key={p.id} className="flex items-center gap-2">
               <span className="size-2 rounded-full" style={{ backgroundColor: p.color }} aria-hidden />
-              {p.nick} {p.began ? "już gra" : "czyta zasady"}
+              {p.nick} {p.began ? "gotowy" : "czyta zasady"}
             </li>
           ))}
+          {room.seated && (
+            <li className="flex items-center gap-2">
+              <span className="size-2 rounded-full" style={{ backgroundColor: room.myColor }} aria-hidden />
+              {room.myNick} {room.game.began.includes(room.me) ? "gotowy" : "czyta zasady"}
+            </li>
+          )}
         </ul>
       )}
     </section>

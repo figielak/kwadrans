@@ -3,6 +3,39 @@ import { nickKey, type RecordOrder, type RecordRow } from "@kwadrans/games";
 
 const TOP = 10;
 
+export type RoomGameOutcome = "completed" | "walkover" | "aborted";
+
+export interface RoomGameEntry {
+  roomKey: string;
+  gameId: string;
+  /** Ile osób siedziało przy stole, gdy partia ruszyła (wyjście w trakcie tego nie zmienia). */
+  players: number;
+  outcome: RoomGameOutcome;
+  nicks: string[];
+  at?: number;
+}
+
+export interface Metrics {
+  medianGames: number;
+  nextRate: number;
+  rooms3Plus: number;
+  returningNicks: number;
+  interrupted: number;
+}
+
+/** Doba lokalna (TZ procesu) jako RRRR-MM-DD. */
+const localDay = (at: number) => {
+  const d = new Date(at);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
+const median = (values: number[]) => {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = sorted.length >> 1;
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+};
+
 export interface RankingRow {
   nick: string;
   wins: number;
@@ -29,7 +62,13 @@ export function openStats(path: string) {
     db.exec("ALTER TABLE scores ADD COLUMN detail TEXT");
     db.exec("PRAGMA user_version = 2");
   }
+  // Pomiar atrakcyjności (plan §10): wpis na partię w pokoju, bez nicków; klucz pokoju jest losowy, nie kod pokoju.
+  db.exec("CREATE TABLE IF NOT EXISTS room_games (room_key TEXT NOT NULL, game_id TEXT NOT NULL, players INTEGER NOT NULL, outcome TEXT NOT NULL, at INTEGER NOT NULL)");
+  // Dni gry bez pokoju i gry (D-09): tylko osoba i doba lokalna, do liczenia powrotów.
+  db.exec("CREATE TABLE IF NOT EXISTS played_days (nick_key TEXT NOT NULL, day TEXT NOT NULL, PRIMARY KEY (nick_key, day))");
   const insert = db.prepare("INSERT INTO results VALUES (?, ?, ?, ?)");
+  const insertRoomGame = db.prepare("INSERT INTO room_games VALUES (?, ?, ?, ?, ?)");
+  const insertDay = db.prepare("INSERT OR IGNORE INTO played_days VALUES (?, ?)");
   // Jedyny agregat min/max w zapytaniu, więc `nick` pochodzi z wiersza o największym rowid, czyli z ostatniej partii.
   const select = db.prepare(
     "SELECT game_id, nick, SUM(won) AS wins, COUNT(*) AS played, MAX(rowid) FROM results GROUP BY game_id, nick_key(nick) ORDER BY wins DESC, played ASC, nick",
@@ -66,6 +105,45 @@ export function openStats(path: string) {
       db.exec("BEGIN");
       for (const nick of nicks) insert.run(gameId, nick, Number(nick === winner), at);
       db.exec("COMMIT");
+    },
+
+    /** Jeden wpis na partię w pokoju. Dzień gry dopisuje tylko ukończona partia co najmniej dwóch osób (solo, walkover i przerwana się nie liczą). */
+    recordRoomGame({ roomKey, gameId, players, outcome, nicks, at = Date.now() }: RoomGameEntry) {
+      db.exec("BEGIN");
+      insertRoomGame.run(roomKey, gameId, players, outcome, at);
+      if (outcome === "completed" && players >= 2) for (const nick of nicks) insertDay.run(nickKey(nick), localDay(at));
+      db.exec("COMMIT");
+    },
+
+    /** Miary z planu §10 od chwili `since`; ułamki 0-1 bez zaokrąglania. Pokoje bez żadnej partii z 2+ osobami nie wchodzą do miar. */
+    metrics(since: number): Metrics {
+      const rows = db.prepare("SELECT room_key, players, outcome FROM room_games WHERE at >= ? ORDER BY at, rowid").all(since) as { room_key: string; players: number; outcome: RoomGameOutcome }[];
+      const rooms = new Map<string, { completed: number }>();
+      let completed = 0;
+      let followed = 0;
+      let interrupted = 0;
+      for (const { room_key, players, outcome } of rows) {
+        if (players < 2) continue;
+        const room = rooms.get(room_key) ?? { completed: 0 };
+        rooms.set(room_key, room);
+        if (outcome !== "completed") {
+          interrupted++;
+          continue;
+        }
+        // Każda ukończona partia poza pierwszą jest „kolejną” dla poprzedniej.
+        if (room.completed > 0) followed++;
+        room.completed++;
+        completed++;
+      }
+      const counts = [...rooms.values()].map((r) => r.completed);
+      const days = db.prepare("SELECT COUNT(*) AS n FROM (SELECT nick_key FROM played_days WHERE day >= ? GROUP BY nick_key HAVING COUNT(*) >= 2)").get(localDay(since)) as { n: number };
+      return {
+        medianGames: median(counts),
+        nextRate: completed ? followed / completed : 0,
+        rooms3Plus: counts.length ? counts.filter((n) => n >= 3).length / counts.length : 0,
+        returningNicks: days.n,
+        interrupted,
+      };
     },
 
     ranking() {

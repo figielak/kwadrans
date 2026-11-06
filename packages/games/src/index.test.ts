@@ -31,6 +31,53 @@ test("mini-gry mają zasady narzucone z góry: tryby tylko w grach głównych", 
   for (const game of Object.values(GAMES)) if (game.minPlayers === 1) expect(game.modes, game.id).toBeUndefined();
 });
 
+describe("07-11: klasyfikacja live wszystkich mini-gier", () => {
+  const expected = {
+    liczenie: { kind: "score" }, stroop: { kind: "score" }, inny: { kind: "score" },
+    obrot: { kind: "score" }, literowka: { kind: "score" }, dziesiatki: { kind: "score" },
+    simon: { kind: "survival" }, "w-pamieci": { kind: "survival" }, sledzenie: { kind: "survival" },
+    kubki: { kind: "survival" }, wieza: { kind: "survival" },
+    kropki: { kind: "round", total: 10 }, kat: { kind: "round", total: 10 }, rok: { kind: "round", total: 10 },
+    schulte: { kind: "round", total: 25 }, sudoku: { kind: "round", total: 10 }, balon: { kind: "round", total: 10 },
+    srodek: { kind: "round", total: 10 }, mapa: { kind: "round", total: 10 }, tort: { kind: "round", total: 5 },
+    nozyczki: { kind: "round", total: 5 }, kolor: { kind: "round", total: 5 }, kolo: { kind: "round", total: 10 },
+    zakupy: { kind: "round", total: 10 },
+  };
+  const silence = ["refleks", "stoj", "stoper", "przytrzymaj", "zaslona", "rytm"];
+
+  test.each(Object.entries(expected))("%s: rodzaj i liczba etapów zgodne z tabelą", (id, live) => {
+    expect(GAMES[id]).toHaveProperty("live", live);
+  });
+
+  test.each(silence)("%s: cisza pomiaru bez pola live", (id) => {
+    expect(GAMES[id]).not.toHaveProperty("live");
+  });
+
+  test("tabela obejmuje dokładnie 30 mini-gier: 6 score, 5 survival, 13 round i 6 ciszy", () => {
+    expect([...Object.keys(expected), ...silence].sort()).toEqual([...MINI_GAME_IDS].sort());
+    for (const [kind, count] of [["score", 6], ["survival", 5], ["round", 13]] as const) {
+      expect(MINI_GAME_IDS.filter((id) => GAMES[id].live?.kind === kind)).toHaveLength(count);
+    }
+    for (const id of MINI_GAME_IDS) {
+      if (GAMES[id].live?.kind === "round") {
+        expect(Number.isInteger(GAMES[id].live!.total)).toBe(true);
+        expect(GAMES[id].live!.total).toBeGreaterThan(0);
+      }
+    }
+    for (const game of Object.values(GAMES).filter((g) => g.minPlayers > 1)) expect(game).not.toHaveProperty("live");
+  });
+});
+
+test.each([0, 9999])("live: schema przyjmuje graniczną wartość %i", (value) => {
+  expect(ROOM_MESSAGES).toHaveProperty("live");
+  expect(ROOM_MESSAGES.live.safeParse({ value }).success).toBe(true);
+});
+
+test.each([-1, 10_000, 1.5, "1", null, undefined, NaN, Infinity])("live: schema odrzuca %s", (value) => {
+  expect(ROOM_MESSAGES).toHaveProperty("live");
+  expect(ROOM_MESSAGES.live.safeParse({ value }).success).toBe(false);
+});
+
 test("pickGame: id gry albo null (powrót do listy gier)", () => {
   expect(ROOM_MESSAGES.pickGame.safeParse({ gameId: "statki" }).success).toBe(true);
   expect(ROOM_MESSAGES.pickGame.safeParse({ gameId: null }).success).toBe(true);

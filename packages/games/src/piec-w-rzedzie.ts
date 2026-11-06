@@ -106,6 +106,8 @@ export const piecWRzedzie: GameDefinition<State, Move> = {
     return state.winLine ? { winner: state.players[state.turn === 0 ? 1 : 0] } : { ranking: state.players };
   },
 
+  places: (state) => Object.fromEntries(state.players.map((p) => [p, 1])),
+
   waitingFor: (state) => (state.over ? [] : [state.players[state.turn]]),
 
   timeoutMove(state, _player, rng) {

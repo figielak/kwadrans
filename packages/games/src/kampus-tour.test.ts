@@ -801,6 +801,32 @@ describe("limit czasu", () => {
 });
 
 describe("koniec gry", () => {
+  test.each([
+    { cash: { [A]: 100, [B]: 100, [C]: 50 }, places: { [A]: 1, [B]: 1, [C]: 3 } },
+    { cash: { [A]: 100, [B]: 50, [C]: 50 }, places: { [A]: 1, [B]: 2, [C]: 2 } },
+  ])("miejsca uwzględniają równy majątek: $cash", ({ cash, places }) => {
+    const state: State = { ...three(), phase: "over", cash };
+    expect(game.places?.(state)).toEqual(places);
+  });
+
+  test("miejsca liczą pola i budynki razem z gotówką", () => {
+    const state: State = { ...three(), phase: "over", cash: { [A]: 0, [B]: 20, [C]: 10 }, owners: { 1: A }, levels: { 1: 2 } };
+    expect(game.isOver(state)).toEqual({ ranking: [A, B, C] });
+    expect(game.places?.(state)).toEqual({ [A]: 1, [B]: 1, [C]: 3 });
+  });
+
+  test("biedniejszy monopolista ma pierwsze miejsce, równi rywale drugie", () => {
+    const state: State = { ...three(), phase: "over", monopoly: A, cash: { [A]: 0, [B]: 100, [C]: 100 } };
+    expect(game.isOver(state)).toEqual({ winner: A, ranking: [A, B, C] });
+    expect(game.places?.(state)).toEqual({ [A]: 1, [B]: 2, [C]: 2 });
+  });
+
+  test("bankruci mają osobne miejsca w odwrotnej kolejności bankructw", () => {
+    const state: State = { ...three(), phase: "over", bankrupt: [A, B], cash: { [A]: 0, [B]: 0, [C]: 0 } };
+    expect(game.isOver(state)).toEqual({ winner: C, ranking: [C, B, A] });
+    expect(game.places?.(state)).toEqual({ [C]: 1, [B]: 2, [A]: 3 });
+  });
+
   test(`po ${ROUNDS} rundach koniec, ranking wg majątku (gotówka + pola z budynkami)`, () => {
     let s = with2(three(), {
       round: ROUNDS,

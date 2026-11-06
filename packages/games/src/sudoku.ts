@@ -84,6 +84,7 @@ export const sudoku: GameDefinition<State, Move> = {
   name: "Sudoku",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "round", total: BLANKS },
   turnSeconds: TURN_SECONDS,
   // Stały klucz: ruch progress nie odnawia limitu, nawet gdy gra już tylko jedna osoba.
   turn: () => ({ key: "run", seconds: TURN_SECONDS }),

@@ -39,6 +39,7 @@ export const tort: GameDefinition<State, Move> = {
   name: "Tort",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "round", total: CAKES },
   turnSeconds: 120,
   moveSchema: z.object({
     type: z.literal("result"),

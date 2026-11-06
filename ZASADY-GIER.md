@@ -56,8 +56,12 @@ Odcień = `kolor`, Gomoku = `piec-w-rzedzie`. Ranking w SQLite jest po `id`, wi�
   Wyjątki: Narysuj koło (do 10 ruchów na gracza), Tabela Schultego, Policz kropki, Kąt, Który rok?, Wieża, Balon, Sudoku i Sekwencja (dodatkowy ruch `progress` po każdym trafieniu, rundzie, klocku, balonie albo wpisanej cyfrze).
 - Serwer odrzuca tylko nierealne wartości. Wynik liczy serwer tam, gdzie się da (Refleks, Narysuj koło, Odcień, Policz kropki, Który rok?, Środek, Stój!, Śledzenie, Wieża, Rytm, Mapa, Kąt, Przytrzymaj, Balon, W pamięci, Tort, Zakupy, Za zasłoną, Nożyczki, Trzy kubki),
   w reszcie ufa klientowi.
-- Partia zaczyna się ekranem instrukcji (platforma, nie zasady gry): każdy klika „Start” osobno (wiadomość pokoju `begin`) i gra od razu,
-  po `INTRO_SECONDS` (15 s) gra rusza sama. Limit tury startuje, gdy wystartują wszyscy albo minie 15 s; wynik oddany wcześniej go nie uruchamia.
+- Partia zaczyna się ekranem instrukcji (platforma, nie zasady gry): przy co najmniej dwóch grających „Start” zgłasza gotowość (wiadomość pokoju `begin`).
+  Gdy gotowi są wszyscy albo minie `INTRO_SECONDS` (15 s), serwer daje wspólne 3-2-1 (`COUNTDOWN_SECONDS = 3`), po którym wszyscy ruszają naraz.
+  Rewanż skraca instrukcję do `REMATCH_INTRO_SECONDS` (5 s); kolejna gra turnieju ma 15 s. Ruchy podczas instrukcji i odliczania są odrzucane.
+  Pełny limit tury rusza dopiero po odliczaniu i nie odnawia się od wyników ani postępu.
+  Jeden grający czeka na „Start” bez limitu instrukcji i rusza od razu bez odliczania, także w zwykłym pokoju i turnieju.
+  „Jeszcze raz” w pokoju `solo` pomija instrukcję i od razu zaczyna nową partię po decyzji gracza. Pierwsza partia, zwykły rewanż oraz kolejna gra turnieju pokazują instrukcję.
 - `waitingFor` = gracze bez wyniku. Po limicie `timeoutMove` wpisuje najgorszy możliwy wynik.
 - Koniec, gdy wszyscy oddali wynik. Ranking liczy `rankResults` (core.ts): zwycięzca tylko przy 2+ graczach i bez remisu
   na pierwszym miejscu; gra solo nie ma zwycięzcy (nie nabija statystyk).
@@ -750,7 +754,7 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 
 ## 6. Kampus Tour (`kampus-tour`)
 
-2-4 graczy (limit 4 to decyzja, nie przeoczenie), 6 postaci do wyboru. Balans ekonomii i jego historia: `KONCEPT.md`, sekcja 9.
+2-4 graczy (limit 4 to decyzja, nie przeoczenie), 6 postaci do wyboru. Balans ekonomii i jego historia: podsekcja „Balans” na końcu tej sekcji.
 
 ### Plansza (32 pola, indeksy zgodnie z ruchem wskazówek zegara)
 
@@ -848,6 +852,12 @@ Wynik, walidacja, ranking i tabela końcowa jak w Kolorze liter (`quiz.ts`, `Res
 - `stats` (majątek co rundę, zapłacony czynsz, dochód z pól, dublety) służy tylko ekranowi podsumowania. Czynsz liczy się w kwocie faktycznie oddanej:
   bankrut oddaje tylko swoją gotówkę i tyle trafia do statystyk (i zdarzenia `rent`); sama wypłata się nie zmienia.
 
+### Balans
+
+start 200 zł (+20 zł za każde dalsze miejsce), kieszonkowe 40 zł, czynsz P/10 (cała grupa x2), z budynkami 0,4P / P / 2P / 4P; bez kompletu grupy do poziomu 2 (poziom 3 i landmark z kompletem), jazda Biletem MPK bez kieszonkowego. Zmiany po 4 partiach testowych (2026-10-07): poziom 3 od pierwszej tury i czynsze 60-100 zł przy pustych kieszeniach dawały szybkie bankructwa, a MPK zamieniał się w darmowy komplet. Do sprawdzenia w kolejnych partiach; jeśli monopol dalej będzie łatwy przez grupy dwupolowe, liczyć tylko grupy trzypolowe.
+
+Druga nazwa w grupie „Rano” jest robocza (Automat z przekąskami).
+
 ## 7. Memory (`memory`)
 
 - 2-6 graczy, wspólna plansza zakrytych kart, na każdej jeden z 18 symboli (`SYMBOLS`), każdy symbol dokładnie na dwóch kartach.
@@ -915,7 +925,7 @@ Seria mini-gier puszczana po kolei w jednym pokoju. To nie jest gra z rejestru `
     parzysta długość, 2-200 liczb w ruchu); `start: true` zaczyna nową kreskę, `false` dokleja punkty do ostatniej (bez kreski odpada).
     `color` to indeks palety 0-5 (`INKS`: biały, żółty, zielony, niebieski, brązowy, gumka); liczy się tylko przy `start`, doklejone punkty
     mają kolor swojej kreski. Gumka (`ERASER`, 5) to kreska w kolorze płótna, grubsza od zwykłej; dla zasad to zwykły kolor.
-    Cały rysunek ma najwyżej `MAX_POINTS` (2000) punktów; ruch, który by go przekroczył, odpada.
+    Cały rysunek ma najwyżej `MAX_POINTS` (2000) punktów; ruch, który by go przekroczył, odpada. Ekran wysyła kreski paczkami co 200 ms (`SEND_MS`), a cały rysunek jest w stanie gry, więc odświeżenie niczego nie gubi.
     `{ type: "undo" }` usuwa ostatnią kreskę, `{ type: "clear" }` czyści rysunek (bez kresek odpada) i odkłada go do `cleared`.
     `undo` przy pustym rysunku przywraca odłożony (`cleared`), więc przypadkowe „Wyczyść” da się cofnąć;
     bez kresek i bez odłożonego rysunku `undo` odpada. Odłożony rysunek zna tylko rysujący.

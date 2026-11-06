@@ -51,6 +51,7 @@ export const zakupy: GameDefinition<State, Move> = {
   name: "Zakupy",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "round", total: LIST },
   turnSeconds: TURN_SECONDS,
   moveSchema: z.object({ type: z.literal("result"), picked: z.array(z.number().int()).max(SHELF), ms: z.number().int() }),
 

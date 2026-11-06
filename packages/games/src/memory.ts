@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type GameDefinition, type PlayerId, rankResults, shuffle } from "./core.ts";
+import { type GameDefinition, type PlayerId, rankPlaces, rankResults, shuffle } from "./core.ts";
 
 /** Liczba różnych symboli; ekran ma tyle emoji (`EMOJI` w Memory.tsx). */
 export const SYMBOLS = 18;
@@ -43,6 +43,8 @@ export interface View {
 }
 
 const over = (state: State) => state.owner.every((o) => o !== null);
+const pairCounts = (state: State) => Object.fromEntries(state.players.map((p) => [p, state.owner.filter((o) => o === p).length]));
+const byPairs = (a: number, b: number) => b - a;
 
 export const memory: GameDefinition<State, Move> = {
   id: "memory",
@@ -87,9 +89,10 @@ export const memory: GameDefinition<State, Move> = {
 
   isOver(state) {
     if (!over(state)) return null;
-    const pairs = Object.fromEntries(state.players.map((p) => [p, state.owner.filter((o) => o === p).length]));
-    return rankResults(state.players, pairs, (a, b) => b - a);
+    return rankResults(state.players, pairCounts(state), byPairs);
   },
+
+  places: (state) => rankPlaces(state.players, pairCounts(state), byPairs),
 
   waitingFor: (state) => (over(state) ? [] : [state.players[state.turn]]),
 

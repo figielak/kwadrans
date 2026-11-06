@@ -1,8 +1,11 @@
 import type { Room } from "@colyseus/sdk";
 import { GAMES, type RoomView } from "@kwadrans/games";
 import { CloseCode } from "@colyseus/sdk";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { forgetRoom, resumeRoom, watchRoom } from "./net.ts";
+import { nickKey } from "@kwadrans/games";
+import { Evening } from "./screens/Evening.tsx";
+import { shouldSummarize } from "./screens/evening.ts";
 import { Home } from "./screens/Home.tsx";
 import { Game } from "./screens/Game.tsx";
 import { Lobby } from "./screens/Lobby.tsx";
@@ -16,6 +19,10 @@ export function App() {
   const [view, setView] = useState<RoomView | null>(null);
   const [dropped, setDropped] = useState(false);
   const [notice, setNotice] = useState<string>();
+  // Ostatni widok pokoju: onLeave czyści `view`, a podsumowanie wieczoru potrzebuje ostatniej tabeli.
+  const lastView = useRef<RoomView | null>(null);
+  const lastNick = useRef("");
+  const [summary, setSummary] = useState<{ evening: RoomView["evening"]; meKey: string } | null>(null);
   // Gospodarz otworzył listę mini-gier; samo otwarcie nie zmienia nic w pokoju.
   const [mini, setMini] = useState(false);
   // Ekran „Rekordy” otwarty z pokoju: lokalny jak lista mini-gier; start partii go zamyka.
@@ -23,6 +30,8 @@ export function App() {
   const inLobby = view?.phase === "lobby";
   useEffect(() => {
     if (!inLobby) setRecords(false);
+    // Po partii lista mini-gier nie wraca sama, także u gościa, który ją przeglądał.
+    if (!inLobby) setMini(false);
   }, [inLobby]);
 
   useEffect(() => {
@@ -34,11 +43,18 @@ export function App() {
 
   useEffect(() => {
     if (!room) return;
-    const off = watchRoom(room, setView);
+    lastView.current = null;
+    const off = watchRoom(room, (next) => {
+      lastView.current = next;
+      lastNick.current = next.players.find((p) => p.id === room.sessionId)?.nick ?? lastNick.current;
+      setView(next);
+    });
     room.onDrop(() => setDropped(true));
     room.onReconnect(() => setDropped(false));
     room.onLeave((code) => {
       forgetRoom();
+      // Własne wyjście po co najmniej dwóch partiach kończy wieczór podsumowaniem; zerwane połączenie dostaje dotychczasowy komunikat.
+      if (shouldSummarize(lastView.current, code)) setSummary({ evening: lastView.current!.evening, meKey: nickKey(lastNick.current) });
       setRoom(null);
       setView(null);
       setDropped(false);
@@ -56,19 +72,21 @@ export function App() {
       </main>
     );
   }
+  if (!room && summary) return <Evening evening={summary.evening} meKey={summary.meKey} onDone={() => setSummary(null)} />;
   if (!room) return <Home onRoom={setRoom} notice={notice} />;
   const send = (type: string, payload?: unknown) => room.send(type, payload);
-  if (view && view.phase !== "lobby") return <Game view={view} me={room.sessionId} dropped={dropped} send={send} onLeave={() => room.leave()} />;
+  if (view && view.phase !== "lobby") return <Game room={room} view={view} me={room.sessionId} dropped={dropped} send={send} onLeave={() => room.leave()} />;
   const me = room.sessionId;
   const screen = { me, dropped, send, onLeave: () => room.leave() };
   const def = view?.gameId ? GAMES[view.gameId] : undefined;
   if (view?.tournament) return <TournamentSetup view={view} {...screen} />;
   // Gra główna ma własny ekran przed partią; mini-gry wybiera się na osobnej liście.
   if (view && def && def.minPlayers > 1) return <Setup view={view} {...screen} />;
-  if (view && (def || (mini && view.hostId === me))) {
+  // Listę mini-gier otwiera też gość: tam dotyka gier jako życzeń.
+  if (view && (def || mini)) {
     const back = () => {
       setMini(false);
-      send("pickGame", { gameId: null });
+      if (view.hostId === me) send("pickGame", { gameId: null });
     };
     if (records) {
       const self = view.players.find((p) => p.id === me);

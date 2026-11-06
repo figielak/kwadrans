@@ -80,6 +80,7 @@ export const srodek: GameDefinition<State, Move> = {
   name: "Środek",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "round", total: ROUNDS },
   turnSeconds: 60,
   moveSchema: z.object({
     type: z.literal("result"),

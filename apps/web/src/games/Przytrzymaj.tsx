@@ -129,6 +129,7 @@ export function Przytrzymaj({ view, me, players, ranking, onMove }: Props) {
         perfect={PERFECT}
         close={CLOSE}
         unit="s"
+        best={false}
         // Znak mówi, czy za krótko, czy za długo; liczba to odchyłka po ucięciu do celu.
         format={(d, i, id) => `${holdsOf(id)[i] < view.targets[i] ? "−" : "+"}${seconds(d)}`}
         caption={

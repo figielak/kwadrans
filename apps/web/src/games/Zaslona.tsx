@@ -122,6 +122,7 @@ export function Zaslona({ view, me, players, ranking, onMove }: Props) {
             perfect={PERFECT}
             close={CLOSE}
             unit="s od mety"
+            shortUnit="s"
             format={seconds}
             legend={`Zielony: do ${seconds(PERFECT)} s, czerwony: ponad ${seconds(CLOSE)} s.`}
           />

@@ -1,13 +1,18 @@
+import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { type AuthContext, type Client, CloseCode, matchMaker, Room, ServerError } from "@colyseus/core";
 import {
   advance,
+  addGame,
   begin,
   cleanConfig,
   cleanNick,
+  COUNTDOWN_SECONDS,
   create,
   createRng,
+  type Evening,
+  eveningTable,
   GAMES,
   INTRO_SECONDS,
   isDone,
@@ -16,21 +21,29 @@ import {
   type LobbyPlayer,
   mark,
   MAX_PLAYERS,
+  QUICK_SERIES_LENGTH,
+  VOTE_SECONDS,
+  voteOptions,
+  voteWinner,
   MINI_GAME_IDS,
   type MoveContext,
   NEXT_SECONDS,
+  nickKey,
   type Phase,
   PLAYER_COLORS,
+  placesFromResult,
+  REMATCH_INTRO_SECONDS,
   type Rng,
   ROOM_MESSAGES,
   roomCode,
   soloState,
   type RoomView,
   TOURNAMENT_ID,
+  titles,
   type Tournament,
   winner,
 } from "@kwadrans/games";
-import { openStats } from "./stats.ts";
+import { openStats, type RoomGameOutcome } from "./stats.ts";
 
 const RECONNECT_SECONDS = 10 * 60; // telefon śpi między turami
 const IDLE_MS = 60 * 60 * 1000;
@@ -38,6 +51,7 @@ const ROOMS_PER_IP = 3;
 // Pokoje solo liczą się osobno: wszyscy na jednym Wi-Fi mają jedno IP.
 const SOLO_ROOMS_PER_IP = 20;
 const MESSAGES_PER_SECOND = 10;
+const LIVE_PER_SECOND = 2;
 
 // ponytail: licznik w pamięci jednego procesu, wystarczy przy jednym kontenerze na Pi
 const roomsByIp = new Map<string, number>();
@@ -49,12 +63,16 @@ export const stats = openStats(dbPath);
 type Timer = { clear(): void };
 
 const newRng = () => createRng(crypto.getRandomValues(new Uint32Array(1))[0]);
+const defaultMode = (def: GameDefinition<unknown, unknown>) => (def.modes?.find((m) => m.default) ?? def.modes?.[0])?.id ?? null;
 
 interface Match {
   def: GameDefinition<unknown, unknown>;
   state: unknown;
   rng: Rng;
   result: GameResult | null;
+  /** Stan przy starcie: onLeave zmienia `seats` jeszcze przed `finish`, a pomiar liczy osoby od początku partii. */
+  players: number;
+  nicks: string[];
 }
 
 export class LobbyRoom extends Room {
@@ -74,13 +92,28 @@ export class LobbyRoom extends Room {
   private tournament: Tournament | null = null;
   private markedBy: Record<string, string> = {};
   private scores: Record<string, number> = {};
+  private evening: Evening = { games: [], nicks: {} };
+  private eveningView: RoomView["evening"] = { games: 0, played: [], table: [], titles: [] };
+  /** Trwające głosowanie „Inna gra”, zawsze w fazie `over`; koniec liczy `turnTimer`. */
+  private vote: { options: string[]; votes: Record<string, string> } | null = null;
+  /** Życzenia gości w lobby: gracz → gra. */
+  private wishes: Record<string, string> = {};
   private match: Match | null = null;
   private turnTimer?: Timer;
   private turnEndsAt: number | null = null;
-  /** Ekran instrukcji mini-gry: limit rusza dopiero, gdy wystartują wszyscy albo minie INTRO_SECONDS. */
+  /** Instrukcja mini-gry i wspólne odliczanie; limit gry rusza dopiero po ich końcu. */
   private intro = false;
+  private countdown = false;
+  /** Rewanż w pokoju solo: klient pomija instrukcję i wysyła begin. */
+  private skipIntro = false;
   private began = new Set<string>();
+  /** Losowy klucz pokoju do pomiaru; kody pokoi wracają, więc nie nadają się na klucz. */
+  private roomKey: string = randomUUID();
   private messageCounts = new Map<string, { second: number; count: number }>();
+  private liveCounts = new Map<string, { second: number; count: number }>();
+  private reactCounts = new Map<string, number>();
+  /** Dane dekoracyjne od klientów, nigdy nie trafiają do stanu zasad ani wyników. */
+  private liveValues: Record<string, number> = {};
 
   async onCreate(options?: { solo?: unknown }) {
     if (typeof options?.solo === "string" && MINI_GAME_IDS.includes(options.solo)) {
@@ -100,7 +133,8 @@ export class LobbyRoom extends Room {
       this.gameId = gameId;
       this.tournament = null;
       this.markedBy = {};
-      this.mode = (def?.modes?.find((m) => m.default) ?? def?.modes?.[0])?.id ?? null;
+      this.wishes = {};
+      this.mode = def ? defaultMode(def) : null;
       this.seats = def ? [...this.players.keys()].slice(0, def.maxPlayers) : [];
       this.resetReady();
     });
@@ -116,6 +150,25 @@ export class LobbyRoom extends Room {
       this.gameId = null;
       this.mode = null;
       this.resetReady();
+    });
+
+    // Szybka seria: zwykły turniej o stałej długości, bez ekranu ustawień i gotowości; grają wszyscy w pokoju.
+    this.on("quickSeries", (client) => {
+      const config = cleanConfig({ length: QUICK_SERIES_LENGTH, must: [], skip: [] }, MINI_GAME_IDS);
+      if (!this.isHost(client) || this.phase !== "lobby" || !config) return;
+      this.seats = [...this.players.keys()].slice(0, MAX_PLAYERS);
+      this.tournament = begin(create(config), MINI_GAME_IDS, newRng());
+      this.markedBy = {};
+      this.wishes = {};
+      this.startTournamentGame();
+    });
+
+    // Życzenie gościa: kropka przy grze, nic więcej; gospodarz wybiera sam. Gra spoza rejestru odpada.
+    this.on("wish", (client, { id }) => {
+      if (!this.players.has(client.sessionId) || this.isHost(client) || this.phase !== "lobby") return;
+      if (id !== null && !GAMES[id]) return;
+      const { [client.sessionId]: _, ...rest } = this.wishes;
+      this.wishes = id === null ? rest : { ...rest, [client.sessionId]: id };
     });
 
     // Gry turnieju zaznacza każdy w pokoju; spory rozstrzygają gracze między sobą, nie aplikacja.
@@ -162,35 +215,84 @@ export class LobbyRoom extends Room {
       if (!this.isHost(client) || this.phase !== "lobby" || (!def && !this.tournament)) return;
       if (this.seats.length < (def?.minPlayers ?? 1) || this.seats.length > this.maxSeats()) return;
       if (this.seats.some((id) => id !== this.hostId && !this.players.get(id)?.ready)) return;
+      this.wishes = {};
       if (def) return this.startMatch(def);
       this.tournament = begin(this.tournament!, MINI_GAME_IDS, newRng());
       this.startTournamentGame();
     });
 
     this.on("begin", (client) => {
-      if (this.phase !== "playing" || !this.intro || !this.seats.includes(client.sessionId)) return;
+      if (this.phase !== "playing" || !this.intro || this.countdown || !this.seats.includes(client.sessionId)) return;
       this.began.add(client.sessionId);
-      if (this.seats.every((id) => this.began.has(id))) this.endIntro();
+      if (this.seats.every((id) => this.began.has(id))) this.startCountdown();
     });
 
     this.on("move", (client, raw) => {
-      if (this.phase !== "playing" || !this.match) return;
+      if (this.phase !== "playing" || !this.match || this.intro) return;
       const move = this.match.def.moveSchema.safeParse(raw);
       if (move.success) this.play(client.sessionId, move.data, { source: "client" });
+    });
+
+    // Własny kanał: bez this.on, pełnego update i zużywania limitu zwykłych wiadomości.
+    this.onMessage("live", (client: Client, raw: unknown) => {
+      if (this.phase !== "playing" || this.intro || !this.match?.def.live || this.seats.length < 2 || !this.seats.includes(client.sessionId)) return;
+      const second = Math.floor(Date.now() / 1000);
+      const entry = this.liveCounts.get(client.sessionId);
+      const count = entry?.second === second ? entry.count : 0;
+      if (count >= LIVE_PER_SECOND) return;
+      this.liveCounts.set(client.sessionId, { second, count: count + 1 });
+      const parsed = ROOM_MESSAGES.live.safeParse(raw);
+      if (!parsed.success) return;
+      const { value } = parsed.data;
+      this.liveValues = { ...this.liveValues, [client.sessionId]: value };
+      for (const other of this.clients) {
+        if (other.sessionId !== client.sessionId) other.send("live", { id: client.sessionId, value });
+      }
+    });
+
+    // Reakcje jak live: bez this.on i pełnego update, jedna na sekundę od osoby. Zły kształt nie zużywa limitu; nadawca też dostaje, bo tak widzi, że przeszło.
+    this.onMessage("react", (client: Client, raw: unknown) => {
+      if (this.phase === "lobby" || this.clients.length < 2) return;
+      const parsed = ROOM_MESSAGES.react.safeParse(raw);
+      if (!parsed.success) return;
+      const second = Math.floor(Date.now() / 1000);
+      if (this.reactCounts.get(client.sessionId) === second) return;
+      this.reactCounts.set(client.sessionId, second);
+      for (const other of this.clients) other.send("react", { id: client.sessionId, index: parsed.data.index });
     });
 
     // Po partii `ready` znaczy „chcę rewanż”; rewanż rusza, gdy chcą wszyscy grający.
     this.on("rematch", (client) => {
       const player = this.players.get(client.sessionId);
-      if (!player || this.phase !== "over" || !this.seats.includes(client.sessionId)) return;
+      if (!player || this.phase !== "over" || this.vote || !this.seats.includes(client.sessionId)) return;
       player.ready = true;
       this.maybeRematch();
     });
 
-    // Każdy może zakończyć serię i zabrać wszystkich do lobby; trwający turniej przerywa tylko gospodarz.
+    // Inna gra: każdy grający może rozpocząć głosowanie, poza pokojem solo i trwającym turniejem. Dotychczasowa zgoda na rewanż przepada.
+    this.on("otherGame", (client) => {
+      if (this.phase !== "over" || this.solo || this.vote || !this.seats.includes(client.sessionId)) return;
+      if (this.tournament && !isDone(this.tournament)) return;
+      const options = voteOptions(Object.values(GAMES), this.seats.length, this.gameId!, this.eveningView.played, newRng());
+      if (options.length === 0) return;
+      this.vote = { options, votes: {} };
+      this.resetReady();
+      this.turnEndsAt = Date.now() + VOTE_SECONDS * 1000;
+      this.turnTimer = this.clock.setTimeout(() => {
+        this.finishVote();
+        this.update();
+      }, VOTE_SECONDS * 1000);
+    });
+
+    this.on("vote", (client, { id }) => {
+      if (!this.vote?.options.includes(id) || !this.seats.includes(client.sessionId)) return;
+      this.vote = { ...this.vote, votes: { ...this.vote.votes, [client.sessionId]: id } };
+      this.maybeFinishVote();
+    });
+
+    // Gospodarz zabiera wszystkich do lobby: kończy serię, przerywa turniej albo gasi głosowanie.
     this.on("toLobby", (client) => {
-      if (!this.players.has(client.sessionId) || this.phase !== "over" || this.solo) return;
-      if (this.tournament && !isDone(this.tournament) && !this.isHost(client)) return;
+      if (!this.isHost(client) || this.phase !== "over" || this.solo) return;
       this.toLobby();
     });
   }
@@ -214,6 +316,17 @@ export class LobbyRoom extends Room {
     const taken = new Set([...this.players.values()].map((p) => p.color));
     const color = PLAYER_COLORS.find((c) => !taken.has(c))!;
     this.players.set(client.sessionId, { id: client.sessionId, nick: auth.nick, color, connected: true, ready: false });
+    // Powrót pod nową sesją odświeża pisownię także bez rozegrania kolejnej partii.
+    const key = nickKey(auth.nick);
+    const previousNick = this.evening.nicks[key];
+    if (Object.hasOwn(this.evening.nicks, key) && previousNick !== auth.nick) {
+      this.evening = { ...this.evening, nicks: { ...this.evening.nicks, [key]: auth.nick } };
+      this.eveningView = {
+        ...this.eveningView,
+        table: this.eveningView.table.map((row) => row.key === key ? { ...row, nick: auth.nick } : row),
+        titles: this.eveningView.titles.map((title) => nickKey(title.nick) === key ? { ...title, nick: auth.nick } : title),
+      };
+    }
     if (!this.hostId) this.hostId = client.sessionId;
     // Gra już wybrana i jest wolne miejsce: nowy gracz od razu gra, gospodarz nie musi go zaznaczać.
     if (this.phase === "lobby" && this.seats.length < this.maxSeats()) this.seats = [...this.seats, client.sessionId];
@@ -238,11 +351,18 @@ export class LobbyRoom extends Room {
     }
     this.players.delete(client.sessionId);
     this.messageCounts.delete(client.sessionId);
+    this.liveCounts.delete(client.sessionId);
+    this.reactCounts.delete(client.sessionId);
+    delete this.wishes[client.sessionId];
     if (this.hostId === client.sessionId) this.hostId = this.players.keys().next().value ?? "";
     if (this.seats.includes(client.sessionId)) {
       this.seats = this.seats.filter((s) => s !== client.sessionId);
       // Walkower: w grze 1v1 wygrywa ten, kto został. W turnieju gra przepada bez punktów, a turniej trwa.
-      if (this.phase === "playing") this.finish(this.seats.length === 1 && !this.tournament ? { winner: this.seats[0] } : {});
+      if (this.phase === "playing") {
+        const walkover = this.seats.length === 1 && !this.tournament;
+        this.finish(walkover ? { winner: this.seats[0] } : {}, walkover ? "walkover" : "aborted");
+      }
+      else if (this.vote) this.voteAfterLeave(client.sessionId);
       else this.maybeRematch();
     }
     this.update();
@@ -304,6 +424,7 @@ export class LobbyRoom extends Room {
 
   private toLobby() {
     this.phase = "lobby";
+    this.vote = null;
     this.match = null;
     this.resetReady();
     this.turnTimer?.clear();
@@ -325,36 +446,91 @@ export class LobbyRoom extends Room {
     this.startMatch(GAMES[this.gameId]);
   }
 
+  private maybeFinishVote() {
+    if (this.vote && this.seats.every((id) => id in this.vote!.votes)) this.finishVote();
+  }
+
+  /** Kto wyszedł, nie głosuje; odpadają też opcje, na które jest już za mało osób. Nie zostaje żadna: lobby. */
+  private voteAfterLeave(id: string) {
+    const options = this.vote!.options.filter((option) => GAMES[option].minPlayers <= this.seats.length);
+    if (options.length === 0) return this.toLobby();
+    const votes = Object.entries(this.vote!.votes).filter(([voter, vote]) => voter !== id && options.includes(vote));
+    this.vote = { options, votes: Object.fromEntries(votes) };
+    this.maybeFinishVote();
+  }
+
+  /** Wynik głosowania rusza jak nowa gra: tryb domyślny, pełna instrukcja, bez skończonego turnieju. */
+  private finishVote() {
+    const gameId = voteWinner(this.vote!.options, this.vote!.votes, newRng());
+    this.vote = null;
+    this.turnTimer?.clear();
+    this.turnEndsAt = null;
+    this.tournament = null;
+    this.markedBy = {};
+    this.gameId = gameId;
+    this.mode = defaultMode(GAMES[gameId]);
+    try {
+      this.startMatch(GAMES[gameId]);
+    } catch (error) {
+      // Jak w turnieju: błąd w zasadach gry nie może zostawić pokoju bez wyjścia.
+      this.logError("start gry po głosowaniu", error);
+      this.toLobby();
+    }
+  }
+
   private maybeRematch() {
     const def = this.gameId ? GAMES[this.gameId] : undefined;
-    if (this.phase !== "over" || !def || this.seats.length < def.minPlayers) return;
+    if (this.phase !== "over" || this.vote || !def || this.seats.length < def.minPlayers) return;
     if (!this.seats.every((id) => this.players.get(id)?.ready)) return;
     if (this.tournament) return this.startTournamentGame();
     // Na zmianę: kto zaczynał, w rewanżu rusza się ostatni. W mini-grach (minPlayers 1) wszyscy grają naraz,
     // więc rotacja nic nie daje, a tylko przestawia graczy w nagłówku i tabeli.
     if (def.minPlayers > 1) this.seats = [...this.seats.slice(1), this.seats[0]];
     this.resetReady();
-    this.startMatch(def);
+    this.startMatch(def, REMATCH_INTRO_SECONDS, this.solo);
   }
 
-  private startMatch(def: GameDefinition<unknown, unknown>) {
+  private startMatch(def: GameDefinition<unknown, unknown>, introSeconds = INTRO_SECONDS, skipIntro = false) {
     const rng = newRng();
-    this.match = { def, state: def.setup(this.seats, rng, this.mode ?? undefined), rng, result: null };
+    const nicks = this.seats.map((id) => this.players.get(id)?.nick ?? "?");
+    this.match = { def, state: def.setup(this.seats, rng, this.mode ?? undefined), rng, result: null, players: this.seats.length, nicks };
     this.phase = "playing";
     this.began.clear();
+    this.liveValues = {};
+    this.liveCounts.clear();
     // Ekran instrukcji mają gry solo (te same, które lobby pokazuje jako „Szybkie”).
     this.intro = def.minPlayers === 1;
-    if (!this.intro) return this.startTurnTimer();
+    this.countdown = false;
+    this.skipIntro = this.intro && skipIntro;
     this.turnTimer?.clear();
-    this.turnEndsAt = Date.now() + INTRO_SECONDS * 1000;
+    this.turnEndsAt = null;
+    if (!this.intro) return this.startTurnTimer();
+    if (this.seats.length === 1) return;
+    this.turnEndsAt = Date.now() + introSeconds * 1000;
     this.turnTimer = this.clock.setTimeout(() => {
+      this.startCountdown();
+      this.update();
+    }, introSeconds * 1000);
+  }
+
+  private startCountdown() {
+    if (this.phase !== "playing" || !this.intro || this.countdown) return;
+    if (this.seats.length === 1) return this.endIntro();
+    this.turnTimer?.clear();
+    this.countdown = true;
+    this.turnEndsAt = Date.now() + COUNTDOWN_SECONDS * 1000;
+    const match = this.match;
+    this.turnTimer = this.clock.setTimeout(() => {
+      if (this.phase !== "playing" || this.match !== match || !this.countdown) return;
       this.endIntro();
       this.update();
-    }, INTRO_SECONDS * 1000);
+    }, COUNTDOWN_SECONDS * 1000);
   }
 
   private endIntro() {
     this.intro = false;
+    this.countdown = false;
+    this.skipIntro = false;
     this.began = new Set(this.seats);
     this.startTurnTimer();
   }
@@ -367,7 +543,7 @@ export class LobbyRoom extends Room {
     match.state = match.def.applyMove(match.state, player, move, match.rng);
     const result = match.def.isOver(match.state);
     if (result) return this.finish(result);
-    // Mini-gra ma jeden termin od końca instrukcji: wynik ani próba nikomu go nie przesuwa.
+    // Mini-gra ma jeden termin od końca odliczania: wynik ani próba nikomu go nie przesuwa.
     if (match.def.minPlayers === 1) return;
     if (match.def.turn) {
       if (match.def.turn(match.state).key !== keyBefore) this.startTurnTimer();
@@ -379,16 +555,30 @@ export class LobbyRoom extends Room {
     if (after.join() !== before || after.length === 1) this.startTurnTimer();
   }
 
-  private finish(result: GameResult) {
+  private finish(result: GameResult, outcome: RoomGameOutcome = "completed") {
     if (!this.match) return;
     this.match.result = result;
+    this.measure(outcome);
     this.phase = "over";
     this.resetReady();
     this.turnTimer?.clear();
     this.turnEndsAt = null;
     this.intro = false;
+    this.countdown = false;
     // Kto wyszedł w trakcie, nie siedzi już w seats, więc nie dostaje porażki.
     const nick = (id: string) => this.players.get(id)?.nick ?? "?";
+    const { def, state, rng } = this.match;
+    const gamePlaces = result.ranking ? (result.places ?? def.places?.(state) ?? null) : null;
+    const eveningPlaces = !this.solo && placesFromResult(result, gamePlaces, this.seats);
+    if (eveningPlaces) {
+      this.evening = addGame(this.evening, this.gameId!, this.seats.map((id) => ({ key: nickKey(nick(id)), nick: nick(id), place: eveningPlaces[id] })));
+      this.eveningView = {
+        games: this.evening.games.length,
+        played: [...new Set([...this.eveningView.played, this.gameId!])],
+        table: eveningTable(this.evening),
+        titles: titles(this.evening),
+      };
+    }
     const win = (gameId: string, winnerId: string) => stats.record(gameId, this.seats.map(nick), nick(winnerId));
     if (result.winner) win(this.gameId!, result.winner);
     // Rekordy mini-gier: wynik każdego gracza, także solo. Gra przerwana nie ma rankingu, więc się nie zapisuje.
@@ -404,9 +594,7 @@ export class LobbyRoom extends Room {
       return;
     }
     // Turniej: punkty z miejsc (gra przerwana nie ma rankingu, więc nie daje punktów); wygrana w pokoju liczy się za cały turniej.
-    const { def, state, rng } = this.match;
-    const places = result.ranking ? (def.places?.(state) ?? null) : null;
-    this.tournament = advance(this.tournament, this.seats, places, MINI_GAME_IDS, rng);
+    this.tournament = advance(this.tournament, this.seats, gamePlaces, MINI_GAME_IDS, rng);
     if (isDone(this.tournament)) {
       const champion = winner(this.tournament, this.seats);
       if (!champion) return;
@@ -426,9 +614,19 @@ export class LobbyRoom extends Room {
     }, NEXT_SECONDS * 1000);
   }
 
+  /** Jeden anonimowy wpis na partię; błąd zapisu pomiaru nie może zepsuć końca partii. */
+  private measure(outcome: RoomGameOutcome) {
+    const { players, nicks } = this.match!;
+    try {
+      stats.recordRoomGame({ roomKey: this.roomKey, gameId: this.gameId!, players, outcome, nicks });
+    } catch (error) {
+      this.logError("pomiar partii", error);
+    }
+  }
+
   /** Po limicie czasu serwer wykonuje ruch za gracza, który nie zdążył. */
   private startTurnTimer() {
-    // Wynik oddany, gdy ktoś jeszcze czyta instrukcję, nie uruchamia limitu.
+    // Instrukcja i odliczanie nie zużywają limitu gry.
     if (this.intro) return;
     this.turnTimer?.clear();
     this.turnEndsAt = null;
@@ -447,7 +645,7 @@ export class LobbyRoom extends Room {
       } catch (error) {
         // Bez ruchu zastępczego nie ruszyłby kolejny limit i partia wisiałaby bez końca, więc kończy się bez zwycięzcy.
         this.logError("ruch po limicie czasu", error);
-        this.finish({});
+        this.finish({}, "aborted");
       }
       this.update();
     }, ms);
@@ -472,14 +670,21 @@ export class LobbyRoom extends Room {
       tournament: this.tournament,
       markedBy: this.markedBy,
       scores: this.scores,
+      evening: this.eveningView,
+      wishes: this.wishes,
+      vote: this.vote && { ...this.vote, msLeft: Math.max(0, (this.turnEndsAt ?? 0) - Date.now()) },
       game: match && {
         // Obserwator dostaje widok gracza "", czyli bez czyichkolwiek ukrytych informacji.
         view: match.def.playerView(match.state, this.seats.includes(id) ? id : ""),
         waitingFor: match.def.waitingFor(match.state),
         msLeft: this.turnEndsAt && Math.max(0, this.turnEndsAt - Date.now()),
         intro: this.intro,
+        countdown: this.countdown,
+        skipIntro: this.intro && this.skipIntro,
         began: [...this.began],
+        live: this.liveValues,
         result: match.result,
+        places: match.result?.ranking ? (match.result.places ?? match.def.places?.(match.state) ?? null) : null,
       },
     };
   }

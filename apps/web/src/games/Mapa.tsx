@@ -1,6 +1,7 @@
 import { GAMES, type LobbyPlayer, MAPA_ASPECT, MAPA_OUTLINE, MAPA_ROUNDS, mapaError, type MapaPoint, mapaPlace, type MapaView } from "@kwadrans/games";
 import { type PointerEvent, useEffect, useState } from "react";
 import { grade as gradeBy, Intro, RoundTable, Scores, Stats, upTo } from "../screens/ui.tsx";
+import { useLive } from "../live.ts";
 
 interface Props {
   view: MapaView;
@@ -48,6 +49,7 @@ export function Mapa({ view, me, players, ranking, onMove }: Props) {
   const playing = view.players.includes(me) && !(me in view.results);
   const [phase, setPhase] = useState<Phase>("intro");
   const [taps, setTaps] = useState<MapaPoint[]>([]);
+  useLive(taps.length);
   /** Znacznik bieżącej rundy; można go przenosić aż do „Zatwierdź”. */
   const [pin, setPin] = useState<MapaPoint | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -106,6 +108,7 @@ export function Mapa({ view, me, players, ranking, onMove }: Props) {
             perfect={PERFECT}
             close={CLOSE}
             unit="km"
+            labels={view.cities.map((c) => c.name)}
             // Cztery cyfry nie mieszczą się w kolumnie rundy na 360 px; pełna odległość zostaje w podpowiedzi i w sumie.
             format={(d) => (d > 999 ? <span title={`${d} km`}>{"999+"}</span> : `${d}`)}
             legend={`Zielony: do ${PERFECT} km, czerwony: ponad ${CLOSE} km.`}

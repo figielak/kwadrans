@@ -66,6 +66,7 @@ export const wPamieci: GameDefinition<State, Move> = {
   name: "W pamięci",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "survival" },
   turnSeconds: 300,
   moveSchema: z.object({ type: z.literal("result"), answers: z.array(z.number().int()).max(ROUNDS) }),
 

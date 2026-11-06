@@ -1,14 +1,19 @@
 import { z } from "zod";
 import type { GameResult, PlayerId } from "./core.ts";
 import type { Tournament } from "./turniej.ts";
+import type { EveningRow, EveningTitle } from "./wieczor.ts";
 
 /** Kolory graczy: dane, nie akcent. Żaden nie przypomina czerwieni akcentu (#ff2445). */
 export const PLAYER_COLORS = ["#3b9eff", "#ffc53d", "#46a758", "#8e7cff", "#0ac5b3", "#f76fbe"] as const;
 
 export const MAX_PLAYERS = PLAYER_COLORS.length;
 export const NICK_MAX = 16;
-/** Tyle trwa ekran instrukcji mini-gry; potem gra rusza sama, żeby nikt nie blokował pozostałych. */
+/** Limit instrukcji mini-gry przy 2+ grających; jedna osoba czeka na Start bez odliczania. */
 export const INTRO_SECONDS = 15;
+/** Instrukcja po rewanżu; kolejna gra turnieju zachowuje INTRO_SECONDS. */
+export const REMATCH_INTRO_SECONDS = 5;
+/** Wspólne odliczanie po instrukcji przy 2+ grających. */
+export const COUNTDOWN_SECONDS = 3;
 
 export interface LobbyPlayer {
   id: PlayerId;
@@ -39,17 +44,31 @@ export interface RoomView {
   markedBy: Record<string, PlayerId>;
   /** Wygrane partie w tym pokoju. */
   scores: Record<PlayerId, number>;
+  /** Gotowe podsumowanie wieczoru. Historia partii zostaje na serwerze. */
+  evening: { games: number; played: string[]; table: EveningRow[]; titles: EveningTitle[] };
+  /** Życzenia gości w lobby: id gracza → id gry, w którą chce zagrać. Czyszczone startem, wyborem gry i Szybką serią. */
+  wishes: Record<PlayerId, string>;
+  /** Trwające głosowanie „Inna gra”; faza zostaje `over`, a null znaczy brak głosowania. */
+  vote: { options: string[]; votes: Record<PlayerId, string>; msLeft: number } | null;
   game: {
     view: unknown;
     /** Na kogo czekamy: gracz na turze albo kilku naraz (np. rozstawianie statków). */
     waitingFor: PlayerId[];
-    /** Ile zostało do końca tury; liczone od chwili odebrania wiadomości (zegary telefonu i serwera się różnią). */
+    /** Ile zostało do końca instrukcji, odliczania albo tury; liczone od odebrania wiadomości (zegary telefonu i serwera się różnią). */
     msLeft: number | null;
-    /** Trwa ekran instrukcji mini-gry: limit jeszcze nie ruszył, a msLeft liczy czas do automatycznego startu. */
+    /** Trwa instrukcja lub odliczanie: limit gry jeszcze nie ruszył; przy jednym grającym msLeft jest null. */
     intro: boolean;
-    /** Kto kliknął już „Start” na ekranie instrukcji. */
+    /** Trwa wspólne 3-2-1; intro pozostaje true, msLeft liczy czas do startu gry. */
+    countdown: boolean;
+    /** Tylko rewanż w pokoju solo: klient pomija instrukcję i wysyła begin; po begin false. */
+    skipIntro: boolean;
+    /** Kto zgłosił gotowość przyciskiem „Start” na ekranie instrukcji; po jej końcu wszyscy grający. */
     began: PlayerId[];
+    /** Ostatnie dekoracyjne wartości z kanału live, do odtworzenia podglądu po reconnect. */
+    live: Record<PlayerId, number>;
     result: GameResult | null;
+    /** Miejsca z remisami po partii: result.places, potem def.places; null bez rankingu lub bez definicji miejsc. */
+    places: Record<PlayerId, number> | null;
   } | null;
 }
 
@@ -61,11 +80,21 @@ export function cleanNick(raw: unknown): string | null {
 }
 
 /** Schematy wiadomości od klienta do pokoju; serwer odrzuca wszystko, co do nich nie pasuje. */
+/** Sześć reakcji pod kropkami: emotki systemowe, indeks idzie przez sieć. */
+/** Tyle losowych mini-gier ma Szybka seria. */
+export const QUICK_SERIES_LENGTH = 5;
+
+export const REACTIONS = ["👍", "😂", "😮", "😭", "🔥", "👏"] as const;
+
 export const ROOM_MESSAGES = {
   // null: gospodarz wraca z ekranu gry do listy gier.
   pickGame: z.object({ gameId: z.string().nullable() }),
   // Wybór turnieju i zmiana liczby gier (gospodarz); zakres sprawdza cleanConfig.
   pickTournament: z.object({ length: z.number() }),
+  // Życzenie gościa w lobby: gra, w którą chce zagrać; null zdejmuje życzenie.
+  wish: z.object({ id: z.string().nullable() }),
+  // Szybka seria (gospodarz): od razu QUICK_SERIES_LENGTH losowych mini-gier dla wszystkich w pokoju.
+  quickSeries: z.unknown(),
   // Zaznaczenie jednej gry turnieju: na pewno, bez albo z powrotem losowo. Może każdy w pokoju.
   markGame: z.object({ id: z.string(), mark: z.enum(["must", "skip", "any"]) }),
   pickMode: z.object({ mode: z.string() }),
@@ -76,7 +105,14 @@ export const ROOM_MESSAGES = {
   // „Start” na ekranie instrukcji mini-gry.
   begin: z.unknown(),
   rematch: z.unknown(),
+  // Głosowanie „Inna gra”: rozpoczęcie i głos; opcje i prawo głosu sprawdza pokój.
+  otherGame: z.unknown(),
+  vote: z.object({ id: z.string() }),
   toLobby: z.unknown(),
   // Kształt ruchu sprawdza moveSchema wybranej gry.
   move: z.unknown(),
+  // Dekoracyjny podgląd rywali; osobny kanał i limit, poza validateMove oraz wynikami gry.
+  live: z.object({ value: z.number().int().min(0).max(9999) }),
+  // Emotka z REACTIONS; osobny kanał i limit, jak live.
+  react: z.object({ index: z.number().int().min(0).max(5) }),
 };

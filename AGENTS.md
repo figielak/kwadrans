@@ -9,7 +9,7 @@ serwer Colyseus (Node 24), frontend Vite + React, zasady gier jako czyste funkcj
 
 | Plik | Co zawiera | Kiedy czytać |
 |---|---|---|
-| `KONCEPT.md` | założenia, lista gier, architektura, kontrakt `GameDefinition`, reguły platformy, stack, struktura repo | zawsze, przed pierwszą zmianą |
+| `KONCEPT.md` | założenia, katalog gier, architektura, kontrakt `GameDefinition`, reguły platformy, mini-gry i rekordy, stack | zawsze, przed pierwszą zmianą |
 | `ZASADY-GIER.md` | dokładne zasady każdej gry | przed zmianą gry (jej sekcja) |
 | `ZASADY.md` | proces dodawania gry, obowiązkowe testy, spójność zasad, wyglądu, animacji i wibracji | przed nową grą albo zmianą ekranu gry |
 | `DESIGN.md` | styl wizualny: tokeny, wzorcowe sekcje, stany (przy sprzeczności wygrywa `ZASADY.md`) | przed zmianą wyglądu |
@@ -17,9 +17,11 @@ serwer Colyseus (Node 24), frontend Vite + React, zasady gier jako czyste funkcj
 
 Te pliki są źródłem prawdy. Nie powielaj ich treści tutaj; po zmianie zasad lub architektury popraw właściwy plik.
 
-`.planning/` to bieżący etap prac (audyt spójności): `STATE.md` mówi, gdzie jesteśmy, `ROADMAP.md` podaje fazy,
-a `phases/*/FINDINGS.md` zbiera rozbieżności z fazy. To notatki robocze, nie źródło prawdy; mapa kodu w `.planning/codebase/`
-może być nieaktualna. Po każdym planie uaktualnij `STATE.md`, `ROADMAP.md` i `REQUIREMENTS.md`.
+`.telos/` to pamięć projektu i bieżący stan prac: `STATUS.md` mówi, gdzie jesteśmy, `ROADMAP.md` podaje fazy,
+`MAP.md` wskazuje kod, a `GAMES.md`, `AUDIT.md` i `PROPOSALS.md` to skróty kontekstu.
+To nie jest źródło prawdy; przy sprzeczności wygrywają pliki z tabeli wyżej. Stan i fazy zmienia się poleceniami `telos`
+(`status set`, `roadmap set`, `history add`). `.planning/` zawiera już tylko plany propozycji (`*-PLAN.md`);
+zakończony audyt spójności (fazy 01-05) jest w historii gita pod `fb0f5d2`.
 
 ## Komendy
 
@@ -39,13 +41,14 @@ Przed zgłoszeniem zmiany jako gotowej: `pnpm typecheck && pnpm test` bez błęd
 - Plan → akceptacja użytkownika → implementacja.
 - TDD: testy zasad gry (`packages/games/src/<gra>.test.ts`) w osobnym commicie **przed** implementacją.
   Nie zmieniaj testów pod implementację; jeśli zasada była zła, najpierw popraw test i `ZASADY-GIER.md`.
-- Zmiana zasad gry = aktualizacja `ZASADY-GIER.md` (i `KONCEPT.md`, jeśli dotyczy opisu gry) w tym samym zadaniu.
+- Zmiana zasad gry = aktualizacja `ZASADY-GIER.md` w tym samym zadaniu; `KONCEPT.md` tylko przy zmianie katalogu gier albo reguł platformy.
 - Commity po polsku, w formie „<Gra>: co się zmieniło”. Commit i push tylko na prośbę użytkownika.
 - Push na `master` buduje i publikuje obraz produkcyjny, więc pracuj na gałęzi.
 
 ## Twarde reguły
 
 - **Serwer jest jedynym źródłem prawdy.** Klient wysyła intencje, `validateMove` jest jedynym strażnikiem.
+  Jawny wyjątek: kanał `live` to dekoracyjna liczba zgłaszana przez klienta, przekazywana rywalom bez `validateMove`; nie wpływa na stan zasad, wyniki ani rekordy.
 - **Losowość tylko z `rng`** przekazanego do `setup` i `applyMove`. Żadnego `Math.random` ani `Date.now` w zasadach.
 - **Stan gry to zwykły obiekt JSON**, `applyMove` zwraca nowy i nie zmienia poprzedniego.
 - **Ukryte informacje** filtruje `playerView`; obserwator dostaje widok dla `""`.

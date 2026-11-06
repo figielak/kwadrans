@@ -12,7 +12,7 @@ nie piszemy testów.
 **Tożsamość**
 - `id` (małe litery, myślniki). Jest kluczem rankingu w SQLite, więc **nie zmienia się nigdy**, nawet gdy zmieni się nazwa w UI.
 - Nazwa w UI: krótka, jedno lub dwa słowa, mieści się na kaflu w lobby.
-- Liczba graczy (`minPlayers`, `maxPlayers`). `minPlayers: 1` oznacza grę z grupy „Szybkie i refleksowe”.
+- Liczba graczy (`minPlayers`, `maxPlayers`). `minPlayers: 1` oznacza mini-grę.
 - Tryby (opcjonalnie, tylko gry główne; mini-gra ma zasady narzucone z góry): lista `modes` z `id`, nazwą i jednolinijkowym opisem, w kolejności wyświetlania; domyślny ma `default: true`. Tryb zmienia liczby
   (plansza, flota, flagi zasad), nie mechanikę; wszystkie tryby liczą się do jednego rankingu (wzór: `statki.ts`).
 
@@ -136,8 +136,8 @@ Te rzeczy działają tak samo w każdej grze. Odstępstwo wymaga wpisu w `ZASADY
 - Dla Który rok? zatwierdzono 270 s przy `T = 228 s`: 42 s zapasu, około 18,4%, zamiast 273,6 s wymaganych przez pełne 20%.
   To nazwany wyjątek od progu 20% (P4-021).
 - Przyjęcie normy nie zmienia automatycznie stałych, losowania ani punktacji istniejących gier. Aktualne liczby pozostają
-  w `ZASADY-GIER.md` i `KONCEPT.md`; ich dostosowanie wymaga testu i dokumentacji przed kodem w odpowiednim pakiecie.
-  W szczególności nowy komplet Balonu należy do P4-060. Nie wszystkie obecne gry spełniają już powyższe normy.
+  w `ZASADY-GIER.md`; ich dostosowanie wymaga testu i dokumentacji przed kodem w odpowiednim pakiecie.
+  Nie wszystkie obecne gry spełniają już powyższe normy.
 
 ## 4. Spójność wyglądu
 
@@ -150,15 +150,17 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
   w mini-grach pierścień postępu z ruchu `progress` (pełny po oddaniu wyniku), w grach po kolei pełny pierścień u gracza z ruchem,
   przygaszenie u czytającego zasady, przerywany obrys u rozłączonego, kreska pod własną kropką (zawsze pierwszą), odznaka z wygranymi (w turnieju prostokątna, z punktami; zera nie widać);
   dotknięcie kropek rozwija pigułki z nickami i dokładnym postępem. W grze solo kropek nie ma.
-  „Oglądasz”, komunikat o rozłączeniu, przyciski „Rewanż” i „Do lobby”. To wszystko daje `screens/Game.tsx`.
+  „Oglądasz”, komunikat o rozłączeniu, przyciski „Rewanż” i „Inna gra” obok siebie oraz małe „Do lobby” pod nimi (tylko gospodarz). To wszystko daje `screens/Game.tsx`.
+- Wynik po partii z ludźmi: `ResultHero` (ui.tsx) z `heroResult` (`screens/results.ts`), liczony wyłącznie ze stanu. Tytuł to największy tekst ekranu, pod nim miejsca, nicki,
+  jedna liczba z `record` i różnica do osoby wyżej (bez liczby w grach bez `record`, po wyniku nieskończonym i w walkowerze; bez różnicy przy remisie). Solo bohatera nie ma, po ostatniej grze turnieju tytuł należy do turnieju.
+  Własny ekran końcowy gry trafia pod „Szczegóły” (`ResultDetails`, zwinięte), gra pozostaje zamontowana od początku partii. Kampus Tour: własny tytuł i pod nim same wiersze, bez odsłony.
 - Własny nagłówek ma tylko gra, której wspólny nie wystarcza (Państwa-miasta, Kampus Tour), i wtedy przejmuje cały jego zakres.
 
 **Z czego gra się składa**
 - Układ: `Screen` (jedna kolumna, `max-w-md`), akcje przy dolnej krawędzi, przy długiej treści `StickyBar`.
 - Klasy z `index.css`: `.tile` (karta), `.label` (podpis), `.btn` + `.btn-primary` / `.btn-ghost`, `.field`.
   Nowa klasa wspólna powstaje dopiero, gdy potrzebuje jej druga gra.
-  Zatwierdzony kontrakt wspólnej `.btn-player` dla akcji gracza opisuje [DESIGN.md §5](DESIGN.md#5-zasady-które-z-tego-wynikają);
-  jej implementacja i migracja użyć należą do P4-050, klasa nie jest jeszcze dostępna w CSS.
+  Kontrakt wspólnej `.btn-player` dla akcji gracza opisuje [DESIGN.md §5](DESIGN.md#5-zasady-które-z-tego-wynikają).
 - Wyniki mini-gry: komponent `Scores`, wiersz na gracza, „gra…” dopóki nie oddał.
   Gdy jedna liczba nie wystarcza (trafienia, średni czas, błędy), drugi wspólny wzorzec `ScoreTable` w ui.tsx (quizy, Dziesiątki, Stój!, Refleks):
   te same zasady „gra…”, „(ty)”, pucharu, miejsc z remisami i cyfr mono, szczegół (wykres Refleksu) pod tabelą.
@@ -184,7 +186,10 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
   W odsłonie rundy moja odpowiedź jest w kolorze gracza, znacznik prawdy neutralny (`fg`), a ocenę (`grade`) niesie linia błędu i liczba.
 - Mini-gra zaczyna od ekranu instrukcji: komponent `Intro` (ui.tsx) z animowanym podglądem gry (mały komponent `Preview` w pliku gry,
   sama animacja CSS w pętli), trzema krótkimi punktami (`time`: długość partii, czyli czas albo liczba rund z limitem całej partii („10 odcinków, razem do minuty”), `task`: co zrobić, `score`: jak liczone są punkty) i przyciskiem „Start”.
-  Limit gry jeszcze wtedy nie tyka; po `INTRO_SECONDS` (15 s) gra rusza sama. Pod przyciskiem widać, kto już gra, a kto czyta zasady.
+  Limit gry jeszcze wtedy nie tyka; przy co najmniej dwóch grających po `INTRO_SECONDS` (15 s) gra rusza sama.
+  Przy 2+ grających przycisk to „Gotowy”, a gra rusza u wszystkich po wspólnym 3-2-1 (klient nie woła `onStart` po własnym kliknięciu, pomiar zaczyna się po `intro: false`).
+  Jeden grający czeka na „Start” bez odliczania. Tylko „Jeszcze raz” w pokoju `solo` pomija instrukcję i zaczyna grę od razu po decyzji gracza.
+  Pod przyciskiem widać, kto już gra, a kto czyta zasady.
 - Pola dotykowe co najmniej 48 px (tyle ma `.btn`), a pola gry na czas mają `touch-none select-none` i reagują na `onPointerDown`.
   Wyjątek mają tylko gęste plansze gier turowych (DESIGN §6): pole mniejsze niż 48 px wolno dotknąć, jeśli dotknięcie
   jedynie wybiera pole lub pionek, wybór jest widoczny na planszy, a ruch wysyła osobny przycisk co najmniej 48 px
@@ -196,7 +201,7 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
   a głosowanie i podsumowanie przewijają odpowiedzi pionowo. Przy 4+ osobach każda kategoria ma graczy
   w wierszach. Bez przewijania w bok, z pełną treścią i celami głosu minimum 48 px.
   Odbiór formularza wymaga fizycznego Androida z klawiaturą (U02); sama symulacja viewportu nie wystarcza.
-  Wyniki partii i odsłony rund mogą przewijać się pionowo. Rewanż/Do lobby, akcje solo i przejście
+  Wyniki partii i odsłony rund mogą przewijać się pionowo. Rewanż/Inna gra/Do lobby, akcje solo i przejście
   turnieju pozostają w StickyBar; ostatni wiersz treści musi dać się przewinąć ponad pasek.
   Kampus Tour zachowuje własny układ poziomy: decyzje, poziomy budowy i zamknięcie okna mają
   minimum 48 px mierzone po skalowaniu sceny. Podsumowanie może przewijać treść ze stałymi akcjami;
@@ -223,7 +228,7 @@ animacja tylko go dogania na ekranie.
 
   | Keyframes | Rola | Czasy |
   |---|---|---|
-  | `stone-pop` | coś pojawia się na planszy (kamień, strzał, ścianka, karta Memory, znacznik, nowa wygrana) | `0.35s` standard; `180ms` działanie W pamięci (wyjątek: pokaz co 1,5 s) |
+  | `stone-pop` | coś pojawia się na planszy (kamień, strzał, ścianka, karta Memory, znacznik, nowa wygrana) oraz wiersz odsłony wyników, liczba 3-2-1 na ekranie instrukcji | `0.35s` standard; `180ms` działanie W pamięci (wyjątek: pokaz co 1,5 s) |
   | `ring-pulse` | to można wybrać (pionek, karta, „Jeszcze raz” po prośbie innych), w pętli | `1.2s` |
   | `dice-tumble` | rzut kośćmi, pętla na czas pokazu rzutu | `0.3s` |
   | `card-in` | karta lub okno na środku ekranu (Karta Dziekanatu, oferty, podsumowanie) | `0.35s` |
@@ -237,6 +242,8 @@ animacja tylko go dogania na ekranie.
   | `tile-hit` | trafienie: zielony błysk kafelka | `0.35s` |
   | `tile-miss` | pomyłka: czerwony błysk z potrząśnięciem | `0.35s` |
   | `piece-fall` | ucięty kawałek klocka Wieży spada po wyniku | `0.5s` |
+  | `moment-in` | wspólny komunikat `Moment` o ważnej chwili (para, zatopienie, zbicie, komplet, odpadnięcie, zmiana prowadzenia); przy `prefers-reduced-motion` stoi bez ruchu | `1.2s` |
+  | `reaction-float` | emotka unosi się nad kropką nadawcy; przy `prefers-reduced-motion` stoi bez ruchu | `1.2s` |
   | `shake` | ruch zignorowany bez kary: potrząśnięcie bez koloru (Środek, Nożyczki) | `0.3s` |
 
   `card-in` (okno) i `stone-pop` (element planszy) to różne sytuacje; „showtime” nie jest nazwą animacji.
@@ -251,7 +258,10 @@ animacja tylko go dogania na ekranie.
   | rzut kośćmi | 700 ms |
   | pływająca liczba | 1,6 s |
   | świeże osiągnięcie (`set-glow`) | 0,9 s × 4 |
+  | reakcja (`reaction-float`), od jednej osoby najwyżej jedna na sekundę | 1,2 s |
+  | komunikat `Moment` (`moment-in`), najwyżej jeden na 3 s, nigdy w grach ciszy pomiaru | 1,2 s |
   | pętla „to można wybrać” (`ring-pulse`) | 1,2 s |
+  | odsłona wyników: kolejny wiersz, od ostatniego miejsca, przy 3+ wierszach | 600 ms na wiersz |
   | pasek czasu | przejście szerokości `linear` równe krokowi odświeżania (`TICK_MS` 250 ms), z zegara, nie jednym długim przejściem |
   | pojawienie w pokazie na czas (W pamięci) | 180 ms (wyjątek: działanie co 1,5 s) |
   | Szybki Chińczyk: krok pionka i rzut | 110 ms na pole, 400 ms (wyjątek: tryb na 20 s tury) |
@@ -268,6 +278,7 @@ animacja tylko go dogania na ekranie.
   Chińczyk tak samo: pierwsze dotknięcie planszy albo dolnego paska w trakcie turlania lub marszu kończy pokaz
   (bez ruchu i bez wyboru pionka spod palca), kolejne wybiera pionek. Nowy rzut albo ruch zaczyna pokaz od poprzedniego
   widoku serwera, bez zaległej kolejki; wibracja zbicia przychodzi raz, gdy pokaz dojdzie do końca albo zostanie zastąpiony.
+  Odsłona wyników tak samo: dotknięcie gdziekolwiek stawia od razu wszystkie wiersze i tytuł, przyciski działają od początku, a odświeżenie w `over` pokazuje całość bez pokazu.
   Wyjątek: Statki po pudle trzymają stary układ plansz przez 1,2 s (`SWAP_MS`), zanim plansze się zamienią i pojawi się
   przycisk strzału; bez tego broniący nie widział, gdzie padł strzał.
 - **Kroki sekwencyjne** (pionek idzie pole po polu) to stan „pokazywany” goniący stan „docelowy” w `setTimeout`,
@@ -321,9 +332,9 @@ Podpięcie, w tej kolejności:
 4. `apps/web/src/games/<Gra>.tsx`,
 5. gałąź w `screens/Game.tsx` (mini-gra: `key` z wyzwania albo `nonce`; listę mini-gier daje sam rejestr przez `MINI_GAME_IDS`, gra główna z własną tabelą po partii trafia do `OWN_RANKING`), ikona w `ICONS` w `screens/Lobby.tsx`,
    mini-gra: `record` w definicji (trzeci argument `ranked`; z `tie`, jeśli komparator ma drugie kryterium), przypadek w `RECORDS` w `index.test.ts` i jednostka w `FORMAT` w `screens/Records.tsx`,
-6. opis w `KONCEPT.md` (sekcja 2 i tabela etapów).
+6. wiersz w katalogu gier w `KONCEPT.md` (sekcja 2).
 
-Po zmianie w `packages/games` serwer deweloperski trzeba zrestartować.
+Po zmianie w `packages/games` serwer deweloperski restartuje się sam (`node --watch`), a trwające partie przepadają.
 
 Gra jest gotowa, gdy w `/dev` (`/dev?n=...` dla większej liczby graczy) przeszło wszystko poniżej:
 - [ ] `pnpm test` i `pnpm typecheck` bez błędów,

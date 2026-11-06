@@ -107,6 +107,7 @@ export const kolo: GameDefinition<State, Move> = {
   name: "Narysuj koło",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "round", total: ATTEMPTS },
   turnSeconds: 120,
   moveSchema: z.object({ type: z.literal("result"), points: z.array(z.tuple([z.number(), z.number()])).max(MAX_POINTS) }),
 

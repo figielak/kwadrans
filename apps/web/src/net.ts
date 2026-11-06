@@ -96,7 +96,10 @@ function noteRoom(v: RoomView) {
 
 // Serwer wysyła stan pokoju od razu po dołączeniu, zanim React podepnie nasłuch,
 // więc nasłuch wisi tu od początku, a ostatni stan czeka na komponent.
-const rooms = new WeakMap<Room, { view: RoomView | null; listener?: (v: RoomView) => void }>();
+type LiveMessage = { id: string; value: number };
+type ReactMessage = { id: string; index: number };
+type RoomEntry = { view: RoomView | null; listener?: (v: RoomView) => void; live?: (m: LiveMessage) => void; react?: (m: ReactMessage) => void };
+const rooms = new WeakMap<Room, RoomEntry>();
 
 export function watchRoom(room: Room, listener: (v: RoomView) => void) {
   const entry = rooms.get(room)!;
@@ -105,9 +108,25 @@ export function watchRoom(room: Room, listener: (v: RoomView) => void) {
   return () => (entry.listener = undefined);
 }
 
+/** Lekkie wartości rywali na żywo (D-03). Stan startowy niesie `game.live` w widoku pokoju. */
+export function watchLive(room: Room, listener: (m: LiveMessage) => void) {
+  const entry = rooms.get(room)!;
+  entry.live = listener;
+  return () => (entry.live = undefined);
+}
+
+/** Reakcje z pokoju, także własne: serwer odsyła je nadawcy. */
+export function watchReact(room: Room, listener: (m: ReactMessage) => void) {
+  const entry = rooms.get(room)!;
+  entry.react = listener;
+  return () => (entry.react = undefined);
+}
+
 function remember(room: Room, nick?: string) {
-  const entry: { view: RoomView | null; listener?: (v: RoomView) => void } = { view: null };
+  const entry: RoomEntry = { view: null };
   rooms.set(room, entry);
+  room.onMessage("live", (m: LiveMessage) => entry.live?.(m));
+  room.onMessage("react", (m: ReactMessage) => entry.react?.(m));
   room.onMessage("room", (v: RoomView) => {
     entry.view = v;
     noteRoom(v);

@@ -247,6 +247,14 @@ describe("ukrywanie stanu", () => {
 });
 
 describe("koniec gry", () => {
+  test.each([
+    { counts: [5, 5, 2], places: { [A]: 1, [B]: 1, [C]: 3 } },
+    { counts: [6, 3, 3], places: { [A]: 1, [B]: 2, [C]: 2 } },
+  ])("miejsca uwzględniają remis: $counts", ({ counts, places }) => {
+    const state = playOut([A, B, C], counts);
+    expect(game.places?.(state)).toEqual(places);
+  });
+
   test("gra kończy się po zebraniu wszystkich par, wygrywa najwięcej par", () => {
     const state = playOut([A, B], [5, 3], "mala");
     expect(game.isOver(state)).toEqual({ winner: A, ranking: [A, B] });

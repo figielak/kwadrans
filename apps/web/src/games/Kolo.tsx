@@ -1,6 +1,7 @@
 import { GAMES, KOLO_ATTEMPTS, KOLO_MAX_POINTS, koloJudge, type KoloPoint, type KoloView, type LobbyPlayer } from "@kwadrans/games";
 import { type PointerEvent, useLayoutEffect, useRef, useState } from "react";
 import { Intro, Stats, upTo } from "../screens/ui.tsx";
+import { useLive } from "../live.ts";
 
 interface Props {
   view: KoloView;
@@ -99,6 +100,7 @@ function Preview({ color }: { color?: string }) {
 
 export function Kolo({ view, me, players, ranking, onMove }: Props) {
   const attempts = view.attempts[me] ?? 0;
+  useLive(attempts);
   const playing = view.players.includes(me) && attempts < KOLO_ATTEMPTS;
   const best = view.best[me];
   // Po odświeżeniu z oddaną próbą instrukcja już nie wraca.

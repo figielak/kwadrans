@@ -62,6 +62,7 @@ export const mapa: GameDefinition<State, Move> = {
   name: "Mapa",
   minPlayers: 1,
   maxPlayers: 6,
+  live: { kind: "round", total: ROUNDS },
   turnSeconds: 180,
   moveSchema: z.object({
     type: z.literal("result"),

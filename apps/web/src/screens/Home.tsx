@@ -164,7 +164,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
                 </span>
               </p>
             </div>
-            <button type="button" className={`btn w-full ${full ? "btn-ghost" : "btn-primary"}`} disabled={!!busy} onClick={() => play(daily.gameId)}>
+            <button type="button" className="btn btn-ghost w-full" disabled={!!busy} onClick={() => play(daily.gameId)}>
               {busy === "solo" ? (
                 "Uruchamianie…"
               ) : (
@@ -222,19 +222,33 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
         Ze znajomymi
       </h2>
       <div className="tile flex flex-col gap-3">
+        {/* Jeden wypełniony przycisk na ekranie: „Utwórz pokój”, a z pełnym kodem „Dołącz” (wtedy „Utwórz pokój” to obrys). */}
+        <button type="button" className={`btn w-full ${full ? "btn-ghost" : "btn-primary"}`} disabled={!!busy} onClick={() => go("create")}>
+          {busy === "create" ? (
+            "Tworzenie…"
+          ) : (
+            <>
+              <Plus size={18} weight="bold" aria-hidden />
+              Utwórz pokój
+            </>
+          )}
+        </button>
         <form
-          className="flex flex-col gap-2"
+          className="flex flex-col gap-2 border-t border-line pt-3"
           onSubmit={(e) => {
             e.preventDefault();
             if (full) go("join");
           }}
         >
+          <label htmlFor="room-code" className="text-sm text-fg-muted">
+            Albo dołącz kodem
+          </label>
           <div className="flex gap-2">
             <input
+              id="room-code"
               className="field font-mono tabular-nums text-xl tracking-[0.4em] uppercase"
               value={code}
               placeholder="KOD"
-              aria-label="Kod pokoju"
               inputMode="text"
               autoCapitalize="characters"
               autoComplete="off"
@@ -250,7 +264,6 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
                 if (next.length === ROOM_CODE_LENGTH && next !== code && !busy) go("join", next);
               }}
             />
-            {/* Jeden wypełniony przycisk na ekranie: „Zagraj”, a z pełnym kodem „Dołącz” (wtedy „Zagraj” to obrys). */}
             <button type="submit" className={`btn shrink-0 ${full ? "btn-primary" : "btn-ghost"}`} disabled={!!busy || !full}>
               {busy === "join" ? "Łączenie…" : "Dołącz"}
               {busy !== "join" && <ArrowRight size={18} weight="bold" aria-hidden />}
@@ -258,19 +271,6 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
           </div>
           <Problem id="room-error">{roomError}</Problem>
         </form>
-        <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
-          <span className="text-sm text-fg-muted">Albo zaproś innych</span>
-          <button type="button" className="btn btn-ghost shrink-0" disabled={!!busy} onClick={() => go("create")}>
-            {busy === "create" ? (
-              "Tworzenie…"
-            ) : (
-              <>
-                <Plus size={18} weight="bold" aria-hidden />
-                Utwórz pokój
-              </>
-            )}
-          </button>
-        </div>
       </div>
     </section>
   );
@@ -340,8 +340,8 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
         </p>
       )}
 
-      {/* Kto wchodzi z linku z kodem, przyszedł do znajomych: ich sekcja idzie na górę. */}
-      {codeFromUrl() ? [friends, solo] : [solo, friends]}
+      {/* Najwięcej radości daje gra z innymi, więc znajomi są na górze zawsze, także przy wejściu z linku. */}
+      {[friends, solo]}
 
       {back.length > 0 && (
         <section aria-labelledby="recent">

@@ -4,6 +4,7 @@ import { type CSSProperties, useEffect, useState } from "react";
 import { MiniGame } from "../games/MiniGame.tsx";
 import { fetchRanking, fetchRecords, fetchTopRecord, type RankingRow } from "../net.ts";
 import { ICONS } from "./Lobby.tsx";
+import { recordChange, recordSummary } from "./results.ts";
 import { Screen } from "./ui.tsx";
 
 const num = (n: number) => n.toFixed(1).replace(".", ",");
@@ -57,7 +58,7 @@ const formatTie = (gameId: string, n: number | null) => (n === null ? null : (FO
 /** „12 traf. · 256 ms”: wynik z drugim kryterium, jeśli gra je ma. */
 export const formatRecord = (gameId: string, { best, tie }: Score) => [formatBest(gameId, best), formatTie(gameId, tie)].filter(Boolean).join(" · ");
 /** Różnica dwóch rekordów: w głównym wyniku albo, przy równym, w drugim kryterium. */
-const formatGap = (gameId: string, { gap, onTie }: { gap: number; onTie: boolean }) =>
+export const formatGap = (gameId: string, { gap, onTie }: { gap: number; onTie: boolean }) =>
   ((onTie ? FORMAT[gameId]?.tie : (FORMAT[gameId]?.gap ?? FORMAT[gameId]?.value)) ?? String)(gap);
 
 const orderOf = (gameId: string) => GAMES[gameId].record!;
@@ -109,13 +110,18 @@ interface PanelProps {
   color?: string;
   /** Wynik z tej partii (z drugim kryterium); brak u obserwatora. */
   score?: Score;
+  /** Nad panelem stoi bohater wyników: to jego tytuł ma być największym tekstem, a zwykła partia składa panel do jednej linii. */
+  underHero?: boolean;
 }
 
 /** Po partii: gdzie jestem w rankingu wszech czasów, czy padł rekord i ile brakuje do osoby wyżej. */
-export function RecordPanel({ gameId, before, after, nick, color, score }: PanelProps) {
+export function RecordPanel({ gameId, before, after, nick, color, score, underHero }: PanelProps) {
   const order = orderOf(gameId);
   const now = score === undefined ? null : standing(after, nick, order);
   const title = <h2 className="label">Rekordy · {GAMES[gameId].name}</h2>;
+  const summary = underHero ? recordSummary({ before, after, nick, order, score, format: (s) => formatRecord(gameId, s), gap: (g) => formatGap(gameId, g) }) : { full: true };
+  if (!summary) return null;
+  if ("line" in summary) return <p className="px-1 text-sm" aria-live="polite">{summary.line}</p>;
   if (!now || score === undefined) {
     return (
       <section className="tile flex flex-col gap-3 p-4">
@@ -124,15 +130,7 @@ export function RecordPanel({ gameId, before, after, nick, color, score }: Panel
       </section>
     );
   }
-  const was = before && standing(before, nick, order);
-  const fresh = !!before && (!was || compareRecords(order)(now, was) < 0);
-  // Ile zabrakło do własnego rekordu: w głównym wyniku albo, przy równym, w drugim kryterium.
-  const missed =
-    score.best !== now.best
-      ? { gap: Math.abs(score.best - now.best), onTie: false }
-      : score.tie !== null && now.tie !== null && score.tie !== now.tie
-        ? { gap: Math.abs(score.tie - now.tie), onTie: true }
-        : null;
+  const { was, fresh, missed } = recordChange(before, nick, order, now, score);
 
   return (
     <section className="tile flex flex-col gap-3 p-4" aria-live="polite">
@@ -153,7 +151,7 @@ export function RecordPanel({ gameId, before, after, nick, color, score }: Panel
 
       <div>
         <p className="flex items-baseline gap-2">
-          <span className="font-mono text-4xl font-semibold tabular-nums" style={{ color }}>
+          <span className={`font-mono ${underHero ? "text-2xl" : "text-4xl"} font-semibold tabular-nums`} style={{ color }}>
             {now.place}. miejsce
           </span>
           <span className="font-mono text-sm text-fg-muted tabular-nums">z {now.of}</span>

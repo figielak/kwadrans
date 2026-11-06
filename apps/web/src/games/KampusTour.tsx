@@ -56,6 +56,8 @@ import {
 } from "@kwadrans/games";
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
 import { useHarm } from "../vibrate.ts";
+import { createMomentStore, momentFrom } from "../moments.ts";
+import { Moment } from "../screens/ui.tsx";
 import { KampusSummary } from "./KampusSummary.tsx";
 
 interface Props {
@@ -68,6 +70,8 @@ interface Props {
   canMove: boolean;
   /** Wynik partii (także walkower bez rankingu); null w trakcie gry. */
   result: GameResult | null;
+  /** Miejsca graczy w podsumowaniu partii. */
+  hero: ReactNode;
   onMove: (move: KampusMove) => void;
   timer: ReactNode;
   actions: ReactNode;
@@ -366,7 +370,7 @@ export function boughtOut(before: Record<number, string>, after: Record<number, 
     .filter((t) => before[t] === me && after[t] !== undefined && after[t] !== me);
 }
 
-export function KampusTour({ view, me, players, dropped, scores, seated, canMove, result, onMove, timer, actions }: Props) {
+export function KampusTour({ view, me, players, dropped, scores, seated, canMove, result, onMove, timer, actions, hero }: Props) {
   const [selected, setSelected] = useState<number | null>(null);
   const stage = useStage();
   const { shown, rolling, settled, finish: finishAnimation } = useMoveAnimation(view);
@@ -375,6 +379,15 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
   // Podczas animacji widać zdarzenia sprzed rzutu; nowe pojawiają się po dojściu pionka.
   const settledEvents = useRef(view.events);
   if (settled) settledEvents.current = view.events;
+  // Komplet ogłaszamy razem z resztą zdarzeń: po dojściu pionka, żeby nie uprzedzać rzutu.
+  const [momentStore] = useState(createMomentStore);
+  const momentEvents = useRef(settledEvents.current);
+  useEffect(() => {
+    const prev = momentEvents.current;
+    momentEvents.current = settledEvents.current;
+    const moment = momentFrom("kampus-tour", { events: prev }, { events: settledEvents.current }, me, (id) => players.find((p) => p.id === id)?.nick ?? "Gracz");
+    if (moment) momentStore.show(moment);
+  }, [settledEvents.current]);
   // Gotówka i pola tak samo: zmieniają się dopiero po dojściu pionka.
   const settledCash = useRef(view.cash);
   const settledOwners = useRef(view.owners);
@@ -759,6 +772,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
 
   return (
     <main className="landscape grid place-items-center overflow-hidden">
+      <Moment store={momentStore} color={(id) => players.find((p) => p.id === id)?.color} />
       <div
         className="relative flex items-center justify-center p-2 px-21 [&_.btn]:min-h-[var(--kampus-touch)] [&_.btn]:min-w-[var(--kampus-touch)]"
         style={{ width: stage.width, height: STAGE_H, zoom: stage.scale, "--kampus-touch": `${Math.ceil(48 / stage.scale) + 1}px` } as CSSProperties}
@@ -1009,7 +1023,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
                   </ul>
                 )}
                 {over && (summaryHidden || !view.stats) && selected === null && (
-                  <div className="flex w-full shrink-0 items-center justify-center gap-2">
+                  <div className="flex w-full shrink-0 flex-wrap items-center justify-center gap-2">
                     {actions}
                     {over && summaryHidden && view.stats && (
                       <button type="button" className="btn btn-ghost px-3 text-sm" onClick={() => setSummaryHidden(false)}>
@@ -1121,6 +1135,7 @@ export function KampusTour({ view, me, players, dropped, scores, seated, canMove
             color={color}
             finalWealth={wealth}
             actions={actions}
+            hero={hero}
             onClose={() => setSummaryHidden(true)}
           />
         )}

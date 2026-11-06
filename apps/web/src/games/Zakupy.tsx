@@ -1,6 +1,7 @@
 import { initials, type LobbyPlayer, ZAKUPY_LIST, ZAKUPY_MAX_MS, ZAKUPY_SHOW_MS, type ZakupyView } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
 import { Intro, Scores, Stats, tenth, TimeBar } from "../screens/ui.tsx";
+import { useLive } from "../live.ts";
 
 interface Props {
   view: ZakupyView;
@@ -37,6 +38,7 @@ export function Zakupy({ view, me, players, ranking, onMove }: Props) {
   const playing = view.players.includes(me) && !(me in view.results);
   const [phase, setPhase] = useState<Phase>("intro");
   const [picked, setPicked] = useState<number[]>([]);
+  useLive(picked.length);
   const [elapsed, setElapsed] = useState(0);
   /** Pasek pokazu startuje od pełnego i po zamontowaniu przechodzi do zera. */
   const start = useRef(0);
