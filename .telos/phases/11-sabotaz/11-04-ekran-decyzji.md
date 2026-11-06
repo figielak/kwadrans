@@ -2,7 +2,7 @@
 id: 11-04
 title: "Sabotaż: stosy, ręka i decyzje"
 type: code
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: hard
 depends: ["11-03"]
@@ -58,11 +58,14 @@ Zbudować mobilny ekran decyzji SAB-04 na przefiltrowanym View, z osobnym wybore
 4. apps/web/src/games/Sabotaz.tsx: czyścić szkice po zmianie publicznego klucza decyzji; sprawdzenie klikania i wymiarów zapisać do odbioru 11-07.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm typecheck && pnpm test` → exit 0
-- [ ] `pnpm --filter web build` → exit 0
-- [ ] Wszystkie fazy decyzji dają się wyrenderować z View bez prywatnego State; pełne interakcje mają odbiór w 11-07.
+- [x] all listed tests pass
+- [x] `pnpm typecheck && pnpm test` → exit 0
+- [x] `pnpm --filter web build` → exit 0
+- [x] Wszystkie fazy decyzji dają się wyrenderować z View bez prywatnego State; pełne interakcje mają odbiór w 11-07.
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+RED: `vitest run src/games/Sabotaz.test.tsx` → exit 1: brak modułu Sabotaz.tsx.
+Ekran decyzji: siatka 2 kolumny, własna ręka i stos od góry, osobny wybór i zatwierdzenie (Połóż/Dołóż, Licytuj z minusem i plusem, Pas, Odkryj u ...), szkic porzucany po zmianie klucza decyzji, stan z samego View.
+Testy: 28 nowych, razem 2478 + 186 + 399; build i typecheck czyste. Render rywala i obserwatora jest bajt w bajt taki sam dla zakrytej Pułapki i Przejścia we wszystkich czterech fazach.
+Kliknięcia i wymiary na 360×640 (jeszcze nie sprawdzone) czekają na odbiór w 11-07. Odsłona i Dalej to 11-05; do tego czasu summary/over pokazują tylko siatkę. Poprawiony błąd testu: wzorzec `disabled` trafiał w klasę CSS.
+Deviations: AGENTS.md — zmiana użytkownika sprzed zadania, nie commitowana
