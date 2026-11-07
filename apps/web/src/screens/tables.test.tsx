@@ -120,6 +120,13 @@ describe("ResultHero", () => {
     expect(rows[2]).toContain("stone-pop");
   });
 
+  test("lista przycina poziom, więc wskakujący wiersz (scale 1.6) nie poszerza strony przy 6 graczach", () => {
+    for (const props of [{ reveal: true }, {}, { reveal: true, rowsOnly: true }]) {
+      const html = renderToStaticMarkup(<ResultHero {...common} hero={hero} winner="a" {...props} />);
+      expect(html.match(/<ol[^>]*>/)![0]).toContain("overflow-x-clip");
+    }
+  });
+
   test("slot linii: pod wierszami, a w trakcie odsłony niewidoczny", () => {
     const slot = () => {};
     expect(renderToStaticMarkup(<ResultHero {...common} hero={hero} slot={slot} />)).toMatch(/<\/ol><div class="[^"]*empty:hidden/);

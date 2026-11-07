@@ -397,7 +397,7 @@ export function ResultHero({ hero, winner, me, nick, color, reveal = false, rows
 
   const visible = new Set(revealOrder(hero.rows).slice(0, shown).map((r) => r.id));
   const list = count > 0 && (
-    <ol className={`flex flex-col gap-1 ${rowsOnly ? "text-sm" : ""}`}>
+    <ol className={`flex flex-col gap-1 overflow-x-clip ${rowsOnly ? "text-sm" : ""}`}>
       {hero.rows.map((r) => (
         <li
           key={r.id}
