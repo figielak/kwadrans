@@ -2,8 +2,8 @@
 <!-- ≤ 40 lines. Maintained by `telos status set <key>=<value>`; never edit by hand.
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 08-podrobka
-Task: 08-03
-Next: /telos:do
+Task: 08-04
+Next: /telos:do-hard 08-04
 Blockers: none
 Awaiting user: 08, 09, 12
 <!-- Blockers: "NN-MM: reason". Awaiting user: IDs only, e.g. "02:Q-01, 02:D-03" -->
@@ -15,6 +15,6 @@ Awaiting user: 08, 09, 12
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
+- 08-03 done: pula 60 par pytań Podróbki, testy puli zielone
 - 08-02 done: testy zasad i puli Podróbki, czerwone przez brak modułów
-- 08-01 done: zasady Podróbki w ZASADY-GIER, KONCEPT i ZASADY
 - 08-01 done: zasady Podróbki w ZASADY-GIER, KONCEPT i ZASADY
