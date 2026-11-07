@@ -35,6 +35,13 @@ const CHOICES: { choice: Choice; label: string; icon: ComponentType<{ size?: num
 ];
 const LABEL: Record<Choice, string> = { continue: "Idę dalej", return: "Wracam" };
 
+/** „1 odkryta karta”, „2 odkryte karty”, „5 odkrytych kart” (12-14 jak 5). */
+export function revealedCards(count: number) {
+  if (count === 1) return "1 odkryta karta";
+  const tens = count % 100;
+  return count % 10 >= 2 && count % 10 <= 4 && (tens < 12 || tens > 14) ? `${count} odkryte karty` : `${count} odkrytych kart`;
+}
+
 const cardName = (card: Card) => (card.kind === "treasure" ? `Skarb ${card.value}` : HAZARD[card.hazard].name);
 
 /** Klucz szkicu: nonce, wyprawa, odkrycie i faza, więc nowa karta, nowa wyprawa i rewanż kasują wybór, a cudza gotowość nie. */
@@ -263,7 +270,7 @@ function Roster({ view, me, players }: { view: WyprawaView; me: string; players:
 function TrailDetails({ view }: { view: WyprawaView }) {
   return (
     <details className="rounded-[10px] border border-line px-3">
-      <summary className="flex min-h-12 cursor-pointer items-center text-sm">Szlak: {view.trail.length} odkrytych kart</summary>
+      <summary className="flex min-h-12 cursor-pointer items-center text-sm">Szlak: {revealedCards(view.trail.length)}</summary>
       <ol className="flex flex-col gap-1 pb-3 text-sm">
         {view.trail.map((card, i) => (
           <li key={i} data-trail={i + 1} className="flex items-center gap-2">

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { isValidElement, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
-import { currentDraft, DecisionControls, decisionKey, type Draft, moves, NextBar, options, WyprawaBoard } from "./Wyprawa.tsx";
+import { currentDraft, DecisionControls, decisionKey, type Draft, moves, NextBar, options, revealedCards, WyprawaBoard } from "./Wyprawa.tsx";
 
 // Testy napisane przed ekranem. Widoki pochodzą z prawdziwego playerView po legalnych ruchach:
 // - gracz na szlaku widzi „Wyprawa n/5”, bank, to co niesie i resztki na szlaku z osobnymi podpisami,
@@ -345,6 +345,21 @@ describe("ostatnie rozstrzygnięcie w następnej decyzji", () => {
 });
 
 describe("szczegół szlaku", () => {
+  test("liczba odkrytych kart ma poprawną polską odmianę", () => {
+    expect(revealedCards(1)).toBe("1 odkryta karta");
+    for (const n of [2, 3, 4, 22, 23, 24, 102]) expect(revealedCards(n), String(n)).toBe(`${n} odkryte karty`);
+    for (const n of [5, 11, 12, 13, 14, 15, 20, 21, 25, 112]) expect(revealedCards(n), String(n)).toBe(`${n} odkrytych kart`);
+  });
+
+  test("podsumowanie szlaku używa odmiany: 1 odkryta karta, 3 odkryte karty", () => {
+    const first = setup(THREE);
+    expect(text(html(first, A))).toContain("Szlak: 1 odkryta karta");
+    const third = everyone(everyone(treasure(THREE), "continue"), "continue");
+    expect(view(third).trail).toHaveLength(3);
+    expect(text(html(third, A))).toContain("Szlak: 3 odkryte karty");
+    expect(text(html(third, A))).not.toContain("odkrytych kart");
+  });
+
   test("zawiera wszystkie odkryte karty po kolei i żadnej nieodkrytej", () => {
     const s = everyone(everyone(treasure(THREE), "continue"), "continue");
     const v = view(s, A);
