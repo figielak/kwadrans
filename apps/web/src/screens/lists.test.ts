@@ -64,6 +64,33 @@ test("11-06: status, kolor i etykieta limitu korzystają z jednej informacji o r
   expect(game.match(/\bsimultaneous\b/g)!.length).toBeGreaterThanOrEqual(4);
 });
 
+test("10-07: Wyprawa w lobby ma nazwę, ikonę, opis i limit 2-6, a nie jest mini-grą ani grą z rekordem", () => {
+  const html = lobby(2);
+  expect(html).toContain("Wyprawa");
+  expect(html).toContain("2-6 os.");
+  expect(ICONS.wyprawa).toBeDefined();
+  expect(BLURBS.wyprawa).toMatch(/szlak/);
+  expect(BLURBS.wyprawa).not.toMatch(/kwadrans|Skull|Uno|Quoridor|—/i);
+  expect(MINI_GAME_IDS).not.toContain("wyprawa");
+  expect(GAMES.wyprawa.record).toBeUndefined();
+});
+
+test("10-07: Game montuje Wyprawę po nonce z ruchem, miejscami i oczekującymi, w ResultDetails", () => {
+  const game = read("Game.tsx");
+  expect(game).toMatch(/<Wyprawa\s+key=\{\(game\.view as WyprawaView\)\.nonce\}/);
+  const mount = game.slice(game.indexOf("<Wyprawa"), game.indexOf("/>", game.indexOf("<Wyprawa")));
+  for (const prop of ["me={me}", "players={view.players}", "waitingFor={game.waitingFor}", "places={game.places}", 'send("move", move)']) expect(mount).toContain(prop);
+  expect(game.indexOf("<ResultDetails")).toBeLessThan(game.indexOf("<Wyprawa"));
+  expect(game.indexOf("<Wyprawa")).toBeLessThan(game.indexOf("</ResultDetails>"));
+  expect(game).not.toContain("OWN_RANKING");
+});
+
+test("10-07: kolor poświaty w Wyprawie to własny kolor czekającego, a nie jedynego gracza na szlaku", () => {
+  const game = read("Game.tsx");
+  const focus = game.slice(game.indexOf("const focus ="), game.indexOf("const turnColor"));
+  expect(focus).toMatch(/"wyprawa"[\s\S]*simultaneous[\s\S]*game\.waitingFor\.includes\(me\)\s*\?\s*me/);
+});
+
 test("F4-017: Game.tsx i Lobby.tsx biorą mini-gry z MINI_GAME_IDS, bez ręcznej listy id", () => {
   const game = read("Game.tsx");
   expect(game).toContain("MINI_GAME_IDS");

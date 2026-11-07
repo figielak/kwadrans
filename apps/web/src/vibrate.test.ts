@@ -124,3 +124,63 @@ describe("tura: wibracja przy nowej decyzji", () => {
     expect(code).toContain("navigator.vibrate?.(VIBRATE.turn)");
   });
 });
+
+describe("Wyprawa: klucz decyzji (10-07)", () => {
+  const view = (extra: object = {}) => ({ nonce: 7, expedition: 0, reveal: 1, phase: "decision", ...extra });
+  const key = (v: object, me = "a", waiting = ["a", "b"]) => decisionKey("wyprawa", v, me, waiting);
+
+  test("kolejne decyzje tej samej osoby przy tym samym waitingFor mają różne klucze", () => {
+    expect(key(view({ reveal: 1 }))).not.toBeNull();
+    expect(key(view({ reveal: 1 }))).not.toBe(key(view({ reveal: 2 })));
+  });
+
+  test("zatwierdzenie innego gracza nie zmienia mojego klucza", () => {
+    expect(key(view(), "a", ["a", "b", "c"])).toBe(key(view(), "a", ["a", "c"]));
+    expect(key(view(), "a", ["a", "b"])).toBe(key(view(), "a", ["a"]));
+  });
+
+  test("klucz jest null w obozie, po moim zatwierdzeniu i dla obserwatora", () => {
+    expect(key(view(), "a", ["b", "c"])).toBeNull();
+    expect(key(view(), "a", [])).toBeNull();
+    expect(key(view(), "", ["a", "b"])).toBeNull();
+    expect(key(view(), "ktos-obcy", ["a", "b"])).toBeNull();
+  });
+
+  test("odsłona, nowa wyprawa i nowy nonce dają nowe klucze", () => {
+    const keys = [view(), view({ phase: "summary" }), view({ expedition: 1 }), view({ nonce: 8 })].map((v) => key(v));
+    expect(new Set(keys).size).toBe(4);
+  });
+
+  test("po moim „Dalej” i w over klucz jest null, więc koniec partii nie wibruje", () => {
+    expect(key(view({ phase: "summary" }), "a", ["b"])).toBeNull();
+    expect(key(view({ phase: "over", expedition: 4 }), "a", [])).toBeNull();
+    expect(key(view({ phase: "summary" }), "a", ["a", "b"])).not.toBeNull();
+  });
+
+  test("klucz z prawdziwego widoku: nowe odkrycie tej samej osoby wibruje, cudza gotowość nie", async () => {
+    const { createRng, GAMES } = await import("@kwadrans/games");
+    const game = GAMES.wyprawa;
+    const ids = ["a", "b", "c"];
+    let s: unknown = game.setup(ids, createRng(1));
+    const at = () => game.playerView(s, "a") as { nonce: number; expedition: number; reveal: number };
+    const choose = (p: string, choice: "continue" | "return") => {
+      s = game.applyMove(s, p, { type: "choose", choice, nonce: at().nonce, expedition: at().expedition, reveal: at().reveal }, createRng(1));
+    };
+    const first = decisionKey("wyprawa", game.playerView(s, "a"), "a", game.waitingFor(s));
+    choose("b", "continue");
+    expect(decisionKey("wyprawa", game.playerView(s, "a"), "a", game.waitingFor(s))).toBe(first);
+    choose("a", "continue");
+    expect(decisionKey("wyprawa", game.playerView(s, "a"), "a", game.waitingFor(s))).toBeNull();
+    choose("c", "continue");
+    const second = decisionKey("wyprawa", game.playerView(s, "a"), "a", game.waitingFor(s));
+    expect(game.waitingFor(s)).toEqual(ids);
+    expect(second).not.toBeNull();
+    expect(second).not.toBe(first);
+  });
+
+  test("Wyprawa.tsx nie woła navigator.vibrate ani useHarm", () => {
+    const code = read("games/Wyprawa.tsx");
+    expect(code).not.toContain("navigator.vibrate");
+    expect(code).not.toContain("useHarm");
+  });
+});

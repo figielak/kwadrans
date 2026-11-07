@@ -15,6 +15,9 @@ import {
   type SabotazMove,
   type SabotazView,
   soloState,
+  WYPRAWA_EXPEDITIONS,
+  WYPRAWA_DECISION_SECONDS,
+  WYPRAWA_SUMMARY_SECONDS,
 } from "./index.ts";
 
 // Kontrakt wspólny dla każdej gry z rejestru, sprawdzany na losowych partiach granych ruchami po limicie czasu:
@@ -39,7 +42,7 @@ const EAGER: Record<string, (rng: () => number) => unknown[]> = {
 
 test("rejestr: id z sieci nie trafia w pola prototypu obiektu, a klucz to id gry", () => {
   for (const id of ["constructor", "toString", "__proto__", "hasOwnProperty", "nie-ma-takiej"]) expect(GAMES[id], id).toBeUndefined();
-  expect(Object.keys(GAMES)).toHaveLength(39);
+  expect(Object.keys(GAMES)).toHaveLength(40);
   for (const [id, game] of Object.entries(GAMES)) expect(game.id).toBe(id);
 });
 
@@ -190,6 +193,23 @@ describe.each(CASES)("$name: kontrakt", ({ game, mode }) => {
   });
 });
 
+describe("Wyprawa w rejestrze", () => {
+  test("jest grą główną 2-6 osób, bez rekordu, podglądu i trybów", () => {
+    const game = GAMES.wyprawa;
+    expect(game.id).toBe("wyprawa");
+    expect(MINI_GAME_IDS).not.toContain("wyprawa");
+    expect(game.minPlayers).toBe(2);
+    expect(game.maxPlayers).toBe(6);
+    expect(game).not.toHaveProperty("record");
+    expect(game).not.toHaveProperty("live");
+    expect(game).not.toHaveProperty("modes");
+  });
+
+  test("stałe są eksportowane z przedrostkiem WYPRAWA_", () => {
+    expect([WYPRAWA_EXPEDITIONS, WYPRAWA_DECISION_SECONDS, WYPRAWA_SUMMARY_SECONDS]).toEqual([5, 20, 15]);
+  });
+});
+
 describe("Sabotaż w rejestrze", () => {
   test("jest grą główną 3-6 osób, bez rekordu, podglądu i trybów", () => {
     const game = GAMES.sabotaz;
@@ -249,6 +269,7 @@ test("losowe partie przeszły przez każdą fazę gier wielofazowych (timeoutMov
     "panstwa-miasta": ["write", "vote", "summary"],
     kalambury: ["choose", "draw", "reveal"],
     sabotaz: ["initial", "place", "bid", "reveal", "summary"],
+    wyprawa: ["decision", "summary"],
   };
   for (const [id, phases] of Object.entries(expected)) expect([...visited[id]].sort(), id).toEqual([...phases].sort());
 });

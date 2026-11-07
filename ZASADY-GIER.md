@@ -15,6 +15,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Państwa-miasta | `panstwa-miasta` | 2-6 | zależny od fazy | równoczesna |
 | Kalambury | `kalambury` | 2-6 | zależny od fazy | równoczesna, ukryty stan |
 | Sabotaż | `sabotaz` | 3-6 | 30 s pierwsze karty, 60 s ruch, 15 s odsłona | po kolei, ukryty stan (pierwsze karty i odsłona równocześnie) |
+| Wyprawa | `wyprawa` | 2-6 | 20 s decyzja, 15 s odsłona | równoczesna, ukryty stan |
 | Refleks | `refleks` | 1-6 | 60 s | mini-gra |
 | Sekwencja | `simon` | 1-6 | 300 s | mini-gra |
 | Stoper | `stoper` | 1-6 | 60 s | mini-gra |
@@ -1085,3 +1086,95 @@ Wynik gracza po partii to 0-12 (6 rund po maksymalnie 2 punkty).
 
 Nie jest potwierdzony. Do sprawdzenia w próbie z ludźmi: długość licytacji, premia 2/1 (czy właściciel cudzej pułapki nie ma zbyt łatwo),
 łatwość zapamiętania własnego stosu i skłonność do zawsze bezpiecznej deklaracji 1.
+
+## 12. Wyprawa (`wyprawa`)
+
+Własny wariant wspólnej wyprawy po skarby z tajną, równoczesną decyzją powrotu. Nazwy, karty i oprawa są własne.
+Wersja 1 bez ról, walki, ekwipunku, reliktów, indywidualnych talii i trybów (`modes` brak).
+
+- 2-6 graczy, `EXPEDITIONS = 5` wypraw w partii. Wszyscy idą tym samym szlakiem, ale każdy sam wybiera, kiedy zabezpieczyć zdobycz.
+  Ryzyko drugiego takiego samego zagrożenia rośnie z każdym odkryciem.
+- Stałe w `wyprawa.ts` (w `index.ts` z przedrostkiem `WYPRAWA_`): `EXPEDITIONS = 5`, `DECISION_SECONDS = 20`, `SUMMARY_SECONDS = 15`.
+  Stan ma też `nonce` z `rng` w `setup` (odróżnia partię od rewanżu, czyści lokalny wybór na ekranie).
+
+### Talia i zasoby
+
+- Każda wyprawa ma świeżą talię 30 kart, przetasowaną przez `rng`: 15 skarbów o wartościach od 1 do 15 (każda wartość raz, razem 120 monet)
+  oraz 5 rodzajów zagrożeń po 3 karty: osuwisko, zalanie, rój, przepaść, zawalony most. Wszystkie działają jednakowo;
+  różne nazwy i ikony służą do śledzenia powtórzeń. Skład talii jest stały, kolejność nie.
+- Każdy gracz ma `bank` (bezpieczne monety z zakończonych powrotów, jawny, zakres 0-600) i `carried` (zagrożona zdobycz bieżącej wyprawy).
+  Szlak ma wspólne `loose` (resztki podziałów), na początku wyprawy zero. Suma banków nie przekracza 600 (5 × 120).
+- Jawne dla wszystkich: banki, `carried`, `loose`, odkryte karty, liczba odkrytych zagrożeń każdego rodzaju, kto jest na szlaku, a kto w obozie.
+  Tajna jest przyszła kolejność talii. Liczba pozostałych kart może być publiczna.
+
+### Przebieg wyprawy
+
+1. Wszyscy wracają na szlak, `carried` i `loose` są zerowane, `bank` zostaje. Serwer od razu odkrywa pierwszą kartę, rozstrzyga ją i otwiera pierwszą decyzję.
+2. **Skarb** o wartości `v` przy `a` osobach na szlaku: każda dostaje `floor(v / a)` do `carried`, a `v % a` trafia do `loose`.
+   Wcześniejsze `loose` nie jest rozdzielane ponownie ze skarbem.
+3. **Zagrożenie**: pierwsza karta danego rodzaju tylko ostrzega. Druga tego samego rodzaju kończy wyprawę:
+   osoby pozostające na szlaku tracą `carried`, a `bank` (także tych w obozie) jest nietknięty. Pozostałe `loose` przepada.
+4. Po każdym odkryciu, które nie kończy wyprawy, każda osoba na szlaku potajemnie wybiera „Idę dalej” albo „Wracam”.
+   Dotknięcie wybiera, „Gotowe” zatwierdza. Do zatwierdzenia wybór jest lokalny i zmienny, potem nieodwołalny.
+   Jawna jest gotowość, nigdy treść wyboru. Lokalny wybór bez „Gotowe” nie jest ruchem (ruch `choose` powstaje przy zatwierdzeniu),
+   więc po limicie liczy się „Wracam”.
+5. Gdy wszyscy na szlaku zatwierdzili (albo dostali ruch timeoutu), serwer rozstrzyga cały komplet naraz. Jeśli wraca `k > 0` osób,
+   każda przenosi do banku swoje `carried` i `floor(loose / k)`; jej `carried` staje się zero, a `loose` maleje o `k * floor(loose / k)`.
+   Wszyscy wracający dostają tę samą część, wynik nie zależy od kolejności wiadomości.
+6. Wracający trafiają do obozu i nie podejmują już decyzji w tej wyprawie, tylko obserwują ryzyko pozostałych.
+7. Jeśli ktoś został na szlaku, serwer od razu odkrywa następną kartę i otwiera nową decyzję (albo odsłonę, gdy karta kończy wyprawę).
+   Animacja nie opóźnia serwera i nie dodaje obowiązkowego kliknięcia.
+8. Jeśli wrócili wszyscy, wyprawa kończy się bez następnej karty. Reszta `loose`, której nie da się podzielić między wracających, przepada.
+
+Przykład: `loose = 5`, wracają dwie osoby z `carried` 7 i 4. Do banku trafia odpowiednio 7 + 2 = 9 i 4 + 2 = 6, a na szlaku zostaje 1.
+Następny skarb dzieli się już tylko między osoby nadal na wyprawie.
+
+### Koniec wyprawy i partii
+
+- **Odsłona** (`summary`, 15 s wspólnie) po każdej wyprawie poza ostatnią: zyski, utracona zdobycz, zagrożenie kończące wyprawę i stan banków.
+  Następna wyprawa rusza po `next` od wszystkich uczestników (także tych w obozie) albo po limicie (`next` za każdego, kto jeszcze nie kliknął).
+- Po piątej wyprawie stan przechodzi od razu w `over`, bez `summary` i bez dodatkowego `next`; ostatnia odsłona zostaje w widoku bez limitu.
+- Wygrywa największy bank. Równe banki dają wspólne miejsca (`places` przez `rankPlaces`, 1, 1, 3, ...), remis na szczycie to brak zwycięzcy (`rankResults`).
+  Bez dodatkowego tie-breaka.
+- **Pusta talia** (zabezpieczenie, przy prawidłowej talii nie występuje): pozostali wracają razem, bankują `carried` i dzielą `loose` jak przy powrocie, wyprawa się kończy.
+- Wyprawa ma najwyżej 20 decyzji: najpóźniej 21. karta kończy ją powtórzeniem (15 skarbów i co najwyżej 5 różnych zagrożeń to 20 kart bez końca).
+
+### Ruchy
+
+Każdy ruch niesie `nonce` i numer wyprawy; ruch z innym `nonce` lub numerem odpada. `choose` niesie też numer odkrycia.
+
+| Ruch | Faza | Znaczenie |
+|---|---|---|
+| `{ type: "choose", choice: "continue" \| "return" }` | `decision` | zatwierdzenie wyboru „Idę dalej” albo „Wracam” |
+| `{ type: "next" }` | `summary` | gotowość do następnej wyprawy |
+
+Fazy: `decision`, `summary`, `over`. `validateMove` jest jedynym strażnikiem: sprawdza fazę, `nonce`, numer wyprawy i odkrycia, obecność na szlaku
+i brak wcześniejszego zatwierdzenia; duplikat odpada. Obserwator nigdy nie rusza. Nic nie jest dopisywane do banku drugi raz po odświeżeniu, `next` ani powtórzonej wiadomości.
+
+### Limity i skończoność
+
+- Timeout decyzji to **Wracam** (neutralnie zabezpiecza dotychczasowy wynik), timeout odsłony to `next`. Oba ruchy są legalne także w normalnej grze.
+- Klucz `turn()`: `nonce:wyprawa:odkrycie:faza`. Ruch innego gracza terminu nie odnawia; nowe odkrycie liczy 20 s od nowa.
+- `waitingFor`: w `decision` osoby na szlaku bez zatwierdzonego wyboru (obóz nie czeka), w `summary` osoby bez `next`, w `over` pusto.
+- Górna granica czekania: `5 × 20 × 20 + 4 × 15 = 2060 s` (34 min 20 s), bez opóźnień sieci i serwera. To tylko granica, **nie obiecujemy typowej długości partii**;
+  zwykła gra jest krótsza, a jej czas ustali próba z ludźmi.
+- Wyjście gracza w trakcie partii: walkower według reguł platformy (`KONCEPT.md` sekcja 3). Chwilowe rozłączenie uruchamia zwykłe timeouty.
+  Skład talii i progi nie zmieniają się po wyjściu.
+
+### Widoki (`playerView`)
+
+- **Gracz na szlaku**: stan publiczny, własny zatwierdzony wybór i lista osób gotowych. Cudze wybory dopiero po rozstrzygnięciu.
+- **Gracz w obozie** (czekający): ten sam stan publiczny, bez możliwości ruchu; widzi na żywo gotowość i rozstrzygnięcia pozostałych oraz kolejne odkrycia.
+  Cudzych wyborów przed rozstrzygnięciem nie zna, tak samo jak reszta.
+- **Obserwator** (`""`, także nieznane id) widzi tylko stan publiczny, bez niczyjego wyboru przed rozstrzygnięciem.
+- Żaden widok nie niesie nieodkrytych kart, ogona talii, ziarna ani danych, z których wynika następna karta. Po końcu wyprawy pokazujemy faktycznie odkryty szlak.
+
+### Ekran i odbiór
+
+- Pion: „Wyprawa 2/5”, bank, `carried` i `loose` z podpisami, główna karta, liczniki zagrożeń, gracze z ikoną szlak/obóz. Na dole „Idę dalej”, „Wracam” i „Gotowe” (48 px, kolor gracza z drugim sygnałem zaznaczenia).
+  W obozie tekst „Jesteś w obozie. Czekasz na koniec wyprawy”. W odsłonie „Dalej”, tabela banków i zysków z pięciu wypraw.
+- Odbiór w `/dev`: pełna partia 2 i 6 graczy; obserwator na żywo przy 2 graczach, a przy 6 testami `playerView(state, "")` i `viewFor` (limit pokoju to 6 osób).
+
+### Balans
+
+Nie jest potwierdzony. Do sprawdzenia w próbie z ludźmi: 20 s na decyzję, atrakcyjność samotnego powrotu, czas czekania w obozie i faktyczna długość partii.

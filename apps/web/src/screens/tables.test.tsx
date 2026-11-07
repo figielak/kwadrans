@@ -120,6 +120,13 @@ describe("ResultHero", () => {
     expect(rows[2]).toContain("stone-pop");
   });
 
+  test("lista przycina poziom, więc wskakujący wiersz (scale 1.6) nie poszerza strony przy 6 graczach", () => {
+    for (const props of [{ reveal: true }, {}, { reveal: true, rowsOnly: true }]) {
+      const html = renderToStaticMarkup(<ResultHero {...common} hero={hero} winner="a" {...props} />);
+      expect(html.match(/<ol[^>]*>/)![0]).toContain("overflow-x-clip");
+    }
+  });
+
   test("slot linii: pod wierszami, a w trakcie odsłony niewidoczny", () => {
     const slot = () => {};
     expect(renderToStaticMarkup(<ResultHero {...common} hero={hero} slot={slot} />)).toMatch(/<\/ol><div class="[^"]*empty:hidden/);
@@ -330,6 +337,11 @@ describe("równoczesność w nagłówku (11-06)", () => {
   test("Sabotaż: pierwsze karty i odsłona są równoczesne, układanie, licytacja i odkrywanie po kolei", () => {
     for (const phase of ["initial", "summary"]) expect(isSimultaneous("sabotaz", { phase }), phase).toBe(true);
     for (const phase of ["place", "bid", "reveal", "over"]) expect(isSimultaneous("sabotaz", { phase }), phase).toBe(false);
+  });
+
+  test("Wyprawa: decyzja i odsłona są równoczesne, koniec nie", () => {
+    for (const phase of ["decision", "summary"]) expect(isSimultaneous("wyprawa", { phase }), phase).toBe(true);
+    expect(isSimultaneous("wyprawa", { phase: "over" })).toBe(false);
   });
 
   test("dotychczasowe gry zachowują klasyfikację", () => {

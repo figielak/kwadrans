@@ -72,6 +72,7 @@ rozbudowa do landmarku, wykupienie pola rywala za 2× wartość, wygrana przez b
 | Kalambury | `kalambury` | 2-6 | rysowanie palcem i zgadywanie, limit per faza |
 | Labirynt | `labirynt` | 2-4 | Quoridor: krok albo ścianka, tryby 9×9 i 7×7 |
 | Sabotaż | `sabotaz` | 3-6 | zakryte stosy, licytacja i odkrywanie od góry, 6 rund bez eliminacji, punkty 2/1/0 |
+| Wyprawa | `wyprawa` | 2-6 | wspólny szlak, tajne równoczesne decyzje powrotu, bank i ryzyko drugiego takiego samego zagrożenia, 5 wypraw |
 | Państwa-miasta | `panstwa-miasta` | 2-6 | wszyscy piszą naraz, STOP, głosowanie; limit per faza (`turn()`) |
 | Poprawka | (do zrobienia) | 2-6 | gra karciana typu Uno, ukryte ręce, własne karty |
 

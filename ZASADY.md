@@ -321,6 +321,8 @@ animacja tylko go dogania na ekranie.
   Poprawne trafienie nie wibruje. Wzory są w `VIBRATE` (`apps/web/src/vibrate.ts`), gry nie wpisują własnych liczb.
   Szkoda od rywala wibruje raz na zdarzenie u poszkodowanego (`useHarm`); zdarzenie zastane po wejściu albo odświeżeniu nie wibruje.
   Kalambury: połowa rysowania nie jest nową decyzją (nie wolno jej zdradzić), rysujący decyduje od wyboru hasła, zgadujący od wejścia w rysowanie.
+  Wyprawa: nowa decyzja wibruje `turn` raz na odkrycie (także gdy `waitingFor` znów obejmuje tych samych graczy), gotowość „Dalej” w odsłonie ma tę samą zwykłą wibrację nowej decyzji,
+  a zagrożenie i utrata zdobyczy to wynik ryzyka, bez dodatkowej wibracji (`mistake`, `harm`).
   Za zasłoną: dotknięcie przed zniknięciem kulki jest po prostu ignorowane, bez shake i tekstu (zasady gry, nie pomyłka).
 
 ## 6. Podpięcie i odbiór
@@ -330,7 +332,7 @@ Podpięcie, w tej kolejności:
 2. `packages/games/src/<id>.test.ts` (krok 2),
 3. `packages/games/src/<id>.ts`, wpis w `GAMES` i eksport typu `View` oraz stałych w `index.ts` (stałe z przedrostkiem gry, np. `SLEDZENIE_ROUNDS`),
 4. `apps/web/src/games/<Gra>.tsx`,
-5. gałąź w `screens/Game.tsx` (mini-gra: `key` z wyzwania albo `nonce`; listę mini-gier daje sam rejestr przez `MINI_GAME_IDS`, gra główna z własną tabelą po partii trafia do `OWN_RANKING`), ikona w `ICONS` w `screens/Lobby.tsx`,
+5. gałąź w `screens/Game.tsx` (mini-gra: `key` z wyzwania albo `nonce`; listę mini-gier daje sam rejestr przez `MINI_GAME_IDS`, gra główna z własną tabelą po partii pokazuje ją przez `ResultDetails`), ikona w `ICONS` w `screens/Lobby.tsx`,
    mini-gra: `record` w definicji (trzeci argument `ranked`; z `tie`, jeśli komparator ma drugie kryterium), przypadek w `RECORDS` w `index.test.ts` i jednostka w `FORMAT` w `screens/Records.tsx`,
 6. wiersz w katalogu gier w `KONCEPT.md` (sekcja 2).
 
