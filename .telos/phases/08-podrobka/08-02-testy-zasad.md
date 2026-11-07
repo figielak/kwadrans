@@ -2,7 +2,7 @@
 id: 08-02
 title: Testy zasad i puli przed kodem
 type: doc          # code | doc | audit
-status: draft       # draft | approved | in-progress | done | blocked | reverted
+status: approved    # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: hard      # normal | hard
 depends: [08-01]         # task IDs, e.g. [01-01]

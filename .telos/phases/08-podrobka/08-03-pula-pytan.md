@@ -2,7 +2,7 @@
 id: 08-03
 title: "Pula 60 par pytań"
 type: code          # code | doc | audit
-status: draft       # draft | approved | in-progress | done | blocked | reverted
+status: approved    # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [08-02]         # task IDs, e.g. [01-01]
