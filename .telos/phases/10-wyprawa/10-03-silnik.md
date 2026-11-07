@@ -2,7 +2,7 @@
 id: 10-03
 title: Silnik Wyprawy i wpis w rejestrze
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: hard      # normal | hard
 depends: [10-02]         # task IDs, e.g. [01-01]
@@ -88,11 +88,14 @@ turn(): key `${nonce}:${expedition}:${reveal}:${phase}`; seconds 20 / 15 / 0 (ov
 5. packages/games/src/index.ts: wpis w `GAMES` i eksporty `WYPRAWA_`, `WyprawaView`, `WyprawaMove` — ogólny test kontraktu przechodzi dla 2 i 6 graczy.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter @kwadrans/games exec vitest run src/wyprawa.test.ts src/index.test.ts` → exit 0
-- [ ] `pnpm run typecheck` → exit 0
-- [ ] Plik `wyprawa.test.ts` jest niezmieniony względem commitu testów z 10-02.
+- [x] all listed tests pass
+- [x] `pnpm --filter @kwadrans/games exec vitest run src/wyprawa.test.ts src/index.test.ts` → exit 0
+- [x] `pnpm run typecheck` → exit 0
+- [x] Plik `wyprawa.test.ts` jest niezmieniony względem commitu testów z 10-02.
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Czysty silnik Wyprawy: jednoczesne powroty, bilans monet, pięć wypraw, prywatny widok, timeouty i miejsca z remisami; rejestr 40 gier i eksporty WYPRAWA_, WyprawaView, WyprawaMove.
+RED przed implementacją: brak modułu Wyprawy oraz błędna liczba gier i brak eksportowanych stałych. GREEN: 382/382 testów Wyprawy i rejestru, w tym 120/120 testów zasad.
+`pnpm typecheck && pnpm test` → exit 0, 3220/3220 testów; `telos accept 10-03` → PASS. Bez potrzeby zmian testów serwera po rozszerzeniu rejestru.
+`wyprawa.test.ts` niezmieniony względem 031e1f4 (10-02); wcześniejsze usunięcia plików fazy 11 pozostawiono bez zmian. Bez commitu zgodnie z AGENTS.md.
+Deviations: none
