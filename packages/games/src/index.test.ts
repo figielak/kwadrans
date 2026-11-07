@@ -3,6 +3,11 @@ import {
   createRng,
   GAMES,
   MINI_GAME_IDS,
+  PODROBKA_ANSWER_MAX,
+  PODROBKA_ROUNDS,
+  PODROBKA_SUMMARY_SECONDS,
+  PODROBKA_VOTE_SECONDS,
+  PODROBKA_WRITE_SECONDS,
   ROOM_MESSAGES,
   SABOTAZ_INITIAL_SECONDS,
   SABOTAZ_ROUNDS,
@@ -35,14 +40,19 @@ const MAX_STEPS = 100_000;
 const visited: Record<string, Set<string>> = {};
 
 /** Ruchy „chętnego” gracza: sam timeoutMove nigdy nie kupuje (Kampus Tour) ani nie stawia ścianek (Labirynt). */
-const EAGER: Record<string, (rng: () => number) => unknown[]> = {
+const EAGER: Record<string, (rng: () => number, state: unknown) => unknown[]> = {
   "kampus-tour": (rng) => [{ type: "buy" }, { type: "buyout" }, { type: "build", level: 1 }, { type: "travel", tile: Math.floor(rng() * 32) }],
   labirynt: (rng) => (rng() < 0.3 ? [{ type: "wall", x: Math.floor(rng() * 8), y: Math.floor(rng() * 8), dir: rng() < 0.5 ? "h" : "v" }] : []),
+  // Sam timeoutMove zawsze daje pustą odpowiedź, a ta anuluje rundę: bez odpowiedzi od graczy partia nie dochodzi do głosowania.
+  podrobka: (_, state) => {
+    const { nonce, round, players } = state as { nonce: number; round: number; players: string[] };
+    return [{ type: "write", nonce, round, answer: "odpowiedź", done: true }, ...players.map((target) => ({ type: "vote", nonce, round, target }))];
+  },
 };
 
 test("rejestr: id z sieci nie trafia w pola prototypu obiektu, a klucz to id gry", () => {
   for (const id of ["constructor", "toString", "__proto__", "hasOwnProperty", "nie-ma-takiej"]) expect(GAMES[id], id).toBeUndefined();
-  expect(Object.keys(GAMES)).toHaveLength(40);
+  expect(Object.keys(GAMES)).toHaveLength(41);
   for (const [id, game] of Object.entries(GAMES)) expect(game.id).toBe(id);
 });
 
@@ -148,7 +158,7 @@ describe.each(CASES)("$name: kontrakt", ({ game, mode }) => {
           expect(game.validateMove(s, p, fallback, { source: "timeout" }), `seed ${seed}, ruch ${steps}: timeoutMove ${p} ${JSON.stringify(fallback)}`).toBe(true);
         }
         const player = waiting[Math.floor(rng() * waiting.length)];
-        const eager = rng() < 0.7 ? EAGER[game.id]?.(rng).find((m) => game.validateMove(s, player, m)) : undefined;
+        const eager = rng() < 0.7 ? EAGER[game.id]?.(rng, s).find((m) => game.validateMove(s, player, m)) : undefined;
         const move = eager ?? game.timeoutMove!(s, player, rng);
         const context = { source: eager === undefined ? "timeout" : "client" } as const;
         phases.add((s as { phase?: string }).phase ?? "");
@@ -261,6 +271,28 @@ describe("Sabotaż w rejestrze", () => {
   });
 });
 
+describe("Podróbka w rejestrze", () => {
+  test("jest grą główną 3-6 osób, poza mini-grami, bez record, live i modes", () => {
+    const game = GAMES.podrobka;
+    expect(game.id).toBe("podrobka");
+    expect(game.name).toBe("Podróbka");
+    expect(game.minPlayers).toBe(3);
+    expect(game.maxPlayers).toBe(6);
+    expect(MINI_GAME_IDS).not.toContain("podrobka");
+    expect(game.record).toBeUndefined();
+    expect(game.live).toBeUndefined();
+    expect(game.modes).toBeUndefined();
+  });
+
+  test("stałe zasad są dostępne z przedrostkiem PODROBKA_", () => {
+    expect(PODROBKA_ROUNDS).toBe(6);
+    expect(PODROBKA_WRITE_SECONDS).toBe(30);
+    expect(PODROBKA_VOTE_SECONDS).toBe(60);
+    expect(PODROBKA_SUMMARY_SECONDS).toBe(15);
+    expect(PODROBKA_ANSWER_MAX).toBe(30);
+  });
+});
+
 test("losowe partie przeszły przez każdą fazę gier wielofazowych (timeoutMove sprawdzony w każdej)", () => {
   const expected: Record<string, string[]> = {
     "kampus-tour": ["pick", "roll", "card", "buy", "buyout", "build", "sell", "juwenalia"],
@@ -270,6 +302,7 @@ test("losowe partie przeszły przez każdą fazę gier wielofazowych (timeoutMov
     kalambury: ["choose", "draw", "reveal"],
     sabotaz: ["initial", "place", "bid", "reveal", "summary"],
     wyprawa: ["decision", "summary"],
+    podrobka: ["write", "vote", "summary"],
   };
   for (const [id, phases] of Object.entries(expected)) expect([...visited[id]].sort(), id).toEqual([...phases].sort());
 });
