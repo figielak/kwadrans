@@ -2,7 +2,7 @@
 id: 10-01
 title: Zasady Wyprawy w dokumentach
 type: doc          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: []         # task IDs, e.g. [01-01]
@@ -41,11 +41,13 @@ Opisać Wyprawę w dokumentach będących źródłem prawdy, zanim powstanie tes
 - ZASADY.md §5: wpis, że nowa decyzja wibruje `turn` raz na odkrycie, gotowość „Dalej” w odsłonie ma tę samą zwykłą wibrację nowej decyzji, a zagrożenie i utrata zdobyczy nie wywołują dodatkowej wibracji (`mistake`, `harm`); §6 pkt 5: `ResultDetails` zamiast `OWN_RANKING`.
 
 ## Acceptance
-- [ ] `grep -q "^## 12. Wyprawa" ZASADY-GIER.md` → exit 0
-- [ ] `grep -q "wyprawa" KONCEPT.md` → exit 0
-- [ ] `pnpm run test` → exit 0
-- [ ] Sekcja odpowiada na wszystkie pytania z ZASADY §1, także „co widzi czekający i obserwator”.
+- [x] `grep -q "^## 12. Wyprawa" ZASADY-GIER.md` → exit 0
+- [x] `grep -q "wyprawa" KONCEPT.md` → exit 0
+- [x] `pnpm run test` → exit 0
+- [x] Sekcja odpowiada na wszystkie pytania z ZASADY §1, także „co widzi czekający i obserwator”.
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Dodano `## 12. Wyprawa` w ZASADY-GIER.md (talia, przebieg, przykład 5 → 9/6/1, końce, pusta talia, ruchy, timeouty, granica 2060 s, remisy, widoki gracza/obozu/obserwatora, ekran) i wiersz tabeli.
+Wiersz katalogu w KONCEPT.md §2.2; w ZASADY.md wpis o wibracji Wyprawy (§5) i `ResultDetails` zamiast `OWN_RANKING` (§6 pkt 5).
+`pnpm run test` zielone; pozycja manualna sprawdzona względem ZASADY §1.
+Deviations: none

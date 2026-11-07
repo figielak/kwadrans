@@ -2,7 +2,7 @@
 <!-- ≤ 40 lines. Maintained by `telos status set <key>=<value>`; never edit by hand.
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 10-wyprawa
-Task: 10-01
+Task: 10-02
 Next: /telos:do
 Blockers: none
 Awaiting user: 08, 09, 12
@@ -15,6 +15,6 @@ Awaiting user: 08, 09, 12
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
+- 10-01 done: zasady Wyprawy w dokumentach
 - 11-sabotaz closed: gra sabotaz (3-6 graczy) gotowa, v1 przyjęte, balans niezmierzony
 - 11-08 done: v1 przyjęte przez użytkownika, balans bez pomiarów (jawne odstępstwo)
-- 11-07 done: odbiór techniczny 3 + obserwator i 6 graczy, U1 naprawione w 11-09
