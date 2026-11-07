@@ -2,7 +2,7 @@
 id: 10-09
 title: "Próba z ludźmi: czas decyzji i obóz"
 type: audit          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [10-08]         # task IDs, e.g. [01-01]
@@ -31,9 +31,10 @@ Zagrać z ludźmi i zdecydować z użytkownikiem, czy 20 s, samotny powrót i cz
 - Zapisać decyzję: przyjąć v1 albo konkretne poprawki na `/telos:revise`.
 
 ## Acceptance
-- [ ] `pnpm run typecheck` → exit 0
-- [ ] Result zawiera pomiary, odpowiedzi graczy i decyzję użytkownika albo jego jawne odstępstwo.
+- [x] `pnpm run typecheck` → exit 0
+- [x] Result zawiera pomiary, odpowiedzi graczy i decyzję użytkownika albo jego jawne odstępstwo.
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Próby nie przeprowadzono: jawne odstępstwo użytkownika z 2026-11-07 („10-09 skip. nie robimy tego”). Brak pomiarów i odpowiedzi graczy.
+Niepotwierdzone: balans, 20 s na decyzję, atrakcyjność samotnego powrotu i czas czekania w obozie. Czasu partii nie wpisano do UI (plan §4 uzależnia go od tej próby).
+Deviations: none
