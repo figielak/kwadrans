@@ -2,7 +2,7 @@
 id: 10-02
 title: Testy zasad Wyprawy przed kodem
 type: doc          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: hard      # normal | hard
 depends: [10-01]         # task IDs, e.g. [01-01]
@@ -84,10 +84,13 @@ turn(): key `${nonce}:${expedition}:${reveal}:${phase}`; seconds 20 / 15 / 0 (ov
 4. packages/games/src/wyprawa.test.ts: limity, widoki, bilans, JSON — pełne pokrycie ZASADY §2.
 
 ## Acceptance
-- [ ] `test -s packages/games/src/wyprawa.test.ts` → exit 0
-- [ ] `pnpm --filter @kwadrans/games exec vitest run src/wyprawa.test.ts` → exit 1
-- [ ] Każdy Edge case i każda zasada z ZASADY-GIER §12 ma test nazwany jak zasada.
+- [x] `test -s packages/games/src/wyprawa.test.ts` → exit 0
+- [x] `pnpm --filter @kwadrans/games exec vitest run src/wyprawa.test.ts` → exit 1
+- [x] Każdy Edge case i każda zasada z ZASADY-GIER §12 ma test nazwany jak zasada.
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+`wyprawa.test.ts`: 120 testów zasad; bez `wyprawa.ts` czerwone (exit 1, brak modułu), tak ma być.
+Sprawdzone tymczasową implementacją referencyjną poza commitem: 120/120 zielone, typy bez błędów, 11 mutacji zasad (podział, koniec, kolejność, wycieki, timeout, klucz) oblewa testy.
+Niespodzianka: `carried` osób na szlaku jest ruchami zawsze równe, więc przykład „7 i 4 → 9/6/1” z planu i ZASADY-GIER §12 jest nieosiągalny. Test tego przypadku poprawia `carried` ręcznie (jedyny taki stan, opisany w komentarzu), obok jest wariant osiągalny 8 i 8 → 10/10/1.
+Ustalone w testach poza Interface: `gain` i `lost` mają wszystkich graczy, w `summary`/`over` carried i loose to 0, `last` jest null na początku wyprawy.
+Deviations: none
