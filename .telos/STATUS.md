@@ -3,7 +3,7 @@
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 10-wyprawa
 Task: 10-02
-Next: /telos:do
+Next: /telos:do-hard 10-02
 Blockers: none
 Awaiting user: 08, 09, 12
 <!-- Blockers: "NN-MM: reason". Awaiting user: IDs only, e.g. "02:Q-01, 02:D-03" -->
