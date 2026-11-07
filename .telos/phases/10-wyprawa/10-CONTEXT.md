@@ -7,6 +7,7 @@ Faza kończy się po TDD, ekranie, podpięciu i odbiorze 2/6 graczy z obserwator
 - D-01: Przyjęte zasady z `.planning/WYPRAWA-PLAN.md` §7: 5 wypraw, podana talia (15 skarbów 1-15, 5 zagrożeń po 3), drugie identyczne zagrożenie kończy wyprawę, jednoczesny podział reszt, bank jawny, timeout decyzji to „Wracam”.
 - D-02: Testy zasad idą osobnym commitem przed kodem na gałęzi fazy (AGENTS.md, ZASADY §2 i zgoda na commity w fazie z 2026-11-06), zamiast zdania z planu §6 „osobny commit testów tylko na prośbę użytkownika”.
 - D-03: Rozpiska powstaje wprost z `.planning/WYPRAWA-PLAN.md`, bez wzorowania na planach poprzednich faz (polecenie użytkownika).
+- D-04: FAIL `telos accept 10-02` przy zamknięciu fazy jest zaakceptowany przez użytkownika (2026-11-07): kryterium `vitest run src/wyprawa.test.ts → exit 1` opisuje czerwoną fazę TDD sprzed 10-03, a po implementacji te testy przechodzą (exit 0). Dotyczy tylko tego jednego punktu.
 
 ## Constraints
 - Praca na gałęzi `faza/10-wyprawa`, merge przy `/telos:done`, push tylko na prośbę.

@@ -3,7 +3,7 @@
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 10-wyprawa
 Task: none
-Next: close phase 10 (/telos:done)
+Next: /telos:plan
 Blockers: none
 Awaiting user: 08, 09, 12
 <!-- Blockers: "NN-MM: reason". Awaiting user: IDs only, e.g. "02:Q-01, 02:D-03" -->
@@ -15,6 +15,6 @@ Awaiting user: 08, 09, 12
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
+- 10-wyprawa closed: gra gotowa technicznie, balans niepotwierdzony
 - 10-09 done: próba z ludźmi pominięta decyzją użytkownika, balans niepotwierdzony
 - 10-08 done: odbiór 2 i 6 graczy zaliczony po poprawkach W1-W4
-- 10-07 done: Wyprawa podpięta w lobby, Game i wibracjach
