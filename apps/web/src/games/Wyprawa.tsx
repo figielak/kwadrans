@@ -103,28 +103,27 @@ export function DecisionControls({ view, me, waitingFor, color, draft, onDraft, 
     <StickyBar className="mt-auto">
       <div className="flex w-full flex-col gap-2">
         <p className="text-xs text-fg-muted">Bez Gotowe po czasie wracasz.</p>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
           {CHOICES.map(({ choice, label, icon: Icon }) => {
             const picked = draft.choice === choice;
             return (
               <button
                 key={choice}
                 type="button"
-                className="flex min-h-12 items-center justify-center gap-1.5 rounded-[10px] border px-2"
+                className="flex min-h-12 items-center justify-center gap-1.5 rounded-[10px] border px-1"
                 style={{ borderColor: picked ? color : "var(--color-line)" }}
                 aria-pressed={picked}
                 onClick={() => onDraft({ choice })}
               >
-                <Icon size={18} aria-hidden="true" />
+                {picked ? <Check size={18} weight="bold" aria-hidden="true" /> : <Icon size={18} aria-hidden="true" />}
                 <span className="text-sm font-medium">{label}</span>
-                {picked && <Check size={16} weight="bold" aria-hidden="true" />}
               </button>
             );
           })}
+          <button type="button" className="btn btn-player px-4" style={{ backgroundColor: color }} disabled={!send} onClick={() => send && onMove(send)}>
+            Gotowe
+          </button>
         </div>
-        <button type="button" className="btn btn-player w-full" style={{ backgroundColor: color }} disabled={!send} onClick={() => send && onMove(send)}>
-          Gotowe
-        </button>
       </div>
     </StickyBar>
   );
@@ -377,28 +376,28 @@ function Final({ view, nick, players, places }: { view: WyprawaView; nick: (id: 
   return (
     <>
       <div className="tile p-3">
-        <table className="w-full text-sm">
+        <table className="w-full table-fixed text-sm">
           <thead>
             <tr className="label">
               <th className="text-left font-normal">Gracz</th>
               {view.history.map((_, i) => (
-                <th key={i} className="w-8 text-right font-normal" aria-label={`Wyprawa ${i + 1}`}>
+                <th key={i} className="w-6 text-right font-normal" aria-label={`Wyprawa ${i + 1}`}>
                   {i + 1}
                 </th>
               ))}
-              <th className="w-12 text-right font-normal">Bank</th>
+              <th className="w-10 text-right font-normal">Bank</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((id) => (
               <tr key={id} data-player={id} className="min-h-8">
-                <td className="max-w-0 truncate py-1 pr-2">
+                <td className="py-1 pr-2 wrap-anywhere">
                   <span className="mr-1.5 inline-block size-2.5 rounded-full align-middle" style={{ backgroundColor: players.find((p) => p.id === id)?.color }} aria-hidden="true" />
                   {places ? `${places[id]}. ` : ""}
                   {nick(id)}
                 </td>
                 {view.history.map((record, i) => (
-                  <td key={i} data-expedition={i + 1} className="py-1 text-right font-mono tabular-nums text-fg-muted">
+                  <td key={i} data-expedition={i + 1} className="py-1 text-right font-mono text-xs tabular-nums text-fg-muted">
                     {record.gain[id]}
                   </td>
                 ))}
@@ -475,14 +474,14 @@ export function WyprawaBoard({ view, me, players, waitingFor, onMove, places, dr
           Zostało kart: <span className="font-mono tabular-nums">{view.deckLeft}</span>
         </span>
       </div>
+      {opts.camp && <p className="text-sm">Jesteś w obozie. Czekasz na koniec wyprawy.</p>}
+      {!opts.seated && <p className="text-sm text-fg-muted">Oglądasz wyprawę.</p>}
       <Stats items={stats} />
       {current && <CurrentCard card={current} view={view} fresh={isNew(`card:${view.expedition}:${view.trail.length - 1}`)} />}
       <Hazards view={view} />
       <LastResolution view={view} me={me} nick={nick} fresh={!!view.last && isNew(`last:${view.expedition}:${view.last.reveal}`)} />
       <Roster view={view} me={me} players={players} />
       <TrailDetails view={view} />
-      {opts.camp && <p className="text-sm">Jesteś w obozie. Czekasz na koniec wyprawy.</p>}
-      {!opts.seated && <p className="text-sm text-fg-muted">Oglądasz wyprawę.</p>}
       <DecisionControls view={view} me={me} waitingFor={waitingFor} color={color} draft={draft} onDraft={onDraft} onMove={onMove} />
     </div>
   );

@@ -536,6 +536,42 @@ describe("ekran końcowy", () => {
   });
 });
 
+describe("układ na 360×640", () => {
+  const LONG = PLAYERS.map((p, i) => ({ ...p, nick: `Gracz o nicku ${i + 1}x` }));
+
+  test("tabela końcowa nie ucina nicków: zawija je, a kolumny liczb mają stałą szerokość", () => {
+    const s = finish(setup(SIX), () => "return");
+    const seen = renderToStaticMarkup(<WyprawaBoard view={view(s, A)} me={A} players={LONG} waitingFor={[]} onMove={() => {}} places={game.places!(s)} draft={{}} onDraft={() => {}} />);
+    expect(seen.match(/<table[^>]*>/)?.[0]).toContain("table-fixed");
+    for (const player of LONG) {
+      const cell = seen.match(new RegExp(`<tr[^>]*data-player="${player.id}"[^>]*><td([^>]*)>(.*?)</td>`))!;
+      expect(cell[1]).not.toContain("truncate");
+      expect(cell[1]).toContain("wrap-anywhere");
+      expect(text(cell[2])).toContain(player.nick);
+    }
+  });
+
+  test("komunikat obozu stoi nad liczbami, więc jest widoczny bez przewijania", () => {
+    const s = choose(choose(choose(treasure(THREE), A, "return"), B, "continue"), C, "continue");
+    const seen = html(s, A);
+    expect(seen.indexOf("Jesteś w obozie")).toBeGreaterThan(-1);
+    expect(seen.indexOf("Jesteś w obozie")).toBeLessThan(seen.indexOf("W banku"));
+  });
+
+  test("komunikat obserwatora stoi nad liczbami", () => {
+    const seen = html(setup(THREE), "");
+    expect(seen.indexOf("Oglądasz wyprawę")).toBeGreaterThan(-1);
+    expect(seen.indexOf("Oglądasz wyprawę")).toBeLessThan(seen.indexOf("Na szlaku"));
+  });
+
+  test("pasek decyzji ma opcje i „Gotowe” w jednym rzędzie, a zaznaczenie zastępuje ikonę, więc szerokość się nie zmienia", () => {
+    const seen = html(setup(THREE), A, { choice: "return" });
+    const row = seen.match(/<div class="[^"]*grid-cols-\[1fr_1fr_auto\][^"]*">(.*?)<\/div>/)?.[1] ?? "";
+    expect(buttons(row).map((b) => text(b).trim())).toEqual(["Idę dalej", "Wracam", "Gotowe"]);
+    for (const label of ["Idę dalej", "Wracam"]) expect(buttonWith(seen, label)!.match(/<svg/g)).toHaveLength(1);
+  });
+});
+
 describe("zasady ekranu", () => {
   const source = readFileSync(new URL("./Wyprawa.tsx", import.meta.url), "utf8");
 
