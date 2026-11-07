@@ -1,5 +1,5 @@
 import { type AuthContext, type Client, CloseCode } from "@colyseus/core";
-import { GAMES, KALAMBURY_HALF_SECONDS, type KalamburyView, type RoomView, type SabotazKind, type SabotazMove, type SabotazView, type ZakupyView } from "@kwadrans/games";
+import { GAMES, KALAMBURY_HALF_SECONDS, type KalamburyView, type RoomView, type SabotazKind, type SabotazMove, type SabotazView, type WyprawaMove, type WyprawaView, type ZakupyView } from "@kwadrans/games";
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 // Testy przed poprawką P4-027: prawdziwe handlery pokoju i walidator gry,
@@ -1767,6 +1767,284 @@ describe("11-03: Sabotaż w pokoju", () => {
       expect(r.snapshot().evening.games).toBe(1);
       expect(record).toHaveBeenCalledTimes(1);
       expect(record).toHaveBeenCalledWith("sabotaz", ["p1", "p2", "p3"], "p1");
+    });
+  });
+});
+
+describe("Wyprawa w pokoju", () => {
+  type OpenRoom = Awaited<ReturnType<typeof drawing>>;
+  /** Ukryty stan meczu, tylko to, co potrzebne do ustawienia kolejności kart. */
+  type Rigged = { state: { players: string[]; deck: unknown[]; trail: unknown[]; carried: Record<string, number>; loose: number; nonce: number } };
+
+  const open = (n: number) => drawing(n, "wyprawa", false);
+  const viewOf = (r: OpenRoom, player = 0) => r.snapshot(player).game!.view as WyprawaView;
+  const stamp = (r: OpenRoom) => ({ nonce: viewOf(r).nonce, expedition: viewOf(r).expedition });
+  const choice = (r: OpenRoom, c: "continue" | "return"): WyprawaMove => ({ type: "choose", choice: c, ...stamp(r), reveal: viewOf(r).reveal });
+  /** Termin na teraz: ostatnia wysłana wiadomość pokazuje stan z chwili wysłania. */
+  const msLeft = (r: OpenRoom) => r.room["viewFor"]("p1").game!.msLeft;
+  const waiting = (r: OpenRoom) => r.snapshot().game!.waitingFor;
+  const index = (id: string) => Number(id.slice(1)) - 1;
+  const matchOf = (r: OpenRoom) => r.room["match"] as unknown as Rigged;
+  const roomMessages = (r: OpenRoom, player: number) =>
+    vi.mocked(r.clients[player].send).mock.calls.filter(([type]) => type === "room").map(([, message]) => message as RoomView);
+
+  /** Ruch z odstępem poniżej limitu 10 wiadomości/s, żeby limit nie udawał błędu zasad. */
+  function paced(r: OpenRoom, player: string, move: WyprawaMove) {
+    vi.advanceTimersByTime(110);
+    r.send(index(player), "move", move);
+  }
+  const everyone = (r: OpenRoom, c: "continue" | "return") => {
+    for (const p of [...waiting(r)]) paced(r, p, choice(r, c));
+  };
+  const nextAll = (r: OpenRoom) => {
+    for (const p of [...waiting(r)]) paced(r, p, { type: "next", ...stamp(r) });
+  };
+
+  /** Ustawia kolejność reszty talii (liczba to skarb, tekst to zagrożenie); pierwsza karta to skarb 6. Termin się nie zmienia. */
+  function rig(r: OpenRoom, ...cards: (number | string)[]) {
+    const match = matchOf(r);
+    const { players } = match.state;
+    match.state = {
+      ...match.state,
+      trail: [{ kind: "treasure", value: 6 }],
+      deck: cards.map((card) => (typeof card === "number" ? { kind: "treasure", value: card } : { kind: "hazard", hazard: card })),
+      carried: Object.fromEntries(players.map((p) => [p, Math.floor(6 / players.length)])),
+      loose: 6 % players.length,
+    };
+  }
+  /** Wyprawa, w której p1 wraca po pierwszym skarbie (3 monety), a p2 traci swoje na drugim roju. */
+  function p1Wins(r: OpenRoom) {
+    rig(r, 1, "roj", "roj", 2);
+    paced(r, "p1", choice(r, "return"));
+    paced(r, "p2", choice(r, "continue"));
+    expect(viewOf(r).reveal).toBe(2);
+    everyone(r, "continue");
+    paced(r, "p2", choice(r, "continue"));
+  }
+  /** Każdy czeka na limit: sam zegar przechodzi całą partię. */
+  function runClock(r: OpenRoom) {
+    for (let i = 0; i < 40 && r.snapshot().phase === "playing" && viewOf(r).phase !== "over"; i++) vi.advanceTimersByTime(msLeft(r) ?? 1000);
+  }
+
+  describe("termin", () => {
+    test("decyzja ma 20 s, a zatwierdzenie innego gracza nie odnawia czasu", async () => {
+      const r = await open(2);
+      rig(r, 1, 2, 3);
+      expect(viewOf(r).phase).toBe("decision");
+      expect(msLeft(r)).toBe(20_000);
+      vi.advanceTimersByTime(5000);
+      r.send(1, "move", choice(r, "continue"));
+      expect(waiting(r)).toEqual(["p1"]);
+      expect(msLeft(r)).toBe(15_000);
+    });
+
+    test("nowe odkrycie daje pełne 20 s, także gdy waitingFor jest taki sam", async () => {
+      const r = await open(2);
+      rig(r, 1, 2, 3);
+      expect(waiting(r)).toEqual(["p1", "p2"]);
+      vi.advanceTimersByTime(8000);
+      r.send(0, "move", choice(r, "continue"));
+      expect(msLeft(r)).toBe(12_000);
+      r.send(1, "move", choice(r, "continue"));
+      expect(viewOf(r).reveal).toBe(2);
+      expect(waiting(r)).toEqual(["p1", "p2"]);
+      expect(msLeft(r)).toBe(20_000);
+    });
+
+    test("odsłona ma 15 s, częściowe „Dalej” jej nie odnawia, po końcu partii brak limitu", async () => {
+      const r = await open(2);
+      rig(r, 1);
+      everyone(r, "return");
+      expect(viewOf(r).phase).toBe("summary");
+      expect(msLeft(r)).toBe(15_000);
+      vi.advanceTimersByTime(4000);
+      r.send(0, "move", { type: "next", ...stamp(r) });
+      expect(msLeft(r)).toBe(11_000);
+      r.send(1, "move", { type: "next", ...stamp(r) });
+      expect(viewOf(r)).toMatchObject({ phase: "decision", expedition: 1 });
+      expect(msLeft(r)).toBe(20_000);
+      runClock(r);
+      expect(viewOf(r).phase).toBe("over");
+      expect(msLeft(r)).toBeNull();
+    });
+  });
+
+  describe("zegar", () => {
+    test("limit przy kilku czekających rozstrzyga raz: bank rośnie jednokrotnie, wcześniejszy wybór zostaje", async () => {
+      const r = await open(3);
+      rig(r, 5, 4, 3);
+      // 6 przy 3: po 2, loose 0.
+      r.send(0, "move", choice(r, "continue"));
+      vi.advanceTimersByTime(20_000);
+      const v = viewOf(r);
+      expect(v.reveal).toBe(2);
+      expect(v.last?.choices).toEqual({ p1: "continue", p2: "return", p3: "return" });
+      expect(v.last?.returned).toEqual(["p2", "p3"]);
+      expect(v.bank).toEqual({ p1: 0, p2: 2, p3: 2 });
+      expect(v.onTrail).toEqual(["p1"]);
+      expect(msLeft(r)).toBe(20_000);
+      vi.advanceTimersByTime(19_999);
+      expect(viewOf(r).bank).toEqual({ p1: 0, p2: 2, p3: 2 });
+      expect(viewOf(r).reveal).toBe(2);
+    });
+
+    test.each([2, 6])("komplet timeoutów przechodzi pięć wypraw i kończy partię remisem bez wpisu zwycięzcy: %i graczy", async (n) => {
+      const record = vi.spyOn(stats, "record");
+      const r = await open(n);
+      runClock(r);
+      const { game, phase, evening } = r.snapshot();
+      expect(phase).toBe("over");
+      const v = game!.view as WyprawaView;
+      expect(v.phase).toBe("over");
+      expect(v.history).toHaveLength(5);
+      expect(v.history.every((h) => h.end === "returned")).toBe(true);
+      expect(new Set(Object.values(v.bank)).size).toBe(1);
+      expect(game!.result?.winner).toBeUndefined();
+      expect(Object.values(game!.places!)).toEqual(Array(n).fill(1));
+      expect(game!.waitingFor).toEqual([]);
+      expect(evening.games).toBe(1);
+      expect(record).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("poufność wiadomości room", () => {
+    test("rywal, gracz w obozie i obserwator nie dostają cudzego wyboru ani talii przed rozstrzygnięciem", async () => {
+      const r = await open(3);
+      expect(r.observer).toBe(3);
+      rig(r, 5, 4, 3);
+      const future = JSON.stringify(matchOf(r).state.deck.slice(0, 2)).slice(1, -1);
+      paced(r, "p1", choice(r, "return"));
+      paced(r, "p2", choice(r, "continue"));
+      // p3 też zatwierdza: rozstrzygnięcie, p1 trafia do obozu, p2 i p3 dostają nowe odkrycie.
+      paced(r, "p3", choice(r, "continue"));
+      expect(viewOf(r).onTrail).toEqual(["p2", "p3"]);
+      const camp = viewOf(r, 0);
+      expect(camp.last?.returned).toEqual(["p1"]);
+      expect(camp.myChoice).toBeNull();
+
+      const before = [0, 1, 2, r.observer!].map((player) => viewOf(r, player));
+      paced(r, "p2", choice(r, "return"));
+      const after = [0, 1, 2, r.observer!].map((player) => viewOf(r, player));
+      expect(after[1].myChoice).toBe("return");
+      // Dla pozostałych zmienia się wyłącznie jawna gotowość.
+      for (const i of [0, 2, 3]) {
+        expect(after[i].myChoice).toBeNull();
+        expect({ ...after[i], ready: [] }).toEqual({ ...before[i], ready: [] });
+        expect(after[i].ready).toEqual(["p2"]);
+      }
+      for (const player of [0, 1, 2, r.observer!]) {
+        for (const message of roomMessages(r, player)) {
+          const json = JSON.stringify(message);
+          expect(json).not.toContain('"deck"');
+          expect(json).not.toContain('"choices":{"p2"');
+        }
+      }
+      expect(future.length).toBeGreaterThan(10);
+      for (const player of [0, 1, 2, r.observer!]) {
+        for (const message of roomMessages(r, player)) expect(JSON.stringify(message)).not.toContain(future);
+      }
+    });
+
+    test("własny wybór w pierwszej decyzji widzi tylko jego autor", async () => {
+      const r = await open(2);
+      rig(r, 5, 4);
+      paced(r, "p1", choice(r, "return"));
+      expect(JSON.stringify(roomMessages(r, 0).at(-1))).toContain('"myChoice":"return"');
+      for (const player of [1, r.observer!]) {
+        const json = JSON.stringify(roomMessages(r, player).at(-1));
+        expect(json).not.toMatch(/"return"|"continue"/);
+        expect(json).toContain('"myChoice":null');
+      }
+      expect(viewOf(r, 1).ready).toEqual(["p1"]);
+    });
+
+    test("6 graczy bez siódmego połączenia: viewFor osoby spoza miejsc to widok obserwatora", async () => {
+      const r = await open(6);
+      expect(r.observer).toBeUndefined();
+      expect(r.clients).toHaveLength(6);
+      paced(r, "p1", choice(r, "return"));
+      const outsider = r.room["viewFor"]("kibic");
+      const view = outsider.game!.view as WyprawaView;
+      expect(view.myChoice).toBeNull();
+      expect(view.ready).toEqual(["p1"]);
+      expect(view.players).toHaveLength(6);
+      expect(Object.keys(view)).not.toContain("deck");
+      expect(Object.keys(view)).not.toContain("choices");
+      expect(JSON.stringify(outsider)).not.toMatch(/"return"|"continue"/);
+      expect(viewOf(r, 0).myChoice).toBe("return");
+    });
+  });
+
+  describe("wynik", () => {
+    test("wyraźna wygrana zapisuje wygraną raz, places i punkty wieczoru są w RoomView, stary ruch nic nie zmienia", async () => {
+      const record = vi.spyOn(stats, "record");
+      const r = await open(2);
+      for (let i = 0; i < 5; i++) {
+        p1Wins(r);
+        if (i < 4) {
+          expect(viewOf(r).phase).toBe("summary");
+          nextAll(r);
+        }
+      }
+      const { game, evening, phase } = r.snapshot();
+      expect(phase).toBe("over");
+      expect(viewOf(r).bank).toEqual({ p1: 15, p2: 0 });
+      expect(game!.result?.winner).toBe("p1");
+      expect(game!.places).toEqual({ p1: 1, p2: 2 });
+      expect(evening).toMatchObject({ games: 1, played: ["wyprawa"] });
+      expect(evening.table).toEqual([{ key: "p1", nick: "p1", points: 1, wins: 1 }, { key: "p2", nick: "p2", points: 0, wins: 0 }]);
+      expect(record).toHaveBeenCalledTimes(1);
+      expect(record).toHaveBeenCalledWith("wyprawa", ["p1", "p2"], "p1");
+
+      const final = viewOf(r);
+      const stale = { type: "choose" as const, choice: "return" as const, ...stamp(r), reveal: 1 };
+      r.send(0, "move", stale);
+      r.send(1, "move", { type: "next", ...stamp(r) });
+      vi.advanceTimersByTime(120_000);
+      expect(viewOf(r)).toEqual(final);
+      expect(r.snapshot().evening.games).toBe(1);
+      expect(record).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("wyjście i rewanż", () => {
+    test("wyjście gracza przy 2 osobach daje walkower", async () => {
+      const record = vi.spyOn(stats, "record");
+      const r = await open(2);
+      await r.room.onLeave(r.clients[1], CloseCode.CONSENTED);
+      expect(r.snapshot().phase).toBe("over");
+      expect(r.snapshot().game!.result?.winner).toBe("p1");
+      expect(record).toHaveBeenCalledWith("wyprawa", ["p1"], "p1");
+    });
+
+    test("wyjście gracza przy większej liczbie osób kończy partię bez zwycięzcy", async () => {
+      const record = vi.spyOn(stats, "record");
+      const r = await open(3);
+      await r.room.onLeave(r.clients[2], CloseCode.CONSENTED);
+      expect(r.snapshot().phase).toBe("over");
+      expect(r.snapshot().game!.result?.winner).toBeUndefined();
+      expect(record).not.toHaveBeenCalled();
+    });
+
+    test("rewanż ma nowy nonce, a ruch ze starym stemplem odpada", async () => {
+      const r = await open(2);
+      const old = viewOf(r);
+      const oldMove = choice(r, "return");
+      runClock(r);
+      expect(r.snapshot().phase).toBe("over");
+      vi.advanceTimersByTime(1000);
+      for (const i of [0, 1]) r.send(i, "rematch", {});
+      expect(r.snapshot().phase).toBe("playing");
+      const fresh = viewOf(r);
+      expect(fresh.nonce).not.toBe(old.nonce);
+      expect(fresh).toMatchObject({ phase: "decision", expedition: 0, reveal: 1, history: [], last: null });
+      expect(fresh.bank).toEqual({ p1: 0, p2: 0 });
+      vi.advanceTimersByTime(110);
+      r.send(0, "move", oldMove);
+      // Rewanż rotuje kolejność miejsc, więc porównujemy zbiór.
+      expect([...waiting(r)].sort()).toEqual(["p1", "p2"]);
+      expect(viewOf(r)).toEqual(fresh);
+      expect(msLeft(r)).toBe(20_000 - 110);
     });
   });
 });

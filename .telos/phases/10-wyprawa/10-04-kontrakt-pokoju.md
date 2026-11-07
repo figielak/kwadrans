@@ -2,7 +2,7 @@
 id: 10-04
 title: "Wyprawa w pokoju: limity, prywatność, wynik"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [10-03]         # task IDs, e.g. [01-01]
@@ -45,10 +45,13 @@ Dowieść testami pokoju, że istniejący serwer poprawnie prowadzi Wyprawę: li
 - Napisać testy końca, zapisu, walkoweru i rewanżu.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
-- [ ] `pnpm run typecheck` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
+- [x] `pnpm run typecheck` → exit 0
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Blok `describe("Wyprawa w pokoju")` w LobbyRoom.test.ts: 13 testów (termin, zegar, poufność wiadomości room, wynik, walkower, rewanż). Istniejący serwer nie wymagał zmian.
+Kolejność kart ustawia `rig` przez podmianę `deck` w stanie meczu, bo `openExpedition` nie jest eksportowany z pakietu (eksport wyszedłby poza scope). Poufność sprawdzana na JSON wysłanych wiadomości i różnicy widoków (zmienia się tylko `ready`).
+Pełny plik 176/176 (4 uruchomienia z rzędu), typecheck czysty. Raz pojawiła się porażka starszego testu głosowania („wyjście gracza, gdy pozostali zagłosowali”), niepowtarzalna; to nie ten blok.
+Rewanż rotuje kolejność miejsc, więc test porównuje `waitingFor` jako zbiór.
+Deviations: none
