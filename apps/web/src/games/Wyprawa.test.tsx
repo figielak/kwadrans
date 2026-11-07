@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { isValidElement, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
-import { currentDraft, DecisionControls, decisionKey, type Draft, moves, options, WyprawaBoard } from "./Wyprawa.tsx";
+import { currentDraft, DecisionControls, decisionKey, type Draft, moves, NextBar, options, WyprawaBoard } from "./Wyprawa.tsx";
 
 // Testy napisane przed ekranem. Widoki pochodzą z prawdziwego playerView po legalnych ruchach:
 // - gracz na szlaku widzi „Wyprawa n/5”, bank, to co niesie i resztki na szlaku z osobnymi podpisami,
@@ -15,6 +15,9 @@ import { currentDraft, DecisionControls, decisionKey, type Draft, moves, options
 // - gracz w obozie widzi tekst o obozie i jawne wydarzenia, obserwator i obce id nie mają akcji ani prywatnych danych,
 // - ostatnia decyzja, podział i poprzednia karta z last są widoczne w następnej decyzji,
 // - szczegół szlaku ma wszystkie odkryte karty, nic więcej, a zastany stan nie animuje się,
+// - odsłona pokazuje zyski, utraconą zdobycz, powód końca wyprawy i banki wszystkich; „Dalej” ma stempel i znika po kliknięciu,
+// - koniec pokazuje tabelę banków i pięć zysków każdego gracza, wspólne miejsca przy remisie, bez „Dalej”, także dla widza,
+// - odsłona i koniec rysują się tylko ze stanu widoku i tylko z odkrytych kart, zastany stan bez animacji,
 // - ekran nie wibruje sam (robi to Game.tsx) i nie używa em-dashy.
 
 const A = "p1";
@@ -61,8 +64,9 @@ const THREE = [A, B, C];
 const TWO = [A, B];
 const SIX = [A, B, C, D, E, F];
 
-function html(s: S, me: string, draft: Draft = {}) {
-  return renderToStaticMarkup(<WyprawaBoard view={view(s, me)} me={me} players={PLAYERS} waitingFor={game.waitingFor(s)} onMove={() => {}} draft={draft} onDraft={() => {}} />);
+function html(s: S, me: string, draft: Draft = {}, v: WyprawaView = view(s, me)) {
+  const places = v.phase === "over" ? (game.places?.(s) ?? null) : null;
+  return renderToStaticMarkup(<WyprawaBoard view={v} me={me} players={PLAYERS} waitingFor={game.waitingFor(s)} onMove={() => {}} places={places} draft={draft} onDraft={() => {}} />);
 }
 const text = (markup: string) => markup.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
 const buttons = (markup: string) => markup.match(/<button[^>]*>.*?<\/button>/g) ?? [];
@@ -362,13 +366,158 @@ describe("szczegół szlaku", () => {
   });
 });
 
-describe("faza po wyprawie (do 10-06)", () => {
-  test("odsłona i koniec renderują się bez akcji i bez błędu", () => {
-    const ended = everyone(treasure(THREE), "return");
-    expect(view(ended).phase).toBe("summary");
-    expect(() => html(ended, A)).not.toThrow();
-    expect(() => html(ended, "")).not.toThrow();
-    expect(text(html(ended, A))).toContain("Wyprawa 1/5");
+/** Partia do końca: `pick` wybiera za każdego czekającego, odsłony przechodzą „Dalej” wszystkich. */
+function finish(s: S, pick: (player: string, v: WyprawaView) => "continue" | "return") {
+  let acc = s;
+  for (let i = 0; i < 200 && view(acc).phase !== "over"; i++) {
+    acc = view(acc).phase === "summary" ? nextAll(acc) : game.waitingFor(acc).reduce((inner, p) => choose(inner, p, pick(p, view(inner))), acc);
+  }
+  expect(view(acc).phase).toBe("over");
+  return acc;
+}
+/** Pierwsza wyprawa: A wraca od razu, reszta idzie dalej aż do zagrożenia. */
+const hazardEnd = (ids: string[]) => {
+  let s = treasure(ids);
+  s = game.waitingFor(s).reduce((acc, p) => choose(acc, p, p === A ? "return" : "continue"), s);
+  while (view(s).phase === "decision") s = everyone(s, "continue");
+  return s;
+};
+const tr = (markup: string, id: string) => text(markup.match(new RegExp(`<tr[^>]*data-player="${id}"[^>]*>.*?</tr>`))?.[0] ?? "");
+
+describe("odsłona po wyprawie", () => {
+  test("zyski, utracona zdobycz, zagrożenie kończące wyprawę i banki wszystkich", () => {
+    const s = hazardEnd(THREE);
+    const v = view(s, A);
+    const record = v.history[0];
+    expect(v.phase).toBe("summary");
+    expect(record.end).toBe("hazard");
+    if (!record.hazard) throw new Error("oczekiwano zagrożenia");
+    const seen = html(s, A);
+    expect(text(seen)).toContain("Wyprawa 1/5");
+    expect(text(seen)).toContain(`Drugie ${NAMES[record.hazard]}: wyprawa się kończy`);
+    for (const id of THREE) {
+      const line = row(seen, id);
+      expect(line).toContain(NICK[id]);
+      expect(line).toContain(`+${record.gain[id]}`);
+      expect(line).toContain(`-${record.lost[id]}`);
+      expect(line).toContain(`bank ${v.bank[id]}`);
+    }
+    expect(record.lost[B] + record.lost[C]).toBeGreaterThan(0);
+    if (record.discarded > 0) expect(text(seen)).toContain(`Przepadło na szlaku: ${record.discarded}`);
+  });
+
+  test("koniec przez powrót wszystkich i przez pustą talię mają inne, poprawne opisy", () => {
+    const returned = everyone(treasure(THREE), "return");
+    expect(view(returned).history[0].end).toBe("returned");
+    const byReturn = text(html(returned, A));
+    expect(byReturn).toContain("Wszyscy wrócili do obozu");
+    expect(byReturn).not.toContain("wyprawa się kończy");
+    // Pustej talii nie da się osiągnąć legalnymi ruchami (najpóźniej 21. karta kończy wyprawę), więc zmieniamy tylko powód w prawdziwym widoku.
+    const v = view(returned, A);
+    const empty = { ...v, history: [{ ...v.history[0], end: "empty" as const }] };
+    const byEmpty = text(html(returned, A, {}, empty));
+    expect(byEmpty).toContain("Talia wyczerpana");
+    expect(byEmpty).not.toContain("Wszyscy wrócili do obozu");
+    expect(byEmpty).not.toContain("wyprawa się kończy");
+    expect(byReturn).not.toContain("Talia wyczerpana");
+  });
+
+  test("„Dalej” jest dla każdego grającego, także dla osoby, która wróciła wcześniej", () => {
+    const s = hazardEnd(THREE);
+    expect(game.waitingFor(s)).toEqual(THREE);
+    for (const id of THREE) expect(buttonWith(html(s, id), "Dalej")).not.toMatch(/\sdisabled=/);
+    expect(enabled(html(s, A))).toHaveLength(1);
+  });
+
+  test("„Dalej” wysyła next ze stemplem wyprawy", () => {
+    const s = hazardEnd(THREE);
+    const onMove = vi.fn();
+    const bar = NextBar({ view: view(s, A), me: A, waitingFor: game.waitingFor(s), color: "#3b9eff", nick: (id) => NICK[id], onMove });
+    const [dalej] = findButtons(bar);
+    dalej.props.onClick();
+    expect(onMove).toHaveBeenCalledWith({ type: "next", nonce: view(s).nonce, expedition: 0 });
+    expect(game.validateMove(s, A, onMove.mock.calls[0][0])).toBe(true);
+  });
+
+  test("po „Dalej” przycisk znika, a ekran pokazuje na kogo czekamy", () => {
+    const s = apply(hazardEnd(THREE), A, { type: "next", nonce: view(hazardEnd(THREE)).nonce, expedition: 0 });
+    const mine = html(s, A);
+    expect(buttonWith(mine, "Dalej")).toBeUndefined();
+    expect(enabled(mine)).toHaveLength(0);
+    expect(text(mine)).toContain("Czekamy na: Bartek, Celina");
+    expect(buttonWith(html(s, B), "Dalej")).toBeDefined();
+    expect(NextBar({ view: view(s, A), me: A, waitingFor: game.waitingFor(s), color: "#000000", nick: (id) => NICK[id], onMove: () => {} })).not.toBeNull();
+    expect(findButtons(NextBar({ view: view(s, A), me: A, waitingFor: game.waitingFor(s), color: "#000000", nick: (id) => NICK[id], onMove: () => {} }))).toHaveLength(0);
+  });
+
+  test.each(["", "ktos-obcy"])("widz %j widzi odsłonę bez „Dalej”", (id) => {
+    const s = hazardEnd(THREE);
+    const seen = html(s, id);
+    expect(enabled(seen)).toHaveLength(0);
+    expect(seen).not.toContain("Dalej");
+    expect(text(seen)).toContain("Wyprawa 1/5");
+    expect(row(seen, B)).toContain(`bank ${view(s).bank[B]}`);
+    expect(NextBar({ view: view(s, id), me: id, waitingFor: game.waitingFor(s), color: "#000000", nick: (n) => NICK[n], onMove: () => {} })).toBeNull();
+  });
+
+  test("tylko odkryty szlak tej wyprawy, bez animacji w zastanym stanie", () => {
+    const s = hazardEnd(THREE);
+    const seen = html(s, A);
+    expect(items(seen, "data-trail")).toHaveLength(view(s).history[0].trail.length);
+    expect(seen).not.toContain("animate-[");
+  });
+});
+
+describe("ekran końcowy", () => {
+  const strategy = (player: string) => (player === A ? "return" : "continue");
+
+  test.each([[THREE], [SIX]])("%j: tabela banków i pięć zysków każdego gracza, bez „Dalej”, także dla widza", (ids) => {
+    const s = finish(setup(ids), (p) => strategy(p));
+    const v = view(s);
+    expect(v.history).toHaveLength(5);
+    for (const me of [ids[0], ids[ids.length - 1], "", "ktos-obcy"]) {
+      const seen = html(s, me);
+      expect(enabled(seen)).toHaveLength(0);
+      expect(text(seen)).not.toMatch(/Dalej|Czekamy na/);
+      expect(text(seen)).toContain("Wyprawa 5/5");
+      for (const id of ids) {
+        const line = tr(seen, id);
+        expect(line).toContain(NICK[id]);
+        const cells = (seen.match(new RegExp(`<tr[^>]*data-player="${id}"[^>]*>.*?</tr>`)) ?? [""])[0].match(/<td[^>]*data-expedition="\d"[^>]*>.*?<\/td>/g) ?? [];
+        expect(cells.map((c) => text(c).trim())).toEqual(v.history.map((h) => String(h.gain[id])));
+        expect(line.trim().endsWith(String(v.bank[id]))).toBe(true);
+      }
+    }
+  });
+
+  test("ostatnia wyprawa jest widoczna na ekranie końcowym, wszystkie szlaki tylko z odkrytych kart", () => {
+    const s = finish(setup(THREE), (p) => strategy(p));
+    const v = view(s);
+    const seen = html(s, "");
+    const total = v.history.reduce((sum, h) => sum + h.trail.length, 0);
+    expect(items(seen, "data-trail")).toHaveLength(total);
+    const last = v.history[4];
+    expect(text(seen)).toContain("Wyprawa 5");
+    expect(text(seen)).toMatch(last.end === "hazard" ? /Drugie .*: wyprawa się kończy/ : /Wszyscy wrócili do obozu/);
+    expect(seen).not.toContain("animate-[");
+  });
+
+  test("remis na górze: te same miejsca, bez wskazywania zwycięzcy", () => {
+    const s = finish(setup(THREE), () => "return");
+    const v = view(s);
+    expect(new Set(Object.values(v.bank)).size).toBe(1);
+    const places = game.places!(s);
+    expect(Object.values(places)).toEqual([1, 1, 1]);
+    const seen = html(s, A);
+    for (const id of THREE) expect(tr(seen, id).trim().startsWith(`1. ${NICK[id]}`)).toBe(true);
+    expect(text(seen)).not.toMatch(/Zwycięzca|Wygrywa|wygrał/i);
+  });
+
+  test("bez remisu miejsca idą według banków", () => {
+    const s = finish(setup(THREE, 3), (p) => strategy(p));
+    const places = game.places!(s);
+    const seen = html(s, "");
+    for (const id of THREE) expect(tr(seen, id).trim().startsWith(`${places[id]}. ${NICK[id]}`)).toBe(true);
   });
 });
 

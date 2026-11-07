@@ -2,7 +2,7 @@
 id: 10-06
 title: "Odsłona, historia i ekran końcowy"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [10-05]         # task IDs, e.g. [01-01]
@@ -46,10 +46,13 @@ Dodać odsłonę po wyprawie i ekran końcowy z historią pięciu wypraw, tak by
 - Dodać szczegóły szlaku każdej wyprawy z przewijaniem.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter web exec vitest run src/games/Wyprawa.test.tsx src/tokens.test.ts src/states.test.ts` → exit 0
-- [ ] `pnpm run typecheck` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter web exec vitest run src/games/Wyprawa.test.tsx src/tokens.test.ts src/states.test.ts` → exit 0
+- [x] `pnpm run typecheck` → exit 0
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Stub zastąpiony: odsłona (`Reveal`: powód końca, wiersz na gracza z bankiem, zdobytym i utraconym, przepadłe resztki, szlak wyprawy) i koniec (`Final`: tabela banków i pięciu zysków z miejscami z `places`, ostatnia wyprawa rozwinięta, wcześniejsze w `details`).
+`NextBar` (bez hooków): „Dalej” ze stemplem także dla osoby po powrocie, po kliknięciu zamiast przycisku „Czekamy na: …”, widz bez paska; `over` bez „Dalej”.
+44 testy w pliku (12 nowych), z tokens/states/animations 96/96, typecheck czysty. Pięć mutacji (Dalej dla widza, miejsca, źródło zysku, brak końca, opis pustej talii) oblewa testy.
+Pusta talia jest nieosiągalna legalnymi ruchami (21. karta kończy wyprawę), więc test jej opisu zmienia tylko pole `end` w prawdziwym widoku. Układ 6 graczy w 360×640 nie był sprawdzany wzrokiem, tylko tabelą bez poziomego przewijania (odbiór w 10-08).
+Deviations: none

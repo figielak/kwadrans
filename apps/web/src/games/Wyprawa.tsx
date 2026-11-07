@@ -1,7 +1,7 @@
 import { Bridge, Bug, Check, Coins, Footprints, Mountains, Tent, Warning, Waves } from "@phosphor-icons/react";
 import { initials, type LobbyPlayer, WYPRAWA_EXPEDITIONS, WYPRAWA_HAZARDS, type WyprawaMove, type WyprawaView } from "@kwadrans/games";
 import { type ComponentType, type ReactNode, useState } from "react";
-import { Scores, Stats, StickyBar, useFresh } from "../screens/ui.tsx";
+import { Stats, StickyBar, useFresh } from "../screens/ui.tsx";
 
 interface Props {
   view: WyprawaView;
@@ -280,26 +280,173 @@ function TrailDetails({ view }: { view: WyprawaView }) {
   );
 }
 
-/** Odsłona i koniec: prosty szkielet do zadania 10-06, bez akcji. */
-function AfterExpedition({ view, nick, players, header }: { view: WyprawaView; nick: (id: string) => string; players: LobbyPlayer[]; header: ReactNode }) {
+type Expedition = WyprawaView["history"][number];
+
+/** Powód końca wyprawy, z zapisu wyprawy. */
+function endText(record: Expedition) {
+  if (record.end === "hazard" && record.hazard) return `Drugie ${HAZARD[record.hazard].name}: wyprawa się kończy. Kto został na szlaku, traci zdobycz.`;
+  if (record.end === "empty") return "Talia wyczerpana: pozostali wracają razem i dzielą resztki.";
+  return "Wszyscy wrócili do obozu. Nikt nic nie traci.";
+}
+
+function Trail({ cards }: { cards: Card[] }) {
+  return (
+    <ol className="flex flex-col gap-1 text-sm">
+      {cards.map((card, i) => {
+        const Icon = card.kind === "treasure" ? Coins : HAZARD[card.hazard].icon;
+        return (
+          <li key={i} data-trail={i + 1} className="flex items-center gap-2">
+            <span className="w-5 text-right font-mono tabular-nums text-fg-muted">{i + 1}.</span>
+            <Icon size={14} aria-hidden="true" />
+            {cardName(card)}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+/** Przycisk „Dalej” albo informacja, na kogo czekamy; widz nie ma nic. Bez hooków, żeby dało się go sprawdzić bez DOM. */
+export function NextBar({ view, me, waitingFor, color, nick, onMove }: { view: WyprawaView; me: string; waitingFor: string[]; color: string; nick: (id: string) => string; onMove: (move: WyprawaMove) => void }) {
+  if (view.phase !== "summary" || !view.players.includes(me) || waitingFor.length === 0) return null;
+  if (!waitingFor.includes(me)) {
+    return (
+      <StickyBar className="mt-auto">
+        <p className="flex min-h-12 w-full items-center justify-center gap-1.5 text-sm font-medium">
+          <Check size={16} weight="bold" aria-hidden="true" />
+          Czekamy na: {waitingFor.map(nick).join(", ")}…
+        </p>
+      </StickyBar>
+    );
+  }
+  return (
+    <StickyBar className="mt-auto">
+      <button type="button" className="btn btn-player w-full" style={{ backgroundColor: color }} onClick={() => onMove(moves(view, {}).next)}>
+        Dalej
+      </button>
+    </StickyBar>
+  );
+}
+
+/** Odsłona: wiersz na gracza ze zyskiem, stratą i bankiem, powód końca i szlak tej wyprawy. */
+function Reveal({ view, record, nick, players }: { view: WyprawaView; record: Expedition; nick: (id: string) => string; players: LobbyPlayer[] }) {
   const rows = [...view.players].sort((a, b) => view.bank[b] - view.bank[a]);
+  return (
+    <>
+      <p className="text-sm">{endText(record)}</p>
+      <ul className="flex flex-col gap-2">
+        {rows.map((id) => (
+          <li key={id} data-player={id} className="flex flex-col gap-0.5 rounded-[10px] border border-line px-3 py-2">
+            <span className="flex items-center gap-1.5">
+              <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: players.find((p) => p.id === id)?.color }} aria-hidden="true" />
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">{nick(id)}</span>
+              <span className="text-sm">
+                bank <span className="font-mono font-semibold tabular-nums">{view.bank[id]}</span>
+              </span>
+            </span>
+            <span className="flex gap-x-3 text-xs text-fg-muted">
+              <span>
+                zdobyte <span className="font-mono tabular-nums">+{record.gain[id]}</span>
+              </span>
+              <span>
+                utracone <span className="font-mono tabular-nums">-{record.lost[id]}</span>
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
+      {record.discarded > 0 && <p className="text-sm text-fg-muted">Przepadło na szlaku: {record.discarded}.</p>}
+      <span className="label">Szlak tej wyprawy</span>
+      <Trail cards={record.trail} />
+    </>
+  );
+}
+
+/** Koniec partii: banki i zyski z pięciu wypraw, potem ostatnia wyprawa i wcześniejsze do rozwinięcia. */
+function Final({ view, nick, players, places }: { view: WyprawaView; nick: (id: string) => string; players: LobbyPlayer[]; places?: Props["places"] }) {
+  const rows = [...view.players].sort((a, b) => view.bank[b] - view.bank[a]);
+  const last = view.history[view.history.length - 1];
+  const earlier = view.history.slice(0, -1);
+  return (
+    <>
+      <div className="tile p-3">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="label">
+              <th className="text-left font-normal">Gracz</th>
+              {view.history.map((_, i) => (
+                <th key={i} className="w-8 text-right font-normal" aria-label={`Wyprawa ${i + 1}`}>
+                  {i + 1}
+                </th>
+              ))}
+              <th className="w-12 text-right font-normal">Bank</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((id) => (
+              <tr key={id} data-player={id} className="min-h-8">
+                <td className="max-w-0 truncate py-1 pr-2">
+                  <span className="mr-1.5 inline-block size-2.5 rounded-full align-middle" style={{ backgroundColor: players.find((p) => p.id === id)?.color }} aria-hidden="true" />
+                  {places ? `${places[id]}. ` : ""}
+                  {nick(id)}
+                </td>
+                {view.history.map((record, i) => (
+                  <td key={i} data-expedition={i + 1} className="py-1 text-right font-mono tabular-nums text-fg-muted">
+                    {record.gain[id]}
+                  </td>
+                ))}
+                <td className="py-1 text-right font-mono font-semibold tabular-nums">{view.bank[id]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {last && (
+        <>
+          <span className="label">Wyprawa {view.history.length}: ostatnia</span>
+          <Reveal view={view} record={last} nick={nick} players={players} />
+        </>
+      )}
+      {earlier.map((record, i) => (
+        <details key={i} className="rounded-[10px] border border-line px-3">
+          <summary className="flex min-h-12 cursor-pointer items-center text-sm">Wyprawa {i + 1}</summary>
+          <div className="flex flex-col gap-2 pb-3">
+            <p className="text-sm">{endText(record)}</p>
+            <ul className="flex flex-col gap-0.5 text-sm text-fg-muted">
+              {view.players.map((id) => (
+                <li key={id} data-lost={id}>
+                  {nick(id)}: <span className="font-mono tabular-nums">+{record.gain[id]}</span>, <span className="font-mono tabular-nums">-{record.lost[id]}</span>
+                </li>
+              ))}
+            </ul>
+            {record.discarded > 0 && <p className="text-sm text-fg-muted">Przepadło na szlaku: {record.discarded}.</p>}
+            <Trail cards={record.trail} />
+          </div>
+        </details>
+      ))}
+    </>
+  );
+}
+
+function AfterExpedition({ view, me, nick, players, waitingFor, onMove, places, color, header }: Props & { nick: (id: string) => string; color: string; header: ReactNode }) {
+  const record = view.history[view.history.length - 1];
   return (
     <div className="flex flex-1 flex-col gap-3">
       {header}
-      <p className="text-sm text-fg-muted">{view.phase === "over" ? "Wyprawa zakończona." : "Koniec wyprawy."}</p>
-      <Scores rows={rows.map((id) => ({ id, nick: nick(id), color: players.find((p) => p.id === id)?.color, me: false, score: String(view.bank[id]) }))} />
+      {view.phase === "over" ? <Final view={view} nick={nick} players={players} places={places} /> : record && <Reveal view={view} record={record} nick={nick} players={players} />}
+      <NextBar view={view} me={me} waitingFor={waitingFor} color={color} nick={nick} onMove={onMove} />
     </div>
   );
 }
 
-export function WyprawaBoard({ view, me, players, waitingFor, onMove, draft, onDraft }: Props & { draft: Draft; onDraft: (draft: Draft) => void }) {
+export function WyprawaBoard({ view, me, players, waitingFor, onMove, places, draft, onDraft }: Props & { draft: Draft; onDraft: (draft: Draft) => void }) {
   // Zastane po wejściu albo odświeżeniu leży od razu; animuje się tylko to, co stało się przy graczu.
   const { isNew } = useFresh([...view.trail.map((_, i) => `card:${view.expedition}:${i}`), ...(view.last ? [`last:${view.expedition}:${view.last.reveal}`] : [])]);
   const nick = (id: string) => players.find((p) => p.id === id)?.nick ?? "?";
   const color = players.find((p) => p.id === me)?.color ?? "var(--color-fg-muted)";
   const opts = options(view, me, waitingFor);
   const header = <span className="label">Wyprawa {view.expedition + 1}/{WYPRAWA_EXPEDITIONS}</span>;
-  if (view.phase !== "decision") return <AfterExpedition view={view} nick={nick} players={players} header={header} />;
+  if (view.phase !== "decision") return <AfterExpedition view={view} me={me} nick={nick} players={players} waitingFor={waitingFor} onMove={onMove} places={places} color={color} header={header} />;
 
   const current = view.trail[view.trail.length - 1];
   const stats = opts.seated
