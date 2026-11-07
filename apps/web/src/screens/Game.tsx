@@ -1,6 +1,6 @@
 import type { Room } from "@colyseus/sdk";
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Play, Shuffle, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, nickKey, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, type SabotazView, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, winner as tournamentWinner } from "@kwadrans/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, nickKey, type PanstwaMiastaView, type PiecWRzedzieView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, type SabotazView, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, type WyprawaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
@@ -10,6 +10,7 @@ import { Kalambury } from "../games/Kalambury.tsx";
 import { PanstwaMiasta } from "../games/PanstwaMiasta.tsx";
 import { Labirynt } from "../games/Labirynt.tsx";
 import { Sabotaz } from "../games/Sabotaz.tsx";
+import { Wyprawa } from "../games/Wyprawa.tsx";
 import { PiecWRzedzie } from "../games/PiecWRzedzie.tsx";
 import { FleetLeft, Statki } from "../games/Statki.tsx";
 import { createLiveStore, liveActive, LiveContext, type LiveValues } from "../live.ts";
@@ -102,7 +103,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
   const focus =
     def.id === "kalambury"
       ? (game.view as KalamburyView).drawer
-      : def.id === "panstwa-miasta" || (def.id === "sabotaz" && simultaneous)
+      : def.id === "panstwa-miasta" || ((def.id === "sabotaz" || def.id === "wyprawa") && simultaneous)
         ? game.waitingFor.includes(me)
           ? me
           : undefined
@@ -621,6 +622,18 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
               onMove={(move) => send("move", move)}
             />
           )}
+
+          {def.id === "wyprawa" && (
+            <Wyprawa
+              key={(game.view as WyprawaView).nonce}
+              view={game.view as WyprawaView}
+              me={me}
+              players={view.players}
+              waitingFor={game.waitingFor}
+              places={game.places}
+              onMove={(move) => send("move", move)}
+            />
+          )}
           </ResultDetails>
         </HeroSlot.Provider>
 
@@ -655,10 +668,13 @@ function recordHint(gameId: string, rows: RecordRow[] | null, nick: string) {
 /** Wszyscy grają naraz: nie ma niczyjego „ruchu”, a licznik to limit partii. */
 const SIMULTANEOUS = new Set([...MINI_GAME_IDS, "panstwa-miasta"]);
 
-/** Sabotaż jest równoczesny tylko w pierwszych kartach i odsłonie; układanie, licytacja i odkrywanie idą po kolei. */
+/**
+ * Sabotaż jest równoczesny tylko w pierwszych kartach i odsłonie; układanie, licytacja i odkrywanie idą po kolei.
+ * Wyprawa: decyzje i odsłona idą naraz, więc nawet jedyny gracz na szlaku nie ma „Ruchu”, tylko własną decyzję.
+ */
 export const isSimultaneous = (gameId: string, view: unknown) => {
   const { phase } = view as { phase?: string };
-  return SIMULTANEOUS.has(gameId) || (gameId === "sabotaz" && (phase === "initial" || phase === "summary"));
+  return SIMULTANEOUS.has(gameId) || (gameId === "sabotaz" && (phase === "initial" || phase === "summary")) || (gameId === "wyprawa" && (phase === "decision" || phase === "summary"));
 };
 
 const SCHULTE_LAST = SCHULTE_SIZE * SCHULTE_SIZE;

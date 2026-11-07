@@ -332,6 +332,11 @@ describe("równoczesność w nagłówku (11-06)", () => {
     for (const phase of ["place", "bid", "reveal", "over"]) expect(isSimultaneous("sabotaz", { phase }), phase).toBe(false);
   });
 
+  test("Wyprawa: decyzja i odsłona są równoczesne, koniec nie", () => {
+    for (const phase of ["decision", "summary"]) expect(isSimultaneous("wyprawa", { phase }), phase).toBe(true);
+    expect(isSimultaneous("wyprawa", { phase: "over" })).toBe(false);
+  });
+
   test("dotychczasowe gry zachowują klasyfikację", () => {
     for (const id of ["panstwa-miasta", "stoper", "refleks"]) expect(isSimultaneous(id, {}), id).toBe(true);
     for (const id of ["memory", "statki", "kalambury", "kampus-tour"]) expect(isSimultaneous(id, { phase: "initial" }), id).toBe(false);

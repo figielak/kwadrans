@@ -2,7 +2,7 @@
 <!-- ≤ 40 lines. Maintained by `telos status set <key>=<value>`; never edit by hand.
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 10-wyprawa
-Task: 10-07
+Task: 10-08
 Next: /telos:do
 Blockers: none
 Awaiting user: 08, 09, 12
@@ -15,6 +15,6 @@ Awaiting user: 08, 09, 12
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
+- 10-07 done: Wyprawa podpięta w lobby, Game i wibracjach
 - 10-06 done: odsłona i ekran końcowy Wyprawy, 44 testy
 - 10-05 done: ekran decyzji Wyprawy, 32 testy
-- 10-04 done: 13 testów Wyprawy w pokoju, serwer bez zmian

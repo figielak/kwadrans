@@ -2,7 +2,7 @@
 id: 10-07
 title: "Podpięcie w Lobby, Game i wibracji"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [10-04, 10-06]         # task IDs, e.g. [01-01]
@@ -58,11 +58,14 @@ Udostępnić Wyprawę w pokoju: kafel w lobby, montaż z `nonce`, status równoc
 - Sprawdzić w `/dev?n=2`, że gra startuje z lobby i przechodzi przez pierwszą decyzję.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm run typecheck` → exit 0
-- [ ] `pnpm run test` → exit 0
-- [ ] `pnpm --filter web build` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm run typecheck` → exit 0
+- [x] `pnpm run test` → exit 0
+- [x] `pnpm --filter web build` → exit 0
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Podpięte: `decisionKey` Wyprawy w vibrate.ts (nonce:wyprawa:odkrycie:faza, null w obozie, po zatwierdzeniu, dla widza i w over), `isSimultaneous` dla decision i summary, `focus` w kolorze czekającego także przy jednym graczu na szlaku (bez „Ruch:”), montaż `<Wyprawa key={nonce}>` w `ResultDetails` z `places`, kafel w Lobby (ikona Mountains, opis, 2-6 os.). Bez `OWN_RANKING`, `useHarm` i CHANGELOG.
+Nowe testy: 7 w vibrate.test.ts, po 1-3 w tables.test.tsx i lists.test.ts. Całość: games 2603, server 200, web 485, typecheck i build czyste.
+Sprawdzone w `/dev?n=2`: kafel w lobby, ekran gry, start, pierwsza decyzja obu graczy, rozstrzygnięcie i obóz, status „Czekamy na: …”. Uwaga do 10-08: „Szlak: 1 odkrytych kart” (odmiana liczebnika w Wyprawa.tsx, poza scope tego zadania).
+Niestabilny test serwera z losowym głosowaniem oblał raz pierwsze `telos accept`, powtórzenia 3×200/200; nie ten blok.
+Deviations: none

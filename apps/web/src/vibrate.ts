@@ -18,7 +18,7 @@ export const VIBRATE = {
  * (to tylko limit), więc decyzję liczymy z ról: rysujący od wyboru hasła, zgadujący od wejścia w rysowanie; połowy nie wolno zdradzić.
  */
 export function decisionKey(gameId: string, view: unknown, me: string, waitingFor: string[]): string | null {
-  const v = view as { phase?: string; round?: number; drawer?: string; players?: string[]; guessed?: string[]; nonce?: number; decision?: number };
+  const v = view as { phase?: string; round?: number; drawer?: string; players?: string[]; guessed?: string[]; nonce?: number; decision?: number; expedition?: number; reveal?: number };
   if (gameId === "kalambury" && (v.phase === "choose" || v.phase === "draw")) {
     if (me === v.drawer) return `pick:${v.round}`;
     return v.phase === "draw" && v.players?.includes(me) && !v.guessed?.includes(me) ? `guess:${v.round}` : null;
@@ -26,6 +26,8 @@ export function decisionKey(gameId: string, view: unknown, me: string, waitingFo
   if (!waitingFor.includes(me)) return null;
   // Sabotaż: każde odkrycie tej samej osoby to nowa decyzja, a cudza gotowość w fazach wspólnych nią nie jest.
   if (gameId === "sabotaz") return `${v.nonce}:${v.round}:${v.phase}${v.phase === "initial" || v.phase === "summary" ? "" : `:${v.decision}`}`;
+  // Wyprawa: każde odkrycie to nowa decyzja, także gdy waitingFor jest ten sam; odsłona to osobna decyzja („Dalej”), a po moim wyborze i w over klucza nie ma.
+  if (gameId === "wyprawa") return `${v.nonce}:${v.expedition}:${v.reveal}:${v.phase}`;
   return gameId === "panstwa-miasta" || gameId === "kalambury" ? `${v.phase}:${v.round}` : "turn";
 }
 
