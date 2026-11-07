@@ -2,7 +2,7 @@
 id: 10-05
 title: "Ekran szlaku, obozu i decyzji"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [10-03]         # task IDs, e.g. [01-01]
@@ -58,10 +58,13 @@ Zbudować ekran fazy `decision` na szlaku i w obozie: pełna informacja o ryzyku
 - Dodać animacje nowej karty i zysku przez `useFresh`.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter web exec vitest run src/games/Wyprawa.test.tsx src/tokens.test.ts src/animations.test.ts` → exit 0
-- [ ] `pnpm run typecheck` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter web exec vitest run src/games/Wyprawa.test.tsx src/tokens.test.ts src/animations.test.ts` → exit 0
+- [x] `pnpm run typecheck` → exit 0
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+`Wyprawa.tsx`: `WyprawaBoard` (nagłówek „Wyprawa n/5”, bank/niesiesz/resztki, główna karta, pięć liczników zagrożeń, poprzednia decyzja z podziałem, lista graczy szlak/obóz z gotowością, szczegół szlaku w `details`) i `Wyprawa` ze szkicem. Czyste `decisionKey`, `currentDraft(stored, view)`, `moves(view, draft)`, `options` oraz bezhakowe `DecisionControls`.
+Klucz szkicu to nonce:wyprawa:odkrycie:faza, więc nowa karta, wyprawa i rewanż kasują wybór, a cudza gotowość nie. Podpowiedź „Bez Gotowe po czasie wracasz.”, własny wybór z `aria-pressed` i ikoną Check, ekran nie woła `vibrate`.
+32 testy na widokach z prawdziwych ruchów; przyciski sprawdzone na drzewie elementów `DecisionControls` (bez DOM). Z tokens i animations 70/70, typecheck czysty. Mutacje klucza, „Gotowe” i tekstu widza oblewają testy.
+Odsłona i koniec to stub do 10-06 (tabela banków, bez akcji); podpięcie w `Game.tsx` w 10-07. Bez nowych keyframes (card-in 0.35s, float-up 1.6s).
+Deviations: none
