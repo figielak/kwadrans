@@ -2,7 +2,7 @@
 id: 08-02
 title: Testy zasad i puli przed kodem
 type: doc          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: hard      # normal | hard
 depends: [08-01]         # task IDs, e.g. [01-01]
@@ -94,11 +94,16 @@ turn(): key `${nonce}:${round}:${phase}`; seconds 30 / 60 / 15 / 0 (over)
 5. packages/games/src/podrobka.test.ts: limity, widoki, koniec, JSON — pełne pokrycie ZASADY §2.
 
 ## Acceptance
-- [ ] `test -s packages/games/src/podrobka.test.ts` → exit 0
-- [ ] `test -s packages/games/src/podrobka-dane.test.ts` → exit 0
-- [ ] Oba pliki czerwone przez brak modułów; wynik uruchomienia zapisany w Result.
-- [ ] Każdy Edge case i każda zasada z ZASADY-GIER §13 ma test nazwany jak zasada.
+- [x] `test -s packages/games/src/podrobka.test.ts` → exit 0
+- [x] `test -s packages/games/src/podrobka-dane.test.ts` → exit 0
+- [x] Oba pliki czerwone przez brak modułów; wynik uruchomienia zapisany w Result.
+- [x] Każdy Edge case i każda zasada z ZASADY-GIER §13 ma test nazwany jak zasada.
 
 ## Result
 <!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
      last line always: "Deviations: none" or "Deviations: path — why" -->
+Napisano `podrobka.test.ts` (152 testy po rozwinięciu, 13 sekcji, także 46 656 × 2 rozkładów dla 6 osób kontra wyrocznia) i `podrobka-dane.test.ts` (13 testów struktury puli).
+Czerwone: `pnpm --filter @kwadrans/games exec vitest run src/podrobka.test.ts src/podrobka-dane.test.ts` → exit 1: `Cannot find module './podrobka.ts'` i `'./podrobka-dane.ts'`.
+Testy i typy sprawdzone na tymczasowej implementacji (165/165 zielone, typecheck bez błędów), potem usuniętej; nie ma jej w repo.
+Uwaga dla 08-04: `z.string().max(30)` w zod 4.6.5 nie liczy jednostek UTF-16 (emoji × 15 + "x", `length` 31, przechodzi), więc limit `answer` trzeba sprawdzić przez `.refine((t) => t.length <= ANSWER_MAX)`. Ukryte pola widoku to `null`, uczestnik ma `myDraft` jako tekst (`""` na starcie).
+Deviations: none
