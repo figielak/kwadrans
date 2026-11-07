@@ -2,7 +2,7 @@
 id: 10-01
 title: Zasady Wyprawy w dokumentach
 type: doc          # code | doc | audit
-status: draft       # draft | approved | in-progress | done | blocked | reverted
+status: approved    # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: []         # task IDs, e.g. [01-01]

@@ -2,7 +2,7 @@
 id: 10-03
 title: Silnik Wyprawy i wpis w rejestrze
 type: code          # code | doc | audit
-status: draft       # draft | approved | in-progress | done | blocked | reverted
+status: approved    # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: hard      # normal | hard
 depends: [10-02]         # task IDs, e.g. [01-01]
