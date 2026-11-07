@@ -2,7 +2,7 @@
 id: 08-01
 title: "Zasady Podróbki w dokumentach"
 type: doc          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: []         # task IDs, e.g. [01-01]
@@ -43,11 +43,15 @@ Opisać Podróbkę w dokumentach będących źródłem prawdy, zanim powstanie t
 - ZASADY.md §5: nowa faza to raz zwykła wibracja `turn`, nietrafiony głos i wykrycie bez `mistake` i `harm`.
 
 ## Acceptance
-- [ ] `grep -q "^## 13. Podróbka" ZASADY-GIER.md` → exit 0
-- [ ] `grep -q "podrobka" KONCEPT.md` → exit 0
-- [ ] `pnpm run test` → exit 0
-- [ ] Sekcja odpowiada na wszystkie pytania z ZASADY §1, także „co widzi czekający i obserwator”.
+- [x] `grep -q "^## 13. Podróbka" ZASADY-GIER.md` → exit 0
+- [x] `grep -q "podrobka" KONCEPT.md` → exit 0
+- [x] `pnpm run test` → exit 0
+- [x] Sekcja odpowiada na wszystkie pytania z ZASADY §1, także „co widzi czekający i obserwator”.
 
 ## Result
 <!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
      last line always: "Deviations: none" or "Deviations: path — why" -->
+Dodano wiersz tabeli i sekcję `## 13. Podróbka` w ZASADY-GIER.md (losowanie, fazy, normalizacja, anulowanie rundy, wykrycie, punktacja 2/3, remisy, widoki, timeouty, górna granica 615 s).
+KONCEPT.md: wzmianka o miejscach 3-6 i wiersz katalogu w §2.2. ZASADY.md §5: wpis wibracji Podróbki.
+Testy: `pnpm run test` zielone (bez zmian w kodzie); sekcja odpowiada na pytania z ZASADY §1 (tabela widoków uczestnik/czekający/obserwator).
+Deviations: none

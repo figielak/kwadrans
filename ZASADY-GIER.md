@@ -16,6 +16,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Kalambury | `kalambury` | 2-6 | zależny od fazy | równoczesna, ukryty stan |
 | Sabotaż | `sabotaz` | 3-6 | 30 s pierwsze karty, 60 s ruch, 15 s odsłona | po kolei, ukryty stan (pierwsze karty i odsłona równocześnie) |
 | Wyprawa | `wyprawa` | 2-6 | 20 s decyzja, 15 s odsłona | równoczesna, ukryty stan |
+| Podróbka | `podrobka` | 3-6 | 30 s odpowiedź, 60 s głos, 15 s odsłona | równoczesna, ukryty stan |
 | Refleks | `refleks` | 1-6 | 60 s | mini-gra |
 | Sekwencja | `simon` | 1-6 | 300 s | mini-gra |
 | Stoper | `stoper` | 1-6 | 60 s | mini-gra |
@@ -1178,3 +1179,115 @@ i brak wcześniejszego zatwierdzenia; duplikat odpada. Obserwator nigdy nie rusz
 ### Balans
 
 Nie jest potwierdzony. Do sprawdzenia w próbie z ludźmi: 20 s na decyzję, atrakcyjność samotnego powrotu, czas czekania w obozie i faktyczna długość partii.
+
+## 13. Podróbka (`podrobka`)
+
+Gra w wykrywanie osoby z innym pytaniem. Każdy odpowiada na prywatne pytanie, jedna losowa osoba (Podróbka) dostaje inne, ale podobne.
+Po ujawnieniu pytania większości i wszystkich odpowiedzi gracze tajnie głosują na podejrzanego. Wersja 1 bez czatu, głosu, własnych pytań, AI, drużyn,
+trybów (`modes` brak), eliminacji i integracji z turniejem. Najlepiej gra się przy stole albo na zewnętrznej rozmowie głosowej; bez rozmowy można głosować
+na podstawie samych odpowiedzi.
+
+- 3-6 graczy, `ROUNDS = 6` rund w partii. Stałe w `podrobka.ts` (w `index.ts` z przedrostkiem `PODROBKA_`): `ROUNDS = 6`, `WRITE_SECONDS = 30`,
+  `VOTE_SECONDS = 60`, `SUMMARY_SECONDS = 15`, `ANSWER_MAX = 30`. Stan ma też `nonce` z `rng` w `setup`; każdy ruch niesie `nonce` i numer rundy,
+  więc stary ruch nie trafi do nowej rundy ani do rewanżu.
+- Obserwatorzy i osoby bez miejsca oglądają. Nikt nie rusza w osobnej turze, kolejność graczy to kolejność `players`.
+
+### Losowanie
+
+- Serwer tasuje pulę par przez `shuffle` z `core.ts` i bierze `ROUNDS` par: w partii nie ma powtórzeń pary. Dla każdej pary losuje kierunek,
+  czyli które z dwóch pytań dostanie większość.
+- W każdej rundzie jest dokładnie jedna Podróbka, wybierana jednakowo prawdopodobnie spośród graczy. Role losuje się niezależnie w każdej rundzie:
+  można być Podróbką kilka razy w partii albo wcale. Nie ma rotacji ani zasady „każdy raz”, bo zdradzałaby późniejsze role.
+- Losowość wyłącznie z `rng`; ten sam seed daje ten sam stan.
+- Pula to 60 ręcznie przygotowanych par (`podrobka-dane.ts`): stabilne `id`, dwa różne pytania do 90 znaków (jednostki UTF-16) i wspólna wskazówka
+  formatu odpowiedzi do 30 znaków (np. „Liczba”). Po 20 par liczbowych, o przedmiotach i jedzeniu oraz o miejscach i codziennych sytuacjach;
+  kategorie służą redakcji i nie są wysyłane. Obie wersje pary mają być grywalne, odpowiedzi tego samego rodzaju i nakładające się,
+  bez oczywistego zdradzenia roli jednostką czy rzędem wielkości, pytania proste i niewrażliwe. Pula nie jest sekretem (jest w kodzie współdzielonym z frontendem);
+  gwarancja dotyczy tylko niewysyłania przydziału, cudzych szkiców i głosów.
+
+### Fazy
+
+Fazy: `write`, `vote`, `summary`, `over`. Limity liczy serwer od wejścia w fazę; szkic, odpowiedź ani głos ich nie odnawiają.
+Klucz `turn()` to `nonce:runda:faza`. Po końcu `waitingFor = []`, limit 0.
+
+**A. Odpowiedzi (`write`, 30 s)**
+- Każdy widzi tylko swoje pytanie, wskazówkę formatu, jedno pole odpowiedzi i „Gotowe”. Podczas pisania nikt nie wie, czy jest Podróbką.
+  Wspólny komunikat: „Odpowiedz na swoje pytanie. Jedna osoba dostała inne.”
+- Odpowiedź to krótki tekst do `ANSWER_MAX = 30` jednostek UTF-16 (tyle samo w Zod i `maxLength`). Serwer usuwa zewnętrzne białe znaki i sprowadza ciągi
+  białych znaków do pojedynczej spacji; zachowuje polskie litery i wielkość liter i nie ocenia prawdziwości.
+- Ruch `write { nonce, round, answer, done }`. Szkic (`done: false`) zapisuje tekst bez kończenia pisania, może być pusty, nie zmienia `waitingFor`
+  i nie odnawia czasu. Klient wysyła go co najwyżej co 500 ms przy zmianie. „Gotowe” (`done: true`) wysyła aktualny tekst, nie czeka na szkic
+  i po przyjęciu blokuje edycję; pustej odpowiedzi klient zatwierdzić nie może.
+- Lokalny tekst, którego klient nie wysłał, nie jest ruchem. Po limicie serwer zatwierdza ostatni zapisany szkic (timeout, `source: "timeout"`);
+  puste zatwierdzenie jest legalne wyłącznie z tym kontekstem, klient nie może się pod nie podszyć. Niewysłane ostatnie znaki mogą przepaść.
+- Gdy wszyscy zatwierdzili: przejście do `vote`. Jeśli choć jedna odpowiedź jest pusta (także Podróbki), **runda jest anulowana**: wszyscy 0 pkt,
+  bez głosowania, od razu `summary` z jawnym powodem „Brak odpowiedzi: …”. Anulowana runda zużywa jedną z `ROUNDS`.
+- Po wysłaniu gracz widzi własne pytanie i odpowiedź oraz „Czekamy na: …”.
+
+**B. Głosowanie (`vote`, 60 s)**
+- Wszyscy, także obserwator, widzą pytanie większości i wszystkie odpowiedzi podpisane nickami. Uczestnik może dodatkowo zajrzeć do własnego wcześniejszego
+  pytania (Podróbka tak rozpoznaje swoją rolę). Pytanie Podróbki nie jest jeszcze publiczne. W instrukcji prosimy, by bronić odpowiedzi, a nie cytować
+  prywatne pytanie. To wspólny czas na rozmowę i wybór, bez osobnego odliczania dyskusji.
+- Ruch `vote { nonce, round, target }`. Każdy grający, także Podróbka, wskazuje jednego innego gracza. Nie wolno głosować na siebie, obserwatora
+  ani id spoza partii. Wybór lokalny można zmieniać do „Gotowe” i nie jest ruchem; zatwierdzony głos jest nieodwołalny.
+- Jawne jest tylko, kto już zagłosował, nie na kogo. Po wszystkich decyzjach natychmiast następuje odsłona.
+- Po limicie brak głosu to wstrzymanie (`target: null`), bez losowania oskarżenia. Wstrzymanie zatwierdza tylko serwer z kontekstem timeoutu;
+  niezatwierdzony wybór lokalny nie jest głosem.
+
+**C. Odsłona (`summary`, 15 s)**
+- Pokazuje oba pytania, Podróbkę, wszystkie odpowiedzi i głosy, przyrost punktów i sumy. Punkty liczą się raz, przy wejściu w odsłonę, nie przy „Dalej”.
+- Ruch `next { nonce, round }`: gotowość. „Dalej” od wszystkich albo timeout (`next` za każdego, kto jeszcze nie kliknął) otwiera kolejną rundę.
+- Po ostatniej rundzie stan przechodzi od razu w `over` bez `summary` i bez `next`; jej odsłona zostaje widoczna bez limitu.
+
+### Wykrycie i punktacja
+
+- **Wykrycie**: Podróbka jest wykryta, gdy dostała **samodzielnie najwięcej głosów i co najmniej 2**. Nie potrzeba większości bezwzględnej.
+  Remis na prowadzeniu to brak wykrycia, bez dogrywki. Gdy najwięcej głosów dostała inna osoba, Podróbka również uciekła.
+- Zwykły gracz dostaje **2 pkt** za własny głos na Podróbkę, także gdy grupa jej nie wykryła.
+- Podróbka dostaje **3 pkt** za uniknięcie wykrycia, pod warunkiem oddania własnego głosu. Wykryta albo wstrzymana dostaje 0. Jej głos wlicza się
+  do głosów, ale nie daje punktów za wskazanie kogokolwiek.
+- Pozostali i wstrzymujący się dostają 0. Wszyscy bez głosu to 0 dla wszystkich. Runda anulowana: 0 dla wszystkich.
+- Zakres sumy na gracza to 0-18 (`ROUNDS * 3`). Punktacja 2/3 jest propozycją startową, nie wynikiem pomiaru.
+
+### Koniec partii
+
+- Wygrywa największa suma. Równe sumy dają wspólne miejsca także na dalszych pozycjach (`places` przez `rankPlaces`, `isOver` przez `rankResults`).
+  Remis na szczycie to brak zwycięzcy, bez rozstrzygania szybkością ani rolą.
+- Ekran końcowy: pełny ranking, tabela punktów z sześciu rund (anulowane rundy oznaczone, nie tylko zerem) i rozwijana historia odsłon.
+- Wygrana trafia do rankingu gier głównych pod `podrobka`. Brak `record`, rekordów solo, wyzwania dnia i turnieju.
+
+### Limity i skończoność
+
+- `timeoutMove`: w `write` zatwierdzenie ostatniego zapisanego szkicu (może być puste, wtedy runda zostanie anulowana), w `vote` wstrzymanie
+  (`target: null`), w `summary` `next`. Wszystkie trzy przechodzą przez `validateMove` z kontekstem timeoutu.
+- `waitingFor`: w `write` osoby bez zatwierdzonej odpowiedzi (szkice listy nie zmieniają), w `vote` osoby bez zatwierdzonej decyzji,
+  w `summary` osoby bez `next`, w `over` pusto.
+- Górna granica czekania: `6 × (30 + 60) + 5 × 15 = 615 s` (10 min 15 s), bez opóźnień sieci i pracy serwera. To tylko granica,
+  **nie obiecujemy typowej długości partii**; zwykła gra jest krótsza.
+- Wyjście gracza w trakcie partii: reguły platformy (`KONCEPT.md` sekcja 3). Partia nie toczy się dalej z nowymi rolami po zmianie składu.
+  Chwilowe rozłączenie uruchamia zwykłe timeouty.
+
+### Widoki (`playerView`)
+
+Widok jest budowany z jawnej listy dozwolonych pól, nie z pełnego stanu. Żaden widok nie niesie przyszłych par, przyszłych ról, ziarna,
+id bieżącej pary ani indeksu kierunku. Klient dostaje tylko tekst potrzebnego pytania.
+
+| Faza | Uczestnik | Czekający (już zatwierdził) i obserwator |
+|---|---|---|
+| `write` | własne pytanie, wskazówka, własny szkic i zatwierdzenie; publiczne punkty i lista gotowych | czekający widzi własne pytanie i odpowiedź oraz „Czekamy na: …”, nie widzi cudzych szkiców; obserwator: numer rundy, punkty i gotowość, bez pytań i szkiców |
+| `vote` | pytanie większości, wszystkie odpowiedzi, własne wcześniejsze pytanie i własny głos; lista, kto zagłosował | czekający: to samo; obserwator: pytanie większości, odpowiedzi i gotowość, bez głosów |
+| `summary`, `over` | oba pytania, Podróbka, wszystkie odpowiedzi i głosy, punkty ukończonej rundy | ten sam publiczny wynik |
+
+Historia odsłoniętych rund jest publiczna. Gracz spoza partii dostaje widok obserwatora (`playerView(state, "")`).
+
+### Ekran
+
+Pion, wspólna skorupa `Game.tsx`. Pisanie: „Runda 2/6”, pytanie, wskazówka formatu, pole z licznikiem długości, „Gotowe”. Głosowanie: pytanie większości
+i wiersze odpowiedzi z nickami; dotknięcie cudzego wiersza wybiera podejrzanego (obrys w kolorze gracza, znaczek i `aria-pressed`), własny wiersz jest nieaktywny
+z wyjaśnieniem, „Gotowe” zatwierdza, po głosie odpowiedzi zostają widoczne. Odsłona: oba pytania, kto miał inne, wynik oskarżenia z uzasadnieniem
+remisu, punkty i „Dalej”. Pola i akcje min. 48 px, ekran mieści się na 360×640 bez poziomego scrolla.
+
+### Balans
+
+Nie jest potwierdzony. Do sprawdzenia w próbie z ludźmi dla 3, 4 i 6 osób: długość rund, czytelność instrukcji, odsetek wykryć,
+pary zbyt oczywiste lub nierozróżnialne oraz punktacja 2/3.

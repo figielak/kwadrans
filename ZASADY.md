@@ -323,6 +323,7 @@ animacja tylko go dogania na ekranie.
   Kalambury: połowa rysowania nie jest nową decyzją (nie wolno jej zdradzić), rysujący decyduje od wyboru hasła, zgadujący od wejścia w rysowanie.
   Wyprawa: nowa decyzja wibruje `turn` raz na odkrycie (także gdy `waitingFor` znów obejmuje tych samych graczy), gotowość „Dalej” w odsłonie ma tę samą zwykłą wibrację nowej decyzji,
   a zagrożenie i utrata zdobyczy to wynik ryzyka, bez dodatkowej wibracji (`mistake`, `harm`).
+  Podróbka: każda nowa faza (odpowiedź, głos, odsłona) to jedna zwykła wibracja `turn`; nietrafiony głos i wykrycie Podróbki nie mają `mistake` ani `harm`.
   Za zasłoną: dotknięcie przed zniknięciem kulki jest po prostu ignorowane, bez shake i tekstu (zasady gry, nie pomyłka).
 
 ## 6. Podpięcie i odbiór

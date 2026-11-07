@@ -2,7 +2,7 @@
 <!-- ≤ 40 lines. Maintained by `telos status set <key>=<value>`; never edit by hand.
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 08-podrobka
-Task: 08-01
+Task: 08-02
 Next: /telos:do
 Blockers: none
 Awaiting user: 08, 09, 12
@@ -15,6 +15,6 @@ Awaiting user: 08, 09, 12
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
+- 08-01 done: zasady Podróbki w ZASADY-GIER, KONCEPT i ZASADY
+- 08-01 done: zasady Podróbki w ZASADY-GIER, KONCEPT i ZASADY
 - 10-wyprawa closed: gra gotowa technicznie, balans niepotwierdzony
-- 10-09 done: próba z ludźmi pominięta decyzją użytkownika, balans niepotwierdzony
-- 10-08 done: odbiór 2 i 6 graczy zaliczony po poprawkach W1-W4
