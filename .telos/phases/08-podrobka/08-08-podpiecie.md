@@ -2,7 +2,7 @@
 id: 08-08
 title: "Podpięcie w Lobby, Game i wibracji"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [08-05, 08-07]         # task IDs, e.g. [01-01]
@@ -57,11 +57,16 @@ Udostępnić Podróbkę w pokoju: kafel w lobby, montaż z `nonce`, status równ
 - Sprawdzić w `/dev?n=3`, że gra startuje z lobby i przechodzi przez pierwszą rundę.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm run typecheck` → exit 0
-- [ ] `pnpm run test` → exit 0
-- [ ] `pnpm --filter web build` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm run typecheck` → exit 0
+- [x] `pnpm run test` → exit 0
+- [x] `pnpm --filter web build` → exit 0
 
 ## Result
 <!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
      last line always: "Deviations: none" or "Deviations: path — why" -->
+Podpięto Podróbkę: `decisionKey` w `vibrate.ts` (`nonce:runda:faza`, bez `useHarm`), `Game.tsx` (import, montaż `<Podrobka key={nonce}>` z `places` w `ResultDetails`, `SIMULTANEOUS`, gałąź `focus` z własnym kolorem czekającego), `Lobby.tsx` (ikona `Detective`, opis). Testy: `vibrate.test.ts`, `tables.test.tsx`, `lists.test.ts`.
+RED: `pnpm --filter web exec vitest run src/vibrate.test.ts src/screens/tables.test.tsx src/screens/lists.test.ts` → 7 czerwonych na braku podpięcia. Teraz 104/104 w tych trzech plikach; pełne `pnpm run test` zielone (gry 2773, serwer 215, web 558), typecheck exit 0, `pnpm --filter web build` exit 0.
+Sprawdzone w przeglądarce (`/dev?n=3`, Playwright): kafel „Podróbka 3-6 os.” w lobby, ekran gry z opisem, start, pisanie (normalizacja „  7:30  ” do „7:30”, „Czekamy na: Gracz 3”), głosowanie (wybór lokalny z obrysem w kolorze gracza, cudzych głosów nie widać), odsłona („Podróbka wykryta: Gracz 2, 2 głosy…”, +2/+0/+2, sumy, „Dalej”) i automatyczna runda 2/6 po limicie odsłony. Bez błędów w konsoli i w logu serwera. Serwery dev (2567, 5173) zostawione włączone.
+Nie sprawdzone: 360×640 z klawiaturą, 6 graczy, obserwator na żywo i fizyczny telefon (08-09). CHANGELOG zgodnie z AGENTS.md dopiero przed publikacją na `master`.
+Deviations: none

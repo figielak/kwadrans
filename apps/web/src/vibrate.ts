@@ -28,6 +28,9 @@ export function decisionKey(gameId: string, view: unknown, me: string, waitingFo
   if (gameId === "sabotaz") return `${v.nonce}:${v.round}:${v.phase}${v.phase === "initial" || v.phase === "summary" ? "" : `:${v.decision}`}`;
   // Wyprawa: każde odkrycie to nowa decyzja, także gdy waitingFor jest ten sam; odsłona to osobna decyzja („Dalej”), a po moim wyborze i w over klucza nie ma.
   if (gameId === "wyprawa") return `${v.nonce}:${v.expedition}:${v.reveal}:${v.phase}`;
+  // Podróbka: każda faza i runda to nowa decyzja; cudze zatwierdzenie i szkic klucza nie zmieniają, a po moim zatwierdzeniu go nie ma.
+  // Wykrycie i nietrafiony głos są wynikiem rundy, nie szkodą od rywala: nie wibrują.
+  if (gameId === "podrobka") return `${v.nonce}:${v.round}:${v.phase}`;
   return gameId === "panstwa-miasta" || gameId === "kalambury" ? `${v.phase}:${v.round}` : "turn";
 }
 
