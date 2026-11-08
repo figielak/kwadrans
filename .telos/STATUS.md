@@ -2,7 +2,7 @@
 <!-- ≤ 40 lines. Maintained by `telos status set <key>=<value>`; never edit by hand.
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 08-podrobka
-Task: 08-06
+Task: 08-07
 Next: /telos:do
 Blockers: none
 Awaiting user: 08, 09, 12
@@ -15,6 +15,6 @@ Awaiting user: 08, 09, 12
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
+- 08-06 done: ekran pisania i głosowania Podróbki (34 testy), niepodpięty
 - 08-05 done: testy pokoju dla Podróbki (15), serwer bez zmian
 - 08-04 done: silnik Podróbki w rejestrze; 07-19 niestabilny częściej, do zgłoszenia
-- 08-03 done: pula 60 par pytań Podróbki, testy puli zielone
