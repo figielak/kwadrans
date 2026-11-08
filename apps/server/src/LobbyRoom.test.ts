@@ -355,7 +355,7 @@ describe("07-19: głosowanie Inna gra", () => {
 
   test("wyjście gracza, gdy pozostali zagłosowali: rozstrzygnięcie", async () => {
     const { room, send, snapshot, clients } = await voting(3);
-    const [a] = snapshot().vote!.options;
+    const a = snapshot().vote!.options.find((id) => GAMES[id].minPlayers <= 2)!;
     send(0, "vote", { id: a });
     send(1, "vote", { id: a });
     await room.onLeave(clients[2], CloseCode.CONSENTED);
@@ -364,7 +364,7 @@ describe("07-19: głosowanie Inna gra", () => {
 
   test("wyjście gracza kasuje jego głos; wyjście obserwatora niczego nie rozstrzyga", async () => {
     const { room, send, snapshot, clients, observer } = await voting(3);
-    const [a] = snapshot().vote!.options;
+    const a = snapshot().vote!.options.find((id) => GAMES[id].minPlayers <= 2)!;
     send(0, "vote", { id: a });
     send(1, "vote", { id: a });
     await room.onLeave(clients[observer!], CloseCode.CONSENTED);
@@ -433,7 +433,7 @@ describe("07-19: głosowanie Inna gra", () => {
       if (!vote.options.includes("sabotaz")) continue;
       await room.onLeave(clients[2], CloseCode.CONSENTED);
       expect(snapshot(1).vote!.options).not.toContain("sabotaz");
-      expect(snapshot(1).vote!.options).toEqual(vote.options.filter((id) => id !== "sabotaz"));
+      expect(snapshot(1).vote!.options).toEqual(vote.options.filter((id) => GAMES[id].minPlayers <= 2));
       return;
     }
     throw new Error("w 200 głosowaniach Sabotaż ani razu nie wypadł");
