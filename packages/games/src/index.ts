@@ -27,6 +27,7 @@ import { schulte } from "./schulte.ts";
 import { sudoku } from "./sudoku.ts";
 import { simon } from "./simon.ts";
 import { kubki } from "./kubki.ts";
+import { podrobka } from "./podrobka.ts";
 import { sledzenie } from "./sledzenie.ts";
 import { srodek } from "./srodek.ts";
 import { statki } from "./statki.ts";
@@ -139,6 +140,15 @@ export {
   type Move as WyprawaMove,
   type View as WyprawaView,
 } from "./wyprawa.ts";
+export {
+  ANSWER_MAX as PODROBKA_ANSWER_MAX,
+  ROUNDS as PODROBKA_ROUNDS,
+  SUMMARY_SECONDS as PODROBKA_SUMMARY_SECONDS,
+  VOTE_SECONDS as PODROBKA_VOTE_SECONDS,
+  WRITE_SECONDS as PODROBKA_WRITE_SECONDS,
+  type Move as PodrobkaMove,
+  type View as PodrobkaView,
+} from "./podrobka.ts";
 export { accepts as nozyczkiAccepts, type Cut as NozyczkiCut, error as nozyczkiError, type Point as NozyczkiPoint, share as nozyczkiShare, SHAPES as NOZYCZKI_SHAPES, split as nozyczkiSplit, type View as NozyczkiView } from "./nozyczki.ts";
 export { DURATION_MS as QUIZ_DURATION_MS, BLOCK_MS as QUIZ_BLOCK_MS, type QuizMove } from "./quiz.ts";
 export { around as shipAround, isValidFleet, MODES as STATKI_MODES, randomFleet, type Rules as StatkiRules, type Ship, shipCells, type Shot, type View as StatkiView } from "./statki.ts";
@@ -186,6 +196,7 @@ export const GAMES: Record<string, GameDefinition<any, any>> = Object.assign(Obj
   [kalambury.id]: kalambury,
   [sabotaz.id]: sabotaz,
   [wyprawa.id]: wyprawa,
+  [podrobka.id]: podrobka,
 });
 
 /** Id mini-gier (gry solo, minPlayers 1): pula turnieju i lista na ekranie mini-gier. */

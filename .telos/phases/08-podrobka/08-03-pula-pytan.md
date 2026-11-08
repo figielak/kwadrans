@@ -2,7 +2,7 @@
 id: 08-03
 title: "Pula 60 par pytań"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [08-02]         # task IDs, e.g. [01-01]
@@ -38,11 +38,16 @@ Przygotować ręcznie 60 par pytań z wspólną wskazówką formatu i przejrzeć
 - Wypisać w Result pary niepewne, do sprawdzenia przy stole w 08-10.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter @kwadrans/games exec vitest run src/podrobka-dane.test.ts` → exit 0
-- [ ] Plik `podrobka-dane.test.ts` jest niezmieniony względem commitu testów z 08-02.
-- [ ] Result opisuje wynik przeglądu i listę par niepewnych.
+- [x] all listed tests pass
+- [x] `pnpm --filter @kwadrans/games exec vitest run src/podrobka-dane.test.ts` → exit 0
+- [x] Plik `podrobka-dane.test.ts` jest niezmieniony względem commitu testów z 08-02.
+- [x] Result opisuje wynik przeglądu i listę par niepewnych.
 
 ## Result
 <!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
      last line always: "Deviations: none" or "Deviations: path — why" -->
+Dodano `podrobka-dane.ts`: 60 par (20 liczby, 20 rzeczy, 20 miejsca), wspólna wskazówka na parę, id `l01`-`l20`, `r01`-`r20`, `m01`-`m20`. `podrobka-dane.test.ts`: 13/13 zielone, plik testów niezmieniony od `1c9db4e`.
+Przegląd: oba kierunki grywalne, odpowiedzi tego samego rodzaju z realnym nakładaniem, czas teraźniejszy bez form rodzajowych, żadne pytanie nie powtarza się w puli, brak wiedzy encyklopedycznej i wrażliwych tematów. Przykłady z planu §4 poprawiono (np. „Gdzie najlepiej pójść na pierwszą randkę?”).
+Pary niepewne do stołu w 08-10: l06 i l13 (rząd wielkości może zdradzać rolę), l10 i l17 (różne częstości), l19 (liczba sztuk bez ostrego nakładania), r18 (gry planszowe kontra komputerowe), r11 i r05 (różne konteksty), m04 (obiad kontra kawa), m09 (tylko trzy możliwe odpowiedzi), m17 i m18 (bardzo bliskie lub mało zróżnicowane).
+Typecheck całego repo nadal czerwony tylko przez brak `podrobka.ts` w `podrobka.test.ts` (do 08-04).
+Deviations: none

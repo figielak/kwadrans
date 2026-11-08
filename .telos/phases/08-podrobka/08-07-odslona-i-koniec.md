@@ -2,7 +2,7 @@
 id: 08-07
 title: "Odsłona, historia i ekran końcowy"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [08-06]         # task IDs, e.g. [01-01]
@@ -51,10 +51,14 @@ Dodać odsłonę rundy i ekran końcowy z historią, tak by każdy widział oba 
 - Dodać animacje nowego stanu przez `useFresh`.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter web exec vitest run src/games/Podrobka.test.tsx src/tokens.test.ts src/states.test.ts src/animations.test.ts` → exit 0
-- [ ] `pnpm run typecheck` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter web exec vitest run src/games/Podrobka.test.tsx src/tokens.test.ts src/states.test.ts src/animations.test.ts` → exit 0
+- [x] `pnpm run typecheck` → exit 0
 
 ## Result
 <!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
      last line always: "Deviations: none" or "Deviations: path — why" -->
+Zastąpiono stub `summary` i `over` w `Podrobka.tsx`: `verdict` (uzasadnienie: wykrycie, remis na prowadzeniu, niewinny lider, za mało głosów, wszyscy wstrzymani, anulowanie z nickami), `RoundReveal` (oba pytania, kto miał inne, wiersze z odpowiedzią, głosem, przyrostem i sumą), `NextBar` („Dalej” albo „Czekamy na: …”) i `Final` (ranking z miejscami z `places` albo z sum, tabela sześciu rund z oznaczeniem anulowanych, odsłona szóstej rundy, rozwijana historia). Animacje tylko `card-in` 0,35 s i `float-up` 1,6 s, tylko dla nowej odsłony przez `useFresh`.
+RED: `pnpm --filter web exec vitest run src/games/Podrobka.test.tsx` → 22 czerwone na stubie ("Odsłona rundy." zamiast odsłony) i brakujących eksportach. Teraz `Podrobka.test.tsx` 56/56, pakiet web 548/548, typecheck zielony. Poprawki w moich testach po pierwszym uruchomieniu: brak stałej `FOUR`; błędne oczekiwanie +0 zamiast +2 w scenariuszu remisu (głos na Podróbkę zawsze daje 2). Poza testami: ikona `Mask` nie istnieje w Phosphor (użyto `MaskHappy`), a `a11y.test.ts` wymusił `role="img"` na znaczniku anulowanej rundy.
+Nie sprawdzone tu, do 08-09: wygląd odsłony i długiej historii na 360×640 z 6 graczami i 16-znakowymi nickami w przeglądarce oraz faktyczne odtwarzanie `card-in` i `float-up` przy reduced motion. Ekran nadal niepodpięty w `Game.tsx` (08-08), więc `places` i bohatera wyniku da dopiero podpięcie.
+Deviations: none

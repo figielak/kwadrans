@@ -2,7 +2,7 @@
 id: 08-06
 title: "Ekran pisania i głosowania"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [08-04]         # task IDs, e.g. [01-01]
@@ -56,10 +56,15 @@ Zbudować ekran faz `write` i `vote`: prywatne pytanie z jednym polem i szkicem,
 - Zbudować `VoteList` z wyborem i szczegółem własnego pytania.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter web exec vitest run src/games/Podrobka.test.tsx src/tokens.test.ts src/animations.test.ts` → exit 0
-- [ ] `pnpm run typecheck` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter web exec vitest run src/games/Podrobka.test.tsx src/tokens.test.ts src/animations.test.ts` → exit 0
+- [x] `pnpm run typecheck` → exit 0
 
 ## Result
 <!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
      last line always: "Deviations: none" or "Deviations: path — why" -->
+Dodano `Podrobka.tsx`: pisanie (pole z etykietą, `maxLength`, licznik, „Gotowe”, zatwierdzona odpowiedź tylko do odczytu), głosowanie (pytanie większości, odpowiedzi z nickami w pełnym brzmieniu, wybór lokalny do „Gotowe”, własny wiersz nieaktywny, szczegół własnego pytania) i widok obserwatora bez akcji. Odsłona i koniec to stub do 08-07; ekran nie jest jeszcze podpięty w `Game.tsx` (08-08).
+Testy: `Podrobka.test.tsx` 34/34, cały pakiet web 526/526, typecheck zielony. RED: brak modułu `Podrobka.tsx`; dwa moje testy poprawiłem po pierwszym uruchomieniu (porównanie dwóch różnych graczy zamiast tego samego gracza w dwóch rolach; `moves` bez `me`).
+Web nie ma DOM-u w testach i nie wolno dodawać zależności, więc stan i czas są w czystych eksportach: `DraftSender` (debounce 500 ms, `follow` kasuje zaległy szkic przy zmianie klucza, `now` wysyła od razu), `draftKey`, `currentDraft`, `moves`, `options`; komponenty bez hooków sprawdzane przez markup i przejście po drzewie elementów. Efekt React, który woła `follow`/`cancel`, jest tylko w `Podrobka` i nie ma testu.
+Nie sprawdzone tu, zostaje do odbioru 08-09: układ 360×640 z otwartą klawiaturą, 6 graczy z 16-znakowymi nickami w przeglądarce. `cleanAnswer` nie jest w `index.ts`, więc „Gotowe” sprawdza pusty tekst przez `trim()` (to samo, co normalizacja).
+Deviations: none

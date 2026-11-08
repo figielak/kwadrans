@@ -2,7 +2,7 @@
 id: 08-05
 title: "Podróbka w pokoju: limity, prywatność, wynik"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [08-04]         # task IDs, e.g. [01-01]
@@ -47,10 +47,14 @@ Dowieść testami pokoju, że istniejący serwer poprawnie prowadzi Podróbkę: 
 - Napisać testy końca, zapisu, wyjścia i rewanżu.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
-- [ ] `pnpm run typecheck` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter server exec vitest run src/LobbyRoom.test.ts` → exit 0
+- [x] `pnpm run typecheck` → exit 0
 
 ## Result
 <!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
      last line always: "Deviations: none" or "Deviations: path — why" -->
+Dodano `describe("Podróbka w pokoju")` w `LobbyRoom.test.ts`: 15 testów (limity 30/60/15 s i brak limitu po końcu, szkice i anulowanie na zegarze, jednorazowe punktowanie, komplet timeoutów dla 3 i 6 osób, prywatność wiadomości `room`, `viewFor` obcego id przy 6 graczach, sfałszowane `source`, wynik i zapis, wyjście, rewanż).
+Serwer nie wymagał zmian: testy zielone od pierwszego uruchomienia (`LobbyRoom.test.ts` 191/191, 30 powtórek bloku bez czerwonych). Dwie celowe usterki w `podrobka.ts` (wyciek pytania obserwatorowi, 31 s pisania) zostały wykryte (2 i 6 czerwonych), po czym przywrócono plik z commitu.
+Brak wad serwera do zgłoszenia. Zmieniony tylko plik testów.
+Deviations: none

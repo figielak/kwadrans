@@ -1,5 +1,5 @@
 import { type AuthContext, type Client, CloseCode } from "@colyseus/core";
-import { GAMES, KALAMBURY_HALF_SECONDS, type KalamburyView, type RoomView, type SabotazKind, type SabotazMove, type SabotazView, type WyprawaMove, type WyprawaView, type ZakupyView } from "@kwadrans/games";
+import { GAMES, KALAMBURY_HALF_SECONDS, type KalamburyView, type PodrobkaMove, type PodrobkaView, type RoomView, type SabotazKind, type SabotazMove, type SabotazView, type WyprawaMove, type WyprawaView, type ZakupyView } from "@kwadrans/games";
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 // Testy przed poprawką P4-027: prawdziwe handlery pokoju i walidator gry,
@@ -355,7 +355,7 @@ describe("07-19: głosowanie Inna gra", () => {
 
   test("wyjście gracza, gdy pozostali zagłosowali: rozstrzygnięcie", async () => {
     const { room, send, snapshot, clients } = await voting(3);
-    const [a] = snapshot().vote!.options;
+    const a = snapshot().vote!.options.find((id) => GAMES[id].minPlayers <= 2)!;
     send(0, "vote", { id: a });
     send(1, "vote", { id: a });
     await room.onLeave(clients[2], CloseCode.CONSENTED);
@@ -364,7 +364,7 @@ describe("07-19: głosowanie Inna gra", () => {
 
   test("wyjście gracza kasuje jego głos; wyjście obserwatora niczego nie rozstrzyga", async () => {
     const { room, send, snapshot, clients, observer } = await voting(3);
-    const [a] = snapshot().vote!.options;
+    const a = snapshot().vote!.options.find((id) => GAMES[id].minPlayers <= 2)!;
     send(0, "vote", { id: a });
     send(1, "vote", { id: a });
     await room.onLeave(clients[observer!], CloseCode.CONSENTED);
@@ -433,7 +433,7 @@ describe("07-19: głosowanie Inna gra", () => {
       if (!vote.options.includes("sabotaz")) continue;
       await room.onLeave(clients[2], CloseCode.CONSENTED);
       expect(snapshot(1).vote!.options).not.toContain("sabotaz");
-      expect(snapshot(1).vote!.options).toEqual(vote.options.filter((id) => id !== "sabotaz"));
+      expect(snapshot(1).vote!.options).toEqual(vote.options.filter((id) => GAMES[id].minPlayers <= 2));
       return;
     }
     throw new Error("w 200 głosowaniach Sabotaż ani razu nie wypadł");
@@ -2045,6 +2045,337 @@ describe("Wyprawa w pokoju", () => {
       expect([...waiting(r)].sort()).toEqual(["p1", "p2"]);
       expect(viewOf(r)).toEqual(fresh);
       expect(msLeft(r)).toBe(20_000 - 110);
+    });
+  });
+});
+
+describe("Podróbka w pokoju", () => {
+  type OpenRoom = Awaited<ReturnType<typeof drawing>>;
+  /** Ukryty stan meczu, tylko to, co potrzebne do ustawienia ról i odczytania pytań. */
+  type Deal = { pairId: string; majority: string; other: string; impostor: string };
+  type Rigged = { state: { players: string[]; deals: Deal[]; round: number } };
+
+  const open = (n: number) => drawing(n, "podrobka", false);
+  const viewOf = (r: OpenRoom, player = 0) => r.snapshot(player).game!.view as PodrobkaView;
+  const stamp = (r: OpenRoom) => ({ nonce: viewOf(r).nonce, round: viewOf(r).round });
+  const write = (r: OpenRoom, answer: string, done = true): PodrobkaMove => ({ type: "write", ...stamp(r), answer, done });
+  const vote = (r: OpenRoom, target: string | null): PodrobkaMove => ({ type: "vote", ...stamp(r), target });
+  const next = (r: OpenRoom): PodrobkaMove => ({ type: "next", ...stamp(r) });
+  /** Termin na teraz: ostatnia wysłana wiadomość pokazuje stan z chwili wysłania. */
+  const msLeft = (r: OpenRoom) => r.room["viewFor"]("p1").game!.msLeft;
+  const waiting = (r: OpenRoom) => r.snapshot().game!.waitingFor;
+  const index = (id: string) => Number(id.slice(1)) - 1;
+  const matchOf = (r: OpenRoom) => r.room["match"] as unknown as Rigged;
+  const roomMessages = (r: OpenRoom, player: number) =>
+    vi.mocked(r.clients[player].send).mock.calls.filter(([type]) => type === "room").map(([, message]) => message as RoomView);
+  const zeroes = (r: OpenRoom) => Object.fromEntries(viewOf(r).players.map((p) => [p, 0]));
+
+  /** Ruch z odstępem poniżej limitu 10 wiadomości/s, żeby limit nie udawał błędu zasad. */
+  function paced(r: OpenRoom, player: string, move: PodrobkaMove) {
+    vi.advanceTimersByTime(110);
+    r.send(index(player), "move", move);
+  }
+  const writeAll = (r: OpenRoom) => {
+    for (const p of [...waiting(r)]) paced(r, p, write(r, `odp ${p}`));
+  };
+  const voteAll = (r: OpenRoom, votes: Record<string, string | null>) => {
+    for (const p of [...waiting(r)]) paced(r, p, vote(r, votes[p]));
+  };
+  const nextAll = (r: OpenRoom) => {
+    for (const p of [...waiting(r)]) paced(r, p, next(r));
+  };
+  /** Podróbką jest p1 we wszystkich rundach; ustawiane przed pierwszym ruchem, więc nic jeszcze nie pokazało starej roli. */
+  function rig(r: OpenRoom, impostor = "p1") {
+    const match = matchOf(r);
+    match.state = { ...match.state, deals: match.state.deals.map((d) => ({ ...d, impostor })) };
+  }
+  /** Każdy czeka na limit: sam zegar przechodzi całą partię. */
+  function runClock(r: OpenRoom) {
+    for (let i = 0; i < 40 && r.snapshot().phase === "playing" && viewOf(r).phase !== "over"; i++) vi.advanceTimersByTime(msLeft(r) ?? 1000);
+  }
+
+  describe("termin", () => {
+    test("pisanie ma 30 s, a szkic ani cudze zatwierdzenie nie odnawiają czasu", async () => {
+      const r = await open(3);
+      expect(viewOf(r).phase).toBe("write");
+      expect(msLeft(r)).toBe(30_000);
+      vi.advanceTimersByTime(5000);
+      r.send(1, "move", write(r, "szkic", false));
+      expect(waiting(r)).toEqual(["p1", "p2", "p3"]);
+      expect(msLeft(r)).toBe(25_000);
+      r.send(2, "move", write(r, "gotowe"));
+      expect(waiting(r)).toEqual(["p1", "p2"]);
+      expect(msLeft(r)).toBe(25_000);
+    });
+
+    test("głosowanie ma 60 s, a cudzy głos nie odnawia czasu", async () => {
+      const r = await open(3);
+      writeAll(r);
+      expect(viewOf(r).phase).toBe("vote");
+      expect(msLeft(r)).toBe(60_000);
+      vi.advanceTimersByTime(7000);
+      r.send(0, "move", vote(r, "p2"));
+      expect(waiting(r)).toEqual(["p2", "p3"]);
+      expect(msLeft(r)).toBe(53_000);
+    });
+
+    test("odsłona ma 15 s, częściowe „Dalej” jej nie odnawia, pełne daje 30 s pisania, po końcu partii brak limitu", async () => {
+      const r = await open(3);
+      writeAll(r);
+      voteAll(r, { p1: "p2", p2: "p3", p3: "p1" });
+      expect(viewOf(r).phase).toBe("summary");
+      expect(msLeft(r)).toBe(15_000);
+      vi.advanceTimersByTime(4000);
+      r.send(0, "move", next(r));
+      expect(msLeft(r)).toBe(11_000);
+      r.send(1, "move", next(r));
+      r.send(2, "move", next(r));
+      expect(viewOf(r)).toMatchObject({ phase: "write", round: 1 });
+      expect(msLeft(r)).toBe(30_000);
+      runClock(r);
+      expect(viewOf(r).phase).toBe("over");
+      expect(msLeft(r)).toBeNull();
+    });
+  });
+
+  describe("zegar", () => {
+    test("limit pisania przy kilku czekających zatwierdza szkice i przechodzi do głosowania", async () => {
+      const r = await open(3);
+      for (const [i, p] of ["p1", "p2", "p3"].entries()) r.send(i, "move", write(r, `  szkic   ${p} `, false));
+      vi.advanceTimersByTime(30_000);
+      const v = viewOf(r);
+      expect(v.phase).toBe("vote");
+      expect(v.answers).toEqual({ p1: "szkic p1", p2: "szkic p2", p3: "szkic p3" });
+      expect(v.history).toEqual([]);
+      expect(msLeft(r)).toBe(60_000);
+      vi.advanceTimersByTime(59_999);
+      expect(viewOf(r)).toMatchObject({ phase: "vote", history: [] });
+    });
+
+    test("limit pisania z pustym szkicem anuluje rundę: zero punktów, jawny brak, odsłona 15 s", async () => {
+      const r = await open(3);
+      r.send(0, "move", write(r, "jest"));
+      r.send(1, "move", write(r, "jest"));
+      vi.advanceTimersByTime(30_000);
+      const v = viewOf(r);
+      expect(v.phase).toBe("summary");
+      expect(v.history).toHaveLength(1);
+      expect(v.history[0]).toMatchObject({ cancelled: true, missing: ["p3"], gain: zeroes(r) });
+      expect(v.totals).toEqual(zeroes(r));
+      expect(msLeft(r)).toBe(15_000);
+    });
+
+    test("limit głosowania z częścią głosów nalicza punkty dokładnie raz", async () => {
+      const r = await open(3);
+      rig(r);
+      writeAll(r);
+      paced(r, "p2", vote(r, "p1"));
+      vi.advanceTimersByTime(msLeft(r)!);
+      const v = viewOf(r);
+      expect(v.phase).toBe("summary");
+      expect(v.history).toHaveLength(1);
+      expect(v.history[0]).toMatchObject({ impostor: "p1", detected: false, votes: { p1: null, p2: "p1", p3: null } });
+      expect(v.totals).toEqual({ p1: 0, p2: 2, p3: 0 });
+      vi.advanceTimersByTime(14_000);
+      expect(viewOf(r)).toMatchObject({ phase: "summary", totals: { p1: 0, p2: 2, p3: 0 } });
+      expect(viewOf(r).history).toHaveLength(1);
+    });
+
+    test("limit odsłony otwiera kolejną rundę z pełnym czasem i bez zmiany punktów", async () => {
+      const r = await open(3);
+      rig(r);
+      writeAll(r);
+      voteAll(r, { p1: "p2", p2: "p1", p3: "p1" });
+      const totals = viewOf(r).totals;
+      expect(totals).toEqual({ p1: 0, p2: 2, p3: 2 });
+      r.send(0, "move", next(r));
+      vi.advanceTimersByTime(msLeft(r)!);
+      expect(viewOf(r)).toMatchObject({ phase: "write", round: 1, totals, done: [], voted: [], ready: [] });
+      expect(viewOf(r).history).toHaveLength(1);
+      expect(msLeft(r)).toBe(30_000);
+    });
+
+    test.each([3, 6])("komplet timeoutów przechodzi sześć rund i kończy partię remisem bez wpisu zwycięzcy: %i graczy", async (n) => {
+      const record = vi.spyOn(stats, "record");
+      const r = await open(n);
+      runClock(r);
+      const { game, phase, evening } = r.snapshot();
+      expect(phase).toBe("over");
+      const v = game!.view as PodrobkaView;
+      expect(v.phase).toBe("over");
+      expect(v.history).toHaveLength(6);
+      expect(v.history.every((h) => h.cancelled)).toBe(true);
+      expect(Object.values(v.totals)).toEqual(Array(n).fill(0));
+      expect(game!.result?.winner).toBeUndefined();
+      expect(Object.values(game!.places!)).toEqual(Array(n).fill(1));
+      expect(game!.waitingFor).toEqual([]);
+      expect(evening.games).toBe(1);
+      expect(record).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("poufność wiadomości room", () => {
+    const allJson = (r: OpenRoom, player: number) => roomMessages(r, player).map((m) => JSON.stringify(m)).join("\n");
+    const STATE_KEYS = ['"deals"', '"drafts"', '"pairId"', '"votes"', '"impostor"'];
+
+    test("gracz, Podróbka i obserwator dostają tylko swoje: pytania, szkice i głosy przed odsłoną", async () => {
+      const r = await open(3);
+      expect(r.observer).toBe(3);
+      const { deals } = matchOf(r).state;
+      const [d0] = deals;
+      const fake = index(d0.impostor);
+      const real = [0, 1, 2].filter((i) => i !== fake);
+      const future = deals.slice(1).flatMap((d) => [d.majority, d.other, d.pairId]);
+      const author = real[0];
+
+      paced(r, `p${author + 1}`, write(r, "SEKRETNY-SZKIC", false));
+      expect(viewOf(r, author).myDraft).toBe("SEKRETNY-SZKIC");
+      for (const player of [0, 1, 2, r.observer!]) {
+        const json = allJson(r, player);
+        for (const key of STATE_KEYS) expect(json, `${player}: ${key}`).not.toContain(key);
+        for (const hidden of future) expect(json, `${player}: przyszła para`).not.toContain(hidden);
+        if (player !== author) expect(json, `${player}: cudzy szkic`).not.toContain("SEKRETNY-SZKIC");
+      }
+      expect(allJson(r, fake)).toContain(d0.other);
+      expect(allJson(r, fake)).not.toContain(d0.majority);
+      for (const i of real) {
+        expect(allJson(r, i)).toContain(d0.majority);
+        expect(allJson(r, i)).not.toContain(d0.other);
+      }
+      expect(allJson(r, r.observer!)).not.toContain(d0.majority);
+      expect(allJson(r, r.observer!)).not.toContain(d0.other);
+
+      writeAll(r);
+      expect(viewOf(r).phase).toBe("vote");
+      paced(r, `p${author + 1}`, vote(r, `p${real[1] + 1}`));
+      for (const player of [0, 1, 2, r.observer!]) {
+        const json = allJson(r, player);
+        for (const key of STATE_KEYS) expect(json, `${player}: ${key}`).not.toContain(key);
+        for (const hidden of future) expect(json, `${player}: przyszła para`).not.toContain(hidden);
+        if (player !== author) expect(json, `${player}: cudzy głos`).not.toMatch(/"myVote":"p/);
+      }
+      expect(allJson(r, author)).toContain(`"myVote":"p${real[1] + 1}"`);
+      expect(allJson(r, fake)).toContain(d0.other);
+      expect(allJson(r, fake)).toContain(d0.majority);
+      for (const player of [r.observer!, real[1]]) {
+        expect(allJson(r, player)).toContain(d0.majority);
+        expect(allJson(r, player)).not.toContain(d0.other);
+      }
+      expect(viewOf(r, r.observer!)).toMatchObject({ myQuestion: null, myDraft: null, myVote: null, voted: [`p${author + 1}`] });
+      expect(viewOf(r, r.observer!).answers).toEqual({ p1: "odp p1", p2: "odp p2", p3: "odp p3" });
+    });
+
+    test("6 graczy bez siódmego połączenia: viewFor osoby spoza miejsc to widok obserwatora, bez pytań, szkiców i głosów", async () => {
+      const r = await open(6);
+      expect(r.observer).toBeUndefined();
+      const [d0] = matchOf(r).state.deals;
+      paced(r, "p1", write(r, "SEKRETNY-SZKIC", false));
+      let outsider = r.room["viewFor"]("kibic");
+      let view = outsider.game!.view as PodrobkaView;
+      expect(view).toMatchObject({ phase: "write", hint: null, myQuestion: null, myDraft: null, majorityQuestion: null, answers: null, myVote: null });
+      expect(view.players).toHaveLength(6);
+      for (const hidden of [d0.majority, d0.other, "SEKRETNY-SZKIC"]) expect(JSON.stringify(outsider)).not.toContain(hidden);
+
+      writeAll(r);
+      paced(r, "p1", vote(r, "p2"));
+      outsider = r.room["viewFor"]("kibic");
+      view = outsider.game!.view as PodrobkaView;
+      expect(view).toMatchObject({ phase: "vote", majorityQuestion: d0.majority, myQuestion: null, myDraft: null, myVote: null, voted: ["p1"] });
+      expect(Object.keys(view.answers!)).toHaveLength(6);
+      expect(JSON.stringify(outsider)).not.toContain(d0.other);
+      expect(JSON.stringify(outsider)).not.toMatch(/"myVote":"p/);
+      expect(viewOf(r, 0).myVote).toBe("p2");
+    });
+
+    test("ruch klienta z polem source: timeout i pustą odpowiedzią albo głosem null odpada", async () => {
+      const r = await open(3);
+      r.send(0, "move", { ...write(r, "", true), source: "timeout", context: { source: "timeout" } });
+      expect(waiting(r)).toEqual(["p1", "p2", "p3"]);
+      expect(viewOf(r).done).toEqual([]);
+      writeAll(r);
+      expect(viewOf(r).phase).toBe("vote");
+      vi.advanceTimersByTime(110);
+      r.send(0, "move", { ...vote(r, null), source: "timeout", context: { source: "timeout" } });
+      expect(waiting(r)).toEqual(["p1", "p2", "p3"]);
+      expect(viewOf(r).voted).toEqual([]);
+    });
+  });
+
+  describe("wynik", () => {
+    test("wyraźna wygrana zapisuje wygraną raz, places i punkty wieczoru są w RoomView, stary ruch nic nie zmienia", async () => {
+      const record = vi.spyOn(stats, "record");
+      const r = await open(3);
+      rig(r);
+      for (let i = 0; i < 6; i++) {
+        writeAll(r);
+        // Podróbka p1 nie dostaje głosów, więc uchodzi; p2 prowadzi z dwoma głosami, ale jest niewinny.
+        voteAll(r, { p1: "p2", p2: "p3", p3: "p2" });
+        if (i < 5) {
+          expect(viewOf(r)).toMatchObject({ phase: "summary", round: i });
+          nextAll(r);
+        }
+      }
+      const { game, evening, phase } = r.snapshot();
+      expect(phase).toBe("over");
+      expect(viewOf(r)).toMatchObject({ phase: "over", totals: { p1: 18, p2: 0, p3: 0 } });
+      expect(viewOf(r).history).toHaveLength(6);
+      expect(game!.result?.winner).toBe("p1");
+      expect(game!.places).toEqual({ p1: 1, p2: 2, p3: 2 });
+      expect(evening).toMatchObject({ games: 1, played: ["podrobka"] });
+      expect(evening.table[0]).toEqual({ key: "p1", nick: "p1", points: 2, wins: 1 });
+      expect(evening.table.slice(1).map((row) => row.points)).toEqual([0, 0]);
+      expect(record).toHaveBeenCalledTimes(1);
+      expect(record).toHaveBeenCalledWith("podrobka", ["p1", "p2", "p3"], "p1");
+
+      const final = viewOf(r);
+      vi.advanceTimersByTime(110);
+      r.send(0, "move", { type: "write", nonce: final.nonce, round: 0, answer: "spóźnione", done: true });
+      r.send(1, "move", { type: "next", nonce: final.nonce, round: 5 });
+      r.send(2, "move", { type: "vote", nonce: final.nonce, round: 5, target: "p1" });
+      vi.advanceTimersByTime(120_000);
+      expect(viewOf(r)).toEqual(final);
+      expect(r.snapshot().evening.games).toBe(1);
+      expect(record).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("wyjście i rewanż", () => {
+    test("wyjście gracza kończy partię bez zwycięzcy i bez kontynuacji z nowym składem", async () => {
+      const record = vi.spyOn(stats, "record");
+      const r = await open(3);
+      writeAll(r);
+      await r.room.onLeave(r.clients[2], CloseCode.CONSENTED);
+      expect(r.snapshot().phase).toBe("over");
+      expect(r.snapshot().game!.result?.winner).toBeUndefined();
+      expect(record).not.toHaveBeenCalled();
+      const frozen = viewOf(r);
+      vi.advanceTimersByTime(110);
+      r.send(0, "move", vote(r, "p2"));
+      vi.advanceTimersByTime(120_000);
+      expect(r.snapshot().phase).toBe("over");
+      expect(viewOf(r)).toEqual(frozen);
+      expect(record).not.toHaveBeenCalled();
+    });
+
+    test("rewanż ma nowy nonce, a ruch ze starym stemplem odpada", async () => {
+      const r = await open(3);
+      const old = viewOf(r);
+      const oldMove = write(r, "stara odpowiedź");
+      runClock(r);
+      expect(r.snapshot().phase).toBe("over");
+      vi.advanceTimersByTime(1000);
+      for (const i of [0, 1, 2]) r.send(i, "rematch", {});
+      expect(r.snapshot().phase).toBe("playing");
+      const fresh = viewOf(r);
+      expect(fresh.nonce).not.toBe(old.nonce);
+      expect(fresh).toMatchObject({ phase: "write", round: 0, history: [], done: [], myDraft: "" });
+      expect(fresh.totals).toEqual({ p1: 0, p2: 0, p3: 0 });
+      vi.advanceTimersByTime(110);
+      r.send(0, "move", oldMove);
+      // Rewanż rotuje kolejność miejsc, więc porównujemy zbiór.
+      expect([...waiting(r)].sort()).toEqual(["p1", "p2", "p3"]);
+      expect(viewOf(r)).toEqual(fresh);
+      expect(msLeft(r)).toBe(30_000 - 110);
     });
   });
 });

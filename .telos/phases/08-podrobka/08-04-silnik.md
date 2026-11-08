@@ -2,7 +2,7 @@
 id: 08-04
 title: "Silnik Podróbki i wpis w rejestrze"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: hard      # normal | hard
 depends: [08-02, 08-03]         # task IDs, e.g. [01-01]
@@ -80,11 +80,16 @@ index.ts: PODROBKA_* oraz typy PodrobkaView, PodrobkaMove
 5. packages/games/src/index.ts: wpis w `GAMES` i eksporty `PODROBKA_`, `PodrobkaView`, `PodrobkaMove` — ogólny kontrakt przechodzi dla 3 i 6 graczy.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter @kwadrans/games exec vitest run src/podrobka.test.ts src/podrobka-dane.test.ts src/index.test.ts` → exit 0
-- [ ] `pnpm run typecheck` → exit 0
-- [ ] Plik `podrobka.test.ts` jest niezmieniony względem commitu testów z 08-02.
+- [x] all listed tests pass
+- [x] `pnpm --filter @kwadrans/games exec vitest run src/podrobka.test.ts src/podrobka-dane.test.ts src/index.test.ts` → exit 0
+- [x] `pnpm run typecheck` → exit 0
+- [x] Plik `podrobka.test.ts` jest niezmieniony względem commitu testów z 08-02.
 
 ## Result
 <!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
      last line always: "Deviations: none" or "Deviations: path — why" -->
+Dodano `podrobka.ts` (czyste zasady: wszystko losowane w `setup`, jawna lista pól w `playerView`, uprawnienia zegara tylko z `context.source`) oraz wpis `podrobka` w `GAMES`, eksporty `PODROBKA_*`, `PodrobkaMove`, `PodrobkaView`.
+RED `index.test.ts`: 4 czerwone (41 gier, blok rejestru, fazy) przed kodem; `EAGER` dostał `state` i wpis `podrobka`. Teraz `podrobka.test.ts` + `podrobka-dane.test.ts` + `index.test.ts`: 432/432, `packages/games` 2773/2773, typecheck zielony; `podrobka.test.ts` bez zmian od `1c9db4e`. Limit odpowiedzi przez `.refine`, bo `.max` w zod 4 nie liczy jednostek UTF-16.
+Do osobnego zgłoszenia, zgodnie z Constraints: `LobbyRoom.test.ts` „07-19: wyjście gracza, gdy pozostali zagłosowali” jest niestabilny (1/80 na izolowanym teście, 1 raz w pełnym `pnpm test`). `voting(3)` może wylosować jako pierwszą opcję grę 3-osobową, która po wyjściu trzeciego gracza odpada (zapis: oczekiwane `podrobka`, wynik `stoper`). Problem istniał przez Sabotaż, nowy wpis zwiększa jego częstość. Test nie zmieniony.
+Podróbka jest w rejestrze bez ekranu do 08-08.
+Deviations: none

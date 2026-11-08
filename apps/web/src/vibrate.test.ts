@@ -184,3 +184,70 @@ describe("Wyprawa: klucz decyzji (10-07)", () => {
     expect(code).not.toContain("useHarm");
   });
 });
+
+describe("Podróbka: klucz decyzji (08-08)", () => {
+  const view = (extra: object = {}) => ({ nonce: 7, round: 0, phase: "write", ...extra });
+  const key = (v: object, me = "a", waiting = ["a", "b", "c"]) => decisionKey("podrobka", v, me, waiting);
+
+  test("kolejne fazy i rundy tej samej osoby mają różne klucze, nowy nonce też", () => {
+    const keys = [view(), view({ phase: "vote" }), view({ phase: "summary" }), view({ round: 1 }), view({ round: 1, phase: "vote" }), view({ nonce: 8 })].map((v) => key(v));
+    expect(keys.every((k) => k !== null)).toBe(true);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  test("zatwierdzenie innego gracza nie zmienia mojego klucza", () => {
+    expect(key(view(), "a", ["a", "b", "c"])).toBe(key(view(), "a", ["a", "c"]));
+    expect(key(view(), "a", ["a", "b"])).toBe(key(view(), "a", ["a"]));
+    expect(key(view({ phase: "vote" }), "a", ["a", "b", "c"])).toBe(key(view({ phase: "vote" }), "a", ["a"]));
+  });
+
+  test("klucz jest null po moim zatwierdzeniu, dla obserwatora i w over", () => {
+    expect(key(view(), "a", ["b", "c"])).toBeNull();
+    expect(key(view({ phase: "vote" }), "a", [])).toBeNull();
+    expect(key(view(), "", ["a", "b"])).toBeNull();
+    expect(key(view(), "ktos-obcy", ["a", "b"])).toBeNull();
+    expect(key(view({ phase: "over", round: 5 }), "a", [])).toBeNull();
+    expect(key(view({ phase: "summary" }), "a", ["b"])).toBeNull();
+    expect(key(view({ phase: "summary" }), "a", ["a", "b"])).not.toBeNull();
+  });
+
+  test("klucz z prawdziwego widoku: cudze zatwierdzenie i szkic go nie ruszają, nowa faza i runda tak", async () => {
+    const { createRng, GAMES } = await import("@kwadrans/games");
+    const game = GAMES.podrobka;
+    const ids = ["a", "b", "c"];
+    let s: unknown = game.setup(ids, createRng(1));
+    const at = () => game.playerView(s, "a") as { nonce: number; round: number };
+    const move = (p: string, m: object) => {
+      const full = { ...at(), ...m } as never;
+      expect(game.validateMove(s, p, full)).toBe(true);
+      s = game.applyMove(s, p, full, createRng(1));
+    };
+    const keyNow = () => decisionKey("podrobka", game.playerView(s, "a"), "a", game.waitingFor(s));
+    const first = keyNow();
+    expect(first).not.toBeNull();
+    move("b", { type: "write", answer: "szkic", done: false });
+    move("b", { type: "write", answer: "gotowe", done: true });
+    move("a", { type: "write", answer: "szkic a", done: false });
+    expect(keyNow()).toBe(first);
+    move("a", { type: "write", answer: "moja", done: true });
+    expect(keyNow()).toBeNull();
+    move("c", { type: "write", answer: "trzecia", done: true });
+    const vote = keyNow();
+    expect(vote).not.toBeNull();
+    expect(vote).not.toBe(first);
+    for (const p of ids) move(p, { type: "vote", target: ids[(ids.indexOf(p) + 1) % ids.length] });
+    const summary = keyNow();
+    expect(summary).not.toBeNull();
+    expect(new Set([first, vote, summary]).size).toBe(3);
+    for (const p of ids) move(p, { type: "next" });
+    const second = keyNow();
+    expect(second).not.toBeNull();
+    expect(new Set([first, vote, summary, second]).size).toBe(4);
+  });
+
+  test("Podrobka.tsx nie woła navigator.vibrate ani useHarm: nietrafiony głos i wykrycie nie wibrują", () => {
+    const code = read("games/Podrobka.tsx");
+    expect(code).not.toContain("navigator.vibrate");
+    expect(code).not.toContain("useHarm");
+  });
+});

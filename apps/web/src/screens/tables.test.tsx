@@ -344,6 +344,10 @@ describe("równoczesność w nagłówku (11-06)", () => {
     expect(isSimultaneous("wyprawa", { phase: "over" })).toBe(false);
   });
 
+  test("Podróbka: pisanie, głosowanie i odsłona są równoczesne", () => {
+    for (const phase of ["write", "vote", "summary"]) expect(isSimultaneous("podrobka", { phase }), phase).toBe(true);
+  });
+
   test("dotychczasowe gry zachowują klasyfikację", () => {
     for (const id of ["panstwa-miasta", "stoper", "refleks"]) expect(isSimultaneous(id, {}), id).toBe(true);
     for (const id of ["memory", "statki", "kalambury", "kampus-tour"]) expect(isSimultaneous(id, { phase: "initial" }), id).toBe(false);

@@ -129,3 +129,36 @@ test("07-21: wishDots przypisuje kropki do gier, gracz, który wyszedł, znika",
   expect(left.stoper).toEqual([{ id: "b", nick: "Bob", color: "#0f0" }]);
   expect(wishDots(view({ c: "stoper" }, players.filter((p) => p.id !== "c")))).toEqual({});
 });
+
+test("08-08: Podróbka w lobby ma nazwę, ikonę, opis i limit 3-6, a nie jest mini-grą ani grą z rekordem", () => {
+  const html = lobby(3);
+  expect(html).toContain("Podróbka");
+  expect(html).toContain("3-6 os.");
+  expect(ICONS.podrobka).toBeDefined();
+  expect(BLURBS.podrobka).toMatch(/pytani/);
+  expect(BLURBS.podrobka).not.toMatch(/kwadrans|Skull|Uno|Quoridor|Wyprawa|Sabotaż|—/i);
+  expect(MINI_GAME_IDS).not.toContain("podrobka");
+  expect(GAMES.podrobka.record).toBeUndefined();
+});
+
+test("08-08: opis Podróbki nie zdradza kierunku pary ani roli poza zasadą gry", () => {
+  expect(BLURBS.podrobka).toMatch(/jedna osoba/);
+  expect(BLURBS.podrobka).not.toMatch(/większość dostaje|Podróbką jest|ty jesteś|losowan/i);
+});
+
+test("08-08: Game montuje Podróbkę po nonce z ruchem, miejscami i oczekującymi, w ResultDetails", () => {
+  const game = read("Game.tsx");
+  expect(game).toMatch(/<Podrobka\s+key=\{\(game\.view as PodrobkaView\)\.nonce\}/);
+  const mount = game.slice(game.indexOf("<Podrobka"), game.indexOf("/>", game.indexOf("<Podrobka")));
+  for (const prop of ["me={me}", "players={view.players}", "waitingFor={game.waitingFor}", "places={game.places}", 'send("move", move)']) expect(mount).toContain(prop);
+  expect(game.indexOf("<ResultDetails")).toBeLessThan(game.indexOf("<Podrobka"));
+  expect(game.indexOf("<Podrobka")).toBeLessThan(game.indexOf("</ResultDetails>"));
+  expect(game).not.toContain("OWN_RANKING");
+});
+
+test("08-08: kolor poświaty w Podróbce to własny kolor czekającego, a nie jedynego gracza, na którego czekamy", () => {
+  const game = read("Game.tsx");
+  const focus = game.slice(game.indexOf("const focus ="), game.indexOf("const turnColor"));
+  expect(focus).toMatch(/"podrobka"[\s\S]*game\.waitingFor\.includes\(me\)\s*\?\s*me/);
+  expect(game).toMatch(/const SIMULTANEOUS = new Set\(\[[^\]]*"podrobka"/);
+});
