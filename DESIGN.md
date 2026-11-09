@@ -232,8 +232,8 @@ z [ZASADY.md §4](ZASADY.md#4-spójność-wyglądu); lokalne wyjątki formularzy
 - **Suwaki Odcienia i Roku**: uchwyt suwaka ma promień 6 px, obwódkę `fg` i obrys `bg`, żeby był widoczny na każdej barwie toru.
 - **Promień 4 px**: odznaka turnieju przy kropce gracza i pola planszy Kampus Tour (32 pola w małej skali); poza tym tylko 20 / 10 / 999 px.
 - **Statki**: trafienie i zatopiony statek są w `accent`. To utrwalony znak tej gry, czerwień nie oznacza tam akcji.
-- **Kalambury** mają własny nagłówek: gracze w jednej linii z punktami obok nicku zamiast paska `Stats`,
-  bo graczy może być 6, a `Stats` mieści trzy liczby. Każdy ma jedną liczbę, więc zapis w linii zostaje czytelny.
+- **Kalambury** mają własny nagłówek: duże hasło, pod nim rząd kropek z inicjałami i punktami (ja pierwszy, 6 osób w jednej linii) zamiast paska `Stats`, a czas tuż nad płótnem.
+  Kropki mają stałą szerokość, a ołówek i fajka są odznakami poza układem, więc trafienie nie zmienia rozmiaru płótna. Przy otwartej klawiaturze zostają hasło i czas w jednym wierszu.
 - **Państwa-miasta** mają własny nagłówek: litera 64 px, runda, czas, w partii rząd kropek z inicjałami (ja pierwszy, fajka przy gotowych, 6 osób w jednej linii).
   Punkty są dopiero w wynikach rundy. Przy pisaniu tytuł fazy jest tylko dla czytników, a jego miejsce po STOP zajmuje komunikat, kto oddał kartkę. Przy otwartej klawiaturze zostają litera i czas.
 - **Kampus Tour** ma własny układ poziomy, planszę 2.5D (krawędź i cień „stołu”), poświatę pola gracza na turze oraz cienie pod oknami i pionkami. Przyciski decyzji i zamknięcia mają minimum 48 px po skalowaniu sceny; dawne 44 px budowy nie jest już wyjątkiem.
@@ -259,7 +259,9 @@ Układy ekranów, które trzeba zachować (pomiary z odbiorów P4-006 do P4-037 
 - **Memory**: wszystkie rozmiary mieszczą planszę i instrukcję na 360×640 przy zwiniętym nagłówku, także u obserwatora i z długimi nickami.
 - **Kalambury**: w fazie rysowania rozmiar kwadratowego płótna wynika z rzeczywistego miejsca pod własnym nagłówkiem i listą graczy,
   z zachowaniem miejsca na kontrolki danej roli i dolny margines. Zmiany wysokości nagłówka, czatu i widocznego obszaru aktualizują pomiar.
-  Przy otwartej klawiaturze zgadujący może przewinąć do pola i przycisków; minimalny bok płótna to 48 px. Czat i potwierdzenie „Pasuję” pozostają obecne.
+  Strzały widzą wszyscy, także rysujący (na ekranie niższym niż 720 px jeden, żeby nie zabierać płótna); ich blok ma stałą wysokość. Pole, wysyłka i „Pasuję” (drugie dotknięcie: „Na pewno?”) są w jednym wierszu.
+  Przy otwartej klawiaturze zgadujący widzi hasło, czas, rysunek, ostatni strzał, pole i wysyłkę, a „Pasuję” chowa się do zamknięcia klawiatury; minimalny bok płótna to 48 px.
+  Odsłona rundy mieści się bez przewijania: duże hasło z podpisem „to było” i liczbą trafień, płótno w miejscu, które zostaje po tabeli, jedna tabela (suma i punkty tej rundy, bez zer), bez kropek w nagłówku. Pusty rysunek to wiersz „Bez rysunku”. Pasek czasu odsłony jest neutralny, bez ostrzegania.
 - **Narysuj koło**: aktywne płótno pozostaje kwadratowe i mieści się w wysokości pozostałej po nagłówku, statystykach, komunikacie i dolnym marginesie.
   Miejsce na zakończenie prób jest zarezerwowane od startu, dzięki czemu pierwsza oceniona próba nie zmienia rozmiaru pola.
   Współrzędne i ocena rysunku pozostają niezależne od rozmiaru.

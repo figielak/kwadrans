@@ -466,7 +466,7 @@ export function ResultDetails({ collapsible, children }: { collapsible: boolean;
 }
 
 /** Wyniki mini-gry: wiersz na gracza, w kolejności rankingu po końcu partii. */
-export function Scores({ rows }: { rows: { id: string; nick: string; color?: string; me: boolean; score: string | null }[] }) {
+export function Scores({ rows }: { rows: { id: string; nick: string; color?: string; me: boolean; score: string | null; detail?: ReactNode }[] }) {
   return (
     <ol className="tile flex flex-col gap-1 p-4">
       {rows.map((r) => (
@@ -476,6 +476,7 @@ export function Scores({ rows }: { rows: { id: string; nick: string; color?: str
             {r.nick}
             {r.me && <span className="text-fg-muted"> (ty)</span>}
           </span>
+          {r.detail}
           <span className={`text-right font-mono tabular-nums ${r.score === null ? "text-fg-muted" : ""}`}>{r.score ?? "gra…"}</span>
         </li>
       ))}

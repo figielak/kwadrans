@@ -626,7 +626,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
               me={me}
               players={view.players}
               ranking={game.result?.ranking}
-              timer={ownHeader && <Countdown game={drawTime ?? game} total={drawTime?.total ?? def.turn?.(game.view).seconds} color={turnColor} tense />}
+              timer={ownHeader && <Countdown game={drawTime ?? game} total={drawTime?.total ?? def.turn?.(game.view).seconds} color={turnColor} tense calm={(game.view as KalamburyView).phase === "reveal"} />}
               help={ownHeader && <><RulesButton gameId={def.id} />{exitButton}</>}
               onMove={(move) => send("move", move)}
             />
@@ -901,7 +901,7 @@ function NextActions({ view, me, send, countdown }: { view: RoomView; me: string
  * `color`: pasek w kolorze gracza (moja tura). Czerwień i tak przychodzi na ostatnie 10 s.
  * `label`: podpis przed paskiem (mini-gry mają własny zegar partii, więc limit platformy musi być nazwany).
  */
-function Countdown({ game, total, tense, color, label }: { game: { msLeft: number | null }; total?: number; tense?: boolean; color?: string; label?: string }) {
+function Countdown({ game, total, tense, calm, color, label }: { game: { msLeft: number | null }; total?: number; tense?: boolean; calm?: boolean; color?: string; label?: string }) {
   const deadline = useMemo(() => (game.msLeft === null ? null : Date.now() + game.msLeft), [game]);
   const [now, setNow] = useState(Date.now);
 
@@ -915,17 +915,19 @@ function Countdown({ game, total, tense, color, label }: { game: { msLeft: numbe
   // Z podanym limitem tury: kurczący się pasek zamiast samej liczby.
   if (total) {
     const left = Math.max(0, deadline - now) / (total * 1000);
+    // `calm`: krótka faza bez decyzji pod presją (odsłona rundy) cała zmieściłaby się w ostrzeżeniu.
+    const warn = seconds <= 10 && !calm;
     return (
       <div className="flex items-center gap-2">
         {label && <span className="label">{label}</span>}
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line" role="progressbar" aria-label="Czas tury" aria-valuemin={0} aria-valuemax={total ?? seconds} aria-valuenow={seconds}>
           <div
-            className={`h-full rounded-full transition-[width] duration-250 ease-linear ${seconds <= 10 ? "bg-warning" : tense ? "bg-fg" : "bg-fg-muted"}`}
-            style={{ width: `${Math.min(1, left) * 100}%`, backgroundColor: seconds > 10 ? color : undefined }}
+            className={`h-full rounded-full transition-[width] duration-250 ease-linear ${warn ? "bg-warning" : tense && !calm ? "bg-fg" : "bg-fg-muted"}`}
+            style={{ width: `${Math.min(1, left) * 100}%`, backgroundColor: seconds > 10 && !calm ? color : undefined }}
           />
         </div>
         {/* Twarda spacja i min-w: trzycyfrowy limit („173 s”) nie ściska się ani nie łamie w wąskim polu. */}
-        <span className={`min-w-10 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums ${seconds <= 10 ? "text-warning" : "text-fg"}`}>{seconds}{"\u00a0"}s</span>
+        <span className={`min-w-10 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums ${warn ? "text-warning" : "text-fg"}`}>{seconds}{"\u00a0"}s</span>
       </div>
     );
   }
