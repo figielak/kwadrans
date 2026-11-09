@@ -307,6 +307,13 @@ export class LobbyRoom extends Room {
       if (!this.isHost(client) || this.phase !== "over" || this.solo) return;
       this.toLobby();
     });
+
+    // Gospodarz przerywa trwającą partię. Bez finish: przerwana partia nie rozlicza się, a w ostatniej grze turnieju nie wyłania mistrza.
+    this.on("stopGame", (client) => {
+      if (!this.isHost(client) || this.phase !== "playing" || this.solo) return;
+      this.measure("aborted");
+      this.toLobby();
+    });
   }
 
   onAuth(_client: Client, options: { nick?: unknown }, context: AuthContext) {

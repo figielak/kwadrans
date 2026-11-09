@@ -113,6 +113,8 @@ export const ROOM_MESSAGES = {
   otherGame: z.unknown(),
   vote: z.object({ id: z.string() }),
   toLobby: z.unknown(),
+  // Gospodarz przerywa trwającą partię; wszyscy wracają do lobby bez wyników.
+  stopGame: z.unknown(),
   // Kształt ruchu sprawdza moveSchema wybranej gry.
   move: z.unknown(),
   // Dekoracyjny podgląd rywali; osobny kanał i limit, poza validateMove oraz wynikami gry.

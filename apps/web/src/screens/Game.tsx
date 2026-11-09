@@ -1,7 +1,7 @@
 import type { Room } from "@colyseus/sdk";
-import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Play, Shuffle, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Play, Shuffle, SignOut, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
 import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, nickKey, type PanstwaMiastaView, type PiecWRzedzieView, type PodrobkaView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, type SabotazView, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, type WyprawaView, winner as tournamentWinner } from "@kwadrans/games";
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
 import { Memory } from "../games/Memory.tsx";
@@ -169,12 +169,23 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
   // Miejsce na linię najlepszej rundy: stoi w bohaterze, a pisze do niego tabela rund spod „Szczegółów”.
   const [slot, setSlot] = useState<HTMLElement | null>(null);
 
+  // Gra solo ma własne „Wyjdź” nad nagłówkiem.
+  const canExit = view.phase === "playing" && !view.solo;
+  const exitButton = canExit && <ExitButton view={view} me={me} send={send} onLeave={onLeave} />;
+
   // Kampus Tour ma własny, poziomy układ na cały ekran: gracze w rogach, licznik i rewanż w środku planszy.
   if (def.id === "kampus-tour") {
     return (
       <>
       {/* Układ poziomy jest zajęty, więc pasek dopiero na ekranie końcowym; reakcje innych widać zawsze. */}
       <ReactionOverlay store={reactionStore} anchored={[]} color={colorOf} landscape />
+      {canExit && (
+        <div className="landscape pointer-events-none z-50">
+          <div className="pointer-events-auto absolute top-1 left-1/2 -translate-x-1/2">
+            <ExitButton view={view} me={me} send={send} onLeave={onLeave} landscape />
+          </div>
+        </div>
+      )}
       {reactable && view.phase === "over" && (
         <div className="landscape pointer-events-none z-50">
           <div className="pointer-events-auto absolute top-1 left-1/2 -translate-x-1/2">
@@ -435,6 +446,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
               {(reactable || view.phase === "playing") && (
                 <div className="-my-3 ml-auto flex shrink-0 items-center">
                   {view.phase === "playing" && <RulesButton gameId={def.id} />}
+                  {exitButton}
                   {reactable && view.phase === "playing" && <ReactionToggle onReact={react} />}
                 </div>
               )}
@@ -602,7 +614,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
               waitingFor={game.waitingFor}
               ranking={game.result?.ranking}
               timer={ownHeader && <Countdown game={game} total={def.turn?.(game.view).seconds} color={turnColor} tense />}
-              help={ownHeader && <RulesButton gameId={def.id} />}
+              help={ownHeader && <><RulesButton gameId={def.id} />{exitButton}</>}
               onMove={(move) => send("move", move)}
             />
           )}
@@ -615,7 +627,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
               players={view.players}
               ranking={game.result?.ranking}
               timer={ownHeader && <Countdown game={drawTime ?? game} total={drawTime?.total ?? def.turn?.(game.view).seconds} color={turnColor} tense />}
-              help={ownHeader && <RulesButton gameId={def.id} />}
+              help={ownHeader && <><RulesButton gameId={def.id} />{exitButton}</>}
               onMove={(move) => send("move", move)}
             />
           )}
@@ -711,6 +723,64 @@ function Progress({ done, total, color }: { done: number; total: number; color?:
       <span className="font-mono text-xs text-fg tabular-nums">
         {done}/{total}
       </span>
+    </>
+  );
+}
+
+/** Skutek wyjścia z pokoju w trakcie partii (serwer rozlicza je w `removePlayer`). */
+function leaveEffect(view: RoomView, me: string) {
+  if (!view.seats.includes(me)) return "Partia potoczy się dalej bez Ciebie.";
+  if (view.tournament) return "Ta gra turnieju przepadnie bez punktów.";
+  return view.seats.length === 2 ? "Rywal wygra walkowerem." : "Partia skończy się bez zwycięzcy.";
+}
+
+/** Ikona wyjścia w nagłówku partii. Potwierdzenie chroni przed przypadkowym dotknięciem, a czas tury biegnie dalej. */
+export function ExitButton({ view, me, send, onLeave, landscape }: { view: RoomView; me: string; send: Send; onLeave: () => void; landscape?: boolean }) {
+  const ref = useRef<HTMLDialogElement>(null);
+  const isHost = view.hostId === me;
+  const closeOnBackdrop = (e: MouseEvent) => {
+    if (e.target === e.currentTarget) ref.current?.close();
+  };
+  const card = "rounded-inset border border-line bg-surface";
+  const body = (
+        <div className="flex flex-col gap-3 p-3">
+          <h2 className="font-semibold">{isHost ? "Przerwać grę?" : "Wyjść z gry?"}</h2>
+          {isHost && (
+            <div className="flex flex-col gap-1">
+              <button type="button" className="btn btn-ghost w-full" onClick={() => send("stopGame")}>
+                Przerwij grę
+              </button>
+              <p className="text-center text-sm text-fg-muted">Wszyscy wrócą do lobby, bez wyników.</p>
+            </div>
+          )}
+          <div className="flex flex-col gap-1">
+            <button type="button" className="btn btn-ghost w-full" onClick={onLeave}>
+              Wyjdź z pokoju
+            </button>
+            <p className="text-center text-sm text-fg-muted">{leaveEffect(view, me)}</p>
+          </div>
+          <button type="button" className="btn btn-ghost w-full text-fg-muted" onClick={() => ref.current?.close()}>
+            Graj dalej
+          </button>
+        </div>
+  );
+  return (
+    <>
+      <button type="button" className="btn btn-ghost size-12 shrink-0 px-0 text-fg-muted" aria-label="Zakończ grę" onClick={() => ref.current?.showModal()}>
+        <SignOut size={22} aria-hidden />
+      </button>
+      {/* Top layer nie dziedziczy obrotu rodzica, więc w układzie poziomym okienko obraca się osobno, razem z planszą. */}
+      {landscape ? (
+        <dialog ref={ref} aria-label="Zakończ grę" className="m-0 size-full max-h-none max-w-none bg-transparent p-0 text-fg backdrop:bg-black/60">
+          <div className="landscape grid place-items-center" onClick={closeOnBackdrop}>
+            <div className={`w-80 ${card}`}>{body}</div>
+          </div>
+        </dialog>
+      ) : (
+        <dialog ref={ref} aria-label="Zakończ grę" className={`m-auto w-[calc(100%-2rem)] max-w-md p-0 text-fg backdrop:bg-black/60 ${card}`} onClick={closeOnBackdrop}>
+          {body}
+        </dialog>
+      )}
     </>
   );
 }

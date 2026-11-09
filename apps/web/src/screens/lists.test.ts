@@ -352,7 +352,7 @@ test("15-03: Game montuje RulesButton tylko w fazie playing i przekazuje help gr
   expect(game).toMatch(/view\.phase === "playing" && <RulesButton gameId=\{def\.id\} \/>/);
   for (const name of ["PanstwaMiasta", "Kalambury"]) {
     const mount = game.slice(game.indexOf(`<${name}\n`), game.indexOf("onMove", game.indexOf(`<${name}\n`)));
-    expect(mount, name).toMatch(/help=\{ownHeader && <RulesButton gameId=\{def\.id\} \/>\}/);
+    expect(mount, name).toMatch(/help=\{ownHeader && <><RulesButton gameId=\{def\.id\} \/>\{exitButton\}<\/>\}/);
   }
 });
 

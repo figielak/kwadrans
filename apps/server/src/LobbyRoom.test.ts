@@ -160,6 +160,79 @@ describe("wyrzucanie z lobby", () => {
   });
 });
 
+describe("przerwanie partii przez gospodarza", () => {
+  test("wraca do lobby bez zwycięzcy, punktów i wpisu wieczoru; stary limit tury nie działa", async () => {
+    const record = vi.spyOn(stats, "record");
+    const measured = vi.spyOn(stats, "recordRoomGame");
+    const { send, snapshot } = await drawing(2, "piec-w-rzedzie");
+    send(0, "stopGame", {});
+    expect(snapshot()).toMatchObject({ phase: "lobby", game: null, gameId: "piec-w-rzedzie", scores: {}, evening: { games: 0 } });
+    expect(snapshot(1).phase).toBe("lobby");
+    expect(record).not.toHaveBeenCalled();
+    expect(measured).toHaveBeenCalledTimes(1);
+    expect(measured).toHaveBeenCalledWith(expect.objectContaining({ gameId: "piec-w-rzedzie", outcome: "aborted" }));
+    vi.advanceTimersByTime(10 * 60_000);
+    expect(snapshot().phase).toBe("lobby");
+  });
+
+  test("gra główna rusza od nowa po przerwaniu", async () => {
+    const { send, snapshot } = await drawing(2, "piec-w-rzedzie");
+    send(0, "stopGame", {});
+    send(1, "ready", { ready: true });
+    send(0, "start", {});
+    expect(snapshot().phase).toBe("playing");
+  });
+
+  test("działa też podczas instrukcji mini-gry", async () => {
+    const { send, snapshot } = await drawing(2, "stoper", false);
+    expect(snapshot().game!.intro).toBe(true);
+    send(0, "stopGame", {});
+    expect(snapshot().phase).toBe("lobby");
+    vi.advanceTimersByTime(60_000);
+    expect(snapshot().phase).toBe("lobby");
+  });
+
+  test("gość i obserwator nie mogą przerwać partii", async () => {
+    const { send, snapshot, observer } = await drawing(2, "piec-w-rzedzie");
+    send(1, "stopGame", {});
+    send(observer!, "stopGame", {});
+    expect(snapshot().phase).toBe("playing");
+  });
+
+  test("poza partią i w pokoju solo wiadomość nic nie robi", async () => {
+    const lobby = await openRoom(2);
+    lobby.send(0, "pickGame", { gameId: "piec-w-rzedzie" });
+    lobby.send(0, "stopGame", {});
+    expect(lobby.snapshot()).toMatchObject({ phase: "lobby", gameId: "piec-w-rzedzie" });
+
+    const solo = await openRoom(1, { solo: "stoper" });
+    solo.send(0, "stopGame", {});
+    expect(solo.snapshot().phase).toBe("playing");
+  });
+
+  test("ostatnia gra turnieju: bez mistrza, ustawienia zostają, tabela i lista gier nie", async () => {
+    const { send, snapshot } = await openRoom(2);
+    send(0, "pickTournament", { length: 3 });
+    send(0, "toggleSeat", { id: "p3" });
+    send(1, "ready", { ready: true });
+    send(0, "start", {});
+    for (let i = 0; i < 2000; i++) {
+      const { phase, tournament } = snapshot();
+      if (phase === "playing" && tournament!.index === tournament!.games.length - 1) break;
+      vi.advanceTimersByTime(1000);
+    }
+    const { phase, tournament } = snapshot();
+    expect(phase).toBe("playing");
+    expect(tournament!.index).toBe(tournament!.games.length - 1);
+    const record = vi.spyOn(stats, "record");
+    send(0, "stopGame", {});
+    expect(record).not.toHaveBeenCalled();
+    expect(snapshot()).toMatchObject({ phase: "lobby", gameId: null, tournament: { games: [], config: { length: 3 } } });
+    vi.advanceTimersByTime(60_000);
+    expect(snapshot().phase).toBe("lobby");
+  });
+});
+
 describe("07-21: życzenia gości", () => {
   test("gość wskazuje grę, zmienia ją, null kasuje; każdy ma jedno życzenie", async () => {
     const { send, snapshot } = await openRoom(3);

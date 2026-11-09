@@ -183,6 +183,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
   widać je jako kropkę gracza przy grze, `RoomView.wishes`; start, wybór gry i Szybka seria je czyszczą, wyjście gracza też). Sam w pokoju gracz widzi duży kod; od dwóch osób kod
   zwija się do paska u góry, a gracze to rząd awatarów (kolory rozwija dotknięcie własnego, przy wolnym miejscu „Zaproś”); każdy może zmienić swój kolor
   (poza partią); link `/?kod=ABCD` z przyciskiem udostępniania. Lista w lobby to gry główne oraz kafle „Turniej” i „Mini-gry”.
+- **Przerwanie partii**: w trakcie partii (poza solo) ikona wyjścia w nagłówku otwiera potwierdzenie. Gospodarz może przerwać grę dla wszystkich (`stopGame`): pokój wraca do lobby bez zwycięzcy, punktów i rekordów, a w turnieju przepada cały turniej; ustawienia zostają. Każdy może też wyjść z pokoju, co rozlicza zwykłe wyjście.
 - **Wyrzucanie**: gospodarz w lobby może usunąć gościa (`kick: { id }`, dotknięcie awatara i potwierdzenie), także rozłączonego, co anuluje czekanie na jego powrót i zwalnia miejsce. Wyrzucony dostaje komunikat na ekranie głównym (`KICKED_CLOSE_CODE`) i może wrócić tym samym kodem; punkty wieczoru zostają jak przy zwykłym wyjściu. W trakcie partii wyrzucać nie można.
 - Gra główna (`minPlayers > 1`) po wybraniu otwiera u wszystkich ekran gry (`Setup.tsx`): opis, tryb (jeśli gra ma `modes`;
   zmiana trybu kasuje gotowość gości), gracze i start; gospodarz wraca do listy gier przez `pickGame` z `null`.
