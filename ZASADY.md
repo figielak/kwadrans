@@ -335,7 +335,8 @@ Podpięcie, w tej kolejności:
 4. `apps/web/src/games/<Gra>.tsx`,
 5. gałąź w `screens/Game.tsx` (mini-gra: `key` z wyzwania albo `nonce`; listę mini-gier daje sam rejestr przez `MINI_GAME_IDS`, gra główna z własną tabelą po partii pokazuje ją przez `ResultDetails`), ikona w `ICONS` w `screens/Lobby.tsx`,
    mini-gra: `record` w definicji (trzeci argument `ranked`; z `tie`, jeśli komparator ma drugie kryterium), przypadek w `RECORDS` w `index.test.ts` i jednostka w `FORMAT` w `screens/Records.tsx`,
-6. wiersz w katalogu gier w `KONCEPT.md` (sekcja 2).
+6. wiersz w katalogu gier w `KONCEPT.md` (sekcja 2),
+7. gra główna (`minPlayers > 1`): karta „Jak grać” w `apps/web/src/screens/howToPlay.ts` pod `id` gry (cel, przebieg, punktacja, „Uważaj”; do 900 znaków, Kampus Tour 1800; liczby ze stałych gry, gdy je eksportuje). Bez niej test w `howToPlay.test.ts` jest czerwony.
 
 Po zmianie w `packages/games` serwer deweloperski restartuje się sam (`node --watch`), a trwające partie przepadają.
 

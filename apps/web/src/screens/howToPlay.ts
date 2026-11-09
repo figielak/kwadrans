@@ -1,5 +1,6 @@
 import {
   KALAMBURY_HALF_SECONDS,
+  KAMPUS_ROUNDS,
   PM_ANSWER_MAX,
   PM_CATEGORIES,
   PODROBKA_ROUNDS,
@@ -139,6 +140,24 @@ export const HOW_TO_PLAY: Record<string, HowToPlay> = {
       "Każda faza ma własny limit czasu, a STOP odlicza go od nowa.",
       "Powtórką jest też odpowiedź różniąca się tylko wielkością liter albo polskimi znakami.",
       "Brak głosu w czasie oznacza, że niczego nie odrzucasz.",
+    ],
+  },
+  "kampus-tour": {
+    goal: `Zostań ostatnim wypłacalnym graczem, zbierz 3 pełne grupy pól albo miej największy majątek po ${KAMPUS_ROUNDS} rundach.`,
+    flow: [
+      "Rzucasz dwiema kośćmi i idziesz o sumę oczek. Przejście przez Początek daje kieszonkowe. Dublet daje kolejny rzut, a trzeci z rzędu wysyła na Kolokwium.",
+      "Wolne pole możesz kupić. Własne rozbudowujesz, ale tylko gdy na nim stoisz. Za cudze płacisz czynsz właścicielowi.",
+      "Po zapłaceniu czynszu możesz wykupić cudze pole za dwukrotną wartość. Budynki zostają, landmarku wykupić nie można.",
+      "Pola specjalne: Karty Dziekanatu dają zysk albo opłatę, Juwenalia mnożą czynsz jednego twojego pola, Bilet MPK pozwala w następnej turze skoczyć na dowolne pole, a z Kolokwium wychodzisz dubletem albo po straconej turze.",
+    ],
+    scoring: [
+      "Czynsz rośnie z każdym poziomem budynków, a pełna grupa kolorów podwaja go na pustym polu. Szczegóły pola zobaczysz po dotknięciu go na planszy.",
+      `Wygrywa ostatni wypłacalny albo ten, kto zbierze 3 pełne grupy (od razu). Po ${KAMPUS_ROUNDS} rundach wygrywa największy majątek: gotówka i wartość pól z budynkami.`,
+    ],
+    watch: [
+      "Bez pełnej grupy zbudujesz najwyżej poziom 2. Poziom 3 i landmark wymagają kompletu.",
+      "Gdy brakuje gotówki, sprzedajesz pola bankowi za połowę wartości. Jeśli to nie wystarczy, bankrutujesz.",
+      "Bilet MPK nie daje kieszonkowego za Początek, a zwykły rzut zużywa niewykorzystany bilet.",
     ],
   },
 };

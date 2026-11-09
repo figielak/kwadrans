@@ -2,7 +2,7 @@
 id: 15-05
 title: "Karta Kampus Tour, strażnik kompletu i dokumenty"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [15-03, 15-04]         # task IDs, e.g. [01-01]
@@ -46,11 +46,13 @@ Dopisać najdłuższą kartę, Kampus Tour, wymusić testem kartę dla każdej g
 - Zaktualizować cztery dokumenty.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm run typecheck` → exit 0
-- [ ] `pnpm run test` → exit 0
-- [ ] `pnpm --filter web build` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm run typecheck` → exit 0
+- [x] `pnpm run test` → exit 0
+- [x] `pnpm --filter web build` → exit 0
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Dopisano kartę `kampus-tour` (rzut i dublet, kupno, czynsz, rozbudowa, wykupienie, pola specjalne, koniec; `KAMPUS_ROUNDS` ze stałej, kwoty i lista pól poza kartą) oraz strażnika: zbiór kart równa się zbiorowi gier z `minPlayers > 1` (bez ręcznej listy).
+Testy `howToPlay.test.ts`: 15 (RED: 5 padło na braku karty; limit 1800 dla Kampus Tour). Pełny `pnpm run test`, typecheck i build zielone.
+Dokumenty: krok 7 w `ZASADY.md` §6, zdanie w `AGENTS.md` (zmiana zasad poprawia kartę), akapit o karcie i ikonie w `KONCEPT.md` §3, reguła „Zasady są pod ręką” w `DESIGN.md` §5, bez powielania treści kart.
+Deviations: none

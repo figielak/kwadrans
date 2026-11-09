@@ -1,6 +1,7 @@
 import {
   GAMES,
   KALAMBURY_HALF_SECONDS,
+  KAMPUS_ROUNDS,
   PODROBKA_ROUNDS,
   PODROBKA_VOTE_SECONDS,
   PODROBKA_WRITE_SECONDS,
@@ -13,7 +14,8 @@ import { HOW_TO_PLAY, type HowToPlay } from "./howToPlay.ts";
 
 const NEW_GAMES = ["sabotaz", "wyprawa", "podrobka"];
 const OLD_GAMES = ["piec-w-rzedzie", "statki", "chinczyk", "memory", "kalambury", "labirynt", "panstwa-miasta"];
-const CARDS = [...NEW_GAMES, ...OLD_GAMES];
+const CARDS = [...NEW_GAMES, ...OLD_GAMES, "kampus-tour"];
+const limit = (id: string) => (id === "kampus-tour" ? 1800 : 900);
 const text = (card: HowToPlay) => [card.goal, ...card.flow, ...card.scoring, ...card.watch].join(" ");
 
 test("karty trzech nowych gier istnieją, a klucze to id z GAMES", () => {
@@ -34,8 +36,8 @@ test("karta ma cel, 2-4 punkty przebiegu, 1-4 punktacji i 2-3 uwagi", () => {
   }
 });
 
-test("karta ma najwyżej 900 znaków", () => {
-  for (const id of CARDS) expect(text(HOW_TO_PLAY[id]!).length, id).toBeLessThanOrEqual(900);
+test("karta ma najwyżej 900 znaków, Kampus Tour 1800", () => {
+  for (const id of CARDS) expect(text(HOW_TO_PLAY[id]!).length, id).toBeLessThanOrEqual(limit(id));
 });
 
 test("karty bez em-dasha i nazw cudzych gier", () => {
@@ -66,4 +68,16 @@ test("Kalambury i Państwa-miasta wyjaśniają limit fazy i głosowanie", () => 
   expect(text(HOW_TO_PLAY.kalambury!)).toContain(String(KALAMBURY_HALF_SECONDS));
   expect(text(HOW_TO_PLAY["panstwa-miasta"]!)).toMatch(/STOP/);
   expect(text(HOW_TO_PLAY["panstwa-miasta"]!)).toMatch(/głosu/i);
+});
+
+test("strażnik: każda gra główna ma kartę, a kart nie ma nic poza grami głównymi", () => {
+  const main = Object.values(GAMES).filter((d) => d.minPlayers > 1).map((d) => d.id);
+  for (const id of main) expect(HOW_TO_PLAY[id], id).toBeDefined();
+  for (const id of Object.keys(HOW_TO_PLAY)) expect(main, id).toContain(id);
+  expect(Object.keys(HOW_TO_PLAY).sort()).toEqual([...main].sort());
+});
+
+test("Kampus Tour podaje 20 rund jako granicę długości partii", () => {
+  expect(KAMPUS_ROUNDS).toBe(20);
+  expect(text(HOW_TO_PLAY["kampus-tour"]!)).toContain(String(KAMPUS_ROUNDS));
 });
