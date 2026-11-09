@@ -2,7 +2,7 @@
 id: 15-04
 title: "Karty siedmiu starszych gier głównych"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [15-01]         # task IDs, e.g. [01-01]
@@ -45,10 +45,12 @@ Dopisać karty Gomoku, Statków, Chińczyka, Memory, Kalamburów, Labiryntu i Pa
 - Porównać każdą kartę z jej sekcją i z `BLURBS`, żeby się nie wykluczały.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm run typecheck` → exit 0
-- [ ] `pnpm --filter web exec vitest run src/screens/howToPlay.test.ts` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm run typecheck` → exit 0
+- [x] `pnpm --filter web exec vitest run src/screens/howToPlay.test.ts` → exit 0
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Dopisano karty `piec-w-rzedzie`, `statki`, `chinczyk`, `memory`, `kalambury`, `labirynt` i `panstwa-miasta` w `howToPlay.ts`; liczby ze stałych tylko tam, gdzie są eksportowane (`KALAMBURY_HALF_SECONDS`, `PM_CATEGORIES`, `PM_ANSWER_MAX`), reszta (limity Statków i P-M, punkty) bez nowych eksportów.
+Testy `howToPlay.test.ts`: 13 (reguły kształtu, długości i zakazanych słów objęły wszystkie 10 kart, 3 nowe na treść). RED: 6 padło na brakujących kartach, potem 13/13.
+Chińczyk opisuje Szybki w „Uważaj” i punktacji, Kalambury i P-M tłumaczą limit per faza oraz głosowanie. Karty porównane z sekcjami ZASADY-GIER.md i z BLURBS, bez sprzeczności.
+Deviations: none
