@@ -2,7 +2,7 @@
 id: 15-02
 title: "Komponenty karty: treść, sekcja i okienko"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [15-01]         # task IDs, e.g. [01-01]
@@ -45,10 +45,12 @@ Dodać trzy małe komponenty korzystające z jednej treści: `RulesBody`, `Rules
 - Sprawdzić otwieranie i Esc w przeglądarce dopiero po podpięciu (15-03), bo testy `renderToStaticMarkup` nie uruchamiają `showModal()`.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm run typecheck` → exit 0
-- [ ] `pnpm --filter web exec vitest run src/screens/HowToPlay.test.tsx` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm run typecheck` → exit 0
+- [x] `pnpm --filter web exec vitest run src/screens/HowToPlay.test.tsx` → exit 0
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Dodano `HowToPlay.tsx`: `RulesBody` (4 nagłówki `.label`), `RulesDetails` (zwinięte `<details>`, summary `min-h-12`) i `RulesButton` (ikona Question 48 px, natywny `<dialog>` z `showModal()`, X 48 px, zamknięcie dotknięciem tła, przewijanie `max-h-[85vh]`, zdanie „Czas tury biegnie dalej.”).
+Testy `HowToPlay.test.tsx` (5): RED przez brak modułu, potem 5/5 zielone; otwieranie i Esc do sprawdzenia w przeglądarce po 15-03.
+Układ okienka siedzi w wewnętrznym `div`, żeby `<dialog>` nie dostał własnego `display` i zamknięty zostawał ukryty.
+Deviations: none
