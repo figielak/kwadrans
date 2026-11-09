@@ -185,6 +185,8 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
   (poza partią); link `/?kod=ABCD` z przyciskiem udostępniania. Lista w lobby to gry główne oraz kafle „Turniej” i „Mini-gry”.
 - Gra główna (`minPlayers > 1`) po wybraniu otwiera u wszystkich ekran gry (`Setup.tsx`): opis, tryb (jeśli gra ma `modes`;
   zmiana trybu kasuje gotowość gości), gracze i start; gospodarz wraca do listy gier przez `pickGame` z `null`.
+  Każda gra główna ma kartę „Jak grać” (`howToPlay.ts`, cel, przebieg, punktacja, „Uważaj”): zwijaną sekcję pod opisem na tym ekranie
+  i ikonę „?” w nagłówku partii (także dla obserwatora), która otwiera okienko; karta nie otwiera się sama, a czas tury biegnie dalej. Kart nie mają mini-gry (mają `Intro`) ani Turniej.
 - Mini-gry mają osobny ekran z listą (`MiniGames.tsx`); otwiera go kafel u gospodarza (lokalnie, bez stanu w pokoju), a goście widzą go,
   gdy gospodarz wybierze grę. Mini-gry mają zasady narzucone z góry, bez trybów.
 - Turniej ma ekran ustawień (`TournamentSetup` w `Setup.tsx`): `pickTournament` (gospodarz) ustawia liczbę gier, `markGame` (każdy) zaznacza jedną grę; obie kasują gotowość gości.

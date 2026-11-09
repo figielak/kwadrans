@@ -20,6 +20,7 @@
      kinds: decision | phase | revert | remove | quick | profile | init
      ref: NN, NN-MM, ADR NNN, quick, telos
      Archive is installed first; after an interrupted write it may duplicate live Log rows. -->
+- 2026-11-09 phase 15: closed 15-jak-grac: 11 gier głównych ma kartę Jak grać (sekcja w Setup i okienko w partii), test pilnuje kompletu, odbiór 360×640 przy 2 i 6 graczach; znana wada: Kampus Tour bez ikony w partii
 - 2026-11-08 phase 08: closed 08-podrobka: TDD, ekran, podpięcie i odbiór 3/6 graczy z obserwatorem; próba z ludźmi (dawne 08-10) pominięta na decyzję użytkownika
 - 2026-11-07 phase 10: closed 10-wyprawa: TDD, ekran, podpięcie i odbiór 2/6 graczy z obserwatorem; próba z ludźmi pominięta decyzją użytkownika, balans niepotwierdzony; FAIL accept 10-02 zaakceptowany (D-04)
 - 2026-11-06 phase 11: closed 11-sabotaz: TDD, ekran, podpięcie i odbiór techniczny 3/6 graczy z obserwatorem; v1 przyjęte przez użytkownika bez pomiarów balansu

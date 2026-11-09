@@ -28,3 +28,4 @@
 - 12-wspolny-szyfr [planned] gra kooperacyjna z rozszerzeniem kontraktu o wynik drużyny (SZYFR-01..06) · done when: TDD, odbiór 2/6 i brak regresji starych gier
 - 13-zapis-pokoi [planned] stan pokoi w SQLite, przeżywa restart i deploy · done when: partia trwa po restarcie serwera
 - 14-poprawka [planned] gra karciana typu Uno, 2-6 graczy, ukryte ręce (KONCEPT §2.2) · done when: zestaw kart ustalony, TDD, ekran i odbiór
+- 15-jak-grac [done] karta Jak grać dla każdej gry głównej, dostępna przed partią i w jej trakcie · done when: 11 gier głównych ma kartę, test pilnuje kompletu, odbiór techniczny 360×640 przy 2 i 6 graczach

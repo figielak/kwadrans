@@ -42,6 +42,7 @@ Przed zgłoszeniem zmiany jako gotowej: `pnpm typecheck && pnpm test` bez błęd
 - TDD: testy zasad gry (`packages/games/src/<gra>.test.ts`) w osobnym commicie **przed** implementacją.
   Nie zmieniaj testów pod implementację; jeśli zasada była zła, najpierw popraw test i `ZASADY-GIER.md`.
 - Zmiana zasad gry = aktualizacja `ZASADY-GIER.md` w tym samym zadaniu; `KONCEPT.md` tylko przy zmianie katalogu gier albo reguł platformy.
+  Zmiana zasad gry głównej poprawia też jej kartę „Jak grać” w `apps/web/src/screens/howToPlay.ts`.
 - Przed publikacją na `master` zmian widocznych dla graczy dodaj jeden wpis na początku `CHANGELOG` w `apps/web/src/screens/Changelog.tsx`, opisujący całość językiem gracza: nowy numer (same poprawki: trzecia liczba, nowość: druga) i data. Publikacja bez widocznych zmian nie zmienia numeru.
 - Commity po polsku, w formie „<Gra>: co się zmieniło”. Commit i push tylko na prośbę użytkownika.
 - Push na `master` buduje i publikuje obraz produkcyjny, więc pracuj na gałęzi.

@@ -196,6 +196,8 @@ Stan pusty mówi, czemu jest pusto: „Za krótka partia na ciekawostki.”, w t
 - **Podpis to `.label`.** Nagłówek nad blokiem (kaflem, sekcją ekranu) i etykieta liczby to małe wersaliki mono, nigdy pogrubiony Satoshi.
   Wyjątek: grupy wewnątrz jednej listy (kategorie w siatce mini-gier, sekcje ekranu „Rekordy”) mają zwykły Satoshi 14 px `fg-muted`,
   bo `.label` nad każdą grupą konkurowałby z podpisami mono na kaflach.
+- **Zasady są pod ręką, nie na wierzchu.** „Jak grać” to zwinięte `<details>` pod opisem gry (`summary` min. 48 px, obrys `line`) i ikona „?” 48 px w nagłówku partii,
+  która otwiera natywny `<dialog>` (tytuł z nazwą gry, X, tło zamyka, treść przewija się w środku). Nigdy nie otwiera się sama; sekcje `.label`, kolory z tokenów.
 - **Ruch tłumaczy, nie zdobi.** Poświata jest nieruchoma, animacja pokazuje tylko to, co się właśnie stało (szczegóły: `ZASADY.md`, sekcja 5).
 - **Tylko ciemny motyw, teksty po polsku, bez em-dashy, z przecinkiem dziesiętnym.**
 

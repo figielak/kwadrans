@@ -10,6 +10,8 @@ interface Props {
   ranking?: string[];
   /** Pasek czasu fazy; bez niego (koniec partii) nagłówek gry chowa się, bo pokazuje go ekran gry. */
   timer?: ReactNode;
+  /** Ikona „Jak grać” z ekranu gry; stoi w nagłówku obok rundy. */
+  help?: ReactNode;
   onMove: (move: KalamburyMove) => void;
 }
 
@@ -33,7 +35,7 @@ const CONFIRM_MS = 3000;
 /** Ile ostatnich pudeł widać pod rysunkiem. */
 const CHAT_LINES = 3;
 
-export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) {
+export function Kalambury({ view, me, players, ranking, timer, help, onMove }: Props) {
   const player = (id: string) => players.find((p) => p.id === id);
   const nick = (id: string) => player(id)?.nick ?? "Gracz";
   const drawing = view.drawer === me;
@@ -44,9 +46,12 @@ export function Kalambury({ view, me, players, ranking, timer, onMove }: Props) 
     <div className="flex flex-1 flex-col gap-3">
       {timer && (
         <header className="flex flex-col gap-2">
-          <span className="label">
-            Runda {view.round + 1}/{view.rounds} · {drawing ? "rysujesz" : `rysuje ${nick(view.drawer)}`}
-          </span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="label min-w-0">
+              Runda {view.round + 1}/{view.rounds} · {drawing ? "rysujesz" : `rysuje ${nick(view.drawer)}`}
+            </span>
+            {help}
+          </div>
           {/* Tytuł w kolorze gracza tylko u rysującego: to jego tura, jak „Twój ruch” w innych grach. */}
           <h1 className="text-xl leading-tight font-semibold" style={drawing && live ? { color: player(me)?.color } : undefined}>
             {view.phase === "choose" ? (

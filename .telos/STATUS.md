@@ -1,7 +1,7 @@
 # Status
 <!-- ≤ 40 lines. Maintained by `telos status set <key>=<value>`; never edit by hand.
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
-Phase: 08-podrobka
+Phase: 15-jak-grac
 Task: none
 Next: /telos:plan
 Blockers: none
@@ -15,6 +15,6 @@ Awaiting user: 08, 09, 12
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
-- 08-podrobka closed: Podróbka (3-6 graczy) w rejestrze, ekranie i lobby, odbiór techniczny 3 i 6 graczy; próba z ludźmi pominięta
-- 08-09 done: odbiór 3 i 6 graczy na prawdziwym serwerze, 0 wad w kodzie, 4 uwagi kosmetyczne
-- 08-08 done: Podróbka w lobby, Game i wibracji; sprawdzona w /dev?n=3
+- 15-jak-grac closed: karty Jak grać dla gier głównych; otwarte: ikona w Kampus Tour, sticky tytuł okienka
+- 15-06 done: odbiór techniczny Jak grać; wada: Kampus Tour bez ikony w partii
+- 15-06 done: odbiór techniczny kart Jak grać, 5 wad do osobnego zadania
