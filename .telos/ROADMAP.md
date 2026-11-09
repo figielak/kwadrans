@@ -29,3 +29,4 @@
 - 13-zapis-pokoi [planned] stan pokoi w SQLite, przeżywa restart i deploy · done when: partia trwa po restarcie serwera
 - 14-poprawka [planned] gra karciana typu Uno, 2-6 graczy, ukryte ręce (KONCEPT §2.2) · done when: zestaw kart ustalony, TDD, ekran i odbiór
 - 15-jak-grac [done] karta Jak grać dla każdej gry głównej, dostępna przed partią i w jej trakcie · done when: 11 gier głównych ma kartę, test pilnuje kompletu, odbiór techniczny 360×640 przy 2 i 6 graczach
+- 16-kropki-i-kreski [active] gra główna Kropki i kreski (2-4 osoby): dorysowywanie kresek, kwadrat daje punkt i kolejny ruch, plansze 3×3, 5×5 i 7×7 · done when: ZASADY-GIER ma sekcję gry, testy zasad i pnpm test przechodzą, kafel i karta Jak grać są w lobby, odbiór techniczny 2 i 4 graczy z obserwatorem na 360×640 zaliczony
