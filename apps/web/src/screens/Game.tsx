@@ -766,8 +766,8 @@ export function ExitButton({ view, me, send, onLeave, landscape }: { view: RoomV
   );
   return (
     <>
-      <button type="button" className="btn btn-ghost size-12 shrink-0 px-0 text-fg-muted" aria-label="Zakończ grę" onClick={() => ref.current?.showModal()}>
-        <SignOut size={22} aria-hidden />
+      <button type="button" className="btn-icon" aria-label="Zakończ grę" onClick={() => ref.current?.showModal()}>
+        <SignOut size={24} aria-hidden />
       </button>
       {/* Top layer nie dziedziczy obrotu rodzica, więc w układzie poziomym okienko obraca się osobno, razem z planszą. */}
       {landscape ? (

@@ -56,11 +56,11 @@ export function RulesButton({ gameId }: { gameId: string }) {
     <>
       <button
         type="button"
-        className="btn btn-ghost size-12 shrink-0 px-0 text-fg-muted"
+        className="btn-icon"
         aria-label="Jak grać"
         onClick={() => ref.current?.showModal()}
       >
-        <Question size={22} aria-hidden />
+        <Question size={24} aria-hidden />
       </button>
       {/* showModal() daje Esc, pułapkę fokusu i top layer nad Momentem i reakcjami. Klik w tło trafia w sam <dialog>. */}
       <dialog

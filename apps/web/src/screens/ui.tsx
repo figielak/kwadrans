@@ -294,7 +294,7 @@ export function ReactionToggle({ onReact }: { onReact: (index: number) => void }
   const [open, setOpen] = useState(false);
   return (
     <div className="relative -my-3 ml-auto">
-      <button type="button" className="grid size-12 place-items-center text-fg-muted" aria-expanded={open} aria-label={open ? "Zwiń reakcje" : "Pokaż reakcje"} onClick={() => setOpen(!open)}>
+      <button type="button" className="btn-icon" aria-expanded={open} aria-label={open ? "Zwiń reakcje" : "Pokaż reakcje"} onClick={() => setOpen(!open)}>
         <Smiley size={24} aria-hidden />
       </button>
       {open && (
