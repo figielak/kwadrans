@@ -2,7 +2,7 @@
 id: 15-06
 title: "Odbiór techniczny kart Jak grać"
 type: audit         # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [15-05]         # task IDs, e.g. [01-01]
@@ -34,11 +34,20 @@ Sprawdzić w przeglądarce na prawdziwym serwerze, że obie drogi do zasad dzia�
 - Mini-gra i Turniej nie pokazują ikony ani sekcji.
 
 ## Acceptance
-- [ ] Wszystkie kroki sprawdzone, wyniki w Result
-- [ ] `pnpm run typecheck` → exit 0
-- [ ] `pnpm run test` → exit 0
-- [ ] `pnpm --filter web build` → exit 0
+- [x] Wszystkie kroki sprawdzone, wyniki w Result
+- [x] `pnpm run typecheck` → exit 0
+- [x] `pnpm run test` → exit 0
+- [x] `pnpm --filter web build` → exit 0
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Przebieg: Chromium 360×640, serwer dev, osobne konteksty z długimi nickami (limit nicka ~16 znaków), Setup i partia: Kampus Tour, Statki (tryby), Gomoku 2 os. + obserwator, Podróbka 6 os., Państwa-miasta i Kalambury 3 os., solo mini-gra i Szybka seria. Zrzuty w scratchpadzie sesji.
+OK: sekcja zwinięta, po rozwinięciu strona się przewija, StartBar stoi na dole (u gospodarza i gościa); `summary` i ikona 48 px; ikona w nagłówku `compact` przy 6 kropkach i długich nickach, bez wypadania poza ekran (scrollWidth 360), u obserwatora; Państwa-miasta i Kalambury mają ikonę we własnym nagłówku; okienko: otwarcie, X, Esc, tło, fokus wraca na ikonę, przewija się (w oknie 360×360); zostało otwarte przez zmianę fazy i rundy (Podróbka, limit 30 s), a ruch po zamknięciu przeszedł; mini-gra, Szybka seria i ekran Turnieju bez ikony i sekcji.
+WADY (do osobnego zadania lub `/telos:revise`):
+1. Kampus Tour w partii nie ma ikony „?”: `Game.tsx:173` wczesnym `return` pomija wspólny nagłówek, a własny układ (obrócona plansza, `KampusTour.tsx`) nie dostał `RulesButton`. Najdłuższa karta jest dostępna tylko w `Setup`; okienko trzeba tam osadzić z uwzględnieniem obróconego układu (top layer `<dialog>` nie dziedziczy obrotu).
+2. Ikona „?” ma okrągły obrys (`btn-ghost`), a sąsiednia emotka nie, więc w nagłówku wyglądają niespójnie.
+3. Wiersz tytułu z X przewija się razem z treścią; przy długiej karcie (Kampus ~1700 znaków) po przewinięciu zamknięcie to Esc albo tło. Przykleić wiersz tytułu (`sticky`).
+4. Poza zakresem: po głosowaniu „Inna gra” gra główna rusza bez ekranu `Setup`, więc nowa osoba nie ma spokojnej chwili na kartę (ikona zostaje, czas tury biegnie). Do rozważenia jako osobne zadanie.
+5. Do sprawdzenia: aktywne pole tekstowe w Państwach-miastach i Podróbce ma czerwono-różowy obrys, co jest sprzeczne z regułą „kolor gracza zamiast czerwieni”.
+Nie sprawdzone osobno: Wyprawa, Chińczyk, Memory, Labirynt (wspólna ścieżka `Game.tsx`, jak Gomoku i Statki).
+`telos accept` przy pierwszym biegu zgłosił błąd testu web pod obciążeniem przeglądarek, po powtórzeniu bez nich: 577/577 i PASS.
+Deviations: none

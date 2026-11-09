@@ -2,8 +2,8 @@
 <!-- ≤ 40 lines. Maintained by `telos status set <key>=<value>`; never edit by hand.
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 15-jak-grac
-Task: 15-06
-Next: /telos:do
+Task: none
+Next: close phase 15 (/telos:done)
 Blockers: none
 Awaiting user: 08, 09, 12
 <!-- Blockers: "NN-MM: reason". Awaiting user: IDs only, e.g. "02:Q-01, 02:D-03" -->
@@ -15,6 +15,6 @@ Awaiting user: 08, 09, 12
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
+- 15-06 done: odbiór techniczny kart Jak grać, 5 wad do osobnego zadania
 - 15-05 done: karta Kampus Tour, strażnik kompletu, dokumenty
 - 15-04 done: karty siedmiu starszych gier głównych
-- 15-03 done: Jak grać w Setup i ikona w nagłówku partii
