@@ -130,7 +130,7 @@ Do skopiowania: kolor gracza niesie stan (czyja tura, ile czasu), interfejs wok�
 
 ### 3.5 Siatka mini-gier (`MiniGameGrid` w `MiniGames.tsx`)
 
-Trzy kolumny małych kafli (10 px, min. 80 px wysokości): ikona, nazwa 14 px, na dole linia mono ze stanem („2. miejsce”, „nie grane”).
+Trzy kolumny małych kafli (10 px, min. 80 px wysokości, tło `surface` bez obrysu, bo 30 ramek rysowało szkielet zamiast listy; obrys pojawia się dopiero pod kursorem i przy zaznaczeniu): ikona, nazwa 14 px, a linia mono na dole tylko przy rozegranej grze („2. miejsce”). Pięć grup po sześć gier to dwa pełne rzędy, bez kafla samego w rzędzie.
 Grupy rozdziela zwykły wyciszony nagłówek (Satoshi 14 px, `fg-muted`), bez ramek. Pierwsze miejsce gracza świeci jego kolorem i jest jedynym kolorem w całej siatce.
 
 Do skopiowania: przy dużej liczbie elementów kolor zostaje dla wyjątków, a porządek robi siatka i stała pozycja podpisu.
@@ -159,14 +159,14 @@ Podpowiedź wykresu zostaje po dotknięciu, mysz chowa ją po zjechaniu z wykres
 | przycisk nieaktywny | krycie 40%, bez reakcji na dotyk | „Dołącz” bez pełnego kodu (dodatkowo `btn-ghost` zamiast `btn-primary`; z pełnym kodem to on jest wypełniony) |
 | kafel zaznaczony | ramka `accent`, tło `accent-soft`, ikona `fill`, `aria-pressed` | wybrana gra w lobby |
 | kafel przygaszony, ale do wybrania | krycie 60%, podpis mówi dlaczego („brakuje 1 gracza”) | gra, do której jest za mało osób |
-| turniej: losowo | zwykły kafel | stan domyślny każdej gry |
-| turniej: na pewno | jak kafel zaznaczony, plus znaczek i podpis „na pewno” | pierwsze dotknięcie |
-| turniej: bez | ramka `line`, krycie 60%, ikona i podpis „bez”, nazwa przekreślona | drugie dotknięcie |
+| turniej: losowo | zwykły kafel `surface`, min. 72 px | stan domyślny każdej gry |
+| turniej: na pewno | obrys 2 px i tło 12% w kolorze autora, ikona `fill`, znaczek i kropka autora w rogu | dotknięcie przy przełączniku „Na pewno” |
+| turniej: bez | krycie 60%, znak zakazu i kropka autora w rogu, nazwa przekreślona | dotknięcie przy przełączniku „Wyklucz” |
 | wybrany kolor gracza | obrys 2 px `fg`, odsunięty o 2 px | próbki koloru w lobby |
 | ładowanie | tekst przycisku zmienia się na czasownik z wielokropkiem, wszystkie akcje ekranu nieaktywne; bez spinnera. Ekran bez przycisku pokazuje sam czasownik w `fg-muted` (`role="status"`) | „Łączenie…”, „Tworzenie…”, „Uruchamianie…”, „Wczytywanie…” |
 | brak odpowiedzi serwera | jedno zdanie `fg-muted` zamiast listy; nigdy pusta lista ani „nie grane” | „Nie udało się wczytać rekordów.” |
 | pokój zamknięty | kafel z ikoną `Info` nad sekcjami ekranu głównego (`role="status"`), nie błąd pola kodu; znika przy następnej próbie | „Połączenie z pokojem zostało zamknięte.” |
-| stan pusty | jedno zdanie `fg-muted` w miejscu treści, bez ilustracji | „Dziś nikt jeszcze nie grał”, „nie grane” |
+| stan pusty | jedno zdanie `fg-muted` w miejscu treści, bez ilustracji | „Dziś nikt jeszcze nie grał” |
 | błąd formularza | ikona i tekst 14 px w `warning` pod polem (`role="alert"`); ramka i obrys focusu pola też w `warning`, zamiast akcentu | zły kod pokoju (`Problem` w `Home.tsx`) |
 | lider rankingu | korona `fill`: w `fg` przy cudzym rekordzie, w kolorze gracza przy własnym | ekran „Rekordy” |
 | bodziec w grze na refleks | przed sygnałem pole `surface` z szarym napisem, sygnał to `success` z ciemnym napisem, bez przejścia | „Czekaj…” i „Teraz!” w Refleksie |

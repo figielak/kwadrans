@@ -58,9 +58,9 @@ describe("platforma", () => {
     expect(setup).toContain("Tryb wybiera gospodarz");
   });
 
-  test("turniej: stan „bez” ma słowo, granice liczby gier mają powód", () => {
+  test("turniej: stan „bez” ma znak, granice liczby gier mają powód", () => {
     const setup = read("screens/Setup.tsx");
-    expect(setup).toMatch(/state === "bez" &&/);
+    expect(setup).toMatch(/state === "na pewno" \? <Check[^>]*\/> : <Prohibit/);
     expect(setup).toContain("Najmniej");
   });
 

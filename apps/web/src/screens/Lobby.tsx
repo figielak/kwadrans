@@ -387,8 +387,8 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
 }
 
 /** Dolny pasek: start u gospodarza, gotowość u gościa z miejscem, informacja u oglądających. */
-/** `note` to linia nad przyciskiem w tym samym pasku (podsumowanie Turnieju); bez niej pasek ma tylko akcję. */
-export function StartBar({ view, me, send, note }: { view: RoomView; me: string; send: Send; note?: ReactNode }) {
+/** `note` to linia nad przyciskiem w tym samym pasku (podsumowanie Turnieju); `aside` stoi obok akcji (ponowne losowanie mini-gry). */
+export function StartBar({ view, me, send, note, aside }: { view: RoomView; me: string; send: Send; note?: ReactNode; aside?: ReactNode }) {
   const isHost = view.hostId === me;
   const def = picked(view);
   const hostNick = view.players.find((p) => p.id === view.hostId)?.nick ?? "gospodarz";
@@ -439,7 +439,10 @@ export function StartBar({ view, me, send, note }: { view: RoomView; me: string;
           {action}
         </div>
       ) : (
-        action
+        <>
+          {action}
+          {aside}
+        </>
       )}
     </StickyBar>
   );
@@ -476,7 +479,7 @@ export function Tile({ icon: TileIcon, name, hint, picked, dim, wishes, onClick 
       type="button"
       aria-pressed={picked}
       className={`relative flex min-h-14 items-center gap-2.5 rounded-inset border p-2 text-left transition-[color,background-color,border-color,opacity] duration-180 ${
-        picked ? "border-accent bg-accent-soft" : "border-line bg-surface hover:border-line-hover"
+        picked ? "border-accent bg-accent-soft" : "border-transparent bg-surface hover:border-line-hover"
       } ${dim ? "opacity-60" : ""}`}
       onClick={onClick}
     >

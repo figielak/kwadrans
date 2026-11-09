@@ -5,7 +5,8 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test, vi } from "vitest";
 import { BLURBS, ICONS, Lobby, wishDots } from "./Lobby.tsx";
-import { Setup } from "./Setup.tsx";
+import { MiniGameGrid, SECTIONS } from "./MiniGames.tsx";
+import { Setup, TournamentSetup } from "./Setup.tsx";
 
 // Setup przez MiniGames i net.ts czyta `location` już przy imporcie; testy idą w node.
 vi.hoisted(() => {
@@ -150,6 +151,44 @@ test("F4-017: Game.tsx i Lobby.tsx biorą mini-gry z MINI_GAME_IDS, bez ręcznej
 
 test("F4-048: Sudoku montuje się od nowa po nonce, stara partia bez nonce po planszy", () => {
   expect(read("../games/MiniGame.tsx")).toMatch(/key=\{\(view as SudokuView\)\.nonce \?\? \(view as SudokuView\)\.puzzle\.join\(\)\}/);
+});
+
+const tournament = (must: string[] = [], skip: string[] = []) => {
+  const view: RoomView = {
+    code: "ABCD", hostId: "p1", phase: "lobby", solo: false, gameId: null, mode: null,
+    players: [{ id: "p1", nick: "Ola", color: PLAYER_COLORS[0], connected: true, ready: false }],
+    seats: ["p1"], tournament: { config: { length: 8, must, skip }, games: [], index: 0, points: [], extra: false },
+    markedBy: Object.fromEntries(must.map((id) => [id, "p1"])), scores: {}, game: null, wishes: {}, vote: null,
+    evening: { games: 0, played: [], table: [], titles: [] },
+  };
+  return renderToStaticMarkup(createElement(TournamentSetup, { view, me: "p1", dropped: false, send: () => {}, onLeave: () => {} }));
+};
+
+test("mini-gry: każda gra stoi w dokładnie jednej grupie", () => {
+  const ids = SECTIONS.flatMap(([, list]) => list);
+  expect([...ids].sort()).toEqual([...MINI_GAME_IDS].sort());
+});
+
+test("mini-gry: kafel ma podpis tylko przy rozegranej grze", () => {
+  const html = renderToStaticMarkup(createElement(MiniGameGrid, { records: {}, nick: "Ola", onPick: () => {} }));
+  expect(html).not.toContain("nie grane");
+});
+
+test("turniej: dotknięcie gry ustawia przełącznik zamiast liczenia dotknięć", () => {
+  const html = tournament();
+  expect(html).toContain("Na pewno");
+  expect(html).toContain("Wyklucz");
+  expect(html).not.toContain("trzeci raz");
+});
+
+test("turniej: czas pada raz, przy przycisku", () => {
+  expect(tournament().match(/ok\. 12 min/g)).toHaveLength(1);
+});
+
+test("turniej: stan gry opisuje czytnikowi kafel, a sam kolor go nie niesie", () => {
+  const html = tournament(["refleks"], ["balon"]);
+  expect(html).toContain("Refleks: na pewno, zaznaczył(a) Ola");
+  expect(html).toContain("Balon: bez");
 });
 
 test("F4-156: Turniej nie owija StartBar drugim przyklejonym paskiem", () => {
