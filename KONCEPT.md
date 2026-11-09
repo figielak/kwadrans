@@ -89,7 +89,7 @@ Seria mini-gier puszczana po kolei w jednym pokoju, 1-6 graczy. To nie jest gra 
 zwykłym `startMatch` i sumuje punkty (zasady w `turniej.ts` i `ZASADY-GIER.md`). Zwycięzca trafia do rankingu pod `id` `turniej`;
 pojedyncze gry zapisują się jak zwykle.
 
-**Szybka seria** (`quickSeries`, kafel w Zestawach, tylko gospodarz w lobby) to ten sam turniej o stałej długości `QUICK_SERIES_LENGTH = 5`:
+**Szybka seria** (`quickSeries`, główny przycisk w dolnym pasku, tylko gospodarz w lobby) to ten sam turniej o stałej długości `QUICK_SERIES_LENGTH = 5`:
 bez ekranu ustawień i bez gotowości gości, grają wszyscy w pokoju (do 6). Pełny Turniej z ustawieniami zostaje.
 
 ## 3. Architektura
@@ -182,8 +182,9 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
   jeśli został jeden gracz, wygrywa walkowerem; przy większej liczbie kończy się bez zwycięzcy.
 - Lobby: gospodarz wybiera grę i daje start, goście potwierdzają gotowość albo wskazują, w co chcą grać (`wish`, tylko w lobby, `null` kasuje, jedno życzenie na osobę;
   widać je jako kropkę gracza przy grze, `RoomView.wishes`; start, wybór gry i Szybka seria je czyszczą, wyjście gracza też). Sam w pokoju gracz widzi duży kod; od dwóch osób kod
-  zwija się do paska u góry, a kolory stoją w jednej linii, żeby gry były na pierwszym ekranie; każdy może zmienić swój kolor
+  zwija się do paska u góry, a gracze to rząd awatarów (kolory rozwija dotknięcie własnego, przy wolnym miejscu „Zaproś”); każdy może zmienić swój kolor
   (poza partią); link `/?kod=ABCD` z przyciskiem udostępniania. Lista w lobby to gry główne oraz kafle „Turniej” i „Mini-gry”.
+- **Wyrzucanie**: gospodarz w lobby może usunąć gościa (`kick: { id }`, dotknięcie awatara i potwierdzenie), także rozłączonego, co anuluje czekanie na jego powrót i zwalnia miejsce. Wyrzucony dostaje komunikat na ekranie głównym (`KICKED_CLOSE_CODE`) i może wrócić tym samym kodem; punkty wieczoru zostają jak przy zwykłym wyjściu. W trakcie partii wyrzucać nie można.
 - Gra główna (`minPlayers > 1`) po wybraniu otwiera u wszystkich ekran gry (`Setup.tsx`): opis, tryb (jeśli gra ma `modes`;
   zmiana trybu kasuje gotowość gości), gracze i start; gospodarz wraca do listy gier przez `pickGame` z `null`.
   Każda gra główna ma kartę „Jak grać” (`howToPlay.ts`, cel, przebieg, punktacja, „Uważaj”): zwijaną sekcję pod opisem na tym ekranie

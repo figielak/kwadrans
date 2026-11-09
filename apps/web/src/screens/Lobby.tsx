@@ -40,6 +40,7 @@ import {
   Palette,
   PencilSimple,
   Play,
+  Plus,
   ShareNetwork,
   SignOut,
   Scissors,
@@ -49,11 +50,27 @@ import {
   TextAa,
   Timer,
   Trophy,
+  X,
 } from "@phosphor-icons/react";
-import { DEFAULT_LENGTH, GAMES, type LobbyPlayer, MAX_PLAYERS, MINI_GAME_IDS, PLAYER_COLORS, QUICK_SERIES_LENGTH, type RoomView } from "@kwadrans/games";
+import { DEFAULT_LENGTH, GAMES, initials, type LobbyPlayer, MAX_PLAYERS, MINI_GAME_IDS, PLAYER_COLORS, QUICK_SERIES_LENGTH, type RoomView } from "@kwadrans/games";
 import { type ReactNode, useState } from "react";
-import { Screen, type Send, StickyBar, TopBar } from "./ui.tsx";
+import { Screen, type Send, shareRoom, StickyBar, TopBar } from "./ui.tsx";
 
+/** Gry główne z planszą; reszta, także nowe, trafia do „Towarzyskich”. */
+const BOARD_GAMES = new Set(["kampus-tour", "chinczyk", "labirynt", "memory", "piec-w-rzedzie", "statki"]);
+
+type MainGame = { name: string; minPlayers: number; maxPlayers: number };
+
+/** Gry, które nie zmieszczą tylu osób, jako jedno zdanie zamiast wyszarzonych kafli. */
+function tooManyNote(games: MainGame[], count: number): string | null {
+  const byLimit = new Map<string, string[]>();
+  for (const g of games) {
+    const limit = `${g.minPlayers === g.maxPlayers ? "tylko" : "max"} ${g.maxPlayers} os.`;
+    byLimit.set(limit, [...(byLimit.get(limit) ?? []), g.name]);
+  }
+  if (byLimit.size === 0) return null;
+  return `Nie dla ${count} osób: ${[...byLimit].map(([limit, names]) => `${names.join(", ")} (${limit})`).join("; ")}`;
+}
 
 interface Props {
   view: RoomView | null;
@@ -80,8 +97,16 @@ export function Lobby({ view, me, dropped, send, onLeave, onMini }: Props) {
   const alone = view.players.length === 1;
   // Gość nie wybiera gry, tylko wskazuje, w co chce grać; drugie dotknięcie zdejmuje życzenie.
   const wish = (id: string) => send("wish", { id: myWish === id ? null : id });
-  const games = Object.values(GAMES).filter((g) => g.minPlayers > 1)
-    .sort((a, b) => Number(view.players.length > a.maxPlayers) - Number(view.players.length > b.maxPlayers));
+  const count = view.players.length;
+  const hostNick = view.players.find((p) => p.id === view.hostId)?.nick ?? "Gospodarz";
+  const main = Object.values(GAMES).filter((g) => g.minPlayers > 1);
+  // Gry, do których brakuje osób, dalej można wybrać, więc stoją na końcu swojej grupy.
+  const fitting = main.filter((g) => count <= g.maxPlayers).sort((a, b) => Number(count < a.minPlayers) - Number(count < b.minPlayers));
+  const groups = [
+    { title: "Planszowe", games: fitting.filter((g) => BOARD_GAMES.has(g.id)) },
+    { title: "Towarzyskie", games: fitting.filter((g) => !BOARD_GAMES.has(g.id)) },
+  ].filter((group) => group.games.length > 0);
+  const note = tooManyNote(main.filter((g) => count > g.maxPlayers), count);
 
   return (
     <Screen dropped={dropped}>
@@ -89,39 +114,48 @@ export function Lobby({ view, me, dropped, send, onLeave, onMini }: Props) {
       {alone ? <Code code={view.code} alone onLeave={onLeave} /> : <TopBar code={view.code} onLeave={onLeave} />}
       <Players view={view} me={me} send={send} />
 
-      {/* Gospodarz: szerokie kafle prowadzą do serii, turnieju i listy mini-gier (zbiory, nie pojedyncze gry), gry główne otwierają ekran gry (Setup.tsx).
+      {/* Gospodarz: kafle prowadzą do turnieju i listy mini-gier (zbiory, nie pojedyncze gry), gry główne otwierają ekran gry (Setup.tsx).
           Gość dotyka gier, żeby pokazać, w co chce grać (kropka jego koloru); decyduje gospodarz. */}
       <section className="flex flex-col gap-2">
         <h2 className="sr-only">Zestawy</h2>
-        {isHost && <Tile wide icon={Lightning} name="Szybka seria" hint={`${QUICK_SERIES_LENGTH} losowych gier`} onClick={() => send("quickSeries")} />}
         {isHost ? (
-          // Zbiory obok siebie, żeby Szybka seria i gry zmieściły się w pierwszym ekranie.
           <div className="grid grid-cols-2 gap-2">
-            <Tile compact icon={GameController} name="Mini-gry" hint={`${MINI_GAMES.length} gier`} onClick={onMini} />
-            <Tile compact icon={Trophy} name="Turniej" hint={`1-${MAX_PLAYERS} os.`} onClick={() => send("pickTournament", { length: DEFAULT_LENGTH })} />
+            <Tile icon={GameController} name="Mini-gry" hint={`${MINI_GAMES.length} gier`} onClick={onMini} />
+            <Tile icon={Trophy} name="Turniej" hint={`1-${MAX_PLAYERS} os.`} onClick={() => send("pickTournament", { length: DEFAULT_LENGTH })} />
           </div>
         ) : (
-          <Tile wide icon={GameController} name="Mini-gry" hint={`${MINI_GAMES.length} gier, także solo`} onClick={onMini} />
+          <Tile icon={GameController} name="Mini-gry" hint={`${MINI_GAMES.length} gier, także solo`} onClick={onMini} />
         )}
       </section>
-      <section>
-        <h2 className="label mb-2 px-1">Gry</h2>
-        {!isHost && <p className="mb-2 px-1 text-sm text-fg-muted">Dotknij gry, w którą chcesz zagrać. Wybiera gospodarz.</p>}
-        <div className="grid grid-cols-2 gap-2">
-          {games.map((g) => (
-            <GameTile
-              key={g.id}
-              game={g}
-              players={view.players.length}
-              picked={isHost ? undefined : myWish === g.id}
-              wishes={wishes[g.id]}
-              compact
-              onClick={() => (isHost ? send("pickGame", { gameId: g.id }) : wish(g.id))}
-            />
-          ))}
-        </div>
-      </section>
-
+      {groups.map(({ title, games }) => (
+        <section key={title}>
+          <h2 className="mb-2 px-1 text-sm text-fg-muted">{title}</h2>
+          <div className="grid grid-cols-2 gap-2">
+            {games.map((g) => (
+              <GameTile
+                key={g.id}
+                game={g}
+                players={count}
+                picked={isHost ? undefined : myWish === g.id}
+                wishes={wishes[g.id]}
+                onClick={() => (isHost ? send("pickGame", { gameId: g.id }) : wish(g.id))}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
+      {note && <p className="px-1 text-sm text-fg-muted">{note}</p>}
+      {/* W tym samym miejscu, gdzie na ekranie gry jest „Zagraj”. */}
+      <StickyBar className="mt-auto">
+        {isHost ? (
+          <button type="button" className="btn btn-primary w-full" onClick={() => send("quickSeries")}>
+            <Lightning size={18} weight="fill" aria-hidden />
+            Szybka seria · {QUICK_SERIES_LENGTH} gier
+          </button>
+        ) : (
+          <p className="flex min-h-12 w-full items-center justify-center text-center text-sm text-fg-muted">{hostNick} wybiera grę. Dotknij tej, w którą chcesz zagrać.</p>
+        )}
+      </StickyBar>
     </Screen>
   );
 }
@@ -136,26 +170,135 @@ export function wishDots(view: Pick<RoomView, "players" | "wishes">): Record<str
   return dots;
 }
 
+/** Lobby od dwóch osób: rząd awatarów, kolor zmienia się po dotknięciu własnego, wolne miejsce zaprasza. */
+function PlayerRow({ view, me, send }: { view: RoomView; me: string; send: Send }) {
+  const [editing, setEditing] = useState(false);
+  const [kickId, setKickId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const isHost = view.hostId === me;
+  const kickTarget = view.players.find((p) => p.id === kickId);
+  const labels = initials(view.players.map((p) => p.nick));
+  const free = view.players.length < MAX_PLAYERS;
+
+  async function invite() {
+    if (!(await shareRoom(view.code))) return;
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  const cell = "flex min-h-12 w-full min-w-0 flex-col items-center gap-1 pt-1 text-center";
+  return (
+    <section>
+      <h2 className="sr-only">Gracze</h2>
+      {/* Kolumny dzielą całą szerokość, więc przy mniejszej liczbie osób nicki mają więcej miejsca. */}
+      <ul className="grid gap-1" style={{ gridTemplateColumns: `repeat(${view.players.length + Number(free)}, minmax(0, 1fr))` }} aria-label="Gracze w pokoju">
+        {view.players.map((p, i) => {
+          const mine = p.id === me;
+          const host = p.id === view.hostId;
+          const body = (
+            <>
+              <span className="relative size-11 shrink-0">
+                <span
+                  className={`grid size-full place-items-center rounded-full font-mono tabular-nums text-sm font-medium text-bg ${p.connected ? "" : "opacity-40"} ${(mine && editing) || p.id === kickId ? "outline-2 outline-offset-2 outline-fg" : ""}`}
+                  style={{ backgroundColor: p.color }}
+                  aria-hidden
+                >
+                  {labels[i]}
+                </span>
+                {host && (
+                  <span className="absolute -top-1 -right-1 grid size-5 place-items-center rounded-full bg-bg">
+                    <Crown size={12} weight="fill" aria-label="Gospodarz" />
+                  </span>
+                )}
+                {isHost && !p.connected && (
+                  <span className="absolute -right-1 -bottom-1 grid size-5 place-items-center rounded-full bg-bg">
+                    <X size={12} weight="bold" aria-hidden />
+                  </span>
+                )}
+              </span>
+              <span className="w-full truncate text-sm leading-tight" title={p.nick}>{p.nick}</span>
+              {!p.connected && <span className="w-full truncate text-xs leading-tight text-fg-muted">rozłączony</span>}
+              {mine && p.connected && (
+                <span className="flex items-center gap-1 text-xs leading-tight text-fg-muted">
+                  ty <PencilSimple size={11} weight="bold" aria-hidden />
+                </span>
+              )}
+            </>
+          );
+          return (
+            <li key={p.id} className="min-w-0">
+              {mine ? (
+                <button type="button" className={cell} aria-expanded={editing} aria-label={`${p.nick} (ty)${host ? ", gospodarz" : ""}, zmień kolor`} onClick={() => { setEditing(!editing); setKickId(null); }}>
+                  {body}
+                </button>
+              ) : isHost ? (
+                <button type="button" className={cell} aria-expanded={p.id === kickId} aria-label={`${p.nick}, wyrzuć z pokoju`} onClick={() => { setKickId(p.id === kickId ? null : p.id); setEditing(false); }}>
+                  {body}
+                </button>
+              ) : (
+                <div className={cell}>{body}</div>
+              )}
+            </li>
+          );
+        })}
+        {free && (
+          <li className="min-w-0">
+            <button type="button" className={cell} onClick={invite}>
+              <span className="grid size-11 shrink-0 place-items-center rounded-full border border-dashed border-line-hover text-fg-muted">
+                {copied ? <Check size={18} weight="bold" aria-hidden /> : <Plus size={18} weight="bold" aria-hidden />}
+              </span>
+              <span className="w-full truncate text-sm leading-tight text-fg-muted">{copied ? "Gotowe" : "Zaproś"}</span>
+            </button>
+          </li>
+        )}
+      </ul>
+      {editing && <ColorPicker view={view} me={me} send={send} onPicked={() => setEditing(false)} />}
+      {kickTarget && (
+        <div className="mt-2 flex flex-col gap-2">
+          {/* Osobna linia: nick to najważniejsza informacja tej decyzji, więc nie może się uciąć. */}
+          <p className="px-1 text-center text-sm wrap-anywhere">Wyrzucić {kickTarget.nick}?</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button type="button" className="btn btn-ghost" onClick={() => setKickId(null)}>Anuluj</button>
+            <button
+              type="button"
+              className="btn btn-ghost text-warning"
+              onClick={() => {
+                send("kick", { id: kickTarget.id });
+                setKickId(null);
+              }}
+            >
+              Wyrzuć
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 /** Lista graczy z miejscami, gotowością i wyborem koloru; wspólna dla lobby i ekranu gry. */
 export function Players({ view, me, send }: { view: RoomView; me: string; send: Send }) {
   const isHost = view.hostId === me;
   const def = picked(view);
-  const compact = !def && view.players.length > 1;
+  if (!def && view.players.length > 1) return <PlayerRow view={view} me={me} send={send} />;
+  const playing = view.seats.map((id) => view.players.find((p) => p.id === id)!);
+  const watching = view.players.filter((p) => !view.seats.includes(p.id));
+  const isReady = (p: LobbyPlayer) => p.ready || p.id === view.hostId;
   return (
-    <section className={`tile ${compact ? "p-3" : ""}`}>
-      <div className={`${compact ? "mb-1" : "mb-3"} flex items-baseline justify-between`}>
+    <section className="tile">
+      <div className="mb-3 flex items-baseline justify-between">
         <h2 className="label">Gracze</h2>
         <span className="font-mono text-sm text-fg-muted tabular-nums">
-          W pokoju {view.players.length}/{MAX_PLAYERS}
+          {def ? `Gotowość ${playing.filter(isReady).length}/${playing.length}` : `W pokoju ${view.players.length}/${MAX_PLAYERS}`}
         </span>
       </div>
       {!def ? (
-        // Nic jeszcze nie wybrane: gracze to tylko kto jest w pokoju, więc zwięzłe znaczniki oszczędzają miejsce gier (6 osób to nie 6 wierszy).
-        <ul className={compact ? "grid grid-cols-2 gap-1.5" : "flex flex-wrap gap-1.5"} aria-label="Gracze w pokoju">
+        // Sam w pokoju: jeden znacznik, reszta miejsca należy do kodu i koloru.
+        <ul className="flex flex-wrap gap-1.5" aria-label="Gracze w pokoju">
           {view.players.map((p) => (
             <li
               key={p.id}
-              className={`flex min-w-0 max-w-full items-center gap-2 rounded-full text-sm ${compact ? "min-h-7 px-2" : "min-h-9 px-3"} ${p.connected ? "" : "border border-dashed border-line"}`}
+              className={`flex min-h-9 min-w-0 max-w-full items-center gap-2 rounded-full px-3 text-sm ${p.connected ? "" : "border border-dashed border-line"}`}
               style={{ backgroundColor: `color-mix(in srgb, ${p.color} 12%, transparent)` }}
             >
               <span className={`size-2.5 shrink-0 rounded-full ${p.connected ? "" : "opacity-40"}`} style={{ backgroundColor: p.color }} aria-hidden />
@@ -169,14 +312,13 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
           ))}
         </ul>
       ) : (
-        (def
-          ? [
-              // Limit miejsc widać dopiero, gdy pokój jest większy niż gra.
-              [view.players.length > def.maxPlayers ? `Grają ${view.seats.length}/${def.maxPlayers} (limit gry)` : "Grają", view.seats.map((id) => view.players.find((p) => p.id === id)!)],
-              ["Oglądają", view.players.filter((p) => !view.seats.includes(p.id))],
-            ]
-          : [["", view.players]]
-        ) as [string, LobbyPlayer[]][]
+        (
+          [
+            // Podpis tylko wtedy, gdy jest od czego odróżnić; limit miejsc widać dopiero, gdy pokój jest większy niż gra.
+            [view.players.length > def.maxPlayers ? `Grają ${view.seats.length}/${def.maxPlayers} (limit gry)` : watching.length > 0 ? "Grają" : "", playing],
+            ["Oglądają", watching],
+          ] as [string, LobbyPlayer[]][]
+        )
       )
         .filter(([, players]) => players.length > 0)
         .map(([title, players]) => (
@@ -188,15 +330,17 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
                 const row = (
                   <>
                     <span className={`size-3 shrink-0 rounded-full transition-opacity duration-180 ${p.connected ? "" : "opacity-40"}`} style={{ backgroundColor: p.color }} aria-hidden />
-                    <span className="truncate">
-                      {p.nick}
-                      {p.id === me && <span className="text-fg-muted"> (ty)</span>}
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <span className="truncate">
+                        {p.nick}
+                        {p.id === me && <span className="text-fg-muted"> (ty)</span>}
+                      </span>
+                      {p.id === view.hostId && <Crown size={16} weight="fill" className="shrink-0" aria-label="Gospodarz" />}
                     </span>
-                    <span className="ml-auto flex items-center gap-2 text-sm text-fg-muted">
+                    <span className="ml-auto flex shrink-0 items-center gap-2 text-sm text-fg-muted">
                       {!p.connected && "rozłączony"}
-                      {def &&
-                        seated &&
-                        (p.ready || p.id === view.hostId ? (
+                      {seated &&
+                        (isReady(p) ? (
                           <span className="flex items-center gap-1 text-fg">
                             <Check size={14} weight="bold" aria-hidden />
                             gotowe
@@ -204,13 +348,13 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
                         ) : (
                           "czeka"
                         ))}
-                      {p.id === view.hostId && <Crown size={18} weight="fill" aria-label="Gospodarz" />}
                     </span>
                   </>
                 );
                 // Rozłączenie mówią przygaszona kropka i słowo; nick zostaje czytelny.
-                const className = "flex w-full min-h-12 items-center gap-3 rounded-inset px-3 text-left";
-                const style = { backgroundColor: `color-mix(in srgb, ${p.color} ${seated || !def ? 10 : 4}%, transparent)` };
+                const className = "flex w-full min-h-12 items-center gap-3 rounded-inset px-3 text-left transition-colors duration-180";
+                // Tło znaczy gotowość: lista wypełnia się kolorami, gdy kolejne osoby potwierdzają.
+                const style = seated && isReady(p) ? { backgroundColor: `color-mix(in srgb, ${p.color} 10%, transparent)` } : undefined;
                 return (
                   <li key={p.id}>
                     {isHost && def ? (
@@ -279,7 +423,7 @@ export function StartBar({ view, me, send, note }: { view: RoomView; me: string;
         onClick={() => send("ready", { ready: !meReady })}
       >
         {meReady ? <Check size={18} weight="bold" aria-hidden /> : <HandWaving size={18} weight="fill" aria-hidden />}
-        <span className="truncate">{meReady ? `Gotowość zgłoszona, czekamy na ${hostNick}` : `Zgłaszam gotowość: ${def.name}`}</span>
+        <span className="truncate">{meReady ? `Gotowość zgłoszona, czekamy na ${hostNick}` : "Zgłaszam gotowość"}</span>
       </button>
     ) : (
       <p className="flex min-h-12 w-full items-center justify-center text-center text-sm text-fg-muted">
@@ -325,49 +469,40 @@ export function WishMarks({ wishes, compact }: { wishes?: Wish[]; compact?: bool
   );
 }
 
-/** Kafel w siatce gier: ikona, nazwa i jedna linijka pod spodem; `wide` to wiersz na całą szerokość, `dim` przygasza bez blokowania. */
-export function Tile({ icon: TileIcon, name, hint, picked, disabled, dim, wide, compact, wishes, onClick }: { icon: Icon; name: string; hint: string; picked?: boolean; disabled?: boolean; dim?: boolean; wide?: boolean; compact?: boolean; wishes?: Wish[]; onClick: () => void }) {
+/** Kafel w siatce gier: ikona w kwadracie, nazwa i jedna linijka pod spodem; `dim` przygasza bez blokowania. */
+export function Tile({ icon: TileIcon, name, hint, picked, dim, wishes, onClick }: { icon: Icon; name: string; hint: string; picked?: boolean; dim?: boolean; wishes?: Wish[]; onClick: () => void }) {
   return (
     <button
       type="button"
       aria-pressed={picked}
-      disabled={disabled}
-      className={`relative flex rounded-inset border text-left transition-[color,background-color,border-color,opacity] duration-180 ${compact ? "min-h-14 items-center gap-2 p-2" : wide ? "min-h-14 items-center gap-3 p-3" : "min-h-20 flex-col items-start gap-1 p-3"} ${
-        picked ? "border-accent bg-accent-soft" : "border-line enabled:hover:border-line-hover"
-      } ${disabled ? "opacity-40" : dim ? "opacity-60" : ""}`}
+      className={`relative flex min-h-14 items-center gap-2.5 rounded-inset border p-2 text-left transition-[color,background-color,border-color,opacity] duration-180 ${
+        picked ? "border-accent bg-accent-soft" : "border-line bg-surface hover:border-line-hover"
+      } ${dim ? "opacity-60" : ""}`}
       onClick={onClick}
     >
-      <TileIcon size={compact ? 20 : 22} className="shrink-0" weight={picked ? "fill" : "regular"} aria-hidden />
-      {compact ? (
-        <span className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-sm leading-tight">{name}</span>
-          <span className="font-mono text-xs text-fg-muted tabular-nums">{hint}</span>
-        </span>
-      ) : (
-        <>
-          <span className="leading-tight">{name}</span>
-          <span className={`font-mono text-xs text-fg-muted tabular-nums ${wide ? "ml-auto" : ""}`}>{hint}</span>
-        </>
-      )}
-      <WishMarks wishes={wishes} compact={compact} />
+      <span className={`grid size-9 shrink-0 place-items-center rounded-inset ${picked ? "" : "bg-line"}`}>
+        <TileIcon size={20} weight={picked ? "fill" : "regular"} aria-hidden />
+      </span>
+      <span className="flex min-w-0 flex-col gap-0.5">
+        <span className="text-sm leading-tight">{name}</span>
+        <span className="font-mono text-xs text-fg-muted tabular-nums">{hint}</span>
+      </span>
+      <WishMarks wishes={wishes} compact />
     </button>
   );
 }
 
-/** Kafel gry; nieaktywny, gdy w pokoju jest więcej osób, niż gra ma miejsc, przygaszony (ale do wybrania), gdy graczy brakuje. */
-export function GameTile({ game: g, players, picked, compact, wishes, onClick }: { game: { id: string; name: string; minPlayers: number; maxPlayers: number }; players: number; picked?: boolean; compact?: boolean; wishes?: Wish[]; onClick: () => void }) {
-  const tooMany = players > g.maxPlayers;
+/** Kafel gry mieszczącej tyle osób; przygaszony (ale do wybrania), gdy graczy brakuje. */
+export function GameTile({ game: g, players, picked, wishes, onClick }: { game: { id: string; name: string; minPlayers: number; maxPlayers: number }; players: number; picked?: boolean; wishes?: Wish[]; onClick: () => void }) {
   const missing = g.minPlayers - players;
   return (
     <Tile
       icon={ICONS[g.id] ?? Play}
       name={g.name}
-      hint={tooMany ? (g.minPlayers === g.maxPlayers ? "tylko " : "max ") + `${g.maxPlayers} os.` : missing > 0 ? `brakuje ${missing} ${missing === 1 ? "gracza" : "graczy"}` : seats(g)}
+      hint={missing > 0 ? `brakuje ${missing} ${missing === 1 ? "gracza" : "graczy"}` : seats(g)}
       picked={picked}
       wishes={wishes}
       dim={missing > 0}
-      disabled={tooMany}
-      compact={compact}
       onClick={onClick}
     />
   );
@@ -431,9 +566,9 @@ export const BLURBS: Record<string, string> = {
   "kampus-tour": "Planszówka ekonomiczna: rzut dwiema kośćmi, kupujesz pola kampusu, rozbudowujesz je i zbierasz czynsz. Wygrywa ostatni wypłacalny albo najbogatszy po 20 rundach.",
   "panstwa-miasta": "5 rund, każda na inną literę i 6 kategorii. Kto pierwszy odda kartkę, daje STOP, potem głosujecie nad odpowiedziami.",
   kalambury: "Po kolei rysujecie palcem hasło wybrane z trzech, reszta zgaduje na czacie. Im szybciej trafisz, tym więcej punktów.",
-  wyprawa: "Wspólnym szlakiem odkrywacie karty ze skarbami i zagrożeniami, a każdy potajemnie wybiera: idę dalej albo wracam z tym, co niosę. Drugie takie samo zagrożenie kończy wyprawę i zabiera zdobycz tym, którzy zostali. 5 wypraw, wygrywa największy bank.",
-  podrobka: "Każdy odpowiada na swoje pytanie, ale jedna osoba dostała inne, podobne. Porównujecie odpowiedzi i tajnie głosujecie, kto jest Podróbką. Trafny głos daje 2 punkty, a niewykryta Podróbka 3. 6 rund, wygrywa najwięcej punktów.",
-  sabotaz: "Dokładasz zakryte karty na swój stos, potem licytujecie, ile Przejść odkryjecie. Udana deklaracja daje 2 punkty, a cudza Pułapka 1 punkt jej właścicielowi. 6 rund, bez eliminacji.",
+  wyprawa: "Wspólnym szlakiem odkrywacie skarby i zagrożenia, a każdy potajemnie wybiera: idę dalej albo wracam z tym, co niosę.",
+  podrobka: "Każdy odpowiada na swoje pytanie, ale jedna osoba dostała inne, podobne. Tajnie głosujecie, kto jest Podróbką.",
+  sabotaz: "Dokładasz zakryte karty na swój stos, potem licytujecie, ile Przejść odkryjecie. Uważaj na cudze Pułapki.",
   refleks: "Dotknij pola, gdy zmieni kolor. 12 zmian, liczy się średni czas reakcji, falstart to 1000 ms.",
   simon: "Powtarzasz coraz dłuższą sekwencję 4 kolorów. Liczy się najdłuższa seria.",
   stoper: "Licznik znika po 3 s. Dotknij dokładnie po 10 sekundach, wygrywa najmniejsza odchyłka.",
@@ -470,12 +605,13 @@ export const BLURBS: Record<string, string> = {
 const COLOR_NAMES = ["niebieski", "żółty", "zielony", "fioletowy", "morski", "różowy"];
 
 /** Wybór własnego koloru: zajęte przez innych są przygaszone, nieaktywne i podpisane inicjałem właściciela. */
-function ColorPicker({ view, me, send }: { view: RoomView; me: string; send: Send }) {
+function ColorPicker({ view, me, send, onPicked }: { view: RoomView; me: string; send: Send; onPicked?: () => void }) {
   const mine = view.players.find((p) => p.id === me)?.color;
+  const def = picked(view);
   return (
-    <div className={`flex flex-col gap-1 ${view.players.length > 1 ? "mt-2" : "mt-4"}`}>
-      {/* Od dwóch osób sama linia kółek, bez podpisu nad nią (aria-label zostaje). */}
-      {view.players.length === 1 && <span className="label">Twój kolor</span>}
+    <div className={`flex flex-col gap-1 ${def ? "mt-3 border-t border-line pt-3" : view.players.length > 1 ? "mt-2" : "mt-4"}`}>
+      {/* W lobby od dwóch osób sama linia kółek, bez podpisu nad nią (aria-label zostaje); na ekranie gry podpis odróżnia kolory od listy graczy. */}
+      {(def || view.players.length === 1) && <span className="label">Twój kolor</span>}
       <div className="-mx-1 flex justify-between" role="radiogroup" aria-label="Twój kolor">
         {PLAYER_COLORS.map((color, i) => {
           const owner = view.players.find((p) => p.color === color);
@@ -489,7 +625,10 @@ function ColorPicker({ view, me, send }: { view: RoomView; me: string; send: Sen
               aria-label={taken ? `${COLOR_NAMES[i]}, zajęty: ${owner.nick}` : COLOR_NAMES[i]}
               disabled={taken}
               className="grid size-12 shrink-0 place-items-center rounded-full"
-              onClick={() => send("pickColor", { color })}
+              onClick={() => {
+                send("pickColor", { color });
+                onPicked?.();
+              }}
             >
               <span
                 className={`grid size-7 place-items-center rounded-full font-mono tabular-nums text-xs text-fg-muted ${color === mine ? "outline-2 outline-offset-2 outline-fg" : ""}`}
@@ -508,7 +647,6 @@ function ColorPicker({ view, me, send }: { view: RoomView; me: string; send: Sen
 
 function Code({ code, alone, onLeave }: { code: string; alone: boolean; onLeave: () => void }) {
   const [copied, setCopied] = useState(false);
-  const url = `${location.origin}/?kod=${code}`;
 
   async function copy() {
     await navigator.clipboard.writeText(code);
@@ -517,12 +655,7 @@ function Code({ code, alone, onLeave }: { code: string; alone: boolean; onLeave:
   }
 
   async function share() {
-    if (navigator.share) {
-      // Anulowanie arkusza udostępniania to nie błąd.
-      await navigator.share({ title: "Kwadrans", text: `Dołącz do pokoju ${code}`, url }).catch(() => {});
-      return;
-    }
-    await navigator.clipboard.writeText(url);
+    if (!(await shareRoom(code))) return;
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
