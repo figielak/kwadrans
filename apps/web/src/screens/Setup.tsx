@@ -37,9 +37,8 @@ export function Setup({ view, me, dropped, send, onLeave }: Props) {
           </div>
         </div>
         <p className="mt-3 text-sm text-fg-muted">{BLURBS[def.id]}</p>
+        <RulesDetails gameId={def.id} />
       </section>
-
-      <RulesDetails gameId={def.id} />
 
       {def.modes && (
         <section className="flex flex-col gap-2" role="radiogroup" aria-label="Tryb">

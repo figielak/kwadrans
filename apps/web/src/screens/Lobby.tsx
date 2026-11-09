@@ -141,12 +141,15 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
   const isHost = view.hostId === me;
   const def = picked(view);
   const compact = !def && view.players.length > 1;
+  const playing = view.seats.map((id) => view.players.find((p) => p.id === id)!);
+  const watching = view.players.filter((p) => !view.seats.includes(p.id));
+  const isReady = (p: LobbyPlayer) => p.ready || p.id === view.hostId;
   return (
     <section className={`tile ${compact ? "p-3" : ""}`}>
       <div className={`${compact ? "mb-1" : "mb-3"} flex items-baseline justify-between`}>
         <h2 className="label">Gracze</h2>
         <span className="font-mono text-sm text-fg-muted tabular-nums">
-          W pokoju {view.players.length}/{MAX_PLAYERS}
+          {def ? `Gotowość ${playing.filter(isReady).length}/${playing.length}` : `W pokoju ${view.players.length}/${MAX_PLAYERS}`}
         </span>
       </div>
       {!def ? (
@@ -169,14 +172,13 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
           ))}
         </ul>
       ) : (
-        (def
-          ? [
-              // Limit miejsc widać dopiero, gdy pokój jest większy niż gra.
-              [view.players.length > def.maxPlayers ? `Grają ${view.seats.length}/${def.maxPlayers} (limit gry)` : "Grają", view.seats.map((id) => view.players.find((p) => p.id === id)!)],
-              ["Oglądają", view.players.filter((p) => !view.seats.includes(p.id))],
-            ]
-          : [["", view.players]]
-        ) as [string, LobbyPlayer[]][]
+        (
+          [
+            // Podpis tylko wtedy, gdy jest od czego odróżnić; limit miejsc widać dopiero, gdy pokój jest większy niż gra.
+            [view.players.length > def.maxPlayers ? `Grają ${view.seats.length}/${def.maxPlayers} (limit gry)` : watching.length > 0 ? "Grają" : "", playing],
+            ["Oglądają", watching],
+          ] as [string, LobbyPlayer[]][]
+        )
       )
         .filter(([, players]) => players.length > 0)
         .map(([title, players]) => (
@@ -188,15 +190,17 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
                 const row = (
                   <>
                     <span className={`size-3 shrink-0 rounded-full transition-opacity duration-180 ${p.connected ? "" : "opacity-40"}`} style={{ backgroundColor: p.color }} aria-hidden />
-                    <span className="truncate">
-                      {p.nick}
-                      {p.id === me && <span className="text-fg-muted"> (ty)</span>}
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <span className="truncate">
+                        {p.nick}
+                        {p.id === me && <span className="text-fg-muted"> (ty)</span>}
+                      </span>
+                      {p.id === view.hostId && <Crown size={16} weight="fill" className="shrink-0" aria-label="Gospodarz" />}
                     </span>
-                    <span className="ml-auto flex items-center gap-2 text-sm text-fg-muted">
+                    <span className="ml-auto flex shrink-0 items-center gap-2 text-sm text-fg-muted">
                       {!p.connected && "rozłączony"}
-                      {def &&
-                        seated &&
-                        (p.ready || p.id === view.hostId ? (
+                      {seated &&
+                        (isReady(p) ? (
                           <span className="flex items-center gap-1 text-fg">
                             <Check size={14} weight="bold" aria-hidden />
                             gotowe
@@ -204,13 +208,13 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
                         ) : (
                           "czeka"
                         ))}
-                      {p.id === view.hostId && <Crown size={18} weight="fill" aria-label="Gospodarz" />}
                     </span>
                   </>
                 );
                 // Rozłączenie mówią przygaszona kropka i słowo; nick zostaje czytelny.
-                const className = "flex w-full min-h-12 items-center gap-3 rounded-inset px-3 text-left";
-                const style = { backgroundColor: `color-mix(in srgb, ${p.color} ${seated || !def ? 10 : 4}%, transparent)` };
+                const className = "flex w-full min-h-12 items-center gap-3 rounded-inset px-3 text-left transition-colors duration-180";
+                // Tło znaczy gotowość: lista wypełnia się kolorami, gdy kolejne osoby potwierdzają.
+                const style = seated && isReady(p) ? { backgroundColor: `color-mix(in srgb, ${p.color} 10%, transparent)` } : undefined;
                 return (
                   <li key={p.id}>
                     {isHost && def ? (
@@ -279,7 +283,7 @@ export function StartBar({ view, me, send, note }: { view: RoomView; me: string;
         onClick={() => send("ready", { ready: !meReady })}
       >
         {meReady ? <Check size={18} weight="bold" aria-hidden /> : <HandWaving size={18} weight="fill" aria-hidden />}
-        <span className="truncate">{meReady ? `Gotowość zgłoszona, czekamy na ${hostNick}` : `Zgłaszam gotowość: ${def.name}`}</span>
+        <span className="truncate">{meReady ? `Gotowość zgłoszona, czekamy na ${hostNick}` : "Zgłaszam gotowość"}</span>
       </button>
     ) : (
       <p className="flex min-h-12 w-full items-center justify-center text-center text-sm text-fg-muted">
@@ -431,9 +435,9 @@ export const BLURBS: Record<string, string> = {
   "kampus-tour": "Planszówka ekonomiczna: rzut dwiema kośćmi, kupujesz pola kampusu, rozbudowujesz je i zbierasz czynsz. Wygrywa ostatni wypłacalny albo najbogatszy po 20 rundach.",
   "panstwa-miasta": "5 rund, każda na inną literę i 6 kategorii. Kto pierwszy odda kartkę, daje STOP, potem głosujecie nad odpowiedziami.",
   kalambury: "Po kolei rysujecie palcem hasło wybrane z trzech, reszta zgaduje na czacie. Im szybciej trafisz, tym więcej punktów.",
-  wyprawa: "Wspólnym szlakiem odkrywacie karty ze skarbami i zagrożeniami, a każdy potajemnie wybiera: idę dalej albo wracam z tym, co niosę. Drugie takie samo zagrożenie kończy wyprawę i zabiera zdobycz tym, którzy zostali. 5 wypraw, wygrywa największy bank.",
-  podrobka: "Każdy odpowiada na swoje pytanie, ale jedna osoba dostała inne, podobne. Porównujecie odpowiedzi i tajnie głosujecie, kto jest Podróbką. Trafny głos daje 2 punkty, a niewykryta Podróbka 3. 6 rund, wygrywa najwięcej punktów.",
-  sabotaz: "Dokładasz zakryte karty na swój stos, potem licytujecie, ile Przejść odkryjecie. Udana deklaracja daje 2 punkty, a cudza Pułapka 1 punkt jej właścicielowi. 6 rund, bez eliminacji.",
+  wyprawa: "Wspólnym szlakiem odkrywacie skarby i zagrożenia, a każdy potajemnie wybiera: idę dalej albo wracam z tym, co niosę.",
+  podrobka: "Każdy odpowiada na swoje pytanie, ale jedna osoba dostała inne, podobne. Tajnie głosujecie, kto jest Podróbką.",
+  sabotaz: "Dokładasz zakryte karty na swój stos, potem licytujecie, ile Przejść odkryjecie. Uważaj na cudze Pułapki.",
   refleks: "Dotknij pola, gdy zmieni kolor. 12 zmian, liczy się średni czas reakcji, falstart to 1000 ms.",
   simon: "Powtarzasz coraz dłuższą sekwencję 4 kolorów. Liczy się najdłuższa seria.",
   stoper: "Licznik znika po 3 s. Dotknij dokładnie po 10 sekundach, wygrywa najmniejsza odchyłka.",
@@ -472,10 +476,11 @@ const COLOR_NAMES = ["niebieski", "żółty", "zielony", "fioletowy", "morski", 
 /** Wybór własnego koloru: zajęte przez innych są przygaszone, nieaktywne i podpisane inicjałem właściciela. */
 function ColorPicker({ view, me, send }: { view: RoomView; me: string; send: Send }) {
   const mine = view.players.find((p) => p.id === me)?.color;
+  const def = picked(view);
   return (
-    <div className={`flex flex-col gap-1 ${view.players.length > 1 ? "mt-2" : "mt-4"}`}>
-      {/* Od dwóch osób sama linia kółek, bez podpisu nad nią (aria-label zostaje). */}
-      {view.players.length === 1 && <span className="label">Twój kolor</span>}
+    <div className={`flex flex-col gap-1 ${def ? "mt-3 border-t border-line pt-3" : view.players.length > 1 ? "mt-2" : "mt-4"}`}>
+      {/* W lobby od dwóch osób sama linia kółek, bez podpisu nad nią (aria-label zostaje); na ekranie gry podpis odróżnia kolory od listy graczy. */}
+      {(def || view.players.length === 1) && <span className="label">Twój kolor</span>}
       <div className="-mx-1 flex justify-between" role="radiogroup" aria-label="Twój kolor">
         {PLAYER_COLORS.map((color, i) => {
           const owner = view.players.find((p) => p.color === color);

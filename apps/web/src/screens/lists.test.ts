@@ -170,14 +170,14 @@ test("08-08: kolor poświaty w Podróbce to własny kolor czekającego, a nie je
 });
 
 // 15-03: „Jak grać” w kafelku ekranu gry i jako ikona w nagłówku partii.
-const setupHtml = (gameId: string) => {
+const setupHtml = (gameId: string, { me = "p1", ready = [] as string[], seats = ["p1", "p2", "p3"] } = {}) => {
   const view: RoomView = {
     code: "ABCD", hostId: "p1", phase: "lobby", solo: false, gameId, mode: null,
-    players: Array.from({ length: 3 }, (_, i) => ({ id: `p${i + 1}`, nick: `Gracz ${i + 1}`, color: PLAYER_COLORS[i], connected: true, ready: false })),
-    seats: ["p1", "p2", "p3"], tournament: null, markedBy: {}, scores: {}, game: null, wishes: {}, vote: null,
+    players: Array.from({ length: 3 }, (_, i) => ({ id: `p${i + 1}`, nick: `Gracz ${i + 1}`, color: PLAYER_COLORS[i], connected: true, ready: ready.includes(`p${i + 1}`) })),
+    seats, tournament: null, markedBy: {}, scores: {}, game: null, wishes: {}, vote: null,
     evening: { games: 0, played: [], table: [], titles: [] },
   };
-  return renderToStaticMarkup(createElement(Setup, { view, me: "p1", dropped: false, send: () => {}, onLeave: () => {} }));
+  return renderToStaticMarkup(createElement(Setup, { view, me, dropped: false, send: () => {}, onLeave: () => {} }));
 };
 
 test("15-03: Setup gry z kartą ma „Jak grać” za opisem", () => {
@@ -185,6 +185,49 @@ test("15-03: Setup gry z kartą ma „Jak grać” za opisem", () => {
   expect(html).toContain("Jak grać");
   expect(html.indexOf(BLURBS.sabotaz!)).toBeGreaterThan(-1);
   expect(html.indexOf(BLURBS.sabotaz!)).toBeLessThan(html.indexOf("Jak grać"));
+});
+
+test("ekran gry: nagłówek listy liczy gotowość, a podpis „Grają” jest tylko przy oglądających", () => {
+  const html = setupHtml("podrobka", { ready: ["p2"] });
+  expect(html).toContain("Gotowość 2/3");
+  expect(html).not.toContain("W pokoju");
+  expect(html).not.toContain("Grają");
+  const split = setupHtml("podrobka", { seats: ["p1", "p2"] });
+  expect(split).toContain("Grają");
+  expect(split).toContain("Oglądają");
+  expect(split).toContain("Gotowość 1/2");
+});
+
+test("ekran gry: tło wiersza w kolorze gracza tylko po zgłoszeniu gotowości", () => {
+  const html = setupHtml("podrobka", { ready: ["p2"] });
+  expect(html).toContain(`${PLAYER_COLORS[0]} 10%`); // gospodarz jest gotowy z definicji
+  expect(html).toContain(`${PLAYER_COLORS[1]} 10%`);
+  expect(html).not.toContain(`${PLAYER_COLORS[2]} 10%`);
+});
+
+test("ekran gry: korona stoi przy nicku, przed statusem", () => {
+  const html = setupHtml("podrobka");
+  expect(html.indexOf('aria-label="Gospodarz"')).toBeGreaterThan(-1);
+  expect(html.indexOf('aria-label="Gospodarz"')).toBeLessThan(html.indexOf("gotowe"));
+});
+
+test("ekran gry: „Jak grać” leży w kaflu gry", () => {
+  const html = setupHtml("sabotaz");
+  expect(html.indexOf("Jak grać")).toBeLessThan(html.indexOf("</section>"));
+});
+
+test("ekran gry: kolory mają podpis, a lobby przy dwóch osobach dalej nie", () => {
+  expect(setupHtml("podrobka")).toContain(">Twój kolor<");
+  expect(lobby(2)).not.toContain(">Twój kolor<");
+});
+
+test("ekran gry: przycisk gościa to „Zgłaszam gotowość” bez nazwy gry", () => {
+  const html = setupHtml("podrobka", { me: "p2" });
+  expect(html).toContain(">Zgłaszam gotowość<");
+});
+
+test("opisy gier z kartą nie powtarzają punktacji z „Jak grać”", () => {
+  for (const id of ["podrobka", "wyprawa", "sabotaz"]) expect(BLURBS[id]).not.toMatch(/punkt|rund|\d+ wypraw/i);
 });
 
 test("15-03: TournamentSetup nie pokazuje „Jak grać”", () => {
