@@ -2,7 +2,7 @@
 id: 15-01
 title: "Model treści i karty trzech nowych gier"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: []         # task IDs, e.g. [01-01]
@@ -45,10 +45,12 @@ Ustalić kształt karty „Jak grać” i napisać karty Sabotażu, Wyprawy i Po
 - Przeczytać każdą kartę obok sekcji `ZASADY-GIER.md` i poprawić rozbieżności.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm run typecheck` → exit 0
-- [ ] `pnpm --filter web exec vitest run src/screens/howToPlay.test.ts` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm run typecheck` → exit 0
+- [x] `pnpm --filter web exec vitest run src/screens/howToPlay.test.ts` → exit 0
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Dodano `howToPlay.ts`: typ `HowToPlay` i `HOW_TO_PLAY` z kartami Sabotażu, Wyprawy i Podróbki (liczby rund, limity i punkty ze stałych `@kwadrans/games`; punkty Podróbki 2/3 wpisane, bo gra ich nie eksportuje).
+Testy `howToPlay.test.ts` (5): klucze z `GAMES`, liczność sekcji, limit 900 znaków, zakazane słowa i em-dash, obecność stałych. RED: brak modułu, potem 5/5 zielone.
+Karty sprawdzone z ZASADY-GIER.md §11-13, „Uważaj” zawiera wskazane nieoczywistości.
+Deviations: none
