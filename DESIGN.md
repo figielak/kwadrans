@@ -230,7 +230,7 @@ z [ZASADY.md §4](ZASADY.md#4-spójność-wyglądu); lokalne wyjątki formularzy
   figury Innego elementu, figury Obrotu, próbki Odcienia, grupy i rogi pól w Kampus Tour (`CORNERS`, jedno źródło kolorów rogów),
   gradient oceny odcinków w Kole (zielony → czerwony). Wyjątek dotyczy tylko tej treści, nie dowolnych ozdób wokół niej.
 - **Suwaki Odcienia i Roku**: uchwyt suwaka ma promień 6 px, obwódkę `fg` i obrys `bg`, żeby był widoczny na każdej barwie toru.
-- **Promień 4 px**: odznaka turnieju przy kropce gracza i pola planszy Kampus Tour (32 pola w małej skali); poza tym tylko 20 / 10 / 999 px.
+- **Promień 4 px**: odznaka turnieju przy kropce gracza, pola planszy Kampus Tour (32 pola w małej skali) i małe karty Sabotażu; poza tym tylko 20 / 10 / 999 px.
 - **Statki**: trafienie i zatopiony statek są w `accent`. To utrwalony znak tej gry, czerwień nie oznacza tam akcji.
 - **Kalambury** mają własny nagłówek: duże hasło, pod nim rząd kropek z inicjałami i punktami (ja pierwszy, 6 osób w jednej linii) zamiast paska `Stats`, a czas tuż nad płótnem.
   Kropki mają stałą szerokość, a ołówek i fajka są odznakami poza układem, więc trafienie nie zmienia rozmiaru płótna. Przy otwartej klawiaturze zostają hasło i czas w jednym wierszu.
@@ -262,6 +262,9 @@ Układy ekranów, które trzeba zachować (pomiary z odbiorów P4-006 do P4-037 
   Strzały widzą wszyscy, także rysujący (na ekranie niższym niż 720 px jeden, żeby nie zabierać płótna); ich blok ma stałą wysokość. Pole, wysyłka i „Pasuję” (drugie dotknięcie: „Na pewno?”) są w jednym wierszu.
   Przy otwartej klawiaturze zgadujący widzi hasło, czas, rysunek, ostatni strzał, pole i wysyłkę, a „Pasuję” chowa się do zamknięcia klawiatury; minimalny bok płótna to 48 px.
   Odsłona rundy mieści się bez przewijania: duże hasło z podpisem „to było” i liczbą trafień, płótno w miejscu, które zostaje po tabeli, jedna tabela (suma i punkty tej rundy, bez zer), bez kropek w nagłówku. Pusty rysunek to wiersz „Bez rysunku”. Pasek czasu odsłony jest neutralny, bez ostrzegania.
+- **Sabotaż**: rywale stoją w jednym rzędzie w kolejności tury od gracza (własnego kafla nie ma), stosy to koszulki kart, a na środku jest stół z liczbą kart, deklaracją i odkrytymi kartami.
+  Przejście i Pułapka w ręce mają ten sam neutralny wygląd, żeby sąsiad nie rozpoznał ich kątem oka. Ręki nie ma po zamknięciu dokładania, a bez wyboru miejsce na zatwierdzenie stoi puste, zamiast nieaktywnego przycisku.
+  Świeżo rozstrzygnięta runda pokazuje nowe karty po kolei (`stone-pop`, odstęp 350 ms, razem najwyżej 1,5 s), potem werdykt; dotknięcie stawia całość od razu. Kończąca Pułapka jest wypełniona kolorem właściciela.
 - **Narysuj koło**: aktywne płótno pozostaje kwadratowe i mieści się w wysokości pozostałej po nagłówku, statystykach, komunikacie i dolnym marginesie.
   Miejsce na zakończenie prób jest zarezerwowane od startu, dzięki czemu pierwsza oceniona próba nie zmienia rozmiaru pola.
   Współrzędne i ocena rysunku pozostają niezależne od rozmiaru.

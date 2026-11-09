@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 import { heroResult } from "../screens/results.ts";
 import { decisionKey as vibrationKey } from "../vibrate.ts";
-import { currentDraft, decisionKey, type Draft, harmKey, moves, options, Sabotaz, SabotazBoard } from "./Sabotaz.tsx";
+import { bidHint, currentDraft, decisionKey, type Draft, harmKey, moves, options, rivalsOf, Sabotaz, SabotazBoard } from "./Sabotaz.tsx";
 
 // Testy napisane przed ekranem. Widoki pochodzą z prawdziwego playerView po legalnych ruchach:
 // - gracz widzi własną rękę i własny stos od góry, rywale i obserwator tylko liczby i odkryte karty,
@@ -99,27 +99,32 @@ describe("karty gracza", () => {
     const s = game.setup(six, createRng(1));
     const markup = renderToStaticMarkup(<SabotazBoard view={view(s, "")} me="" players={players} waitingFor={game.waitingFor(s)} onMove={() => {}} draft={{}} onDraft={() => {}} />);
     for (let i = 1; i <= 6; i++) expect(markup).toContain(`Gracz${i}`);
-    expect(markup).toContain("grid-cols-2");
+    expect(markup).toContain("repeat(6, minmax(0, 1fr))");
+  });
+
+  test("rywale idą w kolejności tury od gracza, bez własnego kafla; obserwator widzi wszystkich", () => {
+    expect(rivalsOf([A, B, C, D], C)).toEqual([D, A, B]);
+    expect(rivalsOf([A, B, C, D], A)).toEqual([B, C, D]);
+    expect(rivalsOf([A, B, C, D], "")).toEqual([A, B, C, D]);
+    expect(rivalsOf([A, B, C, D], "obcy")).toEqual([A, B, C, D]);
+    const tiles = html(initials(start()), B).match(/<div role="group"[^>]*aria-label="[^"]*"/g) ?? [];
+    expect(tiles.map((tile) => tile.match(/aria-label="([^:]*):/)?.[1])).toEqual(["Celina", "Ania"]);
   });
 });
 
 describe("układ przy 5-6 graczach", () => {
-  // Trzy rzędy kafli plus dwa rzędy akcji mają się zmieścić na 360×640; pomiar robi odbiór w przeglądarce.
+  // Rywale stoją w jednym rzędzie, żeby stół i ręka zmieściły się na 360×640; pomiar robi odbiór w przeglądarce.
   const six = ["p1", "p2", "p3", "p4", "p5", "p6"];
   const players = six.map((id, i) => lobby(id, `Gracz${i + 1}`, "#3b9eff"));
 
-  test("kafel stosu trzyma 52 px wysokości, czyli budżet trzech rzędów, i nie schodzi poniżej 48 px", () => {
+  test("rząd ma kolumnę na każdego rywala", () => {
     const s = game.setup(six, createRng(1));
-    const markup = renderToStaticMarkup(<SabotazBoard view={view(s, "")} me="" players={players} waitingFor={game.waitingFor(s)} onMove={() => {}} draft={{}} onDraft={() => {}} />);
-    const tiles = markup.match(/<div role="group"[^>]*>/g) ?? [];
-    expect(tiles).toHaveLength(6);
-    for (const tile of tiles) {
-      expect(tile).toContain("min-h-13");
-      expect(tile).toContain("py-1.5");
-    }
+    const markup = renderToStaticMarkup(<SabotazBoard view={view(s, "p1")} me="p1" players={players} waitingFor={game.waitingFor(s)} onMove={() => {}} draft={{}} onDraft={() => {}} />);
+    expect(markup.match(/<div role="group"[^>]*>/g)).toHaveLength(5);
+    expect(markup).toContain("repeat(5, minmax(0, 1fr))");
   });
 
-  test("kafel do wyboru przy odkrywaniu ma ten sam budżet", () => {
+  test("kafel do wyboru przy odkrywaniu ma pole dotyku nie mniejsze niż 48 px", () => {
     let s = view(game.setup(six, createRng(1))).players.reduce((acc, p) => apply(acc, p, { type: "place", kind: "safe", ...stamp(acc) }), game.setup(six, createRng(1)) as S);
     s = bid(s, 2);
     while (view(s).phase === "bid") s = pass(s);
@@ -127,18 +132,18 @@ describe("układ przy 5-6 graczach", () => {
     const markup = renderToStaticMarkup(<SabotazBoard view={view(s, leader)} me={leader} players={players} waitingFor={game.waitingFor(s)} onMove={() => {}} draft={{}} onDraft={() => {}} />);
     const pick = buttons(markup).filter((b) => b.includes("aria-pressed"));
     expect(pick.length).toBeGreaterThan(0);
-    for (const tile of pick) expect(tile).toContain("min-h-13");
+    for (const tile of pick) expect(tile).toContain("min-h-24");
   });
 });
 
 describe("pierwsza karta i dokładanie", () => {
-  test("pierwsza karta: oba rodzaje dostępne, bez wyboru zatwierdzenie nieaktywne", () => {
+  test("pierwsza karta: oba rodzaje dostępne, bez wyboru nie ma zatwierdzenia", () => {
     const s = start();
     expect(options(view(s, A), A, game.waitingFor(s)).kinds).toEqual(["safe", "trap"]);
     const markup = html(s, A);
     expect(buttonWith(markup, "Przejście")).not.toMatch(/\sdisabled=/);
     expect(buttonWith(markup, "Pułapka")).not.toMatch(/\sdisabled=/);
-    expect(buttonWith(markup, "Wybierz kartę")).toMatch(/\sdisabled=/);
+    expect(buttonWith(markup, "Wybierz kartę")).toBeUndefined();
     expect(markup).not.toContain("Licytuj");
   });
 
@@ -165,15 +170,23 @@ describe("pierwsza karta i dokładanie", () => {
     expect(buttonWith(html(s, A), "Przejście")).not.toMatch(/\sdisabled=/);
   });
 
-  test("układanie: gracz ma Dołóż i Licytuj od 1 do T", () => {
+  test("układanie: gracz wybiera kartę albo licytację od 1 do T i ma jedno zatwierdzenie", () => {
     const s = initials(start());
     const opts = options(view(s, A), A, game.waitingFor(s));
     expect(opts.bid).toEqual({ min: 1, max: 3 });
     expect(opts.canPass).toBe(false);
-    const markup = html(s, A, { kind: "safe" });
-    expect(buttonWith(markup, "Dołóż Przejście")).not.toMatch(/\sdisabled=/);
-    expect(buttonWith(markup, "Licytuj 1")).not.toMatch(/\sdisabled=/);
-    expect(markup).not.toContain(">Pas<");
+    const card = html(s, A, { kind: "safe" });
+    expect(buttonWith(card, "Dołóż Przejście")).toContain("btn-player");
+    expect(buttonWith(card, "Licytuj")).toContain('aria-pressed="false"');
+    expect(card).not.toContain('aria-label="Więcej"');
+    expect(card).not.toContain(">Pas<");
+    const bidding = html(s, A, { bidding: true });
+    expect(buttonWith(bidding, "Licytuj")).toContain('aria-pressed="true"');
+    expect(buttonWith(bidding, "Licytuj 1")).toContain("btn-player");
+    expect(bidding).toContain('aria-label="Więcej"');
+    expect(bidding).not.toContain("Dołóż Przejście");
+    const none = html(s, A);
+    expect(none).not.toContain("btn-player");
   });
 
   test("pusta ręka: opis i sama licytacja, bez przycisku dołożenia", () => {
@@ -204,7 +217,7 @@ describe("licytacja", () => {
     expect(opts.canPass).toBe(true);
     expect(opts.kinds).toEqual([]);
     const markup = html(s, B);
-    expect(buttonWith(markup, "Licytuj 3")).not.toMatch(/\sdisabled=/);
+    expect(buttonWith(markup, "Podbij do 3")).toContain("btn-player");
     expect(buttonWith(markup, "Pas")).not.toMatch(/\sdisabled=/);
     expect(markup).not.toContain("Dołóż");
   });
@@ -212,18 +225,18 @@ describe("licytacja", () => {
   test("minus i plus blokują się na granicach zakresu", () => {
     const s = bid(placeAll(initials(start())), 2);
     const low = html(s, B, { amount: 3 });
-    expect(buttonWith(low, "Licytuj 3")).toBeDefined();
+    expect(buttonWith(low, "Podbij do 3")).toBeDefined();
     expect(low).toMatch(/<button[^>]*aria-label="Mniej"[^>]*disabled/);
     expect(low).not.toMatch(/<button[^>]*aria-label="Więcej"[^>]*disabled/);
     const high = html(s, B, { amount: 6 });
-    expect(buttonWith(high, "Licytuj 6")).toBeDefined();
+    expect(buttonWith(high, "Podbij do 6")).toBeDefined();
     expect(high).toMatch(/<button[^>]*aria-label="Więcej"[^>]*disabled/);
   });
 
   test("szkic spoza zakresu wraca na granicę", () => {
     const s = bid(placeAll(initials(start())), 2);
-    expect(buttonWith(html(s, B, { amount: 1 }), "Licytuj 3")).toBeDefined();
-    expect(buttonWith(html(s, B, { amount: 99 }), "Licytuj 6")).toBeDefined();
+    expect(buttonWith(html(s, B, { amount: 1 }), "Podbij do 3")).toBeDefined();
+    expect(buttonWith(html(s, B, { amount: 99 }), "Podbij do 6")).toBeDefined();
   });
 
   test("oferta T zostawia tylko pas", () => {
@@ -232,7 +245,7 @@ describe("licytacja", () => {
     expect(opts.bid).toBeNull();
     expect(opts.canPass).toBe(true);
     const markup = html(s, B);
-    expect(markup).not.toContain("Licytuj");
+    expect(markup).not.toContain("Podbij do");
     expect(enabled(markup)).toHaveLength(1);
     expect(buttonWith(markup, "Pas")).toBeDefined();
   });
@@ -247,6 +260,33 @@ describe("licytacja", () => {
     const seen = text(html(bid(initials(start()), 2), ""));
     expect(seen).toContain("Lider");
     expect(seen).toMatch(/Deklaracja\s*2/);
+  });
+
+  test("stół mówi, ile kart leży, kto deklaruje, a ręka znika po zamknięciu dokładania", () => {
+    const placing = text(html(placeAll(initials(start())), ""));
+    expect(placing).toContain("6 kart na stole");
+    const s = bid(placeAll(initials(start())), 2);
+    expect(text(html(s, ""))).toMatch(/Deklaracja\s*2\s*·\s*Ania/);
+    expect(text(html(s, A))).toMatch(/Deklaracja\s*2\s*·\s*ty/);
+    expect(html(s, A)).not.toContain("Twoja ręka");
+    expect(html(s, A)).toContain("Twój stos");
+  });
+
+  test("ostrzeżenie liczy własne karty od wierzchu i zna tylko własny stos", () => {
+    const s = place(initials(start(), { [A]: "trap" }));
+    expect(bidHint(view(s, A), 1)).toEqual({ count: 1, trap: false });
+    expect(bidHint(view(s, A), 2)).toEqual({ count: 2, trap: true });
+    expect(bidHint(view(s, A), 9)).toEqual({ count: 2, trap: true });
+    expect(bidHint(view(s), 2)).toBeNull();
+  });
+
+  test("ostrzeżenie widać tylko przy własnej licytacji", () => {
+    const s = initials(start(), { [A]: "trap" });
+    expect(text(html(s, A, { bidding: true }))).toContain("Najpierw odkryjesz swoją kartę: to Pułapka");
+    expect(text(html(s, A, { kind: "safe" }))).not.toContain("Najpierw odkryjesz");
+    expect(text(html(s, B))).not.toContain("Najpierw odkryjesz");
+    const two = bid(placeAll(initials(start(), { [B]: "trap" })), 1);
+    expect(text(html(two, B, { amount: 2 }))).toContain("Najpierw odkryjesz swoje 2 karty, w tym swoją Pułapkę");
   });
 });
 
@@ -265,7 +305,7 @@ describe("odkrywanie", () => {
     expect(text(markup)).toContain("1 z 3");
     expect(buttonWith(markup, "Bartek")).not.toMatch(/\sdisabled=/);
     expect(buttonWith(markup, "Ania")).toBeUndefined();
-    expect(buttonWith(markup, "Wybierz stos")).toMatch(/\sdisabled=/);
+    expect(buttonWith(markup, "Odkryj u")).toBeUndefined();
   });
 
   test("wybrany stos ma drugi znak, a potwierdzenie nazywa właściciela", () => {
@@ -279,11 +319,11 @@ describe("odkrywanie", () => {
     const s = reveal(revealing(), B);
     expect(options(view(s, A), A, game.waitingFor(s)).owners).toEqual([C, D]);
     const markup = html(s, A, { owner: B });
-    expect(buttonWith(markup, "Wybierz stos")).toMatch(/\sdisabled=/);
+    expect(buttonWith(markup, "Odkryj u")).toBeUndefined();
     expect(text(markup)).toContain("2 z 3");
   });
 
-  test("odkryte karty są jawne na kaflach właścicieli dla wszystkich", () => {
+  test("odkryte karty są jawne na stole dla wszystkich", () => {
     const s = reveal(revealing(), B);
     const seen = text(html(s, ""));
     expect(seen).toContain("Przejście");
@@ -356,6 +396,12 @@ describe("odsłona", () => {
   };
   /** Lista odkryć z odsłony ostatniej rundy, od pierwszego. */
   const revealList = (markup: string) => (markup.match(/<ol[^>]*>.*?<\/ol>/)?.[0].match(/<li[^>]*>.*?<\/li>/g) ?? []).map(text);
+
+  test("stosy i ręce wszystkich są zwinięte pod Pokaż karty, bez przycisku", () => {
+    const markup = html(trapSummary(), "");
+    expect(markup).toMatch(/<details[^>]*><summary[^>]*>Pokaż karty<\/summary>/);
+    expect(buttons(markup)).toEqual([]);
+  });
 
   test("pokazuje deklarację, kolejność odkryć i kończącą Pułapkę, także dla wymuszonej sekwencji", () => {
     const s = trapSummary();
