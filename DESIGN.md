@@ -93,12 +93,12 @@ Do skopiowania: jedna akcja wypełniona, kafel tylko dla tego, co ma się wyró�
 
 ### 3.2 Kod pokoju w lobby (`Code` w `Lobby.tsx`)
 
-Jedyny naprawdę duży element aplikacji: cztery znaki mono 60 px z szerokim odstępem, nad nimi `.label`, obok okrągły przycisk udostępniania.
-Kod jest tu treścią ekranu, więc dostaje rozmiar plakatu, a instrukcja pod nim zostaje w 14 px `fg-muted`.
+Jedyny naprawdę duży element aplikacji: cztery znaki mono 60 px bez kafla, rozłożone na całą szerokość jak komórki pola kodu na ekranie głównym, nad nimi `.label` i „Wyjdź”.
+Kod jest tu treścią ekranu, więc dostaje rozmiar plakatu, a instrukcja pod nim zostaje w 14 px `fg-muted`. Udostępnia „Zaproś” w rzędzie awatarów, więc osobnego przycisku nie ma.
 
 Do skopiowania: gdy ekran ma jedną informację do przekazania, powiększ ją i wycisz resztę, zamiast dodawać ramki i kolory.
 
-Ten rozmiar kod ma tylko, gdy gracz jest sam w pokoju i musi go przekazać. Od dwóch osób zwija się do `TopBar` (kod mono 18 px z udostępnianiem), a gracze bez wybranej gry to rząd awatarów bez kafla:
+Ten rozmiar kod ma tylko, gdy gracz jest sam w pokoju i musi go przekazać; gry główne mają wtedy zakres osób i jedno zdanie nad listą („Te gry ruszą, gdy ktoś dołączy.”) zamiast „brakuje” na każdym kaflu. Od dwóch osób kod zwija się do `TopBar` (kod mono 18 px z udostępnianiem). Gracze bez wybranej gry to zawsze, także przy jednej osobie, rząd awatarów bez kafla:
 kółko 44 px w kolorze gracza z inicjałem (`initials`), pod nim skracany nick, korona w rogu kółka. Kolumny dzielą całą szerokość, przy wolnym miejscu ostatnia to przerywane kółko „Zaproś” (udostępnia link).
 Kolory są zwinięte: rozwija je dotknięcie własnego awatara (podpis „ty” z ołówkiem, obrys `fg` w trakcie), a wybór koloru zwija je z powrotem.
 Gospodarz dotyka cudzego awatara, żeby go wyrzucić: w tym samym miejscu pojawia się „Wyrzucić …?” z „Anuluj” i „Wyrzuć” (obrys, tekst `warning`). Rozłączony ma u gospodarza znaczek X w rogu kółka.
