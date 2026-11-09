@@ -268,15 +268,36 @@ test("15-03: Setup gry z kartą ma „Jak grać” za opisem", () => {
   expect(html.indexOf(BLURBS.sabotaz!)).toBeLessThan(html.indexOf("Jak grać"));
 });
 
-test("ekran gry: nagłówek listy liczy gotowość, a podpis „Grają” jest tylko przy oglądających", () => {
+test("ekran gry: nagłówek listy liczy gotowość gości, a podpis „Grają” jest tylko przy oglądających", () => {
   const html = setupHtml("podrobka", { ready: ["p2"] });
-  expect(html).toContain("Gotowość 2/3");
+  expect(html).toContain("Gotowość 1/2");
   expect(html).not.toContain("W pokoju");
   expect(html).not.toContain("Grają");
   const split = setupHtml("podrobka", { seats: ["p1", "p2"] });
   expect(split).toContain("Grają");
   expect(split).toContain("Oglądają");
-  expect(split).toContain("Gotowość 1/2");
+  expect(split).toContain("Gotowość 0/1");
+  expect(setupHtml("podrobka", { seats: ["p1"] })).not.toContain("Gotowość");
+});
+
+test("ekran gry: gotowość to znak ✓ bez słowa, „czeka” zostaje słowem, gospodarz nie ma statusu", () => {
+  const html = setupHtml("podrobka", { ready: ["p2"] });
+  expect(html.match(/aria-label="gotowe"/g)).toHaveLength(1);
+  expect(html).not.toContain(">gotowe<");
+  expect(html.match(/>czeka</g)).toHaveLength(1);
+});
+
+test("ekran gry: bez kafli wokół opisu gry i listy graczy, tytuł jak w Turnieju", () => {
+  const html = setupHtml("podrobka");
+  expect(html).not.toContain('class="tile"');
+  expect(html).toContain('class="text-3xl font-semibold tracking-tight');
+});
+
+test("ekran gry: po zgłoszeniu gotowości krótki status i osobne „Cofnij”", () => {
+  const html = setupHtml("podrobka", { me: "p2", ready: ["p2"] });
+  expect(html).toContain("Zgłoszone, czekamy na start");
+  expect(html).toContain(">Cofnij<");
+  expect(html).not.toContain("czekamy na Gracz");
 });
 
 test("ekran gry: tło wiersza w kolorze gracza tylko po zgłoszeniu gotowości", () => {
@@ -289,16 +310,25 @@ test("ekran gry: tło wiersza w kolorze gracza tylko po zgłoszeniu gotowości",
 test("ekran gry: korona stoi przy nicku, przed statusem", () => {
   const html = setupHtml("podrobka");
   expect(html.indexOf('aria-label="Gospodarz"')).toBeGreaterThan(-1);
-  expect(html.indexOf('aria-label="Gospodarz"')).toBeLessThan(html.indexOf("gotowe"));
+  expect(html.indexOf('aria-label="Gospodarz"')).toBeLessThan(html.indexOf(">czeka<"));
 });
 
-test("ekran gry: „Jak grać” leży w kaflu gry", () => {
+test("ekran gry: podpowiedź o przenoszeniu graczy tylko, gdy ktoś ogląda", () => {
+  expect(setupHtml("podrobka")).not.toContain("Dotknij gracza");
+  expect(setupHtml("podrobka", { seats: ["p1", "p2"] })).toContain("Dotknij gracza");
+  expect(setupHtml("podrobka", { seats: ["p1", "p2"], me: "p2" })).not.toContain("Dotknij gracza");
+});
+
+test("ekran gry: „Jak grać” leży przy opisie gry", () => {
   const html = setupHtml("sabotaz");
   expect(html.indexOf("Jak grać")).toBeLessThan(html.indexOf("</section>"));
 });
 
-test("ekran gry: kolory mają podpis, a lobby przy dwóch osobach dalej nie", () => {
-  expect(setupHtml("podrobka")).toContain(">Twój kolor<");
+test("ekran gry: kolory są zwinięte pod własną kropką, jak w lobby", () => {
+  const html = setupHtml("podrobka");
+  expect(html).not.toContain(">Twój kolor<");
+  expect(html).not.toContain('role="radiogroup" aria-label="Twój kolor"');
+  expect(html.match(/zmień kolor/g)).toHaveLength(1);
   expect(lobby(2)).not.toContain(">Twój kolor<");
 });
 

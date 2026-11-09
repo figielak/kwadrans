@@ -28,12 +28,12 @@ export function RulesBody({ card }: { card: HowToPlay }) {
   );
 }
 
-/** Zwinięta sekcja w kaflu gry (przed partią), oddzielona kreską od opisu. Nie otwiera się sama. */
+/** Zwinięta sekcja pod opisem gry (przed partią). Nie otwiera się sama. */
 export function RulesDetails({ gameId }: { gameId: string }) {
   const card = HOW_TO_PLAY[gameId];
   if (!card) return null;
   return (
-    <details className="group -mb-2 mt-3 border-t border-line">
+    <details className="group mt-1">
       <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
         <Question size={20} className="shrink-0" aria-hidden />
         <span className="flex-1">Jak grać</span>

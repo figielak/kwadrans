@@ -29,15 +29,16 @@ export function Setup({ view, me, dropped, send, onLeave }: Props) {
     <Screen dropped={dropped}>
       <TopBar code={view.code} onBack={isHost ? () => send("pickGame", { gameId: null }) : undefined} onLeave={onLeave} />
 
-      <section className="tile">
+      {/* Bez kafla, jak nagłówek Turnieju: nazwa gry jest tytułem ekranu. */}
+      <section className="px-1">
         <div className="flex items-center gap-3">
-          <GameIcon size={28} weight="fill" className="shrink-0" aria-hidden />
+          <GameIcon size={36} weight="fill" className="shrink-0" aria-hidden />
           <div className="min-w-0">
-            <h1 className="font-semibold leading-tight">{def.name}</h1>
+            <h1 className="text-3xl font-semibold tracking-tight">{def.name}</h1>
             <p className="font-mono text-xs text-fg-muted tabular-nums">{seats(def)}</p>
           </div>
         </div>
-        <p className="mt-3 text-sm text-fg-muted">{BLURBS[def.id]}</p>
+        <p className="mt-2 text-sm text-fg-muted">{BLURBS[def.id]}</p>
         <RulesDetails gameId={def.id} />
       </section>
 

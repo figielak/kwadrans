@@ -278,19 +278,21 @@ function PlayerRow({ view, me, send }: { view: RoomView; me: string; send: Send 
 
 /** Lista graczy z miejscami, gotowością i wyborem koloru; wspólna dla lobby i ekranu gry. */
 export function Players({ view, me, send }: { view: RoomView; me: string; send: Send }) {
+  const [editing, setEditing] = useState(false);
   const isHost = view.hostId === me;
   const def = picked(view);
   if (!def && view.players.length > 1) return <PlayerRow view={view} me={me} send={send} />;
   const playing = view.seats.map((id) => view.players.find((p) => p.id === id)!);
   const watching = view.players.filter((p) => !view.seats.includes(p.id));
   const isReady = (p: LobbyPlayer) => p.ready || p.id === view.hostId;
+  // Gotowość zgłaszają tylko goście (tak liczy też StartBar); sam gospodarz nie ma na kogo czekać, więc licznika nie ma.
+  const guests = playing.filter((p) => p.id !== view.hostId);
+  const count = !def ? `W pokoju ${view.players.length}/${MAX_PLAYERS}` : guests.length > 0 ? `Gotowość ${guests.filter(isReady).length}/${guests.length}` : null;
   return (
-    <section className="tile">
-      <div className="mb-3 flex items-baseline justify-between">
+    <section className={def ? "" : "tile"}>
+      <div className={`flex items-baseline justify-between ${def ? "mb-2 px-1" : "mb-3"}`}>
         <h2 className="label">Gracze</h2>
-        <span className="font-mono text-sm text-fg-muted tabular-nums">
-          {def ? `Gotowość ${playing.filter(isReady).length}/${playing.length}` : `W pokoju ${view.players.length}/${MAX_PLAYERS}`}
-        </span>
+        {count && <span className="font-mono text-sm text-fg-muted tabular-nums">{count}</span>}
       </div>
       {!def ? (
         // Sam w pokoju: jeden znacznik, reszta miejsca należy do kodu i koloru.
@@ -327,36 +329,33 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
             <ul className="flex flex-col gap-1">
               {players.map((p) => {
                 const seated = view.seats.includes(p.id);
+                const mine = p.id === me;
                 const row = (
                   <>
-                    <span className={`size-3 shrink-0 rounded-full transition-opacity duration-180 ${p.connected ? "" : "opacity-40"}`} style={{ backgroundColor: p.color }} aria-hidden />
+                    {/* Miejsce na kropkę zawsze 24 px, bo własna jest większa i leży na wierzchu jako osobny przycisk: dotknięcie wiersza to u gospodarza zmiana miejsca. */}
+                    <span className="grid size-6 shrink-0 place-items-center">
+                      {!mine && <span className={`size-3 rounded-full transition-opacity duration-180 ${p.connected ? "" : "opacity-40"}`} style={{ backgroundColor: p.color }} aria-hidden />}
+                    </span>
                     <span className="flex min-w-0 items-center gap-1.5">
                       <span className="truncate">
                         {p.nick}
-                        {p.id === me && <span className="text-fg-muted"> (ty)</span>}
+                        {mine && <span className="text-fg-muted"> (ty)</span>}
                       </span>
                       {p.id === view.hostId && <Crown size={16} weight="fill" className="shrink-0" aria-label="Gospodarz" />}
                     </span>
                     <span className="ml-auto flex shrink-0 items-center gap-2 text-sm text-fg-muted">
                       {!p.connected && "rozłączony"}
-                      {seated &&
-                        (isReady(p) ? (
-                          <span className="flex items-center gap-1 text-fg">
-                            <Check size={14} weight="bold" aria-hidden />
-                            gotowe
-                          </span>
-                        ) : (
-                          "czeka"
-                        ))}
+                      {/* Gospodarz niczego nie zgłasza, ma koronę. Słowem mówimy tylko „czeka”, bo na to wszyscy patrzą; gotowość mówią tło i znak. */}
+                      {seated && p.id !== view.hostId && (p.ready ? <Check size={16} weight="bold" className="text-fg" aria-label="gotowe" /> : "czeka")}
                     </span>
                   </>
                 );
                 // Rozłączenie mówią przygaszona kropka i słowo; nick zostaje czytelny.
-                const className = "flex w-full min-h-12 items-center gap-3 rounded-inset px-3 text-left transition-colors duration-180";
+                const className = `flex w-full min-h-12 items-center gap-3 rounded-inset border px-3 text-left transition-colors duration-180 ${seated && !isReady(p) ? "border-line" : "border-transparent"}`;
                 // Tło znaczy gotowość: lista wypełnia się kolorami, gdy kolejne osoby potwierdzają.
                 const style = seated && isReady(p) ? { backgroundColor: `color-mix(in srgb, ${p.color} 10%, transparent)` } : undefined;
                 return (
-                  <li key={p.id}>
+                  <li key={p.id} className="relative">
                     {isHost && def ? (
                       <button
                         type="button"
@@ -372,15 +371,24 @@ export function Players({ view, me, send }: { view: RoomView; me: string; send: 
                         {row}
                       </div>
                     )}
+                    {mine && (
+                      <button type="button" className="absolute top-0 left-px grid size-12 place-items-center" aria-expanded={editing} aria-label="zmień kolor" onClick={() => setEditing(!editing)}>
+                        <span className={`grid size-6 place-items-center rounded-full text-bg ${editing ? "outline-2 outline-offset-2 outline-fg" : ""}`} style={{ backgroundColor: p.color }}>
+                          <PencilSimple size={12} weight="bold" aria-hidden />
+                        </span>
+                      </button>
+                    )}
+                    {mine && editing && <ColorPicker view={view} me={me} send={send} onPicked={() => setEditing(false)} />}
                   </li>
                 );
               })}
             </ul>
           </div>
         ))}
-      <ColorPicker view={view} me={me} send={send} />
-      {isHost && def && view.players.length > 1 && (
-        <p className="mt-3 text-sm text-fg-muted">Dotknij gracza, żeby przenieść go między grającymi a oglądającymi.</p>
+      {!def && <ColorPicker view={view} me={me} send={send} />}
+      {/* Tylko gdy ktoś ogląda (także ponad limit gry): wtedy przenoszenie ma sens, a przy pełnym składzie podpowiedź zabierałaby miejsce. */}
+      {isHost && def && watching.length > 0 && (
+        <p className="mt-2 px-1 text-sm text-fg-muted">Dotknij gracza, żeby przenieść go między grającymi a oglądającymi.</p>
       )}
     </section>
   );
@@ -416,15 +424,23 @@ export function StartBar({ view, me, send, note, aside }: { view: RoomView; me: 
       // Zwykły podpis zamiast wyszarzonego przycisku: nie udaje czegoś, co da się nacisnąć.
       <p className="flex min-h-12 w-full items-center justify-center text-center text-sm text-fg-muted">{startBlocker}</p>
     ) : def && meSeated ? (
-      <button
-        type="button"
-        className={`btn w-full ${meReady ? "btn-ghost" : "btn-primary"}`}
-        aria-pressed={meReady}
-        onClick={() => send("ready", { ready: !meReady })}
-      >
-        {meReady ? <Check size={18} weight="bold" aria-hidden /> : <HandWaving size={18} weight="fill" aria-hidden />}
-        <span className="truncate">{meReady ? `Gotowość zgłoszona, czekamy na ${hostNick}` : "Zgłaszam gotowość"}</span>
-      </button>
+      meReady ? (
+        // Status i cofnięcie osobno: stan nie udaje przycisku, a napis nie zależy od długości nicku.
+        <div className="flex w-full items-center gap-3">
+          <p className="flex min-h-12 min-w-0 flex-1 items-center gap-2 px-1 text-sm">
+            <Check size={18} weight="bold" className="shrink-0" aria-hidden />
+            <span className="truncate">Zgłoszone, czekamy na start</span>
+          </p>
+          <button type="button" className="btn btn-ghost shrink-0" onClick={() => send("ready", { ready: false })}>
+            Cofnij
+          </button>
+        </div>
+      ) : (
+        <button type="button" className="btn btn-primary w-full" onClick={() => send("ready", { ready: true })}>
+          <HandWaving size={18} weight="fill" aria-hidden />
+          <span className="truncate">Zgłaszam gotowość</span>
+        </button>
+      )
     ) : (
       <p className="flex min-h-12 w-full items-center justify-center text-center text-sm text-fg-muted">
         {def ? `Oglądasz. Czekamy, aż ${hostNick} zacznie` : `Czekamy, aż ${hostNick} wybierze grę`}
@@ -432,7 +448,7 @@ export function StartBar({ view, me, send, note, aside }: { view: RoomView; me: 
     );
 
   return (
-    <StickyBar className={note ? "mt-auto" : ""}>
+    <StickyBar className="mt-auto">
       {note ? (
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           {note}
@@ -612,9 +628,9 @@ function ColorPicker({ view, me, send, onPicked }: { view: RoomView; me: string;
   const mine = view.players.find((p) => p.id === me)?.color;
   const def = picked(view);
   return (
-    <div className={`flex flex-col gap-1 ${def ? "mt-3 border-t border-line pt-3" : view.players.length > 1 ? "mt-2" : "mt-4"}`}>
-      {/* W lobby od dwóch osób sama linia kółek, bez podpisu nad nią (aria-label zostaje); na ekranie gry podpis odróżnia kolory od listy graczy. */}
-      {(def || view.players.length === 1) && <span className="label">Twój kolor</span>}
+    <div className={`flex flex-col gap-1 ${def ? "mt-1" : view.players.length > 1 ? "mt-2" : "mt-4"}`}>
+      {/* Podpis tylko samemu w lobby, gdzie kolory leżą na wierzchu; rozwinięte po dotknięciu własnej kropki nie potrzebują go (aria-label zostaje). */}
+      {!def && view.players.length === 1 && <span className="label">Twój kolor</span>}
       <div className="-mx-1 flex justify-between" role="radiogroup" aria-label="Twój kolor">
         {PLAYER_COLORS.map((color, i) => {
           const owner = view.players.find((p) => p.color === color);
