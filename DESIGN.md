@@ -8,6 +8,9 @@ Ich implementacja to `apps/web/src/index.css`, a wspólne komponenty są w `apps
 Reguły odbioru nowej gry (pola dotykowe, czasy animacji, wibracje) są w [ZASADY.md](ZASADY.md), sekcje 4 i 5;
 przy sprzeczności obowiązują ZASADY.
 
+Ten plik jest wzorem, a nie limitem: gdy inny układ jest czytelniejszy albo ładniejszy, można wyjść poza opisane tu wzorce, a potem zaktualizować ten opis.
+Twardymi regułami pozostają te z `AGENTS.md` i `ZASADY.md` (m.in. pola dotykowe, ciemny motyw, teksty po polsku).
+
 ## 1. Charakter
 
 Ciemny, cichy, techniczny. Telefon często leży obok, a wokół są inni ludzie, więc ekran nie świeci, nie miga i nie gra.
@@ -94,10 +97,12 @@ Kod jest tu treścią ekranu, więc dostaje rozmiar plakatu, a instrukcja pod ni
 
 Do skopiowania: gdy ekran ma jedną informację do przekazania, powiększ ją i wycisz resztę, zamiast dodawać ramki i kolory.
 
-Ten rozmiar kod ma tylko, gdy gracz jest sam w pokoju i musi go przekazać. Od dwóch osób zwija się do `TopBar` (kod mono 18 px z udostępnianiem), kolory stoją w jednej linii bez podpisu,
-a gracze bez wybranej gry to znaczniki w dwóch kolumnach ze skracanymi nickami. Zestawy i gry mają zwięzłe kafle z ikoną obok tekstu;
-gry pasujące do liczby osób stoją przed zablokowanymi, żeby „Szybka seria” i dostępne gry były na pierwszym ekranie 360×640 także przy sześciu osobach.
-Przed wyborem gry lobby nie ma przyklejonego paska z samą podpowiedzią; pasek startu i gotowości pojawia się na ekranie wybranej gry.
+Ten rozmiar kod ma tylko, gdy gracz jest sam w pokoju i musi go przekazać. Od dwóch osób zwija się do `TopBar` (kod mono 18 px z udostępnianiem), a gracze bez wybranej gry to rząd awatarów bez kafla:
+kółko 44 px w kolorze gracza z inicjałem (`initials`), pod nim skracany nick, korona w rogu kółka. Kolumny dzielą całą szerokość, przy wolnym miejscu ostatnia to przerywane kółko „Zaproś” (udostępnia link).
+Kolory są zwinięte: rozwija je dotknięcie własnego awatara (podpis „ty” z ołówkiem, obrys `fg` w trakcie), a wybór koloru zwija je z powrotem.
+Zestawy i gry mają kafle z pełnym tłem `surface` i ikoną w neutralnym kwadracie 36 px (tło `line`, bez koloru na grę). Gry dzielą się na „Planszowe” i „Towarzyskie”, w każdej grupie te, do których brakuje osób, stoją na końcu.
+Gry, które nie zmieszczą tylu osób, nie mają kafli: to jedno zdanie pod listą („Nie dla 3 osób: Gomoku, Statki (tylko 2 os.)”).
+Na dole leży `StickyBar`, w tym samym miejscu co „Zagraj” na ekranie gry: u gospodarza wypełniona „Szybka seria”, jedyna główna akcja lobby, u gościa podpowiedź, kto wybiera grę.
 Na ekranie wybranej gry nagłówek listy liczy gotowość („Gotowość 2/4”), a tło w kolorze gracza dostaje wiersz dopiero po jej zgłoszeniu; kolory są pod kreską z podpisem „Twój kolor”.
 Życzenia gości to kropki ich kolorów w rogu kafla gry (`WishMarks`), z nickami dla czytników ekranu; własny wybór gościa jest zaznaczony jak wybrana gra.
 
@@ -153,7 +158,6 @@ Podpowiedź wykresu zostaje po dotknięciu, mysz chowa ją po zjechaniu z wykres
 | przycisk nieaktywny | krycie 40%, bez reakcji na dotyk | „Dołącz” bez pełnego kodu (dodatkowo `btn-ghost` zamiast `btn-primary`; z pełnym kodem to on jest wypełniony) |
 | kafel zaznaczony | ramka `accent`, tło `accent-soft`, ikona `fill`, `aria-pressed` | wybrana gra w lobby |
 | kafel przygaszony, ale do wybrania | krycie 60%, podpis mówi dlaczego („brakuje 1 gracza”) | gra, do której jest za mało osób |
-| kafel nieaktywny | krycie 40%, `disabled`, podpis mówi dlaczego („max 2 os.”) | gra, do której jest za dużo osób |
 | turniej: losowo | zwykły kafel | stan domyślny każdej gry |
 | turniej: na pewno | jak kafel zaznaczony, plus znaczek i podpis „na pewno” | pierwsze dotknięcie |
 | turniej: bez | ramka `line`, krycie 60%, ikona i podpis „bez”, nazwa przekreślona | drugie dotknięcie |

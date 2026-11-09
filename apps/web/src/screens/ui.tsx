@@ -114,18 +114,24 @@ export function Screen({ dropped, children }: { dropped: boolean; children: Reac
   );
 }
 
+/** Udostępnia link do pokoju; bez arkusza systemowego kopiuje go i zwraca `true`, żeby ekran mógł to potwierdzić. */
+export async function shareRoom(code: string): Promise<boolean> {
+  const url = `${location.origin}/?kod=${code}`;
+  if (navigator.share) {
+    // Anulowanie arkusza udostępniania to nie błąd.
+    await navigator.share({ title: "Kwadrans", text: `Dołącz do pokoju ${code}`, url }).catch(() => {});
+    return false;
+  }
+  await navigator.clipboard.writeText(url);
+  return true;
+}
+
 /** Górny wiersz ekranów przed partią: gospodarz wraca do listy gier, gość wychodzi z pokoju; po prawej kod pokoju z udostępnianiem, w środku opcjonalny dodatek ekranu. */
 export function TopBar({ code, onBack, onLeave, children }: { code: string; onBack?: () => void; onLeave: () => void; children?: ReactNode }) {
   const [copied, setCopied] = useState(false);
 
   async function share() {
-    const url = `${location.origin}/?kod=${code}`;
-    if (navigator.share) {
-      // Anulowanie arkusza udostępniania to nie błąd.
-      await navigator.share({ title: "Kwadrans", text: `Dołącz do pokoju ${code}`, url }).catch(() => {});
-      return;
-    }
-    await navigator.clipboard.writeText(url);
+    if (!(await shareRoom(code))) return;
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }

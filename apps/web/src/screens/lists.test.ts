@@ -16,14 +16,14 @@ vi.hoisted(() => {
 const src = new URL(".", import.meta.url).pathname;
 const read = (file: string) => readFileSync(join(src, file), "utf8");
 
-const lobby = (n: number) => {
+const lobby = (n: number, me = "p1") => {
   const view: RoomView = {
     code: "ABCD", hostId: "p1", phase: "lobby", solo: false, gameId: null, mode: null,
     players: Array.from({ length: n }, (_, i) => ({ id: `p${i + 1}`, nick: `Gracz ${i + 1}`, color: PLAYER_COLORS[i], connected: true, ready: false })),
     seats: [], tournament: null, markedBy: {}, scores: {}, game: null, wishes: {}, vote: null,
     evening: { games: 0, played: [], table: [], titles: [] },
   };
-  return renderToStaticMarkup(createElement(Lobby, { view, me: "p1", dropped: false, send: () => {}, onLeave: () => {}, onMini: () => {} }));
+  return renderToStaticMarkup(createElement(Lobby, { view, me, dropped: false, send: () => {}, onLeave: () => {}, onMini: () => {} }));
 };
 
 test("lobby sześciu osób pokazuje dostępne gry przed zablokowanymi", () => {
@@ -33,9 +33,45 @@ test("lobby sześciu osób pokazuje dostępne gry przed zablokowanymi", () => {
   expect(html).toContain("tylko 2 os.");
 });
 
-test("lobby przed wyborem gry nie zasłania listy paskiem bez akcji", () => {
-  expect(lobby(2)).not.toContain("sticky bottom-0");
-  expect(lobby(6)).not.toContain("sticky bottom-0");
+test("lobby: gry za małe na pokój to jedna linia tekstu, nie kafle", () => {
+  const html = lobby(3);
+  expect(html).toContain("Nie dla 3 osób: Gomoku, Statki (tylko 2 os.)");
+  expect(html).not.toMatch(/<button[^>]*disabled[^>]*>(?:(?!<\/button>).)*Gomoku/);
+  expect(lobby(2)).not.toContain("Nie dla");
+});
+
+test("lobby: gry stoją w dwóch grupach, a w każdej te, do których brakuje osób, na końcu", () => {
+  const html = lobby(2);
+  expect(html.indexOf("Planszowe")).toBeLessThan(html.indexOf("Memory"));
+  expect(html.indexOf("Memory")).toBeLessThan(html.indexOf("Towarzyskie"));
+  expect(html.indexOf("Towarzyskie")).toBeLessThan(html.indexOf("Kalambury"));
+  expect(html.indexOf("Kalambury")).toBeLessThan(html.indexOf("Sabotaż"));
+});
+
+test("lobby: główna akcja gospodarza to Szybka seria w dolnym pasku, gość ma tam podpowiedź", () => {
+  const host = lobby(2);
+  expect(host).toContain("sticky bottom-0");
+  expect(host).toMatch(/btn-primary[^>]*>.*Szybka seria/);
+  const guest = lobby(2, "p2");
+  expect(guest).not.toContain("Szybka seria");
+  expect(guest).not.toContain("Turniej");
+  expect(guest).toContain("Gracz 1 wybiera grę. Dotknij tej, w którą chcesz zagrać.");
+});
+
+test("lobby od dwóch osób: gracze to awatary, kolory są zwinięte pod własnym", () => {
+  const html = lobby(3);
+  expect(html).toContain('aria-expanded="false"');
+  expect(html).not.toContain('role="radiogroup"');
+  expect(html).toContain('aria-label="Gospodarz"');
+});
+
+test("lobby: „Zaproś” jest tylko przy wolnym miejscu, sam w pokoju zostaje duży kod z kolorami", () => {
+  expect(lobby(5)).toContain("Zaproś");
+  expect(lobby(6)).not.toContain("Zaproś");
+  const alone = lobby(1);
+  expect(alone).not.toContain("Zaproś");
+  expect(alone).toContain('role="radiogroup"');
+  expect(alone).toContain("Podaj kod znajomym");
 });
 
 test("11-06: Sabotaż w lobby ma nazwę, ikonę, opis i limit 3-6, a nie jest mini-grą ani grą z rekordem", () => {
