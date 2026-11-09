@@ -1,7 +1,7 @@
 import { Check, HandPalm, ThumbsDown, Warning, X } from "@phosphor-icons/react";
-import { type LobbyPlayer, type PanstwaMiastaMove, type PanstwaMiastaView, PM_ANSWER_MAX, PM_CATEGORIES, pmFits } from "@kwadrans/games";
-import { Fragment, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Scores, StickyBar } from "../screens/ui.tsx";
+import { initials, type LobbyPlayer, type PanstwaMiastaMove, type PanstwaMiastaView, PM_ANSWER_MAX, PM_CATEGORIES, pmFits } from "@kwadrans/games";
+import { type CSSProperties, Fragment, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Scores, StickyBar, useKeyboardOpen } from "../screens/ui.tsx";
 import { useHarm } from "../vibrate.ts";
 
 interface Props {
@@ -19,67 +19,92 @@ interface Props {
 }
 
 const DRAFT_MS = 500;
+/** Tyle sekund STOP przy niepełnej kartce czeka na drugie dotknięcie. */
+const ARM_MS = 3000;
 const PHASE = { write: "Wpisywanie", vote: "Sprawdzanie odpowiedzi", summary: "Wyniki rundy", over: "" };
 
 export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, help, onMove }: Props) {
   const player = (id: string) => players.find((p) => p.id === id);
   const letter = view.letters[view.round];
   const playing = view.players.includes(me);
+  const keyboard = useKeyboardOpen();
+  // Przy klawiaturze nagłówek zwija się do litery i czasu, żeby zostało miejsce na pola.
+  const compact = view.phase === "write" && keyboard;
+  const stopNick = view.phase === "write" && view.stop ? (player(view.stop)?.nick ?? "Ktoś") : null;
+  const labels = initials(view.players.map((id) => player(id)?.nick ?? "Gracz"));
+  const dots = view.players.map((id, i) => ({ id, label: labels[i] })).sort((a, b) => Number(b.id === me) - Number(a.id === me));
   // STOP od innego gracza ucina mi czas pisania: szkoda od rywala, raz na rundę.
   useHarm(view.phase === "write" && playing && view.stop && view.stop !== me && !view.done.includes(me) ? `${view.round}:${view.stop}` : null);
 
   return (
     <div className="flex flex-col gap-3">
       {timer && (
-        <header className="flex items-center gap-4">
+        <header className="flex items-center gap-3">
           <span
             role="img"
-            className="flex size-24 shrink-0 items-center justify-center rounded-tile border border-line bg-surface text-7xl font-semibold"
+            className={`flex shrink-0 items-center justify-center border border-line bg-surface font-semibold ${compact ? "size-12 rounded-inset text-3xl" : "size-16 rounded-tile text-5xl"}`}
             aria-label={`Litera ${letter}`}
           >
             {letter}
           </span>
-          <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <span className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+            {!compact && (
               <span className="label">
                 Runda {view.round + 1}/{view.letters.length}
               </span>
-              {help}
-            </span>
-            {/* Faza w moim kolorze, gdy czekamy na mnie (jak „Twój ruch” w innych grach). */}
-            <h1 className="text-xl leading-tight font-semibold" style={playing && waitingFor.includes(me) ? { color: player(me)?.color } : undefined}>
-              {PHASE[view.phase]}
-            </h1>
+            )}
+            {/* STOP trafia tutaj, poza przewijaną listę, żeby widział go każdy, także przy ostatnim polu. */}
+            {stopNick ? (
+              <h1 className="text-sm leading-tight font-semibold">
+                <StopBanner nick={stopNick} />
+              </h1>
+            ) : (
+              // Przy pisaniu faza jest oczywista: zostaje tylko dla czytników. Pozostałe w moim kolorze, gdy czekamy na mnie.
+              <h1 className={view.phase === "write" ? "sr-only" : "text-lg leading-tight font-semibold"} style={playing && waitingFor.includes(me) ? { color: player(me)?.color } : undefined}>
+                {PHASE[view.phase]}
+              </h1>
+            )}
             {timer}
           </div>
+          {help}
         </header>
       )}
 
-      {/* Jedna cienka linia z graczami: punkty i fajka przy tych, którzy skończyli bieżący krok (pisanie, głos, „Dalej”). */}
-      {timer && (
-        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" aria-label="Gracze">
-          {view.players.map((id) => {
+      {/* Kropki z inicjałami mieszczą 6 osób w linii; ja pierwszy, fajka przy tych, którzy skończyli bieżący krok. Punkty są w wynikach rundy. */}
+      {timer && !compact && (
+        <ul className="flex items-center gap-3" aria-label="Gracze">
+          {dots.map(({ id, label }) => {
             const finished = !waitingFor.includes(id);
             return (
-              <li key={id} className={`flex items-center gap-1.5 ${finished ? "" : "text-fg-muted"}`}>
-                <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: player(id)?.color }} aria-hidden />
-                {player(id)?.nick ?? "Gracz"}
-                {id === me && <span className="text-fg-muted">(ty)</span>}
-                <span className="font-mono text-fg-muted tabular-nums">{view.totals[id]}</span>
-                {finished && <Check size={14} weight="bold" className="text-fg" aria-label="gotowe" />}
+              <li key={id} className="relative">
+                <span
+                  className={`grid size-7 place-items-center rounded-full text-[11px] font-semibold text-bg ${id === me ? "outline-1 outline-offset-2 outline-fg-muted" : ""}`}
+                  style={{ backgroundColor: player(id)?.color }}
+                  aria-hidden
+                >
+                  {label}
+                </span>
+                <span className="sr-only">
+                  {player(id)?.nick ?? "Gracz"}
+                  {id === me && " (ty)"}, {view.totals[id]} pkt
+                </span>
+                {finished && (
+                  <span className="absolute -right-1 -bottom-1 grid size-4 place-items-center rounded-full border border-line bg-bg">
+                    <Check size={10} weight="bold" className="text-fg" aria-label="gotowe" />
+                  </span>
+                )}
               </li>
             );
           })}
-          {!playing && <li className="ml-auto text-fg-muted">Oglądasz</li>}
+          {!playing && <li className="ml-auto text-sm text-fg-muted">Oglądasz</li>}
         </ul>
       )}
 
       {view.phase === "write" &&
         (playing && !view.done.includes(me) ? (
-          <Writing key={view.round} view={view} me={me} color={player(me)?.color} stopBy={view.stop && player(view.stop)?.nick} onMove={onMove} />
+          <Writing key={view.round} view={view} me={me} color={player(me)?.color} onMove={onMove} />
         ) : (
           <p className="tile p-4 text-fg-muted">
-            {view.stop && <StopBanner nick={player(view.stop)?.nick} />}
             {playing ? "Czekamy, aż reszta skończy pisać." : "Gracze piszą."}
           </p>
         ))}
@@ -124,22 +149,23 @@ export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, h
   );
 }
 
-function StopBanner({ nick }: { nick?: string }) {
+function StopBanner({ nick }: { nick: string }) {
   return (
-    <span role="status" className="mb-2 flex animate-[stone-pop_0.35s_ease-out] items-center gap-2 font-semibold text-warning">
-      <HandPalm size={20} weight="fill" aria-hidden />
-      STOP! {nick ?? "Ktoś"} oddaje kartkę
+    <span role="status" className="flex animate-[stone-pop_0.35s_ease-out] items-center gap-1.5 text-warning">
+      <HandPalm size={18} weight="fill" className="shrink-0" aria-hidden />
+      <span className="min-w-0 break-words">STOP! {nick} oddaje kartkę</span>
     </span>
   );
 }
 
 /** Pola odpowiedzi. Szkic idzie na serwer w tle, więc przepada najwyżej pół sekundy pisania. */
-function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView; me: string; color?: string; stopBy?: string | null; onMove: Props["onMove"] }) {
+function Writing({ view, me, color, onMove }: { view: PanstwaMiastaView; me: string; color?: string; onMove: Props["onMove"] }) {
   const letter = view.letters[view.round];
   const [answers, setAnswers] = useState(() => view.answers[me] ?? PM_CATEGORIES.map(() => ""));
   const timer = useRef<number>(undefined);
   const form = useRef<HTMLFormElement>(null);
   const [height, setHeight] = useState<number>();
+  const [armed, setArmed] = useState(false);
   useLayoutEffect(() => {
     const element = form.current;
     if (!element) return;
@@ -170,18 +196,34 @@ function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView;
     }
   }, [height]);
   useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(() => {
+    if (!armed) return;
+    const id = window.setTimeout(() => setArmed(false), ARM_MS);
+    return () => clearTimeout(id);
+  }, [armed]);
 
   function change(i: number, value: string) {
     const next = answers.map((a, j) => (j === i ? value : a));
     setAnswers(next);
+    setArmed(false);
     clearTimeout(timer.current);
     timer.current = window.setTimeout(() => onMove({ type: "write", answers: next, done: false }), DRAFT_MS);
   }
 
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
+  function handIn() {
     clearTimeout(timer.current);
     onMove({ type: "write", answers, done: true });
+  }
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    handIn();
+  }
+
+  // Niepełna kartka ucina wszystkim czas, więc pierwszy STOP wymaga potwierdzenia. Po cudzym STOP oddaję tylko swoją.
+  function stopEarly() {
+    if (view.stop || armed) handIn();
+    else setArmed(true);
   }
 
   // Enter przechodzi dalej (bez kompletu do pustego pola); oddaje kartkę tylko w ostatnim polu przy komplecie.
@@ -192,36 +234,37 @@ function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView;
     else nextEmpty();
   }
 
-  const filled = answers.filter((a) => a.trim()).length;
+  // Liczą się tylko odpowiedzi na właściwą literę: zła nie domyka kartki.
+  const valid = answers.map((a) => a.trim() !== "" && pmFits(letter, a));
+  const filled = valid.filter(Boolean).length;
   const complete = filled === PM_CATEGORIES.length;
 
-  // Bez kompletu główny przycisk przechodzi do kolejnego pustego pola (z przyzwyczajenia klika się „dalej”), oddanie jest osobno.
+  // Bez kompletu „Dalej” przechodzi do kolejnego pola bez poprawnej odpowiedzi, oddanie jest osobno.
   function nextEmpty() {
     const at = PM_CATEGORIES.findIndex((_, i) => document.activeElement?.id === `pm-${i}`);
     const order = PM_CATEGORIES.map((_, k) => (at + 1 + k) % PM_CATEGORIES.length);
-    const i = order.find((j) => !answers[j].trim()) ?? 0;
+    const i = order.find((j) => !valid[j]) ?? 0;
     document.getElementById(`pm-${i}`)?.focus();
   }
 
   return (
     <form ref={form} className="flex min-h-0 flex-col gap-3" style={{ maxHeight: height }} onSubmit={submit}>
-      <div className="tile flex min-h-0 flex-col gap-5 overflow-y-auto p-4" aria-label="Kategorie odpowiedzi">
-        {stopBy && <StopBanner nick={stopBy} />}
+      {/* Jedna kartka z liniami: etykieta obok pola, ramki tylko na zewnątrz, aktywny wiersz w moim kolorze. */}
+      <div className="tile flex min-h-0 flex-col divide-y divide-line overflow-y-auto p-0" style={{ "--pm-color": color } as CSSProperties} aria-label="Kategorie odpowiedzi">
         {PM_CATEGORIES.map((category, i) => {
           const typed = answers[i].trim() !== "";
-          const ok = typed && pmFits(letter, answers[i]);
+          const ok = valid[i];
           return (
-            <div key={category} className="flex flex-col gap-2">
-              <label htmlFor={`pm-${i}`} className="text-sm leading-none font-medium text-fg">
-                {category}
-              </label>
-              <div className="relative">
+            <div key={category} className="shrink-0 px-4 focus-within:bg-surface-inset focus-within:shadow-[inset_3px_0_0_var(--pm-color)]">
+              <div className="flex min-h-14 items-center gap-3">
+                <label htmlFor={`pm-${i}`} className="w-18 shrink-0 text-sm font-medium text-fg-muted">
+                  {category}
+                </label>
                 <input
                   id={`pm-${i}`}
                   autoFocus={i === 0}
-                  className="field pr-10 placeholder:text-fg-subtle"
+                  className="min-h-14 min-w-0 flex-1 bg-transparent text-[16px] text-fg outline-none"
                   value={answers[i]}
-                  placeholder={`${letter}…`}
                   maxLength={PM_ANSWER_MAX}
                   autoComplete="off"
                   autoCorrect="off"
@@ -232,12 +275,12 @@ function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView;
                   onKeyDown={(e) => enter(e, i)}
                   onChange={(e) => change(i, e.target.value)}
                 />
-                {ok && <Check size={18} weight="bold" className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-success" aria-hidden />}
+                {ok && <Check size={18} weight="bold" className="pointer-events-none shrink-0 text-success" aria-hidden />}
               </div>
-              {/* Zła pierwsza litera: nie tylko czerwona ramka, także ikona i tekst (DESIGN §4, błąd formularza). */}
+              {/* Zła pierwsza litera: ikona i tekst (DESIGN §4, błąd formularza), wyrównane do pola. */}
               {typed && !ok && (
-                <p role="alert" className="flex items-center gap-1.5 text-sm text-warning">
-                  <Warning size={16} weight="fill" aria-hidden />
+                <p role="alert" className="flex items-center gap-1.5 pb-2 pl-21 text-sm text-warning">
+                  <Warning size={16} weight="fill" className="shrink-0" aria-hidden />
                   Zła litera: zacznij od {letter}
                 </p>
               )}
@@ -246,7 +289,7 @@ function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView;
         })}
       </div>
       <div className="flex shrink-0 items-center gap-3 bg-bg pt-2 pb-3">
-        <span role="img" className="w-10 shrink-0 font-mono text-sm text-fg-muted tabular-nums" aria-label={`Wypełnione ${filled} z ${PM_CATEGORIES.length}`}>
+        <span role="img" className="w-10 shrink-0 font-mono text-sm text-fg-muted tabular-nums" aria-label={`Poprawne ${filled} z ${PM_CATEGORIES.length}`}>
           {filled}/{PM_CATEGORIES.length}
         </span>
         {complete ? (
@@ -255,13 +298,15 @@ function Writing({ view, me, color, stopBy, onMove }: { view: PanstwaMiastaView;
           </button>
         ) : (
           <>
-            <button type="submit" className="btn btn-ghost">
-              Oddaj
+            {/* Oba przyciski onPointerDown bez utraty fokusu: inaczej klawiatura chowa się i skacze. */}
+            <button type="button" className={`btn ${armed ? "flex-1 btn-player" : "btn-ghost"}`} style={armed ? { backgroundColor: color } : undefined} onPointerDown={(e) => e.preventDefault()} onClick={stopEarly}>
+              {armed ? `Na pewno? Brakuje ${PM_CATEGORIES.length - filled}` : view.stop ? "Gotowe" : "STOP"}
             </button>
-            {/* onPointerDown bez utraty fokusu: inaczej klawiatura chowa się i skacze przy każdym polu */}
-            <button type="button" className="btn flex-1 btn-player" style={{ backgroundColor: color }} onPointerDown={(e) => e.preventDefault()} onClick={nextEmpty}>
-              Dalej
-            </button>
+            {!armed && (
+              <button type="button" className="btn flex-1 btn-ghost" onPointerDown={(e) => e.preventDefault()} onClick={nextEmpty}>
+                Dalej
+              </button>
+            )}
           </>
         )}
       </div>

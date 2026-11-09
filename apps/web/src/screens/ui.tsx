@@ -899,6 +899,35 @@ export function seenAtMount<K>(seen: Set<K> | null, present: Iterable<K>): Set<K
   return seen;
 }
 
+/** O tyle musi zmaleć widoczna wysokość, żeby uznać to za klawiaturę, a nie pasek przeglądarki. */
+const KEYBOARD_PX = 120;
+
+/** Czy jest otwarta klawiatura: widoczna wysokość wyraźnie mniejsza od największej zauważonej przy tej szerokości. */
+export function useKeyboardOpen() {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    const visible = () => viewport?.height ?? window.innerHeight;
+    let width = window.innerWidth;
+    let tallest = visible();
+    const check = () => {
+      if (window.innerWidth !== width) {
+        width = window.innerWidth;
+        tallest = 0;
+      }
+      tallest = Math.max(tallest, visible());
+      setOpen(visible() < tallest - KEYBOARD_PX);
+    };
+    viewport?.addEventListener("resize", check);
+    window.addEventListener("resize", check);
+    return () => {
+      viewport?.removeEventListener("resize", check);
+      window.removeEventListener("resize", check);
+    };
+  }, []);
+  return open;
+}
+
 /** Zastany stan pokazujemy od razu; `isNew` mówi, czy element pojawił się po montażu i może dostać animację pojawienia. */
 export function useFresh<K>(present: Iterable<K>) {
   const seen = useRef<Set<K> | null>(null);

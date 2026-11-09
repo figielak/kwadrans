@@ -232,8 +232,10 @@ z [ZASADY.md §4](ZASADY.md#4-spójność-wyglądu); lokalne wyjątki formularzy
 - **Suwaki Odcienia i Roku**: uchwyt suwaka ma promień 6 px, obwódkę `fg` i obrys `bg`, żeby był widoczny na każdej barwie toru.
 - **Promień 4 px**: odznaka turnieju przy kropce gracza i pola planszy Kampus Tour (32 pola w małej skali); poza tym tylko 20 / 10 / 999 px.
 - **Statki**: trafienie i zatopiony statek są w `accent`. To utrwalony znak tej gry, czerwień nie oznacza tam akcji.
-- **Państwa-miasta i Kalambury** mają własny nagłówek: gracze w jednej linii z punktami obok nicku zamiast paska `Stats`,
+- **Kalambury** mają własny nagłówek: gracze w jednej linii z punktami obok nicku zamiast paska `Stats`,
   bo graczy może być 6, a `Stats` mieści trzy liczby. Każdy ma jedną liczbę, więc zapis w linii zostaje czytelny.
+- **Państwa-miasta** mają własny nagłówek: litera 64 px, runda, czas, w partii rząd kropek z inicjałami (ja pierwszy, fajka przy gotowych, 6 osób w jednej linii).
+  Punkty są dopiero w wynikach rundy. Przy pisaniu tytuł fazy jest tylko dla czytników, a jego miejsce po STOP zajmuje komunikat, kto oddał kartkę. Przy otwartej klawiaturze zostają litera i czas.
 - **Kampus Tour** ma własny układ poziomy, planszę 2.5D (krawędź i cień „stołu”), poświatę pola gracza na turze oraz cienie pod oknami i pionkami. Przyciski decyzji i zamknięcia mają minimum 48 px po skalowaniu sceny; dawne 44 px budowy nie jest już wyjątkiem.
 
 Zwykłe kontrolki nie korzystają z wyjątku gęstych plansz: suwaki Odcienia i Roku, wyjście z Lobby i wiersze graczy
@@ -261,8 +263,8 @@ Układy ekranów, które trzeba zachować (pomiary z odbiorów P4-006 do P4-037 
 - **Narysuj koło**: aktywne płótno pozostaje kwadratowe i mieści się w wysokości pozostałej po nagłówku, statystykach, komunikacie i dolnym marginesie.
   Miejsce na zakończenie prób jest zarezerwowane od startu, dzięki czemu pierwsza oceniona próba nie zmienia rozmiaru pola.
   Współrzędne i ocena rysunku pozostają niezależne od rozmiaru.
-- **Państwa-miasta** (fizyczny odbiór U02 otwarty, lokalny wyjątek przewijania z ZASADY §4): sześć kategorii formularza przewija się wewnątrz listy,
-  a dolne Oddaj/Dalej/STOP pozostają poza tą listą. Po zmianie widocznej wysokości aktywne pole jest przewijane po przeliczeniu układu.
+- **Państwa-miasta** (fizyczny odbiór U02 otwarty, lokalny wyjątek przewijania z ZASADY §4): formularz to jedna kartka z liniami: etykieta obok pola (wiersz 56 px), bez ramek pól, aktywny wiersz z belką w kolorze gracza. Na 360×640 bez klawiatury mieści się bez przewijania, przy klawiaturze przewija się wewnątrz listy,
+  a dolne STOP/Dalej pozostają poza tą listą. Wypełnione jest tylko STOP przy komplecie poprawnych odpowiedzi; STOP przy niepełnej kartce wymaga drugiego dotknięcia w 3 s („Na pewno? Brakuje N”), bo ucina czas wszystkim. Po cudzym STOP przycisk to od razu „Gotowe”. Po zmianie widocznej wysokości aktywne pole jest przewijane po przeliczeniu układu.
   Głosowanie i podsumowanie mają osobną tabelę na kategorię przy 4+ osobach, z graczami w wierszach; przy 2/3 zachowują zwartą tabelę.
   Pełne nicki i odpowiedzi mogą łamać się w wierszach; brak poziomego przewijania, cele głosu minimum 48 px.
 - **Wyniki**: wspólny ekran końcowy umieszcza OverActions/NextActions w StickyBar. Rysunki, rekordy i tabela turnieju mogą przewijać się pionowo
