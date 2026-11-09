@@ -15,6 +15,13 @@ describe("changelog", () => {
     expect(CHANGELOG.at(-1)).toMatchObject({ version: "1.0.0", changes: ["Dodanie changelogu"] });
   });
 
+  test("najnowsza wersja 1.1.0 opisuje nowe gry i Jak grać", () => {
+    expect(VERSION).toBe("1.1.0");
+    expect(CHANGELOG[0].date).toBe("2026-11-09");
+    const t = CHANGELOG[0].changes.join(" ");
+    for (const s of ["Sabotaż", "Wyprawa", "Podróbka", "Jak grać"]) expect(t).toContain(s);
+  });
+
   test("aktualna wersja to najnowszy wpis, numery się nie powtarzają", () => {
     expect(VERSION).toBe(CHANGELOG[0].version);
     expect(new Set(CHANGELOG.map((e) => e.version)).size).toBe(CHANGELOG.length);

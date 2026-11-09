@@ -3,6 +3,14 @@ import { Screen } from "./ui.tsx";
 
 /** Historia wersji strony, najnowsza na górze. Nowy wpis na początku listy to zarazem nowy numer wersji. */
 export const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
+  {
+    version: "1.1.0",
+    date: "2026-11-09",
+    changes: [
+      "Trzy nowe gry dla większej ekipy: Sabotaż (3-6 osób, licytacja zakrytych kart), Wyprawa (2-6 osób, wspólny szlak i ryzyko powrotu) oraz Podróbka (3-6 osób, wykrywanie osoby z innym pytaniem)",
+      "Jak grać: każda gra główna ma krótką kartę z zasadami. Rozwiniesz ją na ekranie gry przed startem, a w trakcie partii otworzysz ikoną z pytajnikiem, także jako widz (w Kampus Tour ikony w partii jeszcze nie ma)",
+    ],
+  },
   { version: "1.0.0", date: "2026-11-06", changes: ["Dodanie changelogu"] },
 ];
 
