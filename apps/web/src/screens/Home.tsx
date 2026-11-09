@@ -48,6 +48,8 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
   const [nick, setNick] = useState(savedNick);
   // Zapamiętany nick to jedna linijka; pole widać tylko za pierwszym razem albo po „zmień”.
   const [editing, setEditing] = useState(() => !savedNick());
+  // Po zapisaniu nicku jedno zdanie tłumaczy kółko w nagłówku; przy kolejnym wejściu już go nie ma.
+  const [named, setNamed] = useState(false);
   const [code, setCode] = useState(() => onlyCodeChars(codeFromUrl()));
   const [nickError, setNickError] = useState("");
   const [roomError, setRoomError] = useState("");
@@ -135,8 +137,8 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
   const chase = mine.filter((g) => g.at.place > 1).sort((a, b) => a.at.place - b.at.place || b.at.of - a.at.of)[0];
   const defend = mine.filter((g) => g.at.place === 1 && g.at.of > 1).sort((a, b) => b.at.of - a.at.of)[0];
   const picks = [
-    chase && { id: chase.id, reason: "Do pobicia", value: formatBest(chase.id, chase.top.best) },
-    defend && { id: defend.id, reason: "Do obrony", value: formatBest(defend.id, defend.at.best) },
+    chase && { id: chase.id, reason: "Do pobicia", own: formatBest(chase.id, chase.at.best), value: formatBest(chase.id, chase.top.best) },
+    defend && { id: defend.id, reason: "Do obrony", own: null, value: formatBest(defend.id, defend.at.best) },
   ].filter((p) => !!p);
 
   const DailyIcon = (daily && ICONS[daily.gameId]) || Play;
@@ -182,7 +184,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
         )}
         {picks.length > 0 && (
           <ul className="flex flex-col divide-y divide-line px-1">
-            {picks.map(({ id, reason, value }) => {
+            {picks.map(({ id, reason, own, value }) => {
               const PickIcon = ICONS[id] ?? Play;
               return (
                 <li key={id}>
@@ -190,7 +192,15 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
                     <PickIcon size={20} className="shrink-0" aria-hidden />
                     <span className="flex min-w-0 flex-1 flex-col py-1.5 leading-tight">
                       <span className="truncate">{GAMES[id].name}</span>
-                      <span className="truncate text-sm text-fg-muted">{reason}</span>
+                      <span className="truncate text-sm text-fg-muted">
+                        {reason}
+                        {own && (
+                          <>
+                            {" · masz "}
+                            <span className="font-mono tabular-nums">{own}</span>
+                          </>
+                        )}
+                      </span>
                     </span>
                     <span className="shrink-0 font-mono text-sm font-medium tabular-nums">{value}</span>
                     <CaretRight size={14} className="shrink-0 text-fg-muted" aria-hidden />
@@ -311,7 +321,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
                       : ""
                 }`}
               >
-                {code[i]}
+                {code[i] ?? <span className="text-fg-subtle">·</span>}
               </span>
             ))}
           </div>
@@ -329,7 +339,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
 
   return (
     <main className="mx-auto flex min-h-[100dvh] max-w-md flex-col gap-3 px-4 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-      <header className="flex items-center gap-3">
+      <header className="mb-3 flex items-center gap-3">
         <Logo />
         <h1 className="flex-1 text-3xl font-semibold tracking-tight">Kwadrans</h1>
         {!editing && (
@@ -352,6 +362,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
             saveNick(clean);
             setNick(clean);
             setEditing(false);
+            setNamed(true);
           }}
         >
           <label htmlFor="nick" className="label">
@@ -375,6 +386,12 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
           </div>
           <Problem id="nick-error">{nickError}</Problem>
         </form>
+      )}
+
+      {named && !editing && (
+        <p role="status" className="text-sm text-fg-muted">
+          Grasz jako <span className="font-semibold text-fg">{nick}</span>. Nick zmienisz, dotykając kółka u góry.
+        </p>
       )}
 
       {notice && (

@@ -82,9 +82,9 @@ Te fragmenty najlepiej oddają styl. Nowy ekran powinien wyglądać jak ich rodz
 
 Najlepszy przykład hierarchii. Sekcja stoi na górze, bo najwięcej radości daje gra z innymi, i nie ma kafla, więc czerwień leży wprost na tle z poświatą.
 Od góry: wiersze „Wróć do …” (tylko gdy pokój jeszcze istnieje), jedyny wypełniony przycisk ekranu („Utwórz pokój”) na pełną szerokość, pod nim „Albo wpisz kod” i cztery komórki kodu.
-Komórki to jedno prawdziwe, niewidoczne pole nad nimi, a aktywna ma ramkę i obrys `accent`. Ostatni znak dołącza od razu; „Dołącz” pojawia się wypełniony tylko przy pełnym kodzie (kod z linku, ponowna próba, łączenie), a „Utwórz pokój” ma wtedy obrys.
-Nick to kółko z inicjałem w nagłówku (tło `line`), obok pucharu. W sekcji „Sam” kaflem jest tylko wyzwanie dnia, w całości przycisk: ikona gry w kwadracie `accent-soft`, `.label`, nazwa pogrubiona, jedna linia stanu i ikona „Zagraj” w kółku z obrysem.
-Podpowiedzi rekordów leżą pod nim bez ramki: nazwa, powód („Do pobicia”, „Do obrony”) i jedna liczba mono po prawej.
+Komórki to jedno prawdziwe, niewidoczne pole nad nimi, a aktywna ma ramkę i obrys `accent`; pusta ma nieruchomą kropkę `fg-subtle` (bez migającego kursora, bo pętli nie ma). Ostatni znak dołącza od razu; „Dołącz” pojawia się wypełniony tylko przy pełnym kodzie (kod z linku, ponowna próba, łączenie), a „Utwórz pokój” ma wtedy obrys.
+Nick to kółko z inicjałem w nagłówku (tło `line`), obok pucharu; zaraz po zapisaniu nicku jedno zdanie `fg-muted` pod nagłówkiem mówi, jak go zmienić. W sekcji „Sam” kaflem jest tylko wyzwanie dnia, w całości przycisk: ikona gry w kwadracie `accent-soft`, `.label`, nazwa pogrubiona, jedna linia stanu i ikona „Zagraj” w kółku z obrysem.
+Podpowiedzi rekordów leżą pod nim bez ramki: nazwa, powód („Do pobicia · masz 6,0%”, „Do obrony”) i rekord mono po prawej.
 
 Do skopiowania: jedna akcja wypełniona, kafel tylko dla tego, co ma się wyróżniać, a nie dla każdej grupy; podpis sekcji z małą ikoną leży nad treścią, nie w niej.
 
