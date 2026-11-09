@@ -3,7 +3,7 @@
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 15-jak-grac
 Task: none
-Next: close phase 15 (/telos:done)
+Next: close phase 15 (/telos:done) lub najpierw zadanie na wady 1-2
 Blockers: none
 Awaiting user: 08, 09, 12
 <!-- Blockers: "NN-MM: reason". Awaiting user: IDs only, e.g. "02:Q-01, 02:D-03" -->
@@ -15,6 +15,6 @@ Awaiting user: 08, 09, 12
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
+- 15-06 done: odbiór techniczny Jak grać; wada: Kampus Tour bez ikony w partii
 - 15-06 done: odbiór techniczny kart Jak grać, 5 wad do osobnego zadania
 - 15-05 done: karta Kampus Tour, strażnik kompletu, dokumenty
-- 15-04 done: karty siedmiu starszych gier głównych
