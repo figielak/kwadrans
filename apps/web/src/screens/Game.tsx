@@ -21,6 +21,7 @@ import { decisionKey, VIBRATE } from "../vibrate.ts";
 import { formatBest, formatGap, formatRecord, RecordPanel } from "./Records.tsx";
 import { heroResult, reducedMotion, shouldReveal } from "./results.ts";
 import { type GameDot, GameDots, HeroSlot, IntroContext, LiveBoard, LiveGameDots, Moment, ReactionBar, ReactionOverlay, ReactionToggle, EveningTable, ResultDetails, ResultHero, Screen, StickyBar, type Send, VoteCards } from "./ui.tsx";
+import { RulesButton } from "./HowToPlay.tsx";
 import { ICONS } from "./Lobby.tsx";
 
 interface Props {
@@ -431,7 +432,12 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
                   {compact && !open && !myTurn && !turnOf && game.waitingFor.length > 1 ? `Czekamy na: ${game.waitingFor.length} graczy` : status}
                 </h1>
               )}
-              {reactable && view.phase === "playing" && <ReactionToggle onReact={react} />}
+              {(reactable || view.phase === "playing") && (
+                <div className="-my-3 ml-auto flex shrink-0 items-center">
+                  {view.phase === "playing" && <RulesButton gameId={def.id} />}
+                  {reactable && view.phase === "playing" && <ReactionToggle onReact={react} />}
+                </div>
+              )}
               {dots && !compact && (
                 <div className={reveal ? "invisible" : undefined}>
                   <LiveGameDots {...liveProps} reactions={reactionStore} dots={dots} square={!!table} open={open} onToggle={() => setOpen(!open)} />
@@ -596,6 +602,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
               waitingFor={game.waitingFor}
               ranking={game.result?.ranking}
               timer={ownHeader && <Countdown game={game} total={def.turn?.(game.view).seconds} color={turnColor} tense />}
+              help={ownHeader && <RulesButton gameId={def.id} />}
               onMove={(move) => send("move", move)}
             />
           )}
@@ -608,6 +615,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
               players={view.players}
               ranking={game.result?.ranking}
               timer={ownHeader && <Countdown game={drawTime ?? game} total={drawTime?.total ?? def.turn?.(game.view).seconds} color={turnColor} tense />}
+              help={ownHeader && <RulesButton gameId={def.id} />}
               onMove={(move) => send("move", move)}
             />
           )}

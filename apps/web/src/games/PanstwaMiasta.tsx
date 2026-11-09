@@ -13,13 +13,15 @@ interface Props {
   ranking?: string[];
   /** Pasek czasu fazy; bez niego (koniec partii) nagłówek gry chowa się, bo pokazuje go ekran gry. */
   timer?: ReactNode;
+  /** Ikona „Jak grać” z ekranu gry; stoi w nagłówku obok paska czasu. */
+  help?: ReactNode;
   onMove: (move: PanstwaMiastaMove) => void;
 }
 
 const DRAFT_MS = 500;
 const PHASE = { write: "Wpisywanie", vote: "Sprawdzanie odpowiedzi", summary: "Wyniki rundy", over: "" };
 
-export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, onMove }: Props) {
+export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, help, onMove }: Props) {
   const player = (id: string) => players.find((p) => p.id === id);
   const letter = view.letters[view.round];
   const playing = view.players.includes(me);
@@ -38,8 +40,11 @@ export function PanstwaMiasta({ view, me, players, waitingFor, ranking, timer, o
             {letter}
           </span>
           <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <span className="label">
-              Runda {view.round + 1}/{view.letters.length}
+            <span className="flex items-center justify-between gap-2">
+              <span className="label">
+                Runda {view.round + 1}/{view.letters.length}
+              </span>
+              {help}
             </span>
             {/* Faza w moim kolorze, gdy czekamy na mnie (jak „Twój ruch” w innych grach). */}
             <h1 className="text-xl leading-tight font-semibold" style={playing && waitingFor.includes(me) ? { color: player(me)?.color } : undefined}>

@@ -2,7 +2,7 @@
 id: 15-03
 title: "Jak grać w ekranie gry i nagłówku partii"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [15-02]         # task IDs, e.g. [01-01]
@@ -50,11 +50,13 @@ Pokazać „Jak grać” w kafelku ekranu gry i jako ikonę „?” w trakcie pa
 - Sprawdzić w `/dev?n=3` otwarcie, Esc, zamknięcie tłem i że okienko przeżywa nowy ruch innego gracza.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm run typecheck` → exit 0
-- [ ] `pnpm run test` → exit 0
-- [ ] `pnpm --filter web build` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm run typecheck` → exit 0
+- [x] `pnpm run test` → exit 0
+- [x] `pnpm --filter web build` → exit 0
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+`RulesDetails` stoi w `Setup` pod opisem (gospodarz i goście, `TournamentSetup` bez zmian); `RulesButton` w nagłówku `Game` obok `ReactionToggle` tylko w fazie `playing`, w jednym wrapperze o stabilnej pozycji; PanstwaMiasta i Kalambury dostały prop `help` obok licznika rundy.
+Testy: 4 nowe w `lists.test.ts` (RED na asercjach o braku „Jak grać”/`help`); pełny `pnpm run test` zielony (web 572), build przechodzi. Testy ekranów obu gier sprawdzają `help` przez źródło, bo ich widoki są zbyt rozbudowane do renderu.
+`/dev?n=3` (Sabotaż): sekcja zwinięta i rozwija się u gospodarza i gości; ikona 48×48, okienko otwiera się, zamyka Esc, X i tłem, a po zmianie fazy i tury u innych zostaje otwarte.
+Deviations: none

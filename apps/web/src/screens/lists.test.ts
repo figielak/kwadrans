@@ -3,8 +3,14 @@ import { join } from "node:path";
 import { GAMES, MINI_GAME_IDS, PLAYER_COLORS, type RoomView } from "@kwadrans/games";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { BLURBS, ICONS, Lobby, wishDots } from "./Lobby.tsx";
+import { Setup } from "./Setup.tsx";
+
+// Setup przez MiniGames i net.ts czyta `location` już przy imporcie; testy idą w node.
+vi.hoisted(() => {
+  Object.assign(globalThis, { location: { hostname: "localhost", origin: "http://localhost", search: "" } });
+});
 
 // P4-034: lista mini-gier z rejestru, Sudoku montuje się po nonce, Turniej ma jeden przyklejony pasek.
 const src = new URL(".", import.meta.url).pathname;
@@ -161,4 +167,46 @@ test("08-08: kolor poświaty w Podróbce to własny kolor czekającego, a nie je
   const focus = game.slice(game.indexOf("const focus ="), game.indexOf("const turnColor"));
   expect(focus).toMatch(/"podrobka"[\s\S]*game\.waitingFor\.includes\(me\)\s*\?\s*me/);
   expect(game).toMatch(/const SIMULTANEOUS = new Set\(\[[^\]]*"podrobka"/);
+});
+
+// 15-03: „Jak grać” w kafelku ekranu gry i jako ikona w nagłówku partii.
+const setupHtml = (gameId: string) => {
+  const view: RoomView = {
+    code: "ABCD", hostId: "p1", phase: "lobby", solo: false, gameId, mode: null,
+    players: Array.from({ length: 3 }, (_, i) => ({ id: `p${i + 1}`, nick: `Gracz ${i + 1}`, color: PLAYER_COLORS[i], connected: true, ready: false })),
+    seats: ["p1", "p2", "p3"], tournament: null, markedBy: {}, scores: {}, game: null, wishes: {}, vote: null,
+    evening: { games: 0, played: [], table: [], titles: [] },
+  };
+  return renderToStaticMarkup(createElement(Setup, { view, me: "p1", dropped: false, send: () => {}, onLeave: () => {} }));
+};
+
+test("15-03: Setup gry z kartą ma „Jak grać” za opisem", () => {
+  const html = setupHtml("sabotaz");
+  expect(html).toContain("Jak grać");
+  expect(html.indexOf(BLURBS.sabotaz!)).toBeGreaterThan(-1);
+  expect(html.indexOf(BLURBS.sabotaz!)).toBeLessThan(html.indexOf("Jak grać"));
+});
+
+test("15-03: TournamentSetup nie pokazuje „Jak grać”", () => {
+  const setup = read("Setup.tsx");
+  expect(setup).toContain("<RulesDetails");
+  expect(setup.slice(setup.indexOf("export function TournamentSetup"))).not.toContain("Rules");
+});
+
+test("15-03: Game montuje RulesButton tylko w fazie playing i przekazuje help grom z własnym nagłówkiem", () => {
+  const game = read("Game.tsx");
+  expect(game).toMatch(/view\.phase === "playing" && <RulesButton gameId=\{def\.id\} \/>/);
+  for (const name of ["PanstwaMiasta", "Kalambury"]) {
+    const mount = game.slice(game.indexOf(`<${name}\n`), game.indexOf("onMove", game.indexOf(`<${name}\n`)));
+    expect(mount, name).toMatch(/help=\{ownHeader && <RulesButton gameId=\{def\.id\} \/>\}/);
+  }
+});
+
+test("15-03: PanstwaMiasta i Kalambury renderują help w nagłówku z timerem", () => {
+  for (const name of ["PanstwaMiasta", "Kalambury"]) {
+    const src2 = readFileSync(join(src, "..", "games", `${name}.tsx`), "utf8");
+    expect(src2, name).toMatch(/help\?: ReactNode/);
+    const header = src2.slice(src2.indexOf("{timer && ("), src2.indexOf("</header>"));
+    expect(header, name).toContain("{help}");
+  }
 });

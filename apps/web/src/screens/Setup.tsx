@@ -1,6 +1,7 @@
 import { Check, Minus, Play, Plus, Prohibit, Trophy } from "@phosphor-icons/react";
 import { GAMES, MAX_PLAYERS, MIN_LENGTH, type RoomView } from "@kwadrans/games";
 import { BLURBS, ICONS, MINI_GAMES, Players, seats, StartBar } from "./Lobby.tsx";
+import { RulesDetails } from "./HowToPlay.tsx";
 import { SECTIONS } from "./MiniGames.tsx";
 import { plural } from "./Records.tsx";
 import { PlayerDots, Screen, type Send, TopBar } from "./ui.tsx";
@@ -37,6 +38,8 @@ export function Setup({ view, me, dropped, send, onLeave }: Props) {
         </div>
         <p className="mt-3 text-sm text-fg-muted">{BLURBS[def.id]}</p>
       </section>
+
+      <RulesDetails gameId={def.id} />
 
       {def.modes && (
         <section className="flex flex-col gap-2" role="radiogroup" aria-label="Tryb">
