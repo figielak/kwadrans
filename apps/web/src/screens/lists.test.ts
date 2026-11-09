@@ -65,6 +65,12 @@ test("lobby od dwóch osób: gracze to awatary, kolory są zwinięte pod własny
   expect(html).toContain('aria-label="Gospodarz"');
 });
 
+test("lobby: gospodarz może dotknąć cudzego awatara, żeby wyrzucić, gość nie", () => {
+  expect(lobby(3)).toContain('aria-label="Gracz 2, wyrzuć z pokoju"');
+  expect(lobby(3)).not.toContain('aria-label="Gracz 1, wyrzuć z pokoju"');
+  expect(lobby(3, "p2")).not.toContain("wyrzuć z pokoju");
+});
+
 test("lobby: „Zaproś” jest tylko przy wolnym miejscu, sam w pokoju zostaje duży kod z kolorami", () => {
   expect(lobby(5)).toContain("Zaproś");
   expect(lobby(6)).not.toContain("Zaproś");

@@ -50,6 +50,7 @@ import {
   TextAa,
   Timer,
   Trophy,
+  X,
 } from "@phosphor-icons/react";
 import { DEFAULT_LENGTH, GAMES, initials, type LobbyPlayer, MAX_PLAYERS, MINI_GAME_IDS, PLAYER_COLORS, QUICK_SERIES_LENGTH, type RoomView } from "@kwadrans/games";
 import { type ReactNode, useState } from "react";
@@ -172,7 +173,10 @@ export function wishDots(view: Pick<RoomView, "players" | "wishes">): Record<str
 /** Lobby od dwóch osób: rząd awatarów, kolor zmienia się po dotknięciu własnego, wolne miejsce zaprasza. */
 function PlayerRow({ view, me, send }: { view: RoomView; me: string; send: Send }) {
   const [editing, setEditing] = useState(false);
+  const [kickId, setKickId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const isHost = view.hostId === me;
+  const kickTarget = view.players.find((p) => p.id === kickId);
   const labels = initials(view.players.map((p) => p.nick));
   const free = view.players.length < MAX_PLAYERS;
 
@@ -195,7 +199,7 @@ function PlayerRow({ view, me, send }: { view: RoomView; me: string; send: Send 
             <>
               <span className="relative size-11 shrink-0">
                 <span
-                  className={`grid size-full place-items-center rounded-full font-mono tabular-nums text-sm font-medium text-bg ${p.connected ? "" : "opacity-40"} ${mine && editing ? "outline-2 outline-offset-2 outline-fg" : ""}`}
+                  className={`grid size-full place-items-center rounded-full font-mono tabular-nums text-sm font-medium text-bg ${p.connected ? "" : "opacity-40"} ${(mine && editing) || p.id === kickId ? "outline-2 outline-offset-2 outline-fg" : ""}`}
                   style={{ backgroundColor: p.color }}
                   aria-hidden
                 >
@@ -204,6 +208,11 @@ function PlayerRow({ view, me, send }: { view: RoomView; me: string; send: Send 
                 {host && (
                   <span className="absolute -top-1 -right-1 grid size-5 place-items-center rounded-full bg-bg">
                     <Crown size={12} weight="fill" aria-label="Gospodarz" />
+                  </span>
+                )}
+                {isHost && !p.connected && (
+                  <span className="absolute -right-1 -bottom-1 grid size-5 place-items-center rounded-full bg-bg">
+                    <X size={12} weight="bold" aria-hidden />
                   </span>
                 )}
               </span>
@@ -219,7 +228,11 @@ function PlayerRow({ view, me, send }: { view: RoomView; me: string; send: Send 
           return (
             <li key={p.id} className="min-w-0">
               {mine ? (
-                <button type="button" className={cell} aria-expanded={editing} aria-label={`${p.nick} (ty)${host ? ", gospodarz" : ""}, zmień kolor`} onClick={() => setEditing(!editing)}>
+                <button type="button" className={cell} aria-expanded={editing} aria-label={`${p.nick} (ty)${host ? ", gospodarz" : ""}, zmień kolor`} onClick={() => { setEditing(!editing); setKickId(null); }}>
+                  {body}
+                </button>
+              ) : isHost ? (
+                <button type="button" className={cell} aria-expanded={p.id === kickId} aria-label={`${p.nick}, wyrzuć z pokoju`} onClick={() => { setKickId(p.id === kickId ? null : p.id); setEditing(false); }}>
                   {body}
                 </button>
               ) : (
@@ -240,6 +253,25 @@ function PlayerRow({ view, me, send }: { view: RoomView; me: string; send: Send 
         )}
       </ul>
       {editing && <ColorPicker view={view} me={me} send={send} onPicked={() => setEditing(false)} />}
+      {kickTarget && (
+        <div className="mt-2 flex flex-col gap-2">
+          {/* Osobna linia: nick to najważniejsza informacja tej decyzji, więc nie może się uciąć. */}
+          <p className="px-1 text-center text-sm wrap-anywhere">Wyrzucić {kickTarget.nick}?</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button type="button" className="btn btn-ghost" onClick={() => setKickId(null)}>Anuluj</button>
+            <button
+              type="button"
+              className="btn btn-ghost text-warning"
+              onClick={() => {
+                send("kick", { id: kickTarget.id });
+                setKickId(null);
+              }}
+            >
+              Wyrzuć
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

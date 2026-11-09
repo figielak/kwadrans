@@ -100,6 +100,7 @@ Do skopiowania: gdy ekran ma jedną informację do przekazania, powiększ ją i 
 Ten rozmiar kod ma tylko, gdy gracz jest sam w pokoju i musi go przekazać. Od dwóch osób zwija się do `TopBar` (kod mono 18 px z udostępnianiem), a gracze bez wybranej gry to rząd awatarów bez kafla:
 kółko 44 px w kolorze gracza z inicjałem (`initials`), pod nim skracany nick, korona w rogu kółka. Kolumny dzielą całą szerokość, przy wolnym miejscu ostatnia to przerywane kółko „Zaproś” (udostępnia link).
 Kolory są zwinięte: rozwija je dotknięcie własnego awatara (podpis „ty” z ołówkiem, obrys `fg` w trakcie), a wybór koloru zwija je z powrotem.
+Gospodarz dotyka cudzego awatara, żeby go wyrzucić: w tym samym miejscu pojawia się „Wyrzucić …?” z „Anuluj” i „Wyrzuć” (obrys, tekst `warning`). Rozłączony ma u gospodarza znaczek X w rogu kółka.
 Zestawy i gry mają kafle z pełnym tłem `surface` i ikoną w neutralnym kwadracie 36 px (tło `line`, bez koloru na grę). Gry dzielą się na „Planszowe” i „Towarzyskie”, w każdej grupie te, do których brakuje osób, stoją na końcu.
 Gry, które nie zmieszczą tylu osób, nie mają kafli: to jedno zdanie pod listą („Nie dla 3 osób: Gomoku, Statki (tylko 2 os.)”).
 Na dole leży `StickyBar`, w tym samym miejscu co „Zagraj” na ekranie gry: u gospodarza wypełniona „Szybka seria”, jedyna główna akcja lobby, u gościa podpowiedź, kto wybiera grę.
