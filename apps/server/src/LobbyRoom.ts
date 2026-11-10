@@ -34,6 +34,7 @@ import {
   placesFromResult,
   REMATCH_INTRO_SECONDS,
   type Rng,
+  KICKED_CLOSE_CODE,
   ROOM_MESSAGES,
   roomCode,
   soloState,
@@ -98,6 +99,8 @@ export class LobbyRoom extends Room {
   private vote: { options: string[]; votes: Record<string, string> } | null = null;
   /** Życzenia gości w lobby: gracz → gra. */
   private wishes: Record<string, string> = {};
+  /** Rozłączeni, na których powrót czekamy; wyrzucenie anuluje czekanie. */
+  private awaitingReturn = new Map<string, ReturnType<Room["allowReconnection"]>>();
   private match: Match | null = null;
   private turnTimer?: Timer;
   private turnEndsAt: number | null = null;
@@ -202,6 +205,15 @@ export class LobbyRoom extends Room {
       else if (this.seats.length < max) this.seats = [...this.seats, id];
     });
 
+    // Także rozłączonego, który inaczej trzymałby miejsce i blokował start przez czas powrotu. Wrócić można tym samym kodem.
+    this.on("kick", (client, { id }) => {
+      if (!this.isHost(client) || this.phase !== "lobby" || id === client.sessionId || !this.players.has(id)) return;
+      this.awaitingReturn.get(id)?.reject();
+      this.clients.find((c) => c.sessionId === id)?.leave(KICKED_CLOSE_CODE);
+      // Od razu, bo martwe połączenie zamyka się dopiero po chwili i nie może wtedy przejść w czekanie na powrót.
+      this.removePlayer(id);
+    });
+
     // Kolor zmienia się poza partią; zajętego przez kogoś innego nie da się wziąć.
     this.on("pickColor", (client, { color }) => {
       const player = this.players.get(client.sessionId);
@@ -295,6 +307,13 @@ export class LobbyRoom extends Room {
       if (!this.isHost(client) || this.phase !== "over" || this.solo) return;
       this.toLobby();
     });
+
+    // Gospodarz przerywa trwającą partię. Bez finish: przerwana partia nie rozlicza się, a w ostatniej grze turnieju nie wyłania mistrza.
+    this.on("stopGame", (client) => {
+      if (!this.isHost(client) || this.phase !== "playing" || this.solo) return;
+      this.measure("aborted");
+      this.toLobby();
+    });
   }
 
   onAuth(_client: Client, options: { nick?: unknown }, context: AuthContext) {
@@ -340,32 +359,41 @@ export class LobbyRoom extends Room {
     if (code !== CloseCode.CONSENTED) {
       player.connected = false;
       this.update();
+      const reconnection = this.allowReconnection(client, RECONNECT_SECONDS);
+      this.awaitingReturn.set(client.sessionId, reconnection);
       try {
-        await this.allowReconnection(client, RECONNECT_SECONDS);
+        await reconnection;
         player.connected = true;
         this.update();
         return;
       } catch {
-        // nie wrócił na czas
+        // nie wrócił na czas albo został wyrzucony
+      } finally {
+        this.awaitingReturn.delete(client.sessionId);
       }
     }
-    this.players.delete(client.sessionId);
-    this.messageCounts.delete(client.sessionId);
-    this.liveCounts.delete(client.sessionId);
-    this.reactCounts.delete(client.sessionId);
-    delete this.wishes[client.sessionId];
-    if (this.hostId === client.sessionId) this.hostId = this.players.keys().next().value ?? "";
-    if (this.seats.includes(client.sessionId)) {
-      this.seats = this.seats.filter((s) => s !== client.sessionId);
+    this.removePlayer(client.sessionId);
+    this.update();
+  }
+
+  /** Usuwa gracza z pokoju i rozlicza jego miejsce; drugie wywołanie dla tej samej osoby nic nie zmienia. */
+  private removePlayer(id: string) {
+    this.players.delete(id);
+    this.messageCounts.delete(id);
+    this.liveCounts.delete(id);
+    this.reactCounts.delete(id);
+    delete this.wishes[id];
+    if (this.hostId === id) this.hostId = this.players.keys().next().value ?? "";
+    if (this.seats.includes(id)) {
+      this.seats = this.seats.filter((s) => s !== id);
       // Walkower: w grze 1v1 wygrywa ten, kto został. W turnieju gra przepada bez punktów, a turniej trwa.
       if (this.phase === "playing") {
         const walkover = this.seats.length === 1 && !this.tournament;
         this.finish(walkover ? { winner: this.seats[0] } : {}, walkover ? "walkover" : "aborted");
       }
-      else if (this.vote) this.voteAfterLeave(client.sessionId);
+      else if (this.vote) this.voteAfterLeave(id);
       else this.maybeRematch();
     }
-    this.update();
   }
 
   onDispose() {

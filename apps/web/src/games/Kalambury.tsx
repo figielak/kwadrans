@@ -1,7 +1,7 @@
-import { ArrowCounterClockwise, Check, Eraser, PencilSimple, Trash } from "@phosphor-icons/react";
-import { KALAMBURY_ANSWER_MAX, KALAMBURY_BATCH_POINTS, KALAMBURY_ERASER, KALAMBURY_MAX_POINTS, KALAMBURY_SIDE, type KalamburyMove, type KalamburyStroke, type KalamburyView, type LobbyPlayer } from "@kwadrans/games";
+import { ArrowCounterClockwise, Check, Eraser, PaperPlaneRight, PencilSimple, Trash } from "@phosphor-icons/react";
+import { initials, KALAMBURY_ANSWER_MAX, KALAMBURY_BATCH_POINTS, KALAMBURY_ERASER, KALAMBURY_MAX_POINTS, KALAMBURY_SIDE, type KalamburyMove, type KalamburyStroke, type KalamburyView, type LobbyPlayer } from "@kwadrans/games";
 import { type FormEvent, type PointerEvent, type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Scores, StickyBar } from "../screens/ui.tsx";
+import { Scores, StickyBar, useKeyboardOpen } from "../screens/ui.tsx";
 
 interface Props {
   view: KalamburyView;
@@ -34,6 +34,16 @@ const ERASER_WIDTH = 40;
 const CONFIRM_MS = 3000;
 /** Ile ostatnich pudeł widać pod rysunkiem. */
 const CHAT_LINES = 3;
+/** Poniżej tej wysokości ekranu rysujący widzi jeden strzał: płótno jest ważniejsze. */
+const ROOMY_PX = 720;
+
+const outcome = (v: KalamburyView) => (v.guessed.length ? `Zgadło ${v.guessed.length} z ${v.players.length - 1}` : "Nikt nie zgadł");
+
+/** „6 liter”, „2 litery”, „1 litera”. */
+function lettersLabel(n: number) {
+  const few = n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14);
+  return `${n} ${n === 1 ? "litera" : few ? "litery" : "liter"}`;
+}
 
 export function Kalambury({ view, me, players, ranking, timer, help, onMove }: Props) {
   const player = (id: string) => players.find((p) => p.id === id);
@@ -41,50 +51,75 @@ export function Kalambury({ view, me, players, ranking, timer, help, onMove }: P
   const drawing = view.drawer === me;
   const guessing = view.players.includes(me) && !drawing;
   const live = view.phase === "choose" || view.phase === "draw";
+  const keyboard = useKeyboardOpen();
+  // Zgadujący pisze: zostają hasło, czas, rysunek i pole.
+  const compact = keyboard && view.phase === "draw" && guessing;
+  const big = !compact && view.phase !== "choose";
+  const labels = initials(view.players.map(nick));
+  const dots = view.players.map((id, i) => ({ id, label: labels[i] })).sort((a, b) => Number(b.id === me) - Number(a.id === me));
 
   return (
     <div className="flex flex-1 flex-col gap-3">
+      {/* Wszystko w jednym nagłówku, bo jego wysokość mierzy płótno. Pozycje dzieci są stałe: przestawiony pasek czasu liczyłby od nowa. */}
       {timer && (
-        <header className="flex flex-col gap-2">
-          <div className="flex items-center justify-between gap-2">
-            <span className="label min-w-0">
-              Runda {view.round + 1}/{view.rounds} · {drawing ? "rysujesz" : `rysuje ${nick(view.drawer)}`}
-            </span>
-            {help}
-          </div>
+        <header className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          {!compact && (
+            <div className="flex w-full items-center justify-between gap-2">
+              <span className="label min-w-0">
+                Runda {view.round + 1}/{view.rounds} · {view.phase === "reveal" ? "to było" : drawing ? "rysujesz" : `rysuje ${nick(view.drawer)}`}
+                {!view.players.includes(me) && " · oglądasz"}
+              </span>
+              {help}
+            </div>
+          )}
           {/* Tytuł w kolorze gracza tylko u rysującego: to jego tura, jak „Twój ruch” w innych grach. */}
-          <h1 className="text-xl leading-tight font-semibold" style={drawing && live ? { color: player(me)?.color } : undefined}>
+          <h1 className={`leading-tight font-semibold ${compact ? "text-xl" : "w-full"} ${big ? "text-3xl" : "text-xl"}`} style={drawing && live ? { color: player(me)?.color } : undefined}>
             {view.phase === "choose" ? (
               drawing ? "Wybierz hasło" : `${nick(view.drawer)} wybiera hasło`
             ) : view.word ? (
               view.word
             ) : (
-              <span role="img" className="font-mono tabular-nums tracking-[0.3em]" aria-label={`Hasło, liter: ${view.hint.length}${view.revealed.length ? `, odsłonięta: ${view.hint.replace(/_/g, "")}` : ""}`}>
-                {view.hint}
-              </span>
+              <>
+                <span role="img" className="font-mono tabular-nums tracking-[0.3em]" aria-label={`Hasło, liter: ${view.hint.length}${view.revealed.length ? `, odsłonięta: ${view.hint.replace(/_/g, "")}` : ""}`}>
+                  {view.hint}
+                </span>
+                {!compact && <span className="ml-1 text-sm font-normal whitespace-nowrap text-fg-muted" aria-hidden>{lettersLabel(view.hint.replace(/ /g, "").length)}</span>}
+              </>
             )}
           </h1>
-          {timer}
+          {view.phase === "reveal" && <p className="w-full text-sm text-fg-muted">{outcome(view)}</p>}
+          {/* Kropki mają stałą szerokość i odznaki poza układem: 6 osób w linii, a trafienie nie zmienia rozmiaru płótna. W odsłonie punkty są w tabeli. */}
+          {!compact && view.phase !== "reveal" && (
+            <ul className="flex w-full items-center gap-2" aria-label="Gracze">
+              {dots.map(({ id, label }) => (
+                <li key={id} className="flex w-12 shrink-0 items-center gap-1">
+                  <span className="relative shrink-0">
+                    <span className={`grid size-7 place-items-center rounded-full text-[11px] font-semibold text-bg ${id === me ? "outline-1 outline-offset-2 outline-fg-muted" : ""}`} style={{ backgroundColor: player(id)?.color }} aria-hidden>
+                      {label}
+                    </span>
+                    {id === view.drawer && (
+                      <span className="absolute -right-1 -bottom-1 grid size-4 place-items-center rounded-full border border-line bg-bg">
+                        <PencilSimple size={10} weight="bold" className="text-fg" aria-label="rysuje" />
+                      </span>
+                    )}
+                    {view.guessed.includes(id) && (
+                      <span className="absolute -right-1 -bottom-1 grid size-4 place-items-center rounded-full border border-line bg-bg">
+                        <Check size={10} weight="bold" className="text-success" aria-label="trafione" />
+                      </span>
+                    )}
+                  </span>
+                  <span className="font-mono text-xs text-fg-muted tabular-nums" aria-hidden>{view.totals[id]}</span>
+                  <span className="sr-only">
+                    {nick(id)}
+                    {id === me && " (ty)"}, {view.totals[id]} pkt
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {/* Czas tuż nad płótnem; przy klawiaturze w jednym wierszu z hasłem. */}
+          <div className={compact ? "min-w-24 flex-1" : "-mb-1.5 w-full"}>{timer}</div>
         </header>
-      )}
-
-      {/* Gracze z punktami: ołówek przy rysującym, fajka przy tych, którzy zgadli. */}
-      {timer && (
-        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" aria-label="Gracze">
-          {view.players.map((id) => (
-            <li key={id} className={`flex items-center gap-1.5 ${id === view.drawer || view.guessed.includes(id) ? "" : "text-fg-muted"}`}>
-              <span className="relative size-2.5 shrink-0 rounded-full" style={{ backgroundColor: player(id)?.color }} aria-hidden>
-                {id === me && <span className="absolute top-full left-1/2 mt-0.5 h-0.5 w-3 -translate-x-1/2 rounded-full" style={{ backgroundColor: player(id)?.color }} />}
-              </span>
-              {nick(id)}
-              {id === me && <span className="text-fg-muted">(ty)</span>}
-              <span className="font-mono text-fg-muted tabular-nums">{view.totals[id]}</span>
-              {id === view.drawer && <PencilSimple size={14} weight="bold" aria-label="rysuje" />}
-              {view.guessed.includes(id) && <Check size={14} weight="bold" className="text-success" aria-label="trafione" />}
-            </li>
-          ))}
-          {!view.players.includes(me) && <li className="ml-auto text-fg-muted">Oglądasz</li>}
-        </ul>
       )}
 
       {/* Hasła przy dolnej krawędzi, w zasięgu kciuka; w pustym miejscu wyjaśnienie, co zrobi limit. */}
@@ -99,54 +134,62 @@ export function Kalambury({ view, me, players, ranking, timer, help, onMove }: P
         </div>
       )}
 
-      {view.phase === "draw" && drawing && <Pad key={view.round} view={view} onMove={onMove} />}
+      {view.phase === "draw" && drawing && <Pad key={view.round} view={view} nick={nick} onMove={onMove} />}
 
       {((view.phase === "choose" && !drawing) || (view.phase === "draw" && !drawing)) && (
-        <Guess view={view} me={me} color={player(me)?.color} canGuess={guessing && view.phase === "draw"} nick={nick} onMove={onMove} />
+        <Guess view={view} me={me} color={player(me)?.color} canGuess={guessing && view.phase === "draw"} compact={compact} nick={nick} onMove={onMove} />
       )}
 
-      {(view.phase === "reveal" || view.phase === "over") && (
-        <>
-          {/* Po partii własnego nagłówka nie ma, więc ostatnie hasło stoi nad rysunkiem. */}
-          {!timer && (
-            <p className="text-xl font-semibold">
-              <span className="label mr-2 font-normal">Ostatnie hasło</span>
-              {view.word}
-            </p>
-          )}
-          <Canvas strokes={view.strokes} />
-          <ul className="tile flex flex-col gap-1 p-4 text-sm" aria-label="Punkty rundy">
-            <li className="label mb-1">Runda {view.round + 1}</li>
-            {view.guessed.length === 0 && <li className="text-fg-muted">Nikt nie zgadł.</li>}
-            {[view.drawer, ...view.guessed].map((id) => (
-              <li key={id} className="flex items-center gap-2">
-                <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: player(id)?.color }} aria-hidden />
-                {nick(id)}
-                <span className="text-fg-muted">{id === view.drawer ? "za rysunek" : "trafienie"}</span>
-                <span className="ml-auto font-mono tabular-nums">+{view.roundScores[id] ?? 0}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="label -mb-1 px-1">Suma punktów</p>
-          <Scores
-            rows={(ranking ?? [...view.players].sort((a, b) => view.totals[b] - view.totals[a])).map((id) => ({
-              id,
-              nick: nick(id),
-              color: player(id)?.color,
-              me: id === me,
-              score: String(view.totals[id]),
-            }))}
-          />
-          {view.phase === "reveal" && view.players.includes(me) && (
-            <StickyBar>
-              <button type="button" className="btn w-full btn-player" style={{ backgroundColor: player(me)?.color }} disabled={view.ready.includes(me)} onClick={() => onMove({ type: "next" })}>
-                {view.ready.includes(me) ? `Czekamy na: ${view.players.filter((p) => !view.ready.includes(p)).map(nick).join(", ")}…` : "Dalej"}
-              </button>
-            </StickyBar>
-          )}
-        </>
-      )}
+      {(view.phase === "reveal" || view.phase === "over") && <Outcome view={view} me={me} ranking={ranking} color={(id) => player(id)?.color} nick={nick} onMove={onMove} />}
     </div>
+  );
+}
+
+/** Rysunek i wyniki po rundzie. Odsłona trwa chwilę, więc mieści się bez przewijania: płótno dostaje to, co zostaje po tabeli. Po partii ekran i tak się przewija. */
+function Outcome({ view, me, ranking, color, nick, onMove }: { view: KalamburyView; me: string; ranking?: string[]; color: (id: string) => string | undefined; nick: (id: string) => string; onMove: Props["onMove"] }) {
+  const reveal = view.phase === "reveal";
+  const top = useRef<HTMLDivElement>(null);
+  const controls = useRef<HTMLDivElement>(null);
+  const size = useCanvasSize(top, controls, reveal);
+  return (
+    <>
+      {/* Po partii własnego nagłówka nie ma, więc ostatnie hasło stoi nad rysunkiem. */}
+      {!reveal && (
+        <div>
+          <p className="text-xl font-semibold">
+            <span className="label mr-2 font-normal">Ostatnie hasło</span>
+            {view.word}
+          </p>
+          <p className="text-sm text-fg-muted">{outcome(view)}</p>
+        </div>
+      )}
+      <div ref={top}>{view.strokes.length ? <Canvas strokes={view.strokes} size={reveal ? size : undefined} /> : <p className="tile p-4 text-center text-sm text-fg-muted">Bez rysunku</p>}</div>
+      <div ref={controls} className="mt-auto flex flex-col gap-3">
+        <Scores
+          rows={(ranking ?? [...view.players].sort((a, b) => view.totals[b] - view.totals[a])).map((id) => ({
+            id,
+            nick: nick(id),
+            color: color(id),
+            me: id === me,
+            score: String(view.totals[id]),
+            // Punkty tej rundy przy sumie; zero nic nie mówi, więc go nie ma.
+            detail: (
+              <span className="flex items-center gap-1.5 font-mono text-sm text-fg-muted tabular-nums">
+                {id === view.drawer && <PencilSimple size={14} weight="bold" aria-label="rysunek" />}
+                {view.roundScores[id] > 0 && `+${view.roundScores[id]}`}
+              </span>
+            ),
+          }))}
+        />
+        {reveal && view.players.includes(me) && (
+          <StickyBar>
+            <button type="button" className="btn w-full btn-player" style={{ backgroundColor: color(me) }} disabled={view.ready.includes(me)} onClick={() => onMove({ type: "next" })}>
+              {view.ready.includes(me) ? `Czekamy na: ${view.players.filter((p) => !view.ready.includes(p)).map(nick).join(", ")}…` : "Dalej"}
+            </button>
+          </StickyBar>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -183,7 +226,7 @@ const path = (s: number[]) => "M" + s.slice(0, 2).join(" ") + s.reduce((d, n, i)
  * Płótno rysującego. Rysunek żyje lokalnie (bez czekania na serwer), na serwer leci w paczkach co SEND_MS.
  * Start z rysunku z serwera, więc po odświeżeniu strony nic nie znika.
  */
-function Pad({ view, onMove }: { view: KalamburyView; onMove: Props["onMove"] }) {
+function Pad({ view, nick, onMove }: { view: KalamburyView; nick: (id: string) => string; onMove: Props["onMove"] }) {
   const [strokes, setStrokes] = useState(view.strokes);
   /** To samo co `strokes`, ale od razu po zmianie (zdarzenia wskaźnika przychodzą szybciej niż render). */
   const local = useRef(view.strokes);
@@ -197,6 +240,7 @@ function Pad({ view, onMove }: { view: KalamburyView; onMove: Props["onMove"] })
   const top = useRef<HTMLDivElement>(null);
   const controls = useRef<HTMLDivElement>(null);
   const size = useCanvasSize(top, controls);
+  const lines = useViewportHeight() >= ROOMY_PX ? CHAT_LINES : 1;
   const full = count(strokes) >= KALAMBURY_MAX_POINTS;
   const draw = (next: KalamburyStroke[]) => setStrokes((local.current = next));
 
@@ -274,7 +318,9 @@ function Pad({ view, onMove }: { view: KalamburyView; onMove: Props["onMove"] })
         <Canvas size={size} strokes={strokes} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} />
         {full && <span className="pointer-events-none absolute top-2 left-3 text-xs text-fg-muted">Rysunek pełny: cofnij albo wyczyść</span>}
       </div>
-      <div ref={controls} className="flex flex-col gap-3">
+      {/* mt-auto, nie flex-1: pomiar płótna bierze wysokość tego bloku, a narzędzia mają być w zasięgu kciuka. */}
+      <div ref={controls} className="mt-auto flex flex-col gap-3">
+        <Shots chat={view.chat} lines={lines} nick={nick} />
         <div className="flex justify-between" role="radiogroup" aria-label="Kolor">
           {PALETTE.map((p, i) => (
             <button
@@ -323,13 +369,13 @@ function useViewportHeight() {
 }
 
 /** Mierzymy nagłówek nad płótnem i kontrolki pod nim zamiast zgadywać ich wysokość. */
-function useCanvasSize(top: RefObject<HTMLDivElement | null>, controls: RefObject<HTMLDivElement | null>) {
+function useCanvasSize(top: RefObject<HTMLDivElement | null>, controls: RefObject<HTMLDivElement | null>, active = true) {
   const height = useViewportHeight();
   const [size, setSize] = useState<number>();
   useLayoutEffect(() => {
     const canvas = top.current;
     const footer = controls.current;
-    if (!canvas || !footer) return;
+    if (!active || !canvas || !footer) return;
     const measure = () => {
       const bottomPadding = parseFloat(getComputedStyle(canvas.closest("main")!).paddingBottom);
       const gap = parseFloat(getComputedStyle(canvas.parentElement!).rowGap) || 0;
@@ -343,12 +389,29 @@ function useCanvasSize(top: RefObject<HTMLDivElement | null>, controls: RefObjec
       if (sibling !== canvas) observer.observe(sibling);
     }
     return () => observer.disconnect();
-  }, [height, top, controls]);
+  }, [height, top, controls, active]);
   return size;
 }
 
+/** Ostatnie pudła; stała wysokość, żeby nowy strzał nie zmieniał rozmiaru płótna. Linia „Trafione” idzie tylko zgadującym, rysujący ma odznaki przy kropkach. */
+function Shots({ chat, guessed, lines, nick }: { chat: KalamburyView["chat"]; guessed?: string[]; lines: number; nick: (id: string) => string }) {
+  const hits = lines > 1 && guessed?.length ? guessed : null;
+  const shown = chat.slice(-(hits ? lines - 1 : lines));
+  const first = chat.length - shown.length;
+  return (
+    <ul className="flex flex-col justify-end overflow-hidden text-sm leading-6" style={{ height: `${lines * 1.5}rem` }} aria-live="polite" aria-label="Strzały">
+      {shown.map((m, i) => (
+        <li key={first + i} className="truncate">
+          <span className="text-fg-muted">{nick(m.player)}:</span> {m.text}
+        </li>
+      ))}
+      {hits && <li className="truncate text-success">Trafione: {hits.map(nick).join(", ")}</li>}
+    </ul>
+  );
+}
+
 /** Rysunek z serwera, ostatnie pudła i pole do zgadywania. Płótno maleje przy klawiaturze, żeby pole zostało widoczne. */
-function Guess({ view, me, color, canGuess, nick, onMove }: { view: KalamburyView; me: string; color?: string; canGuess: boolean; nick: (id: string) => string; onMove: Props["onMove"] }) {
+function Guess({ view, me, color, canGuess, compact, nick, onMove }: { view: KalamburyView; me: string; color?: string; canGuess: boolean; compact: boolean; nick: (id: string) => string; onMove: Props["onMove"] }) {
   const [text, setText] = useState("");
   /** „Pasuję” wymaga drugiego dotknięcia w ciągu CONFIRM_MS: jedno przypadkowe nie kończy rundy. */
   const [sure, setSure] = useState(false);
@@ -387,39 +450,32 @@ function Guess({ view, me, color, canGuess, nick, onMove }: { view: KalamburyVie
           </p>
         )}
       </div>
-      <div ref={controls} className="flex flex-col gap-3">
-        <ul className="flex min-h-[4.5rem] flex-col justify-end text-sm" aria-live="polite" aria-label="Strzały">
-          {view.chat.slice(-CHAT_LINES).map((m, i) => (
-            <li key={view.chat.length - CHAT_LINES + i} className="truncate">
-              <span className="text-fg-muted">{nick(m.player)}:</span> {m.text}
-            </li>
-          ))}
-          {view.guessed.length > 0 && <li className="truncate text-success">Trafione: {view.guessed.map(nick).join(", ")}</li>}
-        </ul>
+      <div ref={controls} className="mt-auto flex flex-col gap-3">
+        <Shots chat={view.chat} guessed={view.guessed} lines={compact ? 1 : CHAT_LINES} nick={nick} />
         {canGuess && !hit && !passed && (
-          <form className="flex flex-col gap-2" onSubmit={submit}>
-            <div className="flex gap-2">
-              <input
-                id="kalambury-guess"
-                className="field min-w-0 flex-1"
-                value={text}
-                placeholder="Co to jest?"
-                maxLength={KALAMBURY_ANSWER_MAX}
-                autoComplete="off"
-                autoCorrect="off"
-                spellCheck={false}
-                enterKeyHint="send"
-                aria-label="Twój strzał"
-                onChange={(e) => setText(e.target.value)}
-              />
-              {/* onPointerDown bez utraty fokusu: klawiatura zostaje otwarta między strzałami */}
-              <button type="submit" className="btn btn-player" style={{ backgroundColor: color }} onPointerDown={(e) => e.preventDefault()}>
-                Zgadnij
-              </button>
-            </div>
-            <button type="button" className={`btn btn-ghost w-full ${sure ? "border-fg" : ""}`} onClick={() => (sure ? onMove({ type: "pass" }) : setSure(true))}>
-              {sure ? "Dotknij jeszcze raz, żeby spasować" : "Pasuję"}
+          <form className="flex gap-2" onSubmit={submit}>
+            <input
+              id="kalambury-guess"
+              className="field min-w-0 flex-1"
+              value={text}
+              placeholder="Co to jest?"
+              maxLength={KALAMBURY_ANSWER_MAX}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint="send"
+              aria-label="Twój strzał"
+              onChange={(e) => setText(e.target.value)}
+            />
+            {/* onPointerDown bez utraty fokusu: klawiatura zostaje otwarta między strzałami */}
+            <button type="submit" className="btn btn-player w-12 shrink-0 px-0" style={{ backgroundColor: color }} aria-label="Zgadnij" onPointerDown={(e) => e.preventDefault()}>
+              <PaperPlaneRight size={20} weight="fill" aria-hidden />
             </button>
+            {!compact && (
+              <button type="button" className={`btn btn-ghost w-26 shrink-0 px-0 ${sure ? "border-fg" : ""}`} onClick={() => (sure ? onMove({ type: "pass" }) : setSure(true))}>
+                {sure ? "Na pewno?" : "Pasuję"}
+              </button>
+            )}
           </form>
         )}
         {hit && <p className="tile p-4 text-success">Trafione! Czekamy na resztę.</p>}

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { isValidElement, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
-import { currentDraft, DecisionControls, decisionKey, type Draft, moves, NextBar, options, revealedCards, WyprawaBoard } from "./Wyprawa.tsx";
+import { currentDraft, deadlyCards, DecisionControls, decisionKey, type Draft, moves, NextBar, options, revealedCards, WyprawaBoard } from "./Wyprawa.tsx";
 
 // Testy napisane przed ekranem. Widoki pochodzą z prawdziwego playerView po legalnych ruchach:
 // - gracz na szlaku widzi „Wyprawa n/5”, bank, to co niesie i resztki na szlaku z osobnymi podpisami,
@@ -14,7 +14,7 @@ import { currentDraft, DecisionControls, decisionKey, type Draft, moves, NextBar
 // - po przeładowaniu zatwierdzony wybór wraca z myChoice, bez aktywnych przycisków,
 // - gracz w obozie widzi tekst o obozie i jawne wydarzenia, obserwator i obce id nie mają akcji ani prywatnych danych,
 // - ostatnia decyzja, podział i poprzednia karta z last są widoczne w następnej decyzji,
-// - szczegół szlaku ma wszystkie odkryte karty, nic więcej, a zastany stan nie animuje się,
+// - pasek szlaku ma wszystkie odkryte karty, nic więcej, a zastany stan nie animuje się,
 // - odsłona pokazuje zyski, utraconą zdobycz, powód końca wyprawy i banki wszystkich; „Dalej” ma stempel i znika po kliknięciu,
 // - koniec pokazuje tabelę banków i pięć zysków każdego gracza, wspólne miejsca przy remisie, bez „Dalej”, także dla widza,
 // - odsłona i koniec rysują się tylko ze stanu widoku i tylko z odkrytych kart, zastany stan bez animacji,
@@ -158,7 +158,8 @@ describe("lista graczy", () => {
 
   test("cudzy wybór nie wycieka w żadnym fragmencie ekranu kogoś, kto jeszcze nie zatwierdził", () => {
     const s = choose(setup(THREE), A, "return");
-    const seen = text(html(s, C));
+    // Stała podpowiedź o limicie („…po czasie wracasz.”) to nie cudzy wybór.
+    const seen = text(html(s, C)).replace("Bez Gotowe po czasie wracasz.", "");
     expect(seen).not.toMatch(/Ania[^.]*(wraca|idzie dalej)/);
     expect(row(html(s, C), A)).toBe(row(html(choose(setup(THREE), A, "continue"), C), A));
   });
@@ -344,7 +345,7 @@ describe("ostatnie rozstrzygnięcie w następnej decyzji", () => {
   });
 });
 
-describe("szczegół szlaku", () => {
+describe("pasek szlaku", () => {
   test("liczba odkrytych kart ma poprawną polską odmianę", () => {
     expect(revealedCards(1)).toBe("1 odkryta karta");
     for (const n of [2, 3, 4, 22, 23, 24, 102]) expect(revealedCards(n), String(n)).toBe(`${n} odkryte karty`);
@@ -365,7 +366,7 @@ describe("szczegół szlaku", () => {
     const v = view(s, A);
     expect(v.trail).toHaveLength(3);
     const seen = html(s, A);
-    expect(seen).toContain("<details");
+    expect(seen).not.toContain("<details");
     const cards = items(seen, "data-trail");
     expect(cards).toHaveLength(v.trail.length);
     v.trail.forEach((card, i) => {
@@ -564,11 +565,30 @@ describe("układ na 360×640", () => {
     expect(seen.indexOf("Oglądasz wyprawę")).toBeLessThan(seen.indexOf("Na szlaku"));
   });
 
-  test("pasek decyzji ma opcje i „Gotowe” w jednym rzędzie, a zaznaczenie zastępuje ikonę, więc szerokość się nie zmienia", () => {
+  test("pasek decyzji ma dwie opcje w rzędzie i „Gotowe” pod nimi z wybraną opcją, a zaznaczenie zastępuje ikonę", () => {
     const seen = html(setup(THREE), A, { choice: "return" });
-    const row = seen.match(/<div class="[^"]*grid-cols-\[1fr_1fr_auto\][^"]*">(.*?)<\/div>/)?.[1] ?? "";
-    expect(buttons(row).map((b) => text(b).trim())).toEqual(["Idę dalej", "Wracam", "Gotowe"]);
+    const row = seen.match(/<div class="[^"]*grid-cols-2[^"]*">(.*?)<\/div>/)?.[1] ?? "";
+    expect(buttons(row).map((b) => text(b).trim())).toEqual(["Idę dalej", "Wracam"]);
+    expect(text(buttonWith(seen, "Gotowe")!).trim()).toBe("Gotowe · wracam");
+    expect(text(buttonWith(html(setup(THREE), A), "Gotowe")!).trim()).toBe("Gotowe");
     for (const label of ["Idę dalej", "Wracam"]) expect(buttonWith(seen, label)!.match(/<svg/g)).toHaveLength(1);
+  });
+
+  test("gracz na szlaku ma „Niesiesz” jako największą liczbę w swoim kolorze", () => {
+    const seen = html(setup(THREE), A);
+    expect(seen).toMatch(/<dt[^>]*>Niesiesz<\/dt><dd[^>]*text-4xl[^>]*color:#3b9eff/);
+  });
+
+  test("ryzyko liczy dwie kopie każdego odkrytego zagrożenia z pozostałych kart", () => {
+    const safe = treasure(THREE);
+    if (!view(safe).trail.some((c) => c.kind === "hazard")) {
+      expect(deadlyCards(view(safe, A))).toBe(0);
+      expect(text(html(safe, A))).toContain("Żadne zagrożenie jeszcze nie padło");
+    }
+    const s = openedWith(THREE, "hazard");
+    const v = view(s, A);
+    expect(deadlyCards(v)).toBe(2);
+    expect(text(html(s, A))).toContain(`Ryzyko: 2 z ${v.deckLeft} kart kończy wyprawę`);
   });
 });
 

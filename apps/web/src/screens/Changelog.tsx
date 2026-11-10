@@ -4,6 +4,16 @@ import { Screen } from "./ui.tsx";
 /** Historia wersji strony, najnowsza na górze. Nowy wpis na początku listy to zarazem nowy numer wersji. */
 export const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "1.2.0",
+    date: "2026-11-10",
+    changes: [
+      "Nowe lobby: gracze to rząd awatarów, kod pokoju zwija się do paska, a gry są w czytelnych grupach. Gospodarz może wyrzucić gościa, dotykając jego awatara",
+      "Partię można przerwać: ikona wyjścia w nagłówku pozwala gospodarzowi zakończyć grę dla wszystkich, a każdemu wyjść z pokoju",
+      "Odświeżone ekrany Sabotażu, Wyprawy, Podróbki, Kalamburów i Państw-miast: więcej widać od razu, mniej trzeba liczyć",
+      "Rekordy: wynik jest na pierwszym planie, widać, ile brakuje ci do lidera, a na górze czeka rekord, który najłatwiej teraz zdobyć",
+    ],
+  },
+  {
     version: "1.1.0",
     date: "2026-11-09",
     changes: [

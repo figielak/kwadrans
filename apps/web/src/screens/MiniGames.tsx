@@ -1,10 +1,10 @@
 import { Play, Shuffle, Trophy } from "@phosphor-icons/react";
 import { GAMES, MAX_PLAYERS, nickKey, type RecordRow, type RoomView, standing } from "@kwadrans/games";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchRecords } from "../net.ts";
 import { BLURBS, ICONS, MINI_GAMES, StartBar, WishMarks, wishDots } from "./Lobby.tsx";
-import { formatBest, formatRecord, RecordList } from "./Records.tsx";
-import { PlayerDots, Screen, type Send, TopBar } from "./ui.tsx";
+import { formatBest, formatRecord, plural, RecordList } from "./Records.tsx";
+import { PlayerDots, Screen, type Send, StickyBar, TopBar } from "./ui.tsx";
 
 interface Props {
   view: RoomView;
@@ -16,21 +16,20 @@ interface Props {
   onRecords: () => void;
 }
 
-/** Nagłówki sekcji na liście; gra spoza tej listy trafia do „Inne”, więc nowa nigdy nie znika. */
+/** Nagłówki sekcji na liście, po sześć gier, czyli dwa pełne rzędy; gra spoza tej listy trafia do „Inne”, więc nowa nigdy nie znika. */
 const CATEGORIES: [string, string[]][] = [
-  ["Refleks i czas", ["refleks", "stoj", "stoper", "przytrzymaj", "zaslona", "rytm", "wieza"]],
-  ["Pamięć", ["simon", "w-pamieci", "sledzenie", "kubki", "zakupy"]],
-  ["Liczby", ["liczenie", "kropki", "dziesiatki", "sudoku", "schulte"]],
-  ["Precyzja", ["kolo", "srodek", "kat", "kolor", "tort", "nozyczki"]],
-  ["Spostrzegawczość", ["stroop", "inny", "obrot", "literowka"]],
-  ["Wiedza i ryzyko", ["rok", "mapa", "balon"]],
+  ["Refleks i czas", ["refleks", "stoj", "stoper", "przytrzymaj", "zaslona", "rytm"]],
+  ["Pamięć i wiedza", ["simon", "w-pamieci", "kubki", "zakupy", "rok", "mapa"]],
+  ["Liczby", ["liczenie", "kropki", "dziesiatki", "sudoku", "schulte", "kat"]],
+  ["Precyzja", ["kolo", "srodek", "kolor", "tort", "nozyczki", "wieza"]],
+  ["Uwaga i ryzyko", ["stroop", "inny", "obrot", "literowka", "sledzenie", "balon"]],
 ];
 const SORTED = CATEGORIES.flatMap(([, ids]) => ids);
 export const SECTIONS = [...CATEGORIES, ["Inne", MINI_GAMES.map((g) => g.id).filter((id) => !SORTED.includes(id))] as [string, string[]]]
   .map(([title, ids]) => [title, ids.filter((id) => GAMES[id])] as const)
   .filter(([, ids]) => ids.length > 0);
 
-/** Rekordy z serwera: undefined do odpowiedzi, null, gdy serwer nie odpowie (wtedy miejsc nie pokazujemy, zamiast fałszywego „nie grane”). */
+/** Rekordy z serwera: undefined do odpowiedzi, null, gdy serwer nie odpowie (wtedy kafle nie mają miejsc). */
 type Loaded = Record<string, RecordRow[]> | null | undefined;
 
 /** Zamiast rekordów, póki ich nie ma: czasownik przy wczytywaniu, zdanie przy błędzie. */
@@ -62,17 +61,20 @@ export function MiniGameGrid({ records, nick, color, picked, disabled, wishes, o
               type="button"
               aria-pressed={picked === undefined ? undefined : picked === id}
               disabled={disabled}
+              data-game={id}
               className={`relative flex min-h-20 flex-col items-start gap-1 rounded-inset border p-2 text-left transition-colors duration-180 ${
-                picked === id ? "border-accent bg-accent-soft" : "border-line hover:border-line-hover"
+                picked === id ? "border-accent bg-accent-soft" : "border-transparent bg-surface hover:border-line-hover"
               }`}
               onClick={() => onPick(id)}
             >
               <TileIcon size={20} weight={picked === id ? "fill" : "regular"} aria-hidden />
               <span className="text-sm leading-tight">{GAMES[id].name}</span>
-              {/* Własne miejsce w rekordach zamiast liczby graczy (ta jest wszędzie taka sama); kolor gracza, gdy to on prowadzi. */}
-              <span className="mt-auto font-mono text-xs text-fg-muted tabular-nums" style={place === 1 ? { color } : undefined}>
-                {place ? `${place}. miejsce` : records ? "nie grane" : records === undefined && "Wczytywanie…"}
-              </span>
+              {/* Podpis tylko przy rozegranej grze: własne miejsce w rekordach, w kolorze gracza, gdy to on prowadzi. */}
+              {!!place && (
+                <span className="mt-auto font-mono text-xs text-fg-muted tabular-nums" style={place === 1 ? { color } : undefined}>
+                  {place}. miejsce
+                </span>
+              )}
               <WishMarks wishes={wishes?.[id]} />
             </button>
           );
@@ -100,7 +102,19 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
   // Gość bez wybranej gry dotyka gier jak życzeń; wybiera gospodarz. Drugie dotknięcie zdejmuje życzenie.
   const browsing = !isHost && !def;
 
+  // Wylosowana gra bywa poza ekranem, więc po odpowiedzi serwera przewijamy do jej kafla.
+  const revealPick = useRef(false);
+  useEffect(() => {
+    if (!revealPick.current || !view.gameId) return;
+    revealPick.current = false;
+    document.querySelector(`[data-game="${view.gameId}"]`)?.scrollIntoView({
+      block: "center",
+      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+  }, [view.gameId]);
+
   function random() {
+    revealPick.current = true;
     const others = MINI_GAMES.filter((g) => g.id !== view.gameId);
     send("pickGame", { gameId: others[Math.floor(Math.random() * others.length)].id });
   }
@@ -111,14 +125,13 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
         <PlayerDots view={view} />
       </TopBar>
 
-      <div className="flex items-center gap-2">
-        <h2 className="label mr-auto px-1">Mini-gry · 1-{MAX_PLAYERS} osób</h2>
-        {isHost && (
-          <button type="button" className="btn btn-ghost px-4 text-sm" onClick={random}>
-            <Shuffle size={16} weight="bold" aria-hidden />
-            Losuj
-          </button>
-        )}
+      <div className="flex items-center gap-2 px-1">
+        <div className="mr-auto">
+          <h1 className="text-3xl font-semibold tracking-tight">Mini-gry</h1>
+          <p className="font-mono text-xs text-fg-muted tabular-nums">
+            {plural(MINI_GAMES.length, "gra", "gry", "gier")} · 1-{MAX_PLAYERS} osób
+          </p>
+        </div>
         <button type="button" className="btn btn-ghost size-12 shrink-0 p-0" onClick={onRecords} aria-label="Rekordy wszystkich mini-gier">
           <Trophy size={18} weight="bold" aria-hidden />
         </button>
@@ -163,7 +176,13 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
       <div className="sticky bottom-0 -mx-4 mt-auto bg-bg/90 px-4 backdrop-blur">
         {isHost && def && (
           <div className="flex flex-col gap-1 pt-3">
-            <p className="text-sm">{BLURBS[def.id]}</p>
+            <div className="flex items-start gap-2.5">
+              <DefIcon size={24} weight="fill" className="shrink-0" aria-hidden />
+              <div className="min-w-0">
+                <p className="font-semibold leading-tight">{def.name}</p>
+                <p className="text-sm text-fg-muted">{BLURBS[def.id]}</p>
+              </div>
+            </div>
             <p className="font-mono text-xs text-fg-muted tabular-nums">
               {top
                 ? `Rekord: ${formatRecord(def.id, top)} (${top === mine(def.id) ? "ty" : top.nick})`
@@ -174,7 +193,27 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
             </p>
           </div>
         )}
-        <StartBar view={view} me={me} send={send} />
+        {isHost && !def ? (
+          <StickyBar>
+            <button type="button" className="btn btn-ghost w-full" onClick={random}>
+              <Shuffle size={18} weight="bold" aria-hidden />
+              Losuj grę
+            </button>
+          </StickyBar>
+        ) : (
+          <StartBar
+            view={view}
+            me={me}
+            send={send}
+            aside={
+              isHost && (
+                <button type="button" className="btn btn-ghost size-12 shrink-0 p-0" onClick={random} aria-label="Losuj inną grę">
+                  <Shuffle size={18} weight="bold" aria-hidden />
+                </button>
+              )
+            }
+          />
+        )}
       </div>
     </Screen>
   );

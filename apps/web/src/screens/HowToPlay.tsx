@@ -1,5 +1,5 @@
 import { GAMES } from "@kwadrans/games";
-import { Question, X } from "@phosphor-icons/react";
+import { CaretDown, Question, X } from "@phosphor-icons/react";
 import { useId, useRef } from "react";
 import { HOW_TO_PLAY, type HowToPlay } from "./howToPlay.ts";
 
@@ -28,17 +28,18 @@ export function RulesBody({ card }: { card: HowToPlay }) {
   );
 }
 
-/** Zwinięta sekcja na ekranie gry (przed partią). Nie otwiera się sama. */
+/** Zwinięta sekcja pod opisem gry (przed partią). Nie otwiera się sama. */
 export function RulesDetails({ gameId }: { gameId: string }) {
   const card = HOW_TO_PLAY[gameId];
   if (!card) return null;
   return (
-    <details className="group rounded-inset border border-line bg-surface">
-      <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-3 [&::-webkit-details-marker]:hidden">
+    <details className="group mt-1">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
         <Question size={20} className="shrink-0" aria-hidden />
         <span className="flex-1">Jak grać</span>
+        <CaretDown size={16} weight="bold" className="shrink-0 text-fg-muted group-open:rotate-180" aria-hidden />
       </summary>
-      <div className="border-t border-line p-3">
+      <div className="pb-2 pt-1">
         <RulesBody card={card} />
       </div>
     </details>
@@ -55,11 +56,11 @@ export function RulesButton({ gameId }: { gameId: string }) {
     <>
       <button
         type="button"
-        className="btn btn-ghost size-12 shrink-0 px-0 text-fg-muted"
+        className="btn-icon"
         aria-label="Jak grać"
         onClick={() => ref.current?.showModal()}
       >
-        <Question size={22} aria-hidden />
+        <Question size={24} aria-hidden />
       </button>
       {/* showModal() daje Esc, pułapkę fokusu i top layer nad Momentem i reakcjami. Klik w tło trafia w sam <dialog>. */}
       <dialog

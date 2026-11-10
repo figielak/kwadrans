@@ -114,18 +114,24 @@ export function Screen({ dropped, children }: { dropped: boolean; children: Reac
   );
 }
 
+/** Udostępnia link do pokoju; bez arkusza systemowego kopiuje go i zwraca `true`, żeby ekran mógł to potwierdzić. */
+export async function shareRoom(code: string): Promise<boolean> {
+  const url = `${location.origin}/?kod=${code}`;
+  if (navigator.share) {
+    // Anulowanie arkusza udostępniania to nie błąd.
+    await navigator.share({ title: "Kwadrans", text: `Dołącz do pokoju ${code}`, url }).catch(() => {});
+    return false;
+  }
+  await navigator.clipboard.writeText(url);
+  return true;
+}
+
 /** Górny wiersz ekranów przed partią: gospodarz wraca do listy gier, gość wychodzi z pokoju; po prawej kod pokoju z udostępnianiem, w środku opcjonalny dodatek ekranu. */
 export function TopBar({ code, onBack, onLeave, children }: { code: string; onBack?: () => void; onLeave: () => void; children?: ReactNode }) {
   const [copied, setCopied] = useState(false);
 
   async function share() {
-    const url = `${location.origin}/?kod=${code}`;
-    if (navigator.share) {
-      // Anulowanie arkusza udostępniania to nie błąd.
-      await navigator.share({ title: "Kwadrans", text: `Dołącz do pokoju ${code}`, url }).catch(() => {});
-      return;
-    }
-    await navigator.clipboard.writeText(url);
+    if (!(await shareRoom(code))) return;
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -288,7 +294,7 @@ export function ReactionToggle({ onReact }: { onReact: (index: number) => void }
   const [open, setOpen] = useState(false);
   return (
     <div className="relative -my-3 ml-auto">
-      <button type="button" className="grid size-12 place-items-center text-fg-muted" aria-expanded={open} aria-label={open ? "Zwiń reakcje" : "Pokaż reakcje"} onClick={() => setOpen(!open)}>
+      <button type="button" className="btn-icon" aria-expanded={open} aria-label={open ? "Zwiń reakcje" : "Pokaż reakcje"} onClick={() => setOpen(!open)}>
         <Smiley size={24} aria-hidden />
       </button>
       {open && (
@@ -460,7 +466,7 @@ export function ResultDetails({ collapsible, children }: { collapsible: boolean;
 }
 
 /** Wyniki mini-gry: wiersz na gracza, w kolejności rankingu po końcu partii. */
-export function Scores({ rows }: { rows: { id: string; nick: string; color?: string; me: boolean; score: string | null }[] }) {
+export function Scores({ rows }: { rows: { id: string; nick: string; color?: string; me: boolean; score: string | null; detail?: ReactNode }[] }) {
   return (
     <ol className="tile flex flex-col gap-1 p-4">
       {rows.map((r) => (
@@ -470,6 +476,7 @@ export function Scores({ rows }: { rows: { id: string; nick: string; color?: str
             {r.nick}
             {r.me && <span className="text-fg-muted"> (ty)</span>}
           </span>
+          {r.detail}
           <span className={`text-right font-mono tabular-nums ${r.score === null ? "text-fg-muted" : ""}`}>{r.score ?? "gra…"}</span>
         </li>
       ))}
@@ -891,6 +898,35 @@ export function seenAtMount<K>(seen: Set<K> | null, present: Iterable<K>): Set<K
   if (!seen) return now;
   for (const k of seen) if (!now.has(k)) seen.delete(k);
   return seen;
+}
+
+/** O tyle musi zmaleć widoczna wysokość, żeby uznać to za klawiaturę, a nie pasek przeglądarki. */
+const KEYBOARD_PX = 120;
+
+/** Czy jest otwarta klawiatura: widoczna wysokość wyraźnie mniejsza od największej zauważonej przy tej szerokości. */
+export function useKeyboardOpen() {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    const visible = () => viewport?.height ?? window.innerHeight;
+    let width = window.innerWidth;
+    let tallest = visible();
+    const check = () => {
+      if (window.innerWidth !== width) {
+        width = window.innerWidth;
+        tallest = 0;
+      }
+      tallest = Math.max(tallest, visible());
+      setOpen(visible() < tallest - KEYBOARD_PX);
+    };
+    viewport?.addEventListener("resize", check);
+    window.addEventListener("resize", check);
+    return () => {
+      viewport?.removeEventListener("resize", check);
+      window.removeEventListener("resize", check);
+    };
+  }, []);
+  return open;
 }
 
 /** Zastany stan pokazujemy od razu; `isNew` mówi, czy element pojawił się po montażu i może dostać animację pojawienia. */

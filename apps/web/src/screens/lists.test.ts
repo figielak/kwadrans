@@ -5,7 +5,8 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test, vi } from "vitest";
 import { BLURBS, ICONS, Lobby, wishDots } from "./Lobby.tsx";
-import { Setup } from "./Setup.tsx";
+import { MiniGameGrid, SECTIONS } from "./MiniGames.tsx";
+import { Setup, TournamentSetup } from "./Setup.tsx";
 
 // Setup przez MiniGames i net.ts czyta `location` już przy imporcie; testy idą w node.
 vi.hoisted(() => {
@@ -16,14 +17,14 @@ vi.hoisted(() => {
 const src = new URL(".", import.meta.url).pathname;
 const read = (file: string) => readFileSync(join(src, file), "utf8");
 
-const lobby = (n: number) => {
+const lobby = (n: number, me = "p1") => {
   const view: RoomView = {
     code: "ABCD", hostId: "p1", phase: "lobby", solo: false, gameId: null, mode: null,
     players: Array.from({ length: n }, (_, i) => ({ id: `p${i + 1}`, nick: `Gracz ${i + 1}`, color: PLAYER_COLORS[i], connected: true, ready: false })),
     seats: [], tournament: null, markedBy: {}, scores: {}, game: null, wishes: {}, vote: null,
     evening: { games: 0, played: [], table: [], titles: [] },
   };
-  return renderToStaticMarkup(createElement(Lobby, { view, me: "p1", dropped: false, send: () => {}, onLeave: () => {}, onMini: () => {} }));
+  return renderToStaticMarkup(createElement(Lobby, { view, me, dropped: false, send: () => {}, onLeave: () => {}, onMini: () => {} }));
 };
 
 test("lobby sześciu osób pokazuje dostępne gry przed zablokowanymi", () => {
@@ -33,9 +34,51 @@ test("lobby sześciu osób pokazuje dostępne gry przed zablokowanymi", () => {
   expect(html).toContain("tylko 2 os.");
 });
 
-test("lobby przed wyborem gry nie zasłania listy paskiem bez akcji", () => {
-  expect(lobby(2)).not.toContain("sticky bottom-0");
-  expect(lobby(6)).not.toContain("sticky bottom-0");
+test("lobby: gry za małe na pokój to jedna linia tekstu, nie kafle", () => {
+  const html = lobby(3);
+  expect(html).toContain("Nie dla 3 osób: Gomoku, Statki (tylko 2 os.)");
+  expect(html).not.toMatch(/<button[^>]*disabled[^>]*>(?:(?!<\/button>).)*Gomoku/);
+  expect(lobby(2)).not.toContain("Nie dla");
+});
+
+test("lobby: gry stoją w dwóch grupach, a w każdej te, do których brakuje osób, na końcu", () => {
+  const html = lobby(2);
+  expect(html.indexOf("Planszowe")).toBeLessThan(html.indexOf("Memory"));
+  expect(html.indexOf("Memory")).toBeLessThan(html.indexOf("Towarzyskie"));
+  expect(html.indexOf("Towarzyskie")).toBeLessThan(html.indexOf("Kalambury"));
+  expect(html.indexOf("Kalambury")).toBeLessThan(html.indexOf("Sabotaż"));
+});
+
+test("lobby: główna akcja gospodarza to Szybka seria w dolnym pasku, gość ma tam podpowiedź", () => {
+  const host = lobby(2);
+  expect(host).toContain("sticky bottom-0");
+  expect(host).toMatch(/btn-primary[^>]*>.*Szybka seria/);
+  const guest = lobby(2, "p2");
+  expect(guest).not.toContain("Szybka seria");
+  expect(guest).not.toContain("Turniej");
+  expect(guest).toContain("Gracz 1 wybiera grę. Dotknij tej, w którą chcesz zagrać.");
+});
+
+test("lobby od dwóch osób: gracze to awatary, kolory są zwinięte pod własnym", () => {
+  const html = lobby(3);
+  expect(html).toContain('aria-expanded="false"');
+  expect(html).not.toContain('role="radiogroup"');
+  expect(html).toContain('aria-label="Gospodarz"');
+});
+
+test("lobby: gospodarz może dotknąć cudzego awatara, żeby wyrzucić, gość nie", () => {
+  expect(lobby(3)).toContain('aria-label="Gracz 2, wyrzuć z pokoju"');
+  expect(lobby(3)).not.toContain('aria-label="Gracz 1, wyrzuć z pokoju"');
+  expect(lobby(3, "p2")).not.toContain("wyrzuć z pokoju");
+});
+
+test("lobby: „Zaproś” jest tylko przy wolnym miejscu, sam w pokoju zostaje duży kod z kolorami", () => {
+  expect(lobby(5)).toContain("Zaproś");
+  expect(lobby(6)).not.toContain("Zaproś");
+  const alone = lobby(1);
+  expect(alone).not.toContain("Zaproś");
+  expect(alone).toContain('role="radiogroup"');
+  expect(alone).toContain("Podaj kod znajomym");
 });
 
 test("11-06: Sabotaż w lobby ma nazwę, ikonę, opis i limit 3-6, a nie jest mini-grą ani grą z rekordem", () => {
@@ -110,6 +153,44 @@ test("F4-048: Sudoku montuje się od nowa po nonce, stara partia bez nonce po pl
   expect(read("../games/MiniGame.tsx")).toMatch(/key=\{\(view as SudokuView\)\.nonce \?\? \(view as SudokuView\)\.puzzle\.join\(\)\}/);
 });
 
+const tournament = (must: string[] = [], skip: string[] = []) => {
+  const view: RoomView = {
+    code: "ABCD", hostId: "p1", phase: "lobby", solo: false, gameId: null, mode: null,
+    players: [{ id: "p1", nick: "Ola", color: PLAYER_COLORS[0], connected: true, ready: false }],
+    seats: ["p1"], tournament: { config: { length: 8, must, skip }, games: [], index: 0, points: [], extra: false },
+    markedBy: Object.fromEntries(must.map((id) => [id, "p1"])), scores: {}, game: null, wishes: {}, vote: null,
+    evening: { games: 0, played: [], table: [], titles: [] },
+  };
+  return renderToStaticMarkup(createElement(TournamentSetup, { view, me: "p1", dropped: false, send: () => {}, onLeave: () => {} }));
+};
+
+test("mini-gry: każda gra stoi w dokładnie jednej grupie", () => {
+  const ids = SECTIONS.flatMap(([, list]) => list);
+  expect([...ids].sort()).toEqual([...MINI_GAME_IDS].sort());
+});
+
+test("mini-gry: kafel ma podpis tylko przy rozegranej grze", () => {
+  const html = renderToStaticMarkup(createElement(MiniGameGrid, { records: {}, nick: "Ola", onPick: () => {} }));
+  expect(html).not.toContain("nie grane");
+});
+
+test("turniej: dotknięcie gry ustawia przełącznik zamiast liczenia dotknięć", () => {
+  const html = tournament();
+  expect(html).toContain("Na pewno");
+  expect(html).toContain("Wyklucz");
+  expect(html).not.toContain("trzeci raz");
+});
+
+test("turniej: czas pada raz, przy przycisku", () => {
+  expect(tournament().match(/ok\. 12 min/g)).toHaveLength(1);
+});
+
+test("turniej: stan gry opisuje czytnikowi kafel, a sam kolor go nie niesie", () => {
+  const html = tournament(["refleks"], ["balon"]);
+  expect(html).toContain("Refleks: na pewno, zaznaczył(a) Ola");
+  expect(html).toContain("Balon: bez");
+});
+
 test("F4-156: Turniej nie owija StartBar drugim przyklejonym paskiem", () => {
   const setup = read("Setup.tsx");
   expect(setup).not.toContain('className="sticky bottom-0');
@@ -170,14 +251,14 @@ test("08-08: kolor poświaty w Podróbce to własny kolor czekającego, a nie je
 });
 
 // 15-03: „Jak grać” w kafelku ekranu gry i jako ikona w nagłówku partii.
-const setupHtml = (gameId: string) => {
+const setupHtml = (gameId: string, { me = "p1", ready = [] as string[], seats = ["p1", "p2", "p3"] } = {}) => {
   const view: RoomView = {
     code: "ABCD", hostId: "p1", phase: "lobby", solo: false, gameId, mode: null,
-    players: Array.from({ length: 3 }, (_, i) => ({ id: `p${i + 1}`, nick: `Gracz ${i + 1}`, color: PLAYER_COLORS[i], connected: true, ready: false })),
-    seats: ["p1", "p2", "p3"], tournament: null, markedBy: {}, scores: {}, game: null, wishes: {}, vote: null,
+    players: Array.from({ length: 3 }, (_, i) => ({ id: `p${i + 1}`, nick: `Gracz ${i + 1}`, color: PLAYER_COLORS[i], connected: true, ready: ready.includes(`p${i + 1}`) })),
+    seats, tournament: null, markedBy: {}, scores: {}, game: null, wishes: {}, vote: null,
     evening: { games: 0, played: [], table: [], titles: [] },
   };
-  return renderToStaticMarkup(createElement(Setup, { view, me: "p1", dropped: false, send: () => {}, onLeave: () => {} }));
+  return renderToStaticMarkup(createElement(Setup, { view, me, dropped: false, send: () => {}, onLeave: () => {} }));
 };
 
 test("15-03: Setup gry z kartą ma „Jak grać” za opisem", () => {
@@ -185,6 +266,79 @@ test("15-03: Setup gry z kartą ma „Jak grać” za opisem", () => {
   expect(html).toContain("Jak grać");
   expect(html.indexOf(BLURBS.sabotaz!)).toBeGreaterThan(-1);
   expect(html.indexOf(BLURBS.sabotaz!)).toBeLessThan(html.indexOf("Jak grać"));
+});
+
+test("ekran gry: nagłówek listy liczy gotowość gości, a podpis „Grają” jest tylko przy oglądających", () => {
+  const html = setupHtml("podrobka", { ready: ["p2"] });
+  expect(html).toContain("Gotowość 1/2");
+  expect(html).not.toContain("W pokoju");
+  expect(html).not.toContain("Grają");
+  const split = setupHtml("podrobka", { seats: ["p1", "p2"] });
+  expect(split).toContain("Grają");
+  expect(split).toContain("Oglądają");
+  expect(split).toContain("Gotowość 0/1");
+  expect(setupHtml("podrobka", { seats: ["p1"] })).not.toContain("Gotowość");
+});
+
+test("ekran gry: gotowość to znak ✓ bez słowa, „czeka” zostaje słowem, gospodarz nie ma statusu", () => {
+  const html = setupHtml("podrobka", { ready: ["p2"] });
+  expect(html.match(/aria-label="gotowe"/g)).toHaveLength(1);
+  expect(html).not.toContain(">gotowe<");
+  expect(html.match(/>czeka</g)).toHaveLength(1);
+});
+
+test("ekran gry: bez kafli wokół opisu gry i listy graczy, tytuł jak w Turnieju", () => {
+  const html = setupHtml("podrobka");
+  expect(html).not.toContain('class="tile"');
+  expect(html).toContain('class="text-3xl font-semibold tracking-tight');
+});
+
+test("ekran gry: po zgłoszeniu gotowości krótki status i osobne „Cofnij”", () => {
+  const html = setupHtml("podrobka", { me: "p2", ready: ["p2"] });
+  expect(html).toContain("Zgłoszone, czekamy na start");
+  expect(html).toContain(">Cofnij<");
+  expect(html).not.toContain("czekamy na Gracz");
+});
+
+test("ekran gry: tło wiersza w kolorze gracza tylko po zgłoszeniu gotowości", () => {
+  const html = setupHtml("podrobka", { ready: ["p2"] });
+  expect(html).toContain(`${PLAYER_COLORS[0]} 10%`); // gospodarz jest gotowy z definicji
+  expect(html).toContain(`${PLAYER_COLORS[1]} 10%`);
+  expect(html).not.toContain(`${PLAYER_COLORS[2]} 10%`);
+});
+
+test("ekran gry: korona stoi przy nicku, przed statusem", () => {
+  const html = setupHtml("podrobka");
+  expect(html.indexOf('aria-label="Gospodarz"')).toBeGreaterThan(-1);
+  expect(html.indexOf('aria-label="Gospodarz"')).toBeLessThan(html.indexOf(">czeka<"));
+});
+
+test("ekran gry: podpowiedź o przenoszeniu graczy tylko, gdy ktoś ogląda", () => {
+  expect(setupHtml("podrobka")).not.toContain("Dotknij gracza");
+  expect(setupHtml("podrobka", { seats: ["p1", "p2"] })).toContain("Dotknij gracza");
+  expect(setupHtml("podrobka", { seats: ["p1", "p2"], me: "p2" })).not.toContain("Dotknij gracza");
+});
+
+test("ekran gry: „Jak grać” leży przy opisie gry", () => {
+  const html = setupHtml("sabotaz");
+  expect(html.indexOf("Jak grać")).toBeLessThan(html.indexOf("</section>"));
+});
+
+test("ekran gry: kolory są zwinięte pod własną kropką, jak w lobby", () => {
+  const html = setupHtml("podrobka");
+  expect(html).not.toContain(">Twój kolor<");
+  expect(html).not.toContain('role="radiogroup" aria-label="Twój kolor"');
+  expect(html.match(/zmień kolor/g)).toHaveLength(1);
+  expect(lobby(2)).not.toContain(">Twój kolor<");
+});
+
+test("ekran gry: przycisk gościa to „Zgłaszam gotowość” bez nazwy gry", () => {
+  const html = setupHtml("podrobka", { me: "p2" });
+  expect(html).toContain(">Zgłaszam gotowość<");
+});
+
+test("opisy gier z kartą nie powtarzają punktacji z „Jak grać”", () => {
+  for (const id of ["podrobka", "wyprawa", "sabotaz"]) expect(BLURBS[id]).not.toMatch(/punkt|rund|\d+ wypraw/i);
 });
 
 test("15-03: TournamentSetup nie pokazuje „Jak grać”", () => {
@@ -198,7 +352,7 @@ test("15-03: Game montuje RulesButton tylko w fazie playing i przekazuje help gr
   expect(game).toMatch(/view\.phase === "playing" && <RulesButton gameId=\{def\.id\} \/>/);
   for (const name of ["PanstwaMiasta", "Kalambury"]) {
     const mount = game.slice(game.indexOf(`<${name}\n`), game.indexOf("onMove", game.indexOf(`<${name}\n`)));
-    expect(mount, name).toMatch(/help=\{ownHeader && <RulesButton gameId=\{def\.id\} \/>\}/);
+    expect(mount, name).toMatch(/help=\{ownHeader && <><RulesButton gameId=\{def\.id\} \/>\{exitButton\}<\/>\}/);
   }
 });
 

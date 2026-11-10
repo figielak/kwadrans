@@ -33,7 +33,8 @@ test("F4-068: przycisk listy mini-gier mieści się w kolumnie przy powiększony
 
 test("F4-070: tytuł ekranu gry i turnieju jest wyróżniony", () => {
   expect(read("screens/Setup.tsx")).not.toContain('<h1 className="leading-tight">');
-  expect(read("screens/Setup.tsx").match(/<h1 className="font-semibold leading-tight">/g)).toHaveLength(2);
+  expect(read("screens/Setup.tsx")).toContain('<h1 className="text-3xl font-semibold tracking-tight">{def.name}</h1>');
+  expect(read("screens/Setup.tsx")).toContain('<h1 className="text-3xl font-semibold tracking-tight">Turniej</h1>');
 });
 
 test("F4-071/F4-072: Rekordy bez tła pól formularza, link rozwinięcia neutralny", () => {

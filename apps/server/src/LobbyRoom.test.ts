@@ -1,5 +1,5 @@
 import { type AuthContext, type Client, CloseCode } from "@colyseus/core";
-import { GAMES, KALAMBURY_HALF_SECONDS, type KalamburyView, type PodrobkaMove, type PodrobkaView, type RoomView, type SabotazKind, type SabotazMove, type SabotazView, type WyprawaMove, type WyprawaView, type ZakupyView } from "@kwadrans/games";
+import { GAMES, KALAMBURY_HALF_SECONDS, KICKED_CLOSE_CODE, type KalamburyView, type PodrobkaMove, type PodrobkaView, type RoomView, type SabotazKind, type SabotazMove, type SabotazView, type WyprawaMove, type WyprawaView, type ZakupyView } from "@kwadrans/games";
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 // Testy przed poprawką P4-027: prawdziwe handlery pokoju i walidator gry,
@@ -83,6 +83,155 @@ async function drawing(n: number, gameId = "kalambury", start = true) {
   if (gameId === "kalambury") expect((snapshot().game!.view as KalamburyView).phase).toBe("draw");
   return { room, send, snapshot, clients, observer };
 }
+
+describe("wyrzucanie z lobby", () => {
+  const ids = (view: RoomView) => view.players.map((p) => p.id);
+  /** Czekanie na powrót, które da się anulować jak `Deferred` z Colyseusa. */
+  const pendingReturn = (room: InstanceType<typeof LobbyRoom>) => {
+    let reject!: (reason?: unknown) => void;
+    const promise = new Promise<Client>((_, no) => (reject = no));
+    return vi.spyOn(room, "allowReconnection").mockReturnValue(Object.assign(promise, { reject }) as never);
+  };
+
+  test("gospodarz wyrzuca obecnego gościa: znika od razu, dostaje kod zamknięcia, bez czekania na powrót", async () => {
+    const { room, send, snapshot, clients } = await openRoom(3);
+    const leave = vi.fn();
+    clients[1].leave = leave;
+    send(0, "kick", { id: "p2" });
+    expect(ids(snapshot())).not.toContain("p2");
+    expect(leave).toHaveBeenCalledWith(KICKED_CLOSE_CODE);
+    const reconnect = vi.spyOn(room, "allowReconnection");
+    await room.onLeave(clients[1], KICKED_CLOSE_CODE);
+    expect(reconnect).not.toHaveBeenCalled();
+  });
+
+  test("rozłączony gracz znika po wyrzuceniu, zamiast trzymać miejsce przez 10 minut", async () => {
+    const { room, send, snapshot, clients } = await openRoom(3);
+    pendingReturn(room);
+    const leaving = room.onLeave(clients[1], 1006);
+    expect(snapshot().players.find((p) => p.id === "p2")!.connected).toBe(false);
+    room.clients.splice(1, 1);
+    send(0, "kick", { id: "p2" });
+    await leaving;
+    expect(ids(snapshot())).not.toContain("p2");
+  });
+
+  test("wyrzucenie niegotowego rozłączonego pozwala zacząć partię", async () => {
+    const { room, send, snapshot, clients } = await openRoom(3);
+    send(0, "pickGame", { gameId: "memory" });
+    send(2, "ready", { ready: true });
+    send(3, "ready", { ready: true });
+    pendingReturn(room);
+    const leaving = room.onLeave(clients[1], 1006);
+    room.clients.splice(1, 1);
+    send(0, "start", {});
+    expect(snapshot().phase).toBe("lobby");
+    send(0, "kick", { id: "p2" });
+    await leaving;
+    expect(snapshot().seats).not.toContain("p2");
+    send(0, "start", {});
+    expect(snapshot().phase).toBe("playing");
+  });
+
+  test("wyrzucić może tylko gospodarz, nie siebie, nie nieznanego i tylko w lobby", async () => {
+    const { send, snapshot, clients } = await openRoom(3);
+    for (const client of clients) client.leave = vi.fn();
+    send(1, "kick", { id: "p3" });
+    send(0, "kick", { id: "p1" });
+    send(0, "kick", { id: "nie-ma" });
+    send(0, "kick", { nope: 1 });
+    expect(ids(snapshot())).toEqual(["p1", "p2", "p3", "p4"]);
+    send(0, "pickGame", { gameId: "memory" });
+    for (let i = 1; i < 4; i++) send(i, "ready", { ready: true });
+    send(0, "start", {});
+    send(0, "kick", { id: "p2" });
+    expect(ids(snapshot())).toContain("p2");
+    for (const client of clients) expect(client.leave).not.toHaveBeenCalled();
+  });
+
+  test("wyrzucony może wrócić tym samym kodem", async () => {
+    const { room, send, snapshot, clients } = await openRoom(3);
+    clients[1].leave = vi.fn();
+    send(0, "kick", { id: "p2" });
+    const back = { sessionId: "p2b", send: vi.fn() } as unknown as Client;
+    room.clients.push(back);
+    room.onJoin(back, {}, room.onAuth(back, { nick: "p2" }, { ip: "1.1.1.1", headers: new Headers() } as AuthContext));
+    expect(ids(snapshot())).toContain("p2b");
+  });
+});
+
+describe("przerwanie partii przez gospodarza", () => {
+  test("wraca do lobby bez zwycięzcy, punktów i wpisu wieczoru; stary limit tury nie działa", async () => {
+    const record = vi.spyOn(stats, "record");
+    const measured = vi.spyOn(stats, "recordRoomGame");
+    const { send, snapshot } = await drawing(2, "piec-w-rzedzie");
+    send(0, "stopGame", {});
+    expect(snapshot()).toMatchObject({ phase: "lobby", game: null, gameId: "piec-w-rzedzie", scores: {}, evening: { games: 0 } });
+    expect(snapshot(1).phase).toBe("lobby");
+    expect(record).not.toHaveBeenCalled();
+    expect(measured).toHaveBeenCalledTimes(1);
+    expect(measured).toHaveBeenCalledWith(expect.objectContaining({ gameId: "piec-w-rzedzie", outcome: "aborted" }));
+    vi.advanceTimersByTime(10 * 60_000);
+    expect(snapshot().phase).toBe("lobby");
+  });
+
+  test("gra główna rusza od nowa po przerwaniu", async () => {
+    const { send, snapshot } = await drawing(2, "piec-w-rzedzie");
+    send(0, "stopGame", {});
+    send(1, "ready", { ready: true });
+    send(0, "start", {});
+    expect(snapshot().phase).toBe("playing");
+  });
+
+  test("działa też podczas instrukcji mini-gry", async () => {
+    const { send, snapshot } = await drawing(2, "stoper", false);
+    expect(snapshot().game!.intro).toBe(true);
+    send(0, "stopGame", {});
+    expect(snapshot().phase).toBe("lobby");
+    vi.advanceTimersByTime(60_000);
+    expect(snapshot().phase).toBe("lobby");
+  });
+
+  test("gość i obserwator nie mogą przerwać partii", async () => {
+    const { send, snapshot, observer } = await drawing(2, "piec-w-rzedzie");
+    send(1, "stopGame", {});
+    send(observer!, "stopGame", {});
+    expect(snapshot().phase).toBe("playing");
+  });
+
+  test("poza partią i w pokoju solo wiadomość nic nie robi", async () => {
+    const lobby = await openRoom(2);
+    lobby.send(0, "pickGame", { gameId: "piec-w-rzedzie" });
+    lobby.send(0, "stopGame", {});
+    expect(lobby.snapshot()).toMatchObject({ phase: "lobby", gameId: "piec-w-rzedzie" });
+
+    const solo = await openRoom(1, { solo: "stoper" });
+    solo.send(0, "stopGame", {});
+    expect(solo.snapshot().phase).toBe("playing");
+  });
+
+  test("ostatnia gra turnieju: bez mistrza, ustawienia zostają, tabela i lista gier nie", async () => {
+    const { send, snapshot } = await openRoom(2);
+    send(0, "pickTournament", { length: 3 });
+    send(0, "toggleSeat", { id: "p3" });
+    send(1, "ready", { ready: true });
+    send(0, "start", {});
+    for (let i = 0; i < 2000; i++) {
+      const { phase, tournament } = snapshot();
+      if (phase === "playing" && tournament!.index === tournament!.games.length - 1) break;
+      vi.advanceTimersByTime(1000);
+    }
+    const { phase, tournament } = snapshot();
+    expect(phase).toBe("playing");
+    expect(tournament!.index).toBe(tournament!.games.length - 1);
+    const record = vi.spyOn(stats, "record");
+    send(0, "stopGame", {});
+    expect(record).not.toHaveBeenCalled();
+    expect(snapshot()).toMatchObject({ phase: "lobby", gameId: null, tournament: { games: [], config: { length: 3 } } });
+    vi.advanceTimersByTime(60_000);
+    expect(snapshot().phase).toBe("lobby");
+  });
+});
 
 describe("07-21: życzenia gości", () => {
   test("gość wskazuje grę, zmienia ją, null kasuje; każdy ma jedno życzenie", async () => {

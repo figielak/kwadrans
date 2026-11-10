@@ -84,6 +84,9 @@ export function cleanNick(raw: unknown): string | null {
 /** Tyle losowych mini-gier ma Szybka seria. */
 export const QUICK_SERIES_LENGTH = 5;
 
+/** Kod zamknięcia połączenia dla wyrzuconego z lobby; klient nie próbuje wtedy wracać i pokazuje komunikat. */
+export const KICKED_CLOSE_CODE = 4100;
+
 export const REACTIONS = ["👍", "😂", "😮", "😭", "🔥", "👏"] as const;
 
 export const ROOM_MESSAGES = {
@@ -99,6 +102,7 @@ export const ROOM_MESSAGES = {
   markGame: z.object({ id: z.string(), mark: z.enum(["must", "skip", "any"]) }),
   pickMode: z.object({ mode: z.string() }),
   toggleSeat: z.object({ id: z.string() }),
+  kick: z.object({ id: z.string() }),
   pickColor: z.object({ color: z.enum(PLAYER_COLORS) }),
   ready: z.object({ ready: z.boolean() }),
   start: z.unknown(),
@@ -109,6 +113,8 @@ export const ROOM_MESSAGES = {
   otherGame: z.unknown(),
   vote: z.object({ id: z.string() }),
   toLobby: z.unknown(),
+  // Gospodarz przerywa trwającą partię; wszyscy wracają do lobby bez wyników.
+  stopGame: z.unknown(),
   // Kształt ruchu sprawdza moveSchema wybranej gry.
   move: z.unknown(),
   // Dekoracyjny podgląd rywali; osobny kanał i limit, poza validateMove oraz wynikami gry.

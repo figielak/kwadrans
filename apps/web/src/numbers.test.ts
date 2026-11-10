@@ -61,12 +61,12 @@ test("F4-141/F4-145/F4-149: oś Schultego czytelna, Odcień w Stats, Mapa skraca
   expect(read("games/Mapa.tsx")).toContain('"999+"');
 });
 
-test("F4-151/F4-153/F4-157: Zakupy w jednym krótkim wierszu, pkt w nagłówku Turnieju, tytuł ustawień jak ekran gry", () => {
+test("F4-151/F4-153/F4-157: Zakupy w jednym krótkim wierszu, pkt w nagłówku Turnieju, tytuł ustawień jak Mini-gry", () => {
   expect(read("games/Zakupy.tsx")).toContain("score: r ? `${r.score} pkt · ${tenth(r.ms / 1000)} s` : null");
   const game = read("screens/Game.tsx");
   expect(game).not.toContain("{r.total} pkt</span>");
   expect(game).toMatch(/<span[^>]*>pkt<\/span>/);
   const setup = read("screens/Setup.tsx");
   expect(setup).not.toContain('<h1 className="label">Turniej');
-  expect(setup).toMatch(/<Trophy size=\{28\} weight="fill"/);
+  expect(setup).toContain('<h1 className="text-3xl font-semibold tracking-tight">Turniej</h1>');
 });

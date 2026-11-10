@@ -1,5 +1,5 @@
 import type { Room } from "@colyseus/sdk";
-import { GAMES, type RoomView } from "@kwadrans/games";
+import { GAMES, KICKED_CLOSE_CODE, type RoomView } from "@kwadrans/games";
 import { CloseCode } from "@colyseus/sdk";
 import { useEffect, useRef, useState } from "react";
 import { forgetRoom, resumeRoom, watchRoom } from "./net.ts";
@@ -58,7 +58,8 @@ export function App() {
       setRoom(null);
       setView(null);
       setDropped(false);
-      if (code !== CloseCode.CONSENTED) setNotice("Połączenie z pokojem zostało zamknięte.");
+      if (code === KICKED_CLOSE_CODE) setNotice("Wyrzucono cię z pokoju.");
+      else if (code !== CloseCode.CONSENTED) setNotice("Połączenie z pokojem zostało zamknięte.");
     });
     return off;
   }, [room]);
