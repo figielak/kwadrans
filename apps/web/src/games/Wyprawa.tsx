@@ -424,8 +424,8 @@ function Final({ view, nick, players, places }: { view: WyprawaView; nick: (id: 
           <thead>
             <tr className="label">
               <th className="text-left font-normal">Gracz</th>
-              {view.history.map((_, i) => (
-                <th key={i} className="w-6 text-right font-normal" aria-label={`Wyprawa ${i + 1}`}>
+              {view.history.map((record, i) => (
+                <th key={i} className={`w-7 text-right font-normal ${record.end === "hazard" ? "text-warning" : ""}`} aria-label={`Wyprawa ${i + 1}${record.end === "hazard" ? ", przerwana zagrożeniem" : ""}`}>
                   {i + 1}
                 </th>
               ))}
@@ -441,7 +441,7 @@ function Final({ view, nick, players, places }: { view: WyprawaView; nick: (id: 
                   {nick(id)}
                 </td>
                 {view.history.map((record, i) => (
-                  <td key={i} data-expedition={i + 1} className="py-1 text-right font-mono text-xs tabular-nums text-fg-muted">
+                  <td key={i} data-expedition={i + 1} className={`py-1 text-right font-mono text-xs tabular-nums ${record.lost[id] > 0 ? "text-warning" : "text-fg-muted"}`}>
                     {record.gain[id]}
                   </td>
                 ))}
@@ -450,6 +450,11 @@ function Final({ view, nick, players, places }: { view: WyprawaView; nick: (id: 
             ))}
           </tbody>
         </table>
+        {view.history.some((record) => record.end === "hazard") && (
+          <p className="mt-2 text-xs text-fg-muted">
+            <span className="text-warning">Kolorem ostrzeżenia</span>: wyprawa przerwana zagrożeniem i zdobycz, która na niej przepadła.
+          </p>
+        )}
       </div>
       {last && (
         <>

@@ -33,6 +33,11 @@ interface Props {
   onLeave: () => void;
 }
 
+/** Gry główne, których wynik to jedna liczba: bohater po partii pokazuje ją przy graczu z różnicą do osoby wyżej. */
+const MAIN_SCORE: Record<string, (view: unknown, id: string) => number> = {
+  wyprawa: (view, id) => (view as { bank: Record<string, number> }).bank[id] ?? Number.NaN,
+};
+
 export function Game({ room, view, me, dropped, send, onLeave }: Props) {
   const game = view.game!;
   const def = GAMES[view.gameId!];
@@ -149,7 +154,9 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
           result: game.result,
           places: game.places,
           seats: view.seats,
-          scoreOf: record && ((id) => ({ best: record.score(game.view, id), tie: finite(record.tie?.score(game.view, id)) })),
+          scoreOf: record
+            ? (id) => ({ best: record.score(game.view, id), tie: finite(record.tie?.score(game.view, id)) })
+            : MAIN_SCORE[def.id] && ((id) => ({ best: MAIN_SCORE[def.id](game.view, id), tie: null })),
           format: (best) => formatBest(def.id, best),
           gap: (gap) => formatGap(def.id, gap),
           me,
