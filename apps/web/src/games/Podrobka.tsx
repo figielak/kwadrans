@@ -1,7 +1,7 @@
-import { Check, MaskHappy } from "@phosphor-icons/react";
+import { Check, MaskHappy, TextAa, Warning } from "@phosphor-icons/react";
 import { type LobbyPlayer, PODROBKA_ANSWER_MAX, PODROBKA_ROUNDS, type PodrobkaMove, type PodrobkaView } from "@kwadrans/games";
-import { useEffect, useRef, useState } from "react";
-import { StickyBar, useFresh } from "../screens/ui.tsx";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { StickyBar, useFresh, useKeyboardOpen } from "../screens/ui.tsx";
 
 interface Props {
   view: PodrobkaView;
@@ -11,6 +11,25 @@ interface Props {
   onMove: (move: PodrobkaMove) => void;
   /** Miejsca po partii z serwera (remisy); bez nich ekran liczy je z sum punktów. */
   places?: Record<string, number> | null;
+  /** Limit fazy z serwera; nowy obiekt przy każdej wiadomości, termin liczony od jego przyjścia. */
+  turn?: { msLeft: number | null };
+}
+
+/** Licznik od tylu znaków: przy jednym, dwóch słowach to szum. */
+export const COUNTER_FROM = 20;
+/** Od tylu sekund przed końcem pisania puste pole ostrzega, że runda przepadnie. */
+export const EMPTY_WARN_SECONDS = 10;
+
+/** Sekundy do końca fazy, odświeżane co 250 ms; null bez limitu. */
+function useSecondsLeft(turn: Props["turn"]) {
+  const deadline = useMemo(() => (turn?.msLeft == null ? null : Date.now() + turn.msLeft), [turn]);
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    if (deadline === null) return;
+    const id = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(id);
+  }, [deadline]);
+  return deadline === null ? null : Math.max(0, Math.ceil((deadline - now) / 1000));
 }
 
 type Round = PodrobkaView["history"][number];
@@ -109,9 +128,30 @@ interface SectionProps {
 }
 
 /** Pole odpowiedzi z „Gotowe”. Bez hooków, żeby dało się go sprawdzić bez DOM; tekst i szkic trzyma `Podrobka`. */
-export function WriteForm({ view, color, draft, onText, onMove }: Pick<SectionProps, "view" | "color" | "draft" | "onMove"> & { onText: (text: string) => void }) {
+/**
+ * `keyboard`: otwarta klawiatura. Pasek przyklejony do dołu chowa się wtedy na iOS pod klawiaturą,
+ * więc „Gotowe” staje zaraz pod polem, a komunikat pod pytaniem znika.
+ */
+export function WriteForm({ view, color, draft, onText, onMove, secondsLeft = null, keyboard = false }: Pick<SectionProps, "view" | "color" | "draft" | "onMove"> & { onText: (text: string) => void; secondsLeft?: number | null; keyboard?: boolean }) {
   const value = draft.text ?? view.myDraft ?? "";
   const send = moves(view, draft).done;
+  const empty = value.trim() === "";
+  const warn = empty && secondsLeft !== null && secondsLeft <= EMPTY_WARN_SECONDS;
+  const action = (
+    <div className="flex w-full flex-col gap-2">
+      {warn ? (
+        <p role="status" className="flex items-center gap-1.5 text-xs font-medium text-warning">
+          <Warning size={14} weight="fill" aria-hidden="true" />
+          Bez odpowiedzi runda przepada dla wszystkich.
+        </p>
+      ) : (
+        <p className="text-xs text-fg-muted">Nie zdążysz? Liczy się to, co już wpisane. Enter też wysyła.</p>
+      )}
+      <button type="submit" className="btn btn-player w-full" style={{ backgroundColor: color }} disabled={!send}>
+        Gotowe
+      </button>
+    </div>
+  );
   return (
     <form
       className="flex flex-1 flex-col gap-3"
@@ -120,20 +160,25 @@ export function WriteForm({ view, color, draft, onText, onMove }: Pick<SectionPr
         if (send) onMove(send);
       }}
     >
-      <p className="text-sm">Odpowiedz na swoje pytanie. Jedna osoba dostała inne.</p>
       <div className="tile flex flex-col gap-2 p-4">
         <span className="label">Twoje pytanie</span>
         <p className="text-lg font-semibold wrap-anywhere">{view.myQuestion}</p>
-        <p className="text-sm text-fg-muted">Format odpowiedzi: {view.hint}</p>
+        <p className={`text-sm text-fg-muted ${keyboard ? "hidden" : ""}`}>Odpowiedz na swoje pytanie. Jedna osoba dostała inne.</p>
       </div>
-      <div className="flex flex-col gap-2">
-        <label htmlFor="podrobka-answer" className="text-sm leading-none font-medium text-fg">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="podrobka-answer" className="sr-only">
           Twoja odpowiedź
         </label>
+        <span className="inline-flex items-center gap-1.5 self-start rounded-full border border-line px-2.5 py-1 text-xs text-fg-muted">
+          <TextAa size={14} aria-hidden="true" />
+          <span className="sr-only">Format odpowiedzi:</span>
+          {view.hint}
+        </span>
         <input
           id="podrobka-answer"
-          className="field"
+          className="field text-lg"
           value={value}
+          placeholder="Wpisz odpowiedź…"
           maxLength={PODROBKA_ANSWER_MAX}
           autoFocus
           autoComplete="off"
@@ -142,18 +187,13 @@ export function WriteForm({ view, color, draft, onText, onMove }: Pick<SectionPr
           enterKeyHint="done"
           onChange={(e) => onText(e.target.value)}
         />
-        <span className="self-end font-mono text-sm text-fg-muted tabular-nums">
-          {value.length}/{PODROBKA_ANSWER_MAX}
-        </span>
+        {value.length >= COUNTER_FROM && (
+          <span className="self-end font-mono text-sm text-fg-muted tabular-nums">
+            {value.length}/{PODROBKA_ANSWER_MAX}
+          </span>
+        )}
       </div>
-      <StickyBar className="mt-auto">
-        <div className="flex w-full flex-col gap-2">
-          <p className="text-xs text-fg-muted">Po czasie liczy się ostatni zapisany tekst.</p>
-          <button type="submit" className="btn btn-player w-full" style={{ backgroundColor: color }} disabled={!send}>
-            Gotowe
-          </button>
-        </div>
-      </StickyBar>
+      {keyboard ? action : <StickyBar className="mt-auto">{action}</StickyBar>}
     </form>
   );
 }
@@ -426,7 +466,25 @@ function Final({ view, me, nick, players, places, fresh }: { view: PodrobkaView;
   );
 }
 
-export function PodrobkaBoard({ view, me, players, waitingFor, onMove, places, draft, onDraft, onText }: Props & { draft: Draft; onDraft: (draft: Draft) => void; onText: (text: string) => void }) {
+/** „Runda n/6” i kropki rund: rozegrane szare, anulowane obrysowane ostrzeżeniem, bieżąca obrysowana. */
+function RoundHeader({ view }: { view: PodrobkaView }) {
+  return (
+    <span className="flex items-center gap-2">
+      <span className="label">
+        Runda {view.round + 1}/{PODROBKA_ROUNDS}
+      </span>
+      <span className="flex items-center gap-1" aria-hidden="true">
+        {Array.from({ length: PODROBKA_ROUNDS }, (_, i) => {
+          const record = view.history[i];
+          const tone = record ? (record.cancelled ? "border border-warning" : "bg-fg-muted") : i === view.round ? "border border-fg" : "border border-line";
+          return <span key={i} data-dot={i + 1} className={`size-2 rounded-full ${tone}`} />;
+        })}
+      </span>
+    </span>
+  );
+}
+
+export function PodrobkaBoard({ view, me, players, waitingFor, onMove, places, draft, onDraft, onText, secondsLeft = null, keyboard = false }: Props & { draft: Draft; onDraft: (draft: Draft) => void; onText: (text: string) => void; secondsLeft?: number | null; keyboard?: boolean }) {
   const opts = options(view, me, waitingFor);
   const color = players.find((p) => p.id === me)?.color ?? "var(--color-fg-muted)";
   const nick = (id: string) => players.find((p) => p.id === id)?.nick ?? "?";
@@ -436,17 +494,19 @@ export function PodrobkaBoard({ view, me, players, waitingFor, onMove, places, d
   const fresh = !!last && isNew(`reveal:${last.round}`);
   return (
     <div className="flex flex-1 flex-col gap-3">
-      <span className="label">
-        Runda {view.round + 1}/{PODROBKA_ROUNDS}
-      </span>
-      {view.phase === "write" && opts.writing && <WriteForm view={view} color={color} draft={draft} onText={onText} onMove={onMove} />}
+      <div className="flex items-baseline justify-between gap-2">
+        <RoundHeader view={view} />
+        {view.phase === "write" && (
+          <span className="text-sm text-fg-muted">
+            Odpowiedzi: <span className="font-mono tabular-nums">{view.done.length}</span>/<span className="font-mono tabular-nums">{view.players.length}</span>
+          </span>
+        )}
+      </div>
+      {view.phase === "write" && opts.writing && <WriteForm view={view} color={color} draft={draft} onText={onText} onMove={onMove} secondsLeft={secondsLeft} keyboard={keyboard} />}
       {view.phase === "write" && opts.written && <Written view={view} />}
       {view.phase === "write" && !opts.seated && (
         <>
           <p className="text-sm text-fg-muted">Oglądasz rundę. Gracze odpowiadają na swoje pytania.</p>
-          <p className="text-sm">
-            Odpowiedzi: <span className="font-mono tabular-nums">{view.done.length}</span>/<span className="font-mono tabular-nums">{view.players.length}</span>
-          </p>
         </>
       )}
       {view.phase === "vote" && <VoteSection view={view} me={me} players={players} waitingFor={waitingFor} color={color} draft={draft} onDraft={onDraft} onMove={onMove} />}
@@ -474,12 +534,16 @@ export function Podrobka(props: Props) {
     return () => sender.cancel();
   }, [key, sender]);
 
+  const keyboard = useKeyboardOpen();
+  const secondsLeft = useSecondsLeft(props.view.phase === "write" ? props.turn : undefined);
   const draft = currentDraft(stored, props.view);
   const setDraft = (next: Draft) => setStored({ key, draft: next });
   return (
     <PodrobkaBoard
       {...props}
       draft={draft}
+      secondsLeft={secondsLeft}
+      keyboard={keyboard}
       onDraft={setDraft}
       onText={(text) => {
         setDraft({ ...draft, text });

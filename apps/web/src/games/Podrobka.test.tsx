@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { isValidElement, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { currentDraft, DRAFT_MS, type Draft, DraftSender, draftKey, draftMove, moves, NextBar, options, PodrobkaBoard, RoundReveal, verdict, VoteSection, WriteForm } from "./Podrobka.tsx";
+import { COUNTER_FROM, currentDraft, DRAFT_MS, EMPTY_WARN_SECONDS, type Draft, DraftSender, draftKey, draftMove, moves, NextBar, options, PodrobkaBoard, RoundReveal, verdict, VoteSection, WriteForm } from "./Podrobka.tsx";
 
 // Testy napisane przed ekranem. Widoki pochodzą z prawdziwego playerView po legalnych ruchach:
 // - pisanie: „Runda n/6”, własne pytanie, wskazówka formatu, licznik długości i wspólny komunikat, ten sam dla Podróbki i zwykłego gracza,
@@ -89,6 +89,34 @@ const voting = (ids = THREE, seed = 1, answer = answerOf) => writeAll(setup(ids,
 const secondRound = (ids = THREE) => nextAll(voteAll(writeAll(setup(ids))));
 
 describe("pisanie", () => {
+  const writeForm = (s: S, me: string, draft: Draft, secondsLeft: number | null) =>
+    renderToStaticMarkup(<WriteForm view={view(s, me)} color="#3b9eff" draft={draft} onText={() => {}} onMove={() => {}} secondsLeft={secondsLeft} />);
+
+  test("puste pole pod koniec czasu ostrzega, że runda przepadnie; z tekstem albo wcześniej nie", () => {
+    const s = writing();
+    expect(text(writeForm(s, A, {}, EMPTY_WARN_SECONDS))).toContain("Bez odpowiedzi runda przepada dla wszystkich");
+    expect(text(writeForm(s, A, { text: "  " }, 3))).toContain("Bez odpowiedzi runda przepada dla wszystkich");
+    expect(text(writeForm(s, A, { text: "Mleko" }, 3))).not.toContain("przepada");
+    expect(text(writeForm(s, A, {}, EMPTY_WARN_SECONDS + 1))).not.toContain("przepada");
+    expect(text(writeForm(s, A, {}, null))).not.toContain("przepada");
+  });
+
+  test("z otwartą klawiaturą „Gotowe” stoi zaraz pod polem, bez paska przyklejonego do dołu, a komunikat znika", () => {
+    const s = writing();
+    const form = (keyboard: boolean) =>
+      renderToStaticMarkup(<WriteForm view={view(s, A)} color="#3b9eff" draft={{ text: "Mleko" }} onText={() => {}} onMove={() => {}} keyboard={keyboard} />);
+    expect(form(false)).toContain("sticky");
+    expect(form(true)).not.toContain("sticky");
+    expect(form(true)).toMatch(/<p class="[^"]*hidden[^"]*">Odpowiedz na swoje pytanie/);
+    expect(buttons(form(true)).find((b) => text(b).includes("Gotowe"))).not.toMatch(/\sdisabled=/);
+  });
+
+  test("nagłówek rundy pokazuje, ile osób już odpowiedziało, także obserwatorowi", () => {
+    const s = write(writing(), A, "Mleko");
+    expect(text(html(s, B))).toContain(`Odpowiedzi: 1 / ${view(s).players.length}`);
+    expect(text(html(s, ""))).toContain(`Odpowiedzi: 1 / ${view(s).players.length}`);
+  });
+
   test("pokazuje rundę, własne pytanie, wskazówkę formatu, licznik i wspólny komunikat", () => {
     const s = secondRound();
     const v = view(s, B);
@@ -98,9 +126,12 @@ describe("pisanie", () => {
     expect(seen).toContain(v.myQuestion!);
     expect(seen).toContain(`Format odpowiedzi: ${v.hint}`);
     expect(seen).toContain("Odpowiedz na swoje pytanie. Jedna osoba dostała inne.");
-    expect(seen).toContain(`0/${PODROBKA_ANSWER_MAX}`);
-    expect(seen).toContain("Po czasie liczy się ostatni zapisany tekst.");
-    expect(text(html(s, B, { text: "Mleko" }))).toContain(`5/${PODROBKA_ANSWER_MAX}`);
+    // Licznik dopiero od COUNTER_FROM znaków; krótka odpowiedź go nie potrzebuje.
+    expect(seen).not.toContain(`0/${PODROBKA_ANSWER_MAX}`);
+    expect(text(html(s, B, { text: "Mleko" }))).not.toContain(`5/${PODROBKA_ANSWER_MAX}`);
+    const long = "a".repeat(COUNTER_FROM);
+    expect(text(html(s, B, { text: long }))).toContain(`${COUNTER_FROM}/${PODROBKA_ANSWER_MAX}`);
+    expect(seen).toContain("Nie zdążysz? Liczy się to, co już wpisane.");
   });
 
   test("pole ma etykietę i maxLength równe ANSWER_MAX", () => {
@@ -252,7 +283,6 @@ describe("pisanie", () => {
     expect(currentDraft({ key: "", draft: { text: "stary" } }, v)).toEqual({});
     const reloaded = html(s, A, {});
     expect(reloaded).toMatch(/<input[^>]*value="Mleko"/);
-    expect(text(reloaded)).toContain(`5/${PODROBKA_ANSWER_MAX}`);
     expect(enabled(reloaded)).toHaveLength(1);
     // Serwer ma starszy szkic (Mleko), a gracz dopisał dalej: zostaje to, co wpisał.
     expect(html(s, A, { text: "Mleko z miodem" })).toMatch(/<input[^>]*value="Mleko z miodem"/);

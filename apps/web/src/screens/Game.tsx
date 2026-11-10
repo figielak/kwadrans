@@ -659,6 +659,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
               players={view.players}
               waitingFor={game.waitingFor}
               places={game.places}
+              turn={game}
               onMove={(move) => send("move", move)}
             />
           )}
