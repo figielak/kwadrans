@@ -32,6 +32,8 @@
   --color-warning: #ff6369;
   /* Potwierdzenie: trafienie, bodziec „dotknij” (Refleks, Stój!), nowy rekord. */
   --color-success: #3dd68c;
+  /* Korona lidera cudzego rekordu (własny rekord ma kolor gracza). */
+  --color-gold: #f2c14e;
 
   --font-sans: "Satoshi", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, monospace;

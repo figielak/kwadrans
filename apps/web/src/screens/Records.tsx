@@ -1,6 +1,6 @@
 import { ArrowLeft, CaretDown, Crown, Play } from "@phosphor-icons/react";
 import { compareRecords, GAMES, KOLOR_COUNT, MINI_GAME_IDS, nickKey, type RecordRow, SOLO, standing, TOURNAMENT_ID } from "@kwadrans/games";
-import { type CSSProperties, useEffect, useState } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
 import { MiniGame } from "../games/MiniGame.tsx";
 import { fetchRanking, fetchRecords, fetchTopRecord, type RankingRow } from "../net.ts";
 import { ICONS } from "./Lobby.tsx";
@@ -82,7 +82,7 @@ export function RecordList({ gameId, rows, me, color, limit = 5 }: { gameId: str
             style={i === mine ? { color } : undefined}
           >
             {first ? (
-              <Crown size={20} weight="fill" className={`shrink-0 ${i === mine ? "" : "text-fg"}`} aria-label="1. miejsce" />
+              <Crown size={20} weight="fill" className={`shrink-0 ${i === mine ? "" : "text-gold"}`} aria-label="1. miejsce" />
             ) : (
               <span className={`w-6 font-mono font-semibold tabular-nums ${i === mine ? "" : "text-fg-muted"}`}>{placeAt(gameId, rows, i)}.</span>
             )}
@@ -233,40 +233,88 @@ interface CardProps {
   onPlay?: (gameId: string) => void;
 }
 
-/** Karta gry z wynikami: u lidera jego wynik, w pozostałych cudzy rekord do pobicia. Rozwinięta pokazuje ranking i rekordową partię. */
-function GameCard({ game: { id, rows, mine }, nick, color, loaded, onOpen, onPlay }: CardProps) {
+/** Różnica między dwoma wynikami w jednostkach gry: w głównym wyniku albo, przy równym, w drugim kryterium. */
+const gapBetween = (a: Score, b: Score) => (a.best !== b.best ? { gap: Math.abs(a.best - b.best), onTie: false } : { gap: Math.abs((a.tie ?? 0) - (b.tie ?? 0)), onTie: true });
+/** Lider ma 0 w grze, w której więcej znaczy lepiej: rekord pobije pierwszy poprawny wynik. */
+const easyLoot = ({ id, rows }: Entry) => rows.length > 0 && !orderOf(id).lower && rows[0].best === 0;
+/** Jak daleko do rekordu względem jego wielkości: pozwala porównać gry o różnych jednostkach. Remis w głównym wyniku to prawie zero. */
+const distance = ({ rows, mine }: Entry) => {
+  if (!mine) return Infinity;
+  const { gap, onTie } = gapBetween(rows[0], mine);
+  return onTie ? 0 : gap / Math.max(Math.abs(rows[0].best), 1);
+};
+/** Kolejność „Do pobicia”: najbliższe rekordy, potem łatwe łupy, potem niegrane z najmniejszą liczbą rywali. */
+const byReach = (a: Entry, b: Entry) => distance(a) - distance(b) || Number(easyLoot(b)) - Number(easyLoot(a)) || a.rows.length - b.rows.length;
+
+/** Ikona gry na kafelku: u lidera w kolorze gracza. */
+function GameBadge({ id, color, size = "size-10" }: { id: string; color?: string; size?: string }) {
   const GameIcon = ICONS[id] ?? Play;
+  return (
+    <span
+      className={`flex ${size} shrink-0 items-center justify-center rounded-inset border border-line bg-bg`}
+      style={color ? { color, background: `color-mix(in srgb, ${color} 14%, transparent)`, borderColor: `color-mix(in srgb, ${color} 35%, transparent)` } : undefined}
+      aria-hidden
+    >
+      <GameIcon size={20} />
+    </span>
+  );
+}
+
+/** Mały znacznik w drugiej linii karty. */
+const Chip = ({ children, className = "" }: { children: ReactNode; className?: string }) => (
+  <span className={`shrink-0 rounded-full border px-2 text-xs leading-5 ${className}`}>{children}</span>
+);
+
+/** Karta gry: rekord dużą liczbą po prawej, pod nim to, co z niego wynika dla mnie. Rozwinięta pokazuje ranking i rekordową partię. */
+function GameCard({ game, nick, color, loaded, onOpen, onPlay }: CardProps) {
+  const { id, rows, mine } = game;
   const lead = mine?.place === 1;
+  const leader = rows[0];
+  const tie = formatTie(id, leader.tie);
+  // Druga linia po prawej: przewaga lidera, strata do rekordu albo zachęta do pierwszej partii.
+  const status = lead ? (
+    mine.behind ? (
+      <span className="truncate font-mono text-xs tabular-nums" style={{ color }}>
+        +{formatGap(id, mine.behind)} przewagi
+      </span>
+    ) : (
+      <span className="truncate text-xs text-fg-muted">jedyny wynik</span>
+    )
+  ) : mine ? (
+    <span className="truncate font-mono text-xs text-fg-muted tabular-nums">brakuje {formatGap(id, gapBetween(leader, mine))}</span>
+  ) : easyLoot(game) ? (
+    <Chip className="border-success/40 text-success">łatwy łup</Chip>
+  ) : (
+    nick && <Chip className="border-line text-fg-subtle">nie grane</Chip>
+  );
   return (
     // Wspólne `name` robi z kart akordeon: przeglądarka sama zamyka poprzednią.
-    <details name="rekordy" className="group rounded-inset border border-line bg-surface" onToggle={(e) => e.currentTarget.open && onOpen()}>
-      <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-3 py-2 [&::-webkit-details-marker]:hidden">
-        <GameIcon size={20} className="shrink-0" aria-hidden />
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate">{GAMES[id].name}</span>
-          {lead ? (
-            <span className="truncate font-mono text-sm text-fg-muted tabular-nums">{formatRecord(id, mine)}</span>
-          ) : (
-            <span className="flex min-w-0 items-center gap-1.5 text-sm text-fg-muted">
-              <Crown size={14} weight="fill" className="shrink-0 text-fg" aria-label="Lider" />
-              <span className="truncate">
-                {rows[0].nick}: {formatRecord(id, rows[0])}
-                {nick && ` · ty: ${mine ? formatRecord(id, mine) : "brak wyniku"}`}
+    <details name="rekordy" className="group rounded-inset border border-line bg-surface open:border-line-hover" onToggle={(e) => e.currentTarget.open && onOpen()}>
+      <summary className="flex min-h-16 cursor-pointer list-none items-center gap-3 px-3 py-2.5 [&::-webkit-details-marker]:hidden">
+        <GameBadge id={id} color={lead ? color : undefined} />
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="truncate font-medium">{GAMES[id].name}</span>
+            {mine && !lead && (
+              <span role="img" className="shrink-0 font-mono text-xs text-fg-muted tabular-nums" aria-label={`${mine.place}. miejsce z ${mine.of}`}>
+                {mine.place}/{mine.of}
               </span>
-            </span>
-          )}
-        </span>
-        {mine && (
-          <span
-            role="img"
-            className={`flex shrink-0 items-center gap-1 rounded-full border border-line px-2 py-0.5 font-mono text-sm tabular-nums ${lead ? "" : "text-fg-muted"}`}
-            style={lead ? { color } : undefined}
-            aria-label={`${mine.place}. miejsce z ${mine.of}`}
-          >
-            {lead && <Crown size={14} weight="fill" aria-hidden />}
-            {mine.place}/{mine.of}
+            )}
           </span>
-        )}
+          <span className="flex min-w-0 items-center gap-1.5 text-sm text-fg-muted">
+            <Crown size={14} weight="fill" className={`shrink-0 ${lead && color ? "" : "text-gold"}`} style={lead ? { color } : undefined} aria-label="Lider" />
+            <span className="truncate" style={lead ? { color } : undefined}>
+              {lead ? "Ty" : leader.nick}
+            </span>
+          </span>
+        </span>
+        <span className="flex max-w-[45%] shrink-0 flex-col items-end gap-0.5 text-right">
+          <span className="font-mono text-lg leading-tight font-semibold tabular-nums" style={lead ? { color } : undefined}>
+            {formatBest(id, leader.best)}
+            {tie && <span className="sr-only"> · {tie}</span>}
+          </span>
+          {status}
+        </span>
         <CaretDown size={14} className="shrink-0 text-fg-muted transition-transform duration-180 group-open:rotate-180" aria-hidden />
       </summary>
       <div className="border-t border-line px-3 pb-3">
@@ -280,6 +328,39 @@ function GameCard({ game: { id, rows, mine }, nick, color, loaded, onOpen, onPla
         )}
       </div>
     </details>
+  );
+}
+
+/** Karta na górze ekranu: jeden rekord, który najłatwiej teraz zdobyć, z przyciskiem do gry. */
+function Target({ game, onPlay }: { game: Entry; onPlay?: (gameId: string) => void }) {
+  const { id, rows, mine } = game;
+  const leader = rows[0];
+  const loot = easyLoot(game);
+  const [title, line] =
+    rows.length === 0
+      ? ["Pierwszy rekord", "Nikt jeszcze nie grał. Pierwszy wynik będzie rekordem."]
+      : mine
+        ? ["Najbliżej rekordu", `Brakuje ci ${formatGap(id, gapBetween(leader, mine))} do ${leader.nick} (${formatRecord(id, leader)}).`]
+        : loot
+          ? ["Łatwy łup", `${leader.nick} ma ${formatRecord(id, leader)}. Wystarczy jeden poprawny wynik.`]
+          : ["Rekord do zdobycia", `${leader.nick}: ${formatRecord(id, leader)}. W rankingu ${plural(rows.length, "osoba", "osoby", "osób")}.`];
+  return (
+    <section className="tile flex flex-col gap-3 p-4">
+      <div className="flex items-center gap-3">
+        <GameBadge id={id} size="size-12" />
+        <p className="flex min-w-0 flex-col leading-tight">
+          <span className="label">{title}</span>
+          <span className="truncate text-lg font-semibold">{GAMES[id].name}</span>
+        </p>
+      </div>
+      <p className="text-sm text-fg-muted">{line.replace("..", ".")}</p>
+      {onPlay && (
+        <button type="button" className="btn btn-ghost w-full" onClick={() => onPlay(id)}>
+          <Play size={18} weight="fill" aria-hidden />
+          Zagraj
+        </button>
+      )}
+    </section>
   );
 }
 
@@ -321,8 +402,10 @@ export function Records({
   }).sort((a, b) => (a.mine?.place ?? Infinity) - (b.mine?.place ?? Infinity) || (b.mine?.of ?? 0) - (a.mine?.of ?? 0));
   const played = games.filter((g) => g.mine).length;
   const led = games.filter((g) => g.mine?.place === 1);
-  const toBeat = games.filter((g) => g.rows.length > 0 && g.mine?.place !== 1);
+  const toBeat = games.filter((g) => g.rows.length > 0 && g.mine?.place !== 1).sort(byReach);
   const fresh = games.filter((g) => g.rows.length === 0);
+  // Na start: rekord, do którego najbliżej (albo łatwy łup), a gdy wszystkie moje, pierwsza gra bez wyniku.
+  const target = nick ? (toBeat[0] ?? fresh[0]) : undefined;
 
   const section = (title: string, list: Entry[]) =>
     list.length > 0 && (
@@ -378,6 +461,8 @@ export function Records({
           ) : (
             <p className="text-sm text-fg-muted">{nick ? "Nie masz jeszcze żadnego wyniku. Zagraj w mini-grę, a trafisz do rankingu." : "Wpisz nick, żeby zobaczyć swoje miejsca."}</p>
           )}
+
+          {target && <Target game={target} onPlay={onPlay} />}
 
           {section("Twoje rekordy", led)}
           {section("Do pobicia", toBeat)}
@@ -444,7 +529,7 @@ function Wins({ ranking, me, color }: { ranking: Record<string, RankingRow[]>; m
               return (
                 <li key={r.nick} className="flex items-center gap-3 py-0.5" style={mine ? { color } : undefined}>
                   <span className={`flex w-6 font-mono tabular-nums ${mine ? "" : "text-fg-muted"}`}>
-                    {place === 1 ? <Crown size={14} weight="fill" className={mine ? "" : "text-fg"} aria-label="1. miejsce" /> : `${place}.`}
+                    {place === 1 ? <Crown size={14} weight="fill" className={mine ? "" : "text-gold"} aria-label="1. miejsce" /> : `${place}.`}
                   </span>
                   <span className="min-w-0 flex-1 truncate">
                     {r.nick}

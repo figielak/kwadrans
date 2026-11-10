@@ -47,6 +47,7 @@ Trzy rzeczy budują cały styl:
 | `accent-fg` | `#0e0e10` | tekst na akcencie (grafit ma 5,1:1, biały tylko 3,8:1) |
 | `warning` | `#ff6369` | ostatnie 10 s limitu, pomyłka, kara, błąd formularza, bodziec „nie wolno” w Stój!, ostrzeżenie przed skutkiem ruchu (strefa zakazana i zły duch w Statkach, cel zbicia w Chińczyku z „i zbij”); zawsze z ikoną albo tekstem |
 | `success` | `#3dd68c` | trafienie, bodziec „dotknij” (Refleks, Stój!) |
+| `gold` | `#f2c14e` | korona lidera rekordu (tylko korona, nie tekst ani tła) |
 
 Kolory graczy to dane, nie dekoracja (`PLAYER_COLORS` w `lobby.ts`): `#3b9eff`, `#ffc53d`, `#46a758`, `#8e7cff`, `#0ac5b3`, `#f76fbe`.
 Żaden nie przypomina czerwieni akcentu. Wszystko, co jest „moje” albo „czyjeś” (tytuł gry w partii, pasek limitu, pionki,
@@ -170,7 +171,8 @@ Podpowiedź wykresu zostaje po dotknięciu, mysz chowa ją po zjechaniu z wykres
 | pokój zamknięty | kafel z ikoną `Info` nad sekcjami ekranu głównego (`role="status"`), nie błąd pola kodu; znika przy następnej próbie | „Połączenie z pokojem zostało zamknięte.” |
 | stan pusty | jedno zdanie `fg-muted` w miejscu treści, bez ilustracji | „Dziś nikt jeszcze nie grał” |
 | błąd formularza | ikona i tekst 14 px w `warning` pod polem (`role="alert"`); ramka i obrys focusu pola też w `warning`, zamiast akcentu | zły kod pokoju (`Problem` w `Home.tsx`) |
-| lider rankingu | korona `fill`: w `fg` przy cudzym rekordzie, w kolorze gracza przy własnym | ekran „Rekordy” |
+| lider rankingu | korona `fill`: w `gold` przy cudzym rekordzie (i własnym bez koloru gracza), w kolorze gracza przy własnym | ekran „Rekordy”, rankingi wygranych |
+| karta gry w „Rekordach” | ikona w kafelku (u lidera w kolorze gracza), nazwa i lider po lewej, rekord dużą liczbą mono po prawej, pod nim przewaga, strata („brakuje …”) albo chip „łatwy łup” / „nie grane”; „Do pobicia” od najbliższych rekordów, nad listą karta „Najbliżej rekordu” z „Zagraj” | ekran „Rekordy” |
 | bodziec w grze na refleks | przed sygnałem pole `surface` z szarym napisem, sygnał to `success` z ciemnym napisem, bez przejścia | „Czekaj…” i „Teraz!” w Refleksie |
 | utrata połączenia (ja) | pasek `accent-soft` z ikoną na górze ekranu | „Łączenie ponownie…” |
 | gracz rozłączony | kropka z kryciem 40% i słowo „rozłączony”; w partii przerywany obrys zamiast pierścienia (pigułka gracza: przerywana ramka); nick zostaje w pełnym kolorze | `PlayerDots`, `GameDots`, lista graczy w lobby |
