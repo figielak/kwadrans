@@ -57,7 +57,7 @@ import { type ReactNode, useState } from "react";
 import { Screen, type Send, shareRoom, StickyBar, TopBar } from "./ui.tsx";
 
 /** Gry główne z planszą; reszta, także nowe, trafia do „Towarzyskich”. */
-const BOARD_GAMES = new Set(["kampus-tour", "chinczyk", "labirynt", "memory", "piec-w-rzedzie", "statki"]);
+const BOARD_GAMES = new Set(["kampus-tour", "chinczyk", "labirynt", "kropki-i-kreski", "memory", "piec-w-rzedzie", "statki"]);
 
 type MainGame = { name: string; minPlayers: number; maxPlayers: number };
 
@@ -530,6 +530,7 @@ export function GameTile({ game: g, players, picked, wishes, onClick }: { game: 
 export const ICONS: Record<string, Icon> = {
   "piec-w-rzedzie": GridNine,
   labirynt: Path,
+  "kropki-i-kreski": DotsNine,
   statki: Boat,
   chinczyk: DiceFive,
   memory: Cards,
@@ -578,6 +579,7 @@ export function seats(g: { minPlayers: number; maxPlayers: number }) {
 /** Jedno zdanie o grze dla gościa, zanim zgłosi gotowość. */
 export const BLURBS: Record<string, string> = {
   "piec-w-rzedzie": "Na zmianę stawiacie kamienie na planszy 15×15. Wygrywa pięć lub więcej w linii.",
+  "kropki-i-kreski": "Na zmianę rysujecie kreski między kropkami. Kto zamknie kwadrat, bierze go i rysuje dalej. Wygrywa najwięcej kwadratów.",
   labirynt: "W turze idziesz pionkiem o pole albo stawiasz ściankę. Wygrywa ten, kto pierwszy dojdzie na drugą stronę planszy.",
   statki: "Rozstawiasz flotę, potem strzelacie na zmianę. Trafienie daje kolejny strzał, wygrywa ten, kto zatopi wszystko.",
   chinczyk: "Rzucasz kostką i prowadzisz pionki dookoła planszy do domku. Stając na pionku rywala, odsyłasz go na start.",

@@ -2,7 +2,7 @@
 id: 16-04
 title: "Podpięcie: partia, lobby i Jak grać"
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [16-03]         # task IDs, e.g. [01-01]
@@ -49,11 +49,13 @@ Udostępnić grę graczom: gałąź w ekranie partii, kafel w lobby z ikoną i o
 - Dopisać Kropki i kreski do gęstych plansz w `DESIGN.md`.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm run typecheck` → exit 0
-- [ ] `pnpm run test` → exit 0
-- [ ] `pnpm --filter web build` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm run typecheck` → exit 0
+- [x] `pnpm run test` → exit 0
+- [x] `pnpm --filter web build` → exit 0
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Gałąź `kropki-i-kreski` w `Game.tsx` (w `ResultDetails`, `key` z `nonce`, `canMove={myTurn}`), ikona `DotsNine`, opis i kategoria planszówek w `Lobby.tsx`, wpis gęstej planszy w `DESIGN.md`.
+5 nowych testów (2 w `lists.test.ts` na RED z asercji, 3 w `vibrate.test.ts` zielone od początku, bo `decisionKey` bez zmian). Pełne `pnpm run test`, `typecheck` i `build` zielone.
+Uwaga: ta sama ikona `DotsNine` jest już mini-grą Policz kropki (`kropki`); wymóg zadania, do rozważenia przy odbiorze.
+Deviations: none

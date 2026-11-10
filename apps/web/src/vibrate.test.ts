@@ -251,3 +251,22 @@ describe("Podróbka: klucz decyzji (08-08)", () => {
     expect(code).not.toContain("useHarm");
   });
 });
+
+describe("Kropki i kreski: klucz decyzji (16-04)", () => {
+  const key = (me: string, waiting: string[]) => decisionKey("kropki-i-kreski", {}, me, waiting);
+
+  test("gra po kolei używa klucza „turn”, więc kolejny ruch tej samej osoby nie wibruje drugi raz", () => {
+    expect(key("a", ["a"])).toBe("turn");
+    expect(key("a", ["a"])).toBe(key("a", ["a"]));
+  });
+
+  test("klucz jest null, gdy czekamy na kogoś innego albo patrzy obserwator", () => {
+    expect(key("a", ["b"])).toBeNull();
+    expect(key("", ["a"])).toBeNull();
+    expect(key("a", [])).toBeNull();
+  });
+
+  test("ekran gry nie wibruje sam", () => {
+    expect(read("games/KropkiIKreski.tsx")).not.toContain("vibrate");
+  });
+});

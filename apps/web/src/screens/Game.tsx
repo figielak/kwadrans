@@ -1,6 +1,6 @@
 import type { Room } from "@colyseus/sdk";
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Play, Shuffle, SignOut, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, nickKey, type PanstwaMiastaView, type PiecWRzedzieView, type PodrobkaView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, type SabotazView, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, type WyprawaView, winner as tournamentWinner } from "@kwadrans/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiIKreskiView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, nickKey, type PanstwaMiastaView, type PiecWRzedzieView, type PodrobkaView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, type SabotazView, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, type WyprawaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
@@ -8,6 +8,7 @@ import { Memory } from "../games/Memory.tsx";
 import { MiniGame } from "../games/MiniGame.tsx";
 import { Kalambury } from "../games/Kalambury.tsx";
 import { PanstwaMiasta } from "../games/PanstwaMiasta.tsx";
+import { KropkiIKreski } from "../games/KropkiIKreski.tsx";
 import { Labirynt } from "../games/Labirynt.tsx";
 import { Sabotaz } from "../games/Sabotaz.tsx";
 import { Podrobka } from "../games/Podrobka.tsx";
@@ -580,6 +581,16 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
           {def.id === "piec-w-rzedzie" && (
             <PiecWRzedzie
               view={game.view as PiecWRzedzieView}
+              players={view.players}
+              canMove={myTurn}
+              onMove={(move) => send("move", move)}
+            />
+          )}
+
+          {def.id === "kropki-i-kreski" && (
+            <KropkiIKreski
+              key={(game.view as KropkiIKreskiView).nonce}
+              view={game.view as KropkiIKreskiView}
               players={view.players}
               canMove={myTurn}
               onMove={(move) => send("move", move)}

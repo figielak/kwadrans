@@ -364,3 +364,23 @@ test("15-03: PanstwaMiasta i Kalambury renderują help w nagłówku z timerem", 
     expect(header, name).toContain("{help}");
   }
 });
+
+test("16-04: Kropki i kreski w lobby mają nazwę, ikonę, opis i limit 2-4, a nie są mini-grą ani grą z rekordem", () => {
+  const html = lobby(3);
+  expect(html).toContain("Kropki i kreski");
+  expect(html).toContain("2-4 os.");
+  expect(ICONS["kropki-i-kreski"]).toBeDefined();
+  expect(BLURBS["kropki-i-kreski"]).toMatch(/kwadrat/);
+  expect(BLURBS["kropki-i-kreski"]).not.toMatch(/kwadrans|Skull|Uno|Quoridor|—/i);
+  expect(MINI_GAME_IDS).not.toContain("kropki-i-kreski");
+  expect(GAMES["kropki-i-kreski"].record).toBeUndefined();
+});
+
+test("16-04: Game montuje Kropki i kreski po nonce z graczami, ruchem i polem canMove, w ResultDetails", () => {
+  const game = read("Game.tsx");
+  expect(game).toMatch(/<KropkiIKreski\s+key=\{\(game\.view as KropkiIKreskiView\)\.nonce\}/);
+  const mount = game.slice(game.indexOf("<KropkiIKreski"), game.indexOf("/>", game.indexOf("<KropkiIKreski")));
+  for (const prop of ["players={view.players}", "canMove={myTurn}", 'send("move", move)']) expect(mount).toContain(prop);
+  expect(game.indexOf("<ResultDetails")).toBeLessThan(game.indexOf("<KropkiIKreski"));
+  expect(game.indexOf("<KropkiIKreski")).toBeLessThan(game.indexOf("</ResultDetails>"));
+});
