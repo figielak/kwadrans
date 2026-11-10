@@ -14,7 +14,7 @@ import { currentDraft, deadlyCards, DecisionControls, decisionKey, type Draft, m
 // - po przeładowaniu zatwierdzony wybór wraca z myChoice, bez aktywnych przycisków,
 // - gracz w obozie widzi tekst o obozie i jawne wydarzenia, obserwator i obce id nie mają akcji ani prywatnych danych,
 // - ostatnia decyzja, podział i poprzednia karta z last są widoczne w następnej decyzji,
-// - szczegół szlaku ma wszystkie odkryte karty, nic więcej, a zastany stan nie animuje się,
+// - pasek szlaku ma wszystkie odkryte karty, nic więcej, a zastany stan nie animuje się,
 // - odsłona pokazuje zyski, utraconą zdobycz, powód końca wyprawy i banki wszystkich; „Dalej” ma stempel i znika po kliknięciu,
 // - koniec pokazuje tabelę banków i pięć zysków każdego gracza, wspólne miejsca przy remisie, bez „Dalej”, także dla widza,
 // - odsłona i koniec rysują się tylko ze stanu widoku i tylko z odkrytych kart, zastany stan bez animacji,
@@ -158,7 +158,8 @@ describe("lista graczy", () => {
 
   test("cudzy wybór nie wycieka w żadnym fragmencie ekranu kogoś, kto jeszcze nie zatwierdził", () => {
     const s = choose(setup(THREE), A, "return");
-    const seen = text(html(s, C));
+    // Stała podpowiedź o limicie („…po czasie wracasz.”) to nie cudzy wybór.
+    const seen = text(html(s, C)).replace("Bez Gotowe po czasie wracasz.", "");
     expect(seen).not.toMatch(/Ania[^.]*(wraca|idzie dalej)/);
     expect(row(html(s, C), A)).toBe(row(html(choose(setup(THREE), A, "continue"), C), A));
   });
@@ -344,7 +345,7 @@ describe("ostatnie rozstrzygnięcie w następnej decyzji", () => {
   });
 });
 
-describe("szczegół szlaku", () => {
+describe("pasek szlaku", () => {
   test("liczba odkrytych kart ma poprawną polską odmianę", () => {
     expect(revealedCards(1)).toBe("1 odkryta karta");
     for (const n of [2, 3, 4, 22, 23, 24, 102]) expect(revealedCards(n), String(n)).toBe(`${n} odkryte karty`);
@@ -365,7 +366,7 @@ describe("szczegół szlaku", () => {
     const v = view(s, A);
     expect(v.trail).toHaveLength(3);
     const seen = html(s, A);
-    expect(seen).toContain("<details");
+    expect(seen).not.toContain("<details");
     const cards = items(seen, "data-trail");
     expect(cards).toHaveLength(v.trail.length);
     v.trail.forEach((card, i) => {

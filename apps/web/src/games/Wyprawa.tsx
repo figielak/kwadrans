@@ -1,6 +1,6 @@
 import { Bridge, Bug, Check, Coins, Footprints, Mountains, Tent, Warning, Waves } from "@phosphor-icons/react";
 import { initials, type LobbyPlayer, WYPRAWA_EXPEDITIONS, WYPRAWA_HAZARDS, type WyprawaMove, type WyprawaView } from "@kwadrans/games";
-import { type ComponentType, type ReactNode, useState } from "react";
+import { type ComponentType, type ReactNode, useEffect, useRef, useState } from "react";
 import { Stats, StickyBar, useFresh } from "../screens/ui.tsx";
 
 interface Props {
@@ -102,6 +102,7 @@ export function DecisionControls({ view, me, waitingFor, color, draft, onDraft, 
   return (
     <StickyBar className="mt-auto">
       <div className="flex w-full flex-col gap-2">
+        <p className="text-center text-xs text-fg-muted">Bez Gotowe po czasie wracasz.</p>
         <div className="grid grid-cols-2 gap-2">
           {CHOICES.map(({ choice, label, icon: Icon }) => {
             const picked = draft.choice === choice;
@@ -126,7 +127,6 @@ export function DecisionControls({ view, me, waitingFor, color, draft, onDraft, 
         <button type="button" className="btn btn-player w-full" style={{ backgroundColor: color }} disabled={!send} onClick={() => send && onMove(send)}>
           {draft.choice ? `Gotowe · ${LABEL[draft.choice].toLowerCase()}` : "Gotowe"}
         </button>
-        <p className="text-center text-xs text-fg-muted">Bez Gotowe po czasie wracasz.</p>
       </div>
     </StickyBar>
   );
@@ -243,46 +243,54 @@ function LastResolution({ view, me, nick, fresh }: { view: WyprawaView; me: stri
   );
 }
 
+/** „Wyprawa n/5” i pięć kropek: zakończone (katastrofa w kolorze ostrzeżenia), bieżąca obrysowana, przyszłe puste. */
+function ExpeditionHeader({ view }: { view: WyprawaView }) {
+  return (
+    <span className="flex items-center gap-2">
+      <span className="label">Wyprawa {view.expedition + 1}/{WYPRAWA_EXPEDITIONS}</span>
+      <span className="flex items-center gap-1" aria-hidden="true">
+        {Array.from({ length: WYPRAWA_EXPEDITIONS }, (_, i) => {
+          const record = view.history[i];
+          const tone = record ? (record.end === "hazard" ? "bg-warning" : "bg-fg-muted") : i === view.expedition ? "border border-fg" : "border border-line";
+          return <span key={i} data-dot={i + 1} className={`size-2 rounded-full ${tone}`} />;
+        })}
+      </span>
+    </span>
+  );
+}
+
+/** Kompaktowa lista: jedna linia na gracza. Szlak albo obóz, bank i gotowość; niesione jest takie samo dla wszystkich na szlaku. */
 function Roster({ view, me, players }: { view: WyprawaView; me: string; players: LobbyPlayer[] }) {
   const labels = initials(view.players.map((id) => players.find((p) => p.id === id)?.nick ?? "?"));
   return (
-    <ul className="grid grid-cols-2 gap-2">
+    <ul className="grid grid-cols-2 gap-1.5">
       {view.players.map((id, i) => {
         const player = players.find((p) => p.id === id);
         const onTrail = view.onTrail.includes(id);
         const ready = view.phase === "decision" && onTrail && view.ready.includes(id);
         const Place = onTrail ? Footprints : Tent;
         return (
-          <li key={id} data-player={id} className="flex min-h-13 flex-col justify-center gap-0.5 rounded-[10px] border border-line px-3 py-1.5">
-            <span className="flex items-center gap-1.5">
-              <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] font-semibold text-bg" style={{ backgroundColor: player?.color }} aria-hidden="true">
-                {labels[i]}
-              </span>
-              <span className="min-w-0 truncate text-sm font-medium">
-                {player?.nick ?? "?"}
-                {id === me && " (ty)"}
-              </span>
-            </span>
-            <span className="flex flex-wrap items-center gap-x-2 text-xs text-fg-muted">
-              <span className="inline-flex items-center gap-1">
-                <Place size={12} aria-hidden="true" />
-                {onTrail ? "szlak" : "obóz"}
-              </span>
-              <span>
-                bank <span className="font-mono tabular-nums">{view.bank[id]}</span>
-              </span>
-              {onTrail && (
-                <span>
-                  niesie <span className="font-mono tabular-nums">{view.carried[id]}</span>
-                </span>
-              )}
+          <li key={id} data-player={id} className={`flex min-h-10 items-center gap-1.5 rounded-[10px] border border-line px-2 ${onTrail ? "" : "opacity-60"}`}>
+            <span className="relative grid h-6 w-6 shrink-0 place-items-center rounded-full text-[10px] font-semibold text-bg" style={{ backgroundColor: player?.color }} aria-hidden="true">
+              {labels[i]}
               {ready && (
-                <span className="inline-flex items-center gap-1 font-semibold text-fg">
-                  <Check size={12} weight="bold" aria-hidden="true" />
-                  gotowe
+                <span className="absolute -right-1 -bottom-1 grid h-3.5 w-3.5 place-items-center rounded-full bg-fg text-bg">
+                  <Check size={9} weight="bold" />
                 </span>
               )}
             </span>
+            <span className="min-w-0 flex-1 truncate text-sm font-medium">
+              {player?.nick ?? "?"}
+              {id === me && <span className="text-fg-muted"> (ty)</span>}
+            </span>
+            <Place size={14} className="shrink-0 text-fg-muted" aria-hidden="true" />
+            <span className="sr-only">{onTrail ? "szlak" : "obóz"}</span>
+            <span className="inline-flex shrink-0 items-center gap-0.5 font-mono text-xs tabular-nums text-fg-muted">
+              <span className="sr-only">bank</span>
+              <Coins size={12} aria-hidden="true" />
+              {view.bank[id]}
+            </span>
+            {ready && <span className="sr-only">gotowe</span>}
           </li>
         );
       })}
@@ -290,23 +298,35 @@ function Roster({ view, me, players }: { view: WyprawaView; me: string; players:
   );
 }
 
-function TrailDetails({ view }: { view: WyprawaView }) {
+/** Pasek szlaku: mini-karty po kolei, ostatnia obrysowana; przewija się sam do najnowszej. */
+function TrailStrip({ view, fresh }: { view: WyprawaView; fresh: boolean }) {
+  const list = useRef<HTMLOListElement>(null);
+  useEffect(() => {
+    const el = list.current;
+    if (el) el.scrollLeft = el.scrollWidth;
+  }, [view.trail.length]);
   return (
-    <details className="rounded-[10px] border border-line px-3">
-      <summary className="flex min-h-12 cursor-pointer items-center text-sm">Szlak: {revealedCards(view.trail.length)}</summary>
-      <ol className="flex flex-col gap-1 pb-3 text-sm">
-        {view.trail.map((card, i) => (
-          <li key={i} data-trail={i + 1} className="flex items-center gap-2">
-            <span className="w-5 text-right font-mono tabular-nums text-fg-muted">{i + 1}.</span>
-            {card.kind === "treasure" ? <Coins size={14} aria-hidden="true" /> : (() => {
-              const Icon = HAZARD[card.hazard].icon;
-              return <Icon size={14} aria-hidden="true" />;
-            })()}
-            {cardName(card)}
-          </li>
-        ))}
+    <div className="flex flex-col gap-1.5">
+      <span className="label">Szlak: {revealedCards(view.trail.length)}</span>
+      <ol ref={list} className="flex gap-1.5 overflow-x-auto pb-1">
+        {view.trail.map((card, i) => {
+          const last = i === view.trail.length - 1;
+          const Icon = card.kind === "treasure" ? Coins : HAZARD[card.hazard].icon;
+          return (
+            <li
+              key={i}
+              data-trail={i + 1}
+              className={`flex h-14 w-11 shrink-0 flex-col items-center justify-center gap-0.5 rounded-[8px] border ${card.kind === "hazard" ? "border-warning text-warning" : "border-line"} ${last ? "border-2" : ""} ${last && fresh ? "animate-[card-in_0.35s_ease-out]" : ""}`}
+              style={last && card.kind === "treasure" ? { borderColor: "var(--color-fg)" } : undefined}
+            >
+              <Icon size={16} aria-hidden="true" />
+              {card.kind === "treasure" && <span className="font-mono text-xs font-semibold tabular-nums" aria-hidden="true">{card.value}</span>}
+              <span className="sr-only">{cardName(card)}</span>
+            </li>
+          );
+        })}
       </ol>
-    </details>
+    </div>
   );
 }
 
@@ -496,7 +516,7 @@ export function WyprawaBoard({ view, me, players, waitingFor, onMove, places, dr
   const nick = (id: string) => players.find((p) => p.id === id)?.nick ?? "?";
   const color = players.find((p) => p.id === me)?.color ?? "var(--color-fg-muted)";
   const opts = options(view, me, waitingFor);
-  const header = <span className="label">Wyprawa {view.expedition + 1}/{WYPRAWA_EXPEDITIONS}</span>;
+  const header = <ExpeditionHeader view={view} />;
   if (view.phase !== "decision") return <AfterExpedition view={view} me={me} nick={nick} players={players} waitingFor={waitingFor} onMove={onMove} places={places} color={color} header={header} />;
 
   const current = view.trail[view.trail.length - 1];
@@ -522,11 +542,11 @@ export function WyprawaBoard({ view, me, players, waitingFor, onMove, places, dr
       {opts.camp && <p className="text-sm">Jesteś w obozie. Czekasz na koniec wyprawy.</p>}
       {!opts.seated && <p className="text-sm text-fg-muted">Oglądasz wyprawę.</p>}
       {opts.onTrail ? <Haul view={view} me={me} color={color} /> : <Stats items={stats} />}
+      <TrailStrip view={view} fresh={isNew(`card:${view.expedition}:${view.trail.length - 1}`)} />
       {current && <CurrentCard card={current} view={view} fresh={isNew(`card:${view.expedition}:${view.trail.length - 1}`)} />}
       <Hazards view={view} />
       <LastResolution view={view} me={me} nick={nick} fresh={!!view.last && isNew(`last:${view.expedition}:${view.last.reveal}`)} />
       <Roster view={view} me={me} players={players} />
-      <TrailDetails view={view} />
       <DecisionControls view={view} me={me} waitingFor={waitingFor} color={color} draft={draft} onDraft={onDraft} onMove={onMove} />
     </div>
   );
