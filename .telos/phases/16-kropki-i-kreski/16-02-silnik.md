@@ -2,7 +2,7 @@
 id: 16-02
 title: Testy zasad i silnik gry
 type: code          # code | doc | audit
-status: in-progress # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [16-01]         # task IDs, e.g. [01-01]
