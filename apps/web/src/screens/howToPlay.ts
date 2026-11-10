@@ -1,6 +1,7 @@
 import {
   KALAMBURY_HALF_SECONDS,
   KAMPUS_ROUNDS,
+  KRESKI_TURN_SECONDS,
   PM_ANSWER_MAX,
   PM_CATEGORIES,
   PODROBKA_ROUNDS,
@@ -60,6 +61,19 @@ export const HOW_TO_PLAY: Record<string, HowToPlay> = {
     watch: [
       "Podróbka jest wykryta tylko wtedy, gdy ma samodzielnie najwięcej głosów i co najmniej 2. Remis na prowadzeniu oznacza ucieczkę.",
       "Broń odpowiedzi, nie cytuj swojego pytania. Brak odpowiedzi od kogokolwiek anuluje rundę: wszyscy dostają 0.",
+    ],
+  },
+  "kropki-i-kreski": {
+    goal: "Zamknij więcej kwadratów niż rywale.",
+    flow: [
+      `Na planszy z kropek rysujecie po kolei jedną kreskę między sąsiednimi kropkami. Na ruch masz ${KRESKI_TURN_SECONDS} s.`,
+      "Dotknij kreski, żeby ją wybrać, i potwierdź ruch.",
+      "Kto zamknie kwadrat, bierze go w swoim kolorze i rysuje kolejną kreskę.",
+    ],
+    scoring: ["Kreska zamykająca dwa kwadraty naraz daje dwa punkty. Wygrywa najwięcej kwadratów, a remis na szczycie oznacza brak zwycięzcy."],
+    watch: [
+      "Trzecia kreska przy kwadracie oddaje go rywalowi, który zamknie go czwartą.",
+      "Kolejny ruch po zamknięciu kwadratu jest obowiązkowy, a po limicie czasu kreska pojawia się sama.",
     ],
   },
   "piec-w-rzedzie": {

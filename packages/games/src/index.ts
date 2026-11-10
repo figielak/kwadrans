@@ -17,6 +17,7 @@ import { nozyczki } from "./nozyczki.ts";
 import { obrot } from "./obrot.ts";
 import { panstwaMiasta } from "./panstwa-miasta.ts";
 import { sabotaz } from "./sabotaz.ts";
+import { kropkiIKreski } from "./kropki-i-kreski.ts";
 import { labirynt } from "./labirynt.ts";
 import { piecWRzedzie } from "./piec-w-rzedzie.ts";
 import { przytrzymaj } from "./przytrzymaj.ts";
@@ -86,6 +87,7 @@ export {
   type View as KalamburyView,
 } from "./kalambury.ts";
 export type { View as PiecWRzedzieView } from "./piec-w-rzedzie.ts";
+export { edgeCount as kreskiEdgeCount, edgeEnds as kreskiEdgeEnds, boxEdges as kreskiBoxEdges, TURN_SECONDS as KRESKI_TURN_SECONDS, type Move as KropkiIKreskiMove, type View as KropkiIKreskiView } from "./kropki-i-kreski.ts";
 export { atGoal as labiryntAtGoal, type Cell as LabiryntCell, pawnMoves as labiryntPawnMoves, type View as LabiryntView, type Wall as LabiryntWall, wallError as labiryntWallError } from "./labirynt.ts";
 export { SYMBOLS as MEMORY_SYMBOLS, type View as MemoryView } from "./memory.ts";
 export { PENALTY_MS as REFLEKS_PENALTY_MS, ROUNDS as REFLEKS_ROUNDS, type View as RefleksView } from "./refleks.ts";
@@ -158,6 +160,7 @@ export { around as shipAround, isValidFleet, MODES as STATKI_MODES, randomFleet,
 export const GAMES: Record<string, GameDefinition<any, any>> = Object.assign(Object.create(null), {
   [piecWRzedzie.id]: piecWRzedzie,
   [labirynt.id]: labirynt,
+  [kropkiIKreski.id]: kropkiIKreski,
   [statki.id]: statki,
   [chinczyk.id]: chinczyk,
   [kampusTour.id]: kampusTour,

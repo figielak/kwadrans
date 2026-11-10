@@ -2,7 +2,7 @@
 id: 16-02
 title: Testy zasad i silnik gry
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: in-progress # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [16-01]         # task IDs, e.g. [01-01]
@@ -65,11 +65,13 @@ Napisać testy zasad, potem silnik `kropki-i-kreski`, wpisać grę do `GAMES` i 
 - Dodać kartę w `howToPlay.ts`, dopisać id do list i asercję w `howToPlay.test.ts`.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter @kwadrans/games exec vitest run src/kropki-i-kreski.test.ts` → exit 0
-- [ ] `pnpm run typecheck` → exit 0
-- [ ] `pnpm run test` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter @kwadrans/games exec vitest run src/kropki-i-kreski.test.ts` → exit 0
+- [x] `pnpm run typecheck` → exit 0
+- [x] `pnpm run test` → exit 0
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Testy zasad (36) w osobnym commicie, potem silnik `kropki-i-kreski.ts` (tryby, kreski, kwadraty, kolejny ruch, `places`, timeout), eksporty i wpis w `GAMES`.
+Karta „Jak grać" w `howToPlay.ts` z `KRESKI_TURN_SECONDS` i test w `howToPlay.test.ts`.
+Pełne `pnpm run test`: games 2818, server 226, web 611 zielone.
+Deviations: packages/games/src/index.test.ts — licznik gier w rejestrze 41→42 po dodaniu nowej gry
