@@ -10,7 +10,7 @@ Dev i deploy: `README.md`. Stan prac i plan: `.telos/ROADMAP.md`.
 ## 1. Założenia
 
 - **Do 6 graczy naraz** w pokoju, kilka pokoi równolegle. Limit miejsc zależy od gry
-  (Kampus Tour, Chińczyk i Labirynt 2-4, Gomoku i Statki 2, Sabotaż i Podróbka 3-6, nie wystartują z mniejszą liczbą); reszta ogląda.
+  (Kampus Tour, Chińczyk, Labirynt i Kropki i kreski 2-4, Gomoku i Statki 2, Sabotaż i Podróbka 3-6, nie wystartują z mniejszą liczbą); reszta ogląda.
 - **Mobile-first**: telefon w pionie, bez instalacji (PWA z ikoną na ekranie głównym).
 - **Bez kont**: gracz wpisuje nick i kod pokoju. Token sesji w `localStorage` pozwala wrócić do gry po odświeżeniu strony.
   Nick jest zapamiętany po pierwszym wpisaniu (ekran główny pokazuje „Grasz jako … · zmień”), tak samo trzy ostatnie pokoje z ostatniej doby do szybkiego powrotu
@@ -71,6 +71,7 @@ rozbudowa do landmarku, wykupienie pola rywala za 2× wartość, wygrana przez b
 | Memory | `memory` | 2-6 | wspólna plansza par, układ zna tylko serwer, trzy rozmiary |
 | Kalambury | `kalambury` | 2-6 | rysowanie palcem i zgadywanie, limit per faza |
 | Labirynt | `labirynt` | 2-4 | Quoridor: krok albo ścianka, tryby 9×9 i 7×7 |
+| Kropki i kreski | `kropki-i-kreski` | 2-4 | zamykanie kwadratów, kto zamknie, rusza jeszcze raz; tryby 3×3, 5×5 i 7×7 kwadratów |
 | Sabotaż | `sabotaz` | 3-6 | zakryte stosy, licytacja i odkrywanie od góry, 6 rund bez eliminacji, punkty 2/1/0 |
 | Wyprawa | `wyprawa` | 2-6 | wspólny szlak, tajne równoczesne decyzje powrotu, bank i ryzyko drugiego takiego samego zagrożenia, 5 wypraw |
 | Podróbka | `podrobka` | 3-6 | prywatne pytania, jedna tajna osoba z innym, podobnym; tajne głosowanie i odsłona, 6 rund, punkty 2/3 |

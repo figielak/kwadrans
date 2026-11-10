@@ -14,6 +14,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Labirynt | `labirynt` | 2-4 | 60 s | planszowa, po kolei |
 | Państwa-miasta | `panstwa-miasta` | 2-6 | zależny od fazy | równoczesna |
 | Kalambury | `kalambury` | 2-6 | zależny od fazy | równoczesna, ukryty stan |
+| Kropki i kreski | `kropki-i-kreski` | 2-4 | 60 s | po kolei |
 | Sabotaż | `sabotaz` | 3-6 | 30 s pierwsze karty, 60 s ruch, 15 s odsłona | po kolei, ukryty stan (pierwsze karty i odsłona równocześnie) |
 | Wyprawa | `wyprawa` | 2-6 | 20 s decyzja, 15 s odsłona | równoczesna, ukryty stan |
 | Podróbka | `podrobka` | 3-6 | 30 s odpowiedź, 60 s głos, 15 s odsłona | równoczesna, ukryty stan |
@@ -1291,3 +1292,39 @@ remisu, punkty i „Dalej”. Pola i akcje min. 48 px, ekran mieści się na 360
 
 Nie jest potwierdzony. Do sprawdzenia w próbie z ludźmi dla 3, 4 i 6 osób: długość rund, czytelność instrukcji, odsetek wykryć,
 pary zbyt oczywiste lub nierozróżnialne oraz punktacja 2/3.
+
+## 14. Kropki i kreski (`kropki-i-kreski`)
+
+Gra w zamykanie kwadratów. Gracze po kolei dorysowują kreski między sąsiednimi kropkami; kto zamknie kwadrat, dostaje punkt i rusza jeszcze raz.
+
+- 2-4 graczy, po kolei, zaczyna `players[0]`. Stałe w `kropki-i-kreski.ts`: `TURN_SECONDS = 60`, `MODES` (poniżej).
+- Tryb wybiera gospodarz w lobby; nieznany albo brak = `srednia`. Tryb zmienia tylko rozmiar planszy, rewanż gra w tym samym trybie,
+  wszystkie tryby liczą się do jednego rankingu. Rozmiar `n` to liczba kwadratów na bok, kropek jest `n + 1` na bok.
+
+  | Tryb | Rozmiar `n` | Kropki | Kwadraty | Kreski |
+  |---|---|---|---|---|
+  | `mala` | 3 | 4×4 | 9 | 24 |
+  | `srednia` (domyślny) | 5 | 6×6 | 25 | 60 |
+  | `duza` | 7 | 8×8 | 49 | 112 |
+
+### Ruch i punkty
+
+- Ruch `line { id }`: jedna wolna kreska między dwiema sąsiednimi kropkami. Numeracja kresek: poziome `y*n+x` (`x` od 0 do `n−1`, `y` od 0 do `n`),
+  potem pionowe `n*(n+1)+y*(n+1)+x` (`x` od 0 do `n`, `y` od 0 do `n−1`). Zajęta lub nieistniejąca kreska jest odrzucana.
+- Kreska zamykająca 1 lub 2 kwadraty (kwadrat jest zamknięty, gdy ma wszystkie 4 boki) daje tyle punktów, ile kwadratów zamknęła, i **obowiązkowy kolejny ruch tej samej osoby**.
+  Zamknięty kwadrat należy do tej osoby i ma jej kolor.
+- Kreska bez zamkniętego kwadratu oddaje ruch następnej osobie w kolejności `players`.
+
+### Koniec
+
+- Ostatnia wolna kreska kończy partię od razu, bez kolejnego ruchu. Wygrywa najwięcej kwadratów.
+- Remis na szczycie nie ma zwycięzcy: `isOver` zwraca samo `ranking`, a `places` podaje miejsca z remisami (wspólny komparator przez `ranked`).
+  Przy 2 osobach liczba kwadratów jest nieparzysta w każdym trybie (9, 25, 49), więc remisu nie ma; przy 3-4 osobach jest możliwy.
+- Wynik to liczba zamkniętych kwadratów; pełny ranking po kwadratach.
+
+### Reszta
+
+- Nic nie jest ukryte: `playerView` to cały stan, obserwator widzi to samo.
+- Losowość tylko w `timeoutMove`.
+- Limit tury 60 s. Po czasie serwer wykonuje `timeoutMove`: losową wolną kreskę z przekazanego `rng` (może zamknąć kwadrat, wtedy tura trwa dalej i dostaje nowy limit).
+- Ekran: pion, mieści się na 360×640. Dotknięcie kreski tylko ją wybiera (podgląd), ruch wysyła przycisk potwierdzenia; pola dotykowe min. 48 px.

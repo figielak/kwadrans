@@ -2,7 +2,7 @@
 id: 16-01
 title: Zasady Kropek i kresek w dokumentach
 type: doc          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: []         # task IDs, e.g. [01-01]
@@ -38,10 +38,11 @@ Zapisać komplet zasad Kropek i kresek, zanim powstanie test: tabela i sekcja §
 - W `KONCEPT.md` dopisać grę do listy limitów 2-4 w §1 i wiersz w §2.2.
 
 ## Acceptance
-- [ ] `grep -q "## 14. Kropki i kreski" ZASADY-GIER.md` → exit 0
-- [ ] `grep -q "kropki-i-kreski" KONCEPT.md` → exit 0
-- [ ] `pnpm run typecheck` → exit 0
+- [x] `grep -q "## 14. Kropki i kreski" ZASADY-GIER.md` → exit 0
+- [x] `grep -q "kropki-i-kreski" KONCEPT.md` → exit 0
+- [x] `pnpm run typecheck` → exit 0
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Dodano wiersz tabeli i §14 w ZASADY-GIER.md (tryby, numeracja kresek, punkty z dodatkowym ruchem, koniec i remisy, timeout, ekran) oraz grę w KONCEPT.md (limity §1, tabela §2.2).
+Testów brak (zadanie doc); `telos accept` PASS.
+Deviations: none
