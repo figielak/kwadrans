@@ -21,7 +21,7 @@ type Choice = NonNullable<WyprawaView["myChoice"]>;
 export type Draft = { choice?: Choice };
 export type Stored = { key: string; draft: Draft };
 
-const HAZARD: Record<Hazard, { name: string; icon: ComponentType<{ size?: number; "aria-hidden"?: "true" }> }> = {
+const HAZARD: Record<Hazard, { name: string; icon: ComponentType<{ size?: number; weight?: "regular" | "fill"; "aria-hidden"?: "true" }> }> = {
   osuwisko: { name: "Osuwisko", icon: Mountains },
   zalanie: { name: "Zalanie", icon: Waves },
   roj: { name: "Rój", icon: Bug },
@@ -102,28 +102,31 @@ export function DecisionControls({ view, me, waitingFor, color, draft, onDraft, 
   return (
     <StickyBar className="mt-auto">
       <div className="flex w-full flex-col gap-2">
-        <p className="text-xs text-fg-muted">Bez Gotowe po czasie wracasz.</p>
-        <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {CHOICES.map(({ choice, label, icon: Icon }) => {
             const picked = draft.choice === choice;
             return (
               <button
                 key={choice}
                 type="button"
-                className="flex min-h-12 items-center justify-center gap-1.5 rounded-[10px] border px-1"
-                style={{ borderColor: picked ? color : "var(--color-line)" }}
+                className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-[10px] border-2 px-2 py-2 transition-colors duration-150"
+                style={{
+                  borderColor: picked ? color : "var(--color-line)",
+                  backgroundColor: picked ? `color-mix(in srgb, ${color} 18%, transparent)` : undefined,
+                }}
                 aria-pressed={picked}
                 onClick={() => onDraft({ choice })}
               >
-                {picked ? <Check size={18} weight="bold" aria-hidden="true" /> : <Icon size={18} aria-hidden="true" />}
-                <span className="text-sm font-medium">{label}</span>
+                {picked ? <Check size={22} weight="bold" aria-hidden="true" /> : <Icon size={22} aria-hidden="true" />}
+                <span className="text-base font-semibold">{label}</span>
               </button>
             );
           })}
-          <button type="button" className="btn btn-player px-4" style={{ backgroundColor: color }} disabled={!send} onClick={() => send && onMove(send)}>
-            Gotowe
-          </button>
         </div>
+        <button type="button" className="btn btn-player w-full" style={{ backgroundColor: color }} disabled={!send} onClick={() => send && onMove(send)}>
+          {draft.choice ? `Gotowe · ${LABEL[draft.choice].toLowerCase()}` : "Gotowe"}
+        </button>
+        <p className="text-center text-xs text-fg-muted">Bez Gotowe po czasie wracasz.</p>
       </div>
     </StickyBar>
   );
@@ -158,27 +161,48 @@ function CurrentCard({ card, view, fresh }: { card: Card; view: WyprawaView; fre
   );
 }
 
+/** Ile z pozostałych kart kończy wyprawę: po dwie kopie każdego zagrożenia, które już raz padło. Tylko z jawnych danych. */
+export function deadlyCards(view: WyprawaView) {
+  return WYPRAWA_HAZARDS.filter((h) => view.trail.some((c) => c.kind === "hazard" && c.hazard === h)).length * 2;
+}
+
 function Hazards({ view }: { view: WyprawaView }) {
+  const deadly = Math.min(deadlyCards(view), view.deckLeft);
+  const percent = view.deckLeft > 0 ? Math.round((deadly / view.deckLeft) * 100) : 0;
   return (
-    <ul className="grid grid-cols-5 gap-1.5">
-      {WYPRAWA_HAZARDS.map((hazard) => {
-        const Icon = HAZARD[hazard].icon;
-        const count = view.trail.filter((c) => c.kind === "hazard" && c.hazard === hazard).length;
-        return (
-          <li
-            key={hazard}
-            data-hazard={hazard}
-            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[10px] border border-line px-1 py-1.5 text-center"
-            style={{ borderColor: count > 0 ? "var(--color-fg-muted)" : undefined }}
-            aria-label={`${HAZARD[hazard].name}: ${count} z 2`}
-          >
-            <Icon size={18} aria-hidden="true" />
-            <span className="text-[10px] leading-tight text-fg-muted">{HAZARD[hazard].name}</span>
-            <span className="font-mono text-sm font-semibold tabular-nums">{count}</span>
-          </li>
-        );
-      })}
-    </ul>
+    <div className="flex flex-col gap-2">
+      <p data-risk={deadly} className={`flex items-center gap-1.5 text-sm ${deadly > 0 ? "text-warning" : "text-fg-muted"}`}>
+        <Warning size={16} weight={deadly > 0 ? "fill" : "regular"} aria-hidden="true" />
+        {deadly > 0 ? (
+          <span>
+            Ryzyko: <span className="font-mono font-semibold tabular-nums">{deadly}</span> z <span className="font-mono tabular-nums">{view.deckLeft}</span> kart kończy wyprawę (
+            <span className="font-mono tabular-nums">{percent}%</span>)
+          </span>
+        ) : (
+          <span>Żadne zagrożenie jeszcze nie padło. Następna karta jest bezpieczna.</span>
+        )}
+      </p>
+      <ul className="grid grid-cols-5 gap-1.5">
+        {WYPRAWA_HAZARDS.map((hazard) => {
+          const Icon = HAZARD[hazard].icon;
+          const count = view.trail.filter((c) => c.kind === "hazard" && c.hazard === hazard).length;
+          const warned = count > 0;
+          return (
+            <li
+              key={hazard}
+              data-hazard={hazard}
+              className={`flex flex-col items-center gap-0.5 rounded-[10px] border px-1 py-1.5 text-center ${warned ? "border-warning text-warning" : "border-line text-fg-subtle"}`}
+              style={warned ? { backgroundColor: "color-mix(in srgb, var(--color-warning) 12%, transparent)" } : undefined}
+              aria-label={`${HAZARD[hazard].name}: ${count} z 2`}
+            >
+              <Icon size={20} weight={warned ? "fill" : "regular"} aria-hidden="true" />
+              <span className="flex h-[2.5em] items-center text-[10px] leading-tight">{HAZARD[hazard].name}</span>
+              <span className="font-mono text-xs font-semibold tabular-nums">{count}/2</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
@@ -445,6 +469,27 @@ function AfterExpedition({ view, me, nick, players, waitingFor, onMove, places, 
   );
 }
 
+/** Gracz na szlaku: to, co może stracić, jest największe; bank i resztki szlaku obok, mniejsze. */
+function Haul({ view, me, color }: { view: WyprawaView; me: string; color: string }) {
+  return (
+    <dl className="tile flex items-end justify-between gap-3 px-4 py-3">
+      <div className="flex flex-col">
+        <dt className="label">Niesiesz</dt>
+        <dd className="font-mono text-4xl leading-none font-semibold tabular-nums" style={{ color }}>{view.carried[me]}</dd>
+        <span className="mt-1 text-xs text-fg-muted">do stracenia na szlaku</span>
+      </div>
+      <div className="flex shrink-0 flex-col items-end gap-1 text-sm">
+        <div className="flex items-baseline gap-2">
+          <dt className="text-fg-muted">W banku</dt><dd className="font-mono font-semibold tabular-nums">{view.bank[me]}</dd>
+        </div>
+        <div className="flex items-baseline gap-2">
+          <dt className="text-fg-muted">Resztki szlaku</dt><dd className="font-mono font-semibold tabular-nums">{view.loose}</dd>
+        </div>
+      </div>
+    </dl>
+  );
+}
+
 export function WyprawaBoard({ view, me, players, waitingFor, onMove, places, draft, onDraft }: Props & { draft: Draft; onDraft: (draft: Draft) => void }) {
   // Zastane po wejściu albo odświeżeniu leży od razu; animuje się tylko to, co stało się przy graczu.
   const { isNew } = useFresh([...view.trail.map((_, i) => `card:${view.expedition}:${i}`), ...(view.last ? [`last:${view.expedition}:${view.last.reveal}`] : [])]);
@@ -476,7 +521,7 @@ export function WyprawaBoard({ view, me, players, waitingFor, onMove, places, dr
       </div>
       {opts.camp && <p className="text-sm">Jesteś w obozie. Czekasz na koniec wyprawy.</p>}
       {!opts.seated && <p className="text-sm text-fg-muted">Oglądasz wyprawę.</p>}
-      <Stats items={stats} />
+      {opts.onTrail ? <Haul view={view} me={me} color={color} /> : <Stats items={stats} />}
       {current && <CurrentCard card={current} view={view} fresh={isNew(`card:${view.expedition}:${view.trail.length - 1}`)} />}
       <Hazards view={view} />
       <LastResolution view={view} me={me} nick={nick} fresh={!!view.last && isNew(`last:${view.expedition}:${view.last.reveal}`)} />

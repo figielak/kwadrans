@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { isValidElement, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
-import { currentDraft, DecisionControls, decisionKey, type Draft, moves, NextBar, options, revealedCards, WyprawaBoard } from "./Wyprawa.tsx";
+import { currentDraft, deadlyCards, DecisionControls, decisionKey, type Draft, moves, NextBar, options, revealedCards, WyprawaBoard } from "./Wyprawa.tsx";
 
 // Testy napisane przed ekranem. Widoki pochodzą z prawdziwego playerView po legalnych ruchach:
 // - gracz na szlaku widzi „Wyprawa n/5”, bank, to co niesie i resztki na szlaku z osobnymi podpisami,
@@ -564,11 +564,30 @@ describe("układ na 360×640", () => {
     expect(seen.indexOf("Oglądasz wyprawę")).toBeLessThan(seen.indexOf("Na szlaku"));
   });
 
-  test("pasek decyzji ma opcje i „Gotowe” w jednym rzędzie, a zaznaczenie zastępuje ikonę, więc szerokość się nie zmienia", () => {
+  test("pasek decyzji ma dwie opcje w rzędzie i „Gotowe” pod nimi z wybraną opcją, a zaznaczenie zastępuje ikonę", () => {
     const seen = html(setup(THREE), A, { choice: "return" });
-    const row = seen.match(/<div class="[^"]*grid-cols-\[1fr_1fr_auto\][^"]*">(.*?)<\/div>/)?.[1] ?? "";
-    expect(buttons(row).map((b) => text(b).trim())).toEqual(["Idę dalej", "Wracam", "Gotowe"]);
+    const row = seen.match(/<div class="[^"]*grid-cols-2[^"]*">(.*?)<\/div>/)?.[1] ?? "";
+    expect(buttons(row).map((b) => text(b).trim())).toEqual(["Idę dalej", "Wracam"]);
+    expect(text(buttonWith(seen, "Gotowe")!).trim()).toBe("Gotowe · wracam");
+    expect(text(buttonWith(html(setup(THREE), A), "Gotowe")!).trim()).toBe("Gotowe");
     for (const label of ["Idę dalej", "Wracam"]) expect(buttonWith(seen, label)!.match(/<svg/g)).toHaveLength(1);
+  });
+
+  test("gracz na szlaku ma „Niesiesz” jako największą liczbę w swoim kolorze", () => {
+    const seen = html(setup(THREE), A);
+    expect(seen).toMatch(/<dt[^>]*>Niesiesz<\/dt><dd[^>]*text-4xl[^>]*color:#3b9eff/);
+  });
+
+  test("ryzyko liczy dwie kopie każdego odkrytego zagrożenia z pozostałych kart", () => {
+    const safe = treasure(THREE);
+    if (!view(safe).trail.some((c) => c.kind === "hazard")) {
+      expect(deadlyCards(view(safe, A))).toBe(0);
+      expect(text(html(safe, A))).toContain("Żadne zagrożenie jeszcze nie padło");
+    }
+    const s = openedWith(THREE, "hazard");
+    const v = view(s, A);
+    expect(deadlyCards(v)).toBe(2);
+    expect(text(html(s, A))).toContain(`Ryzyko: 2 z ${v.deckLeft} kart kończy wyprawę`);
   });
 });
 
