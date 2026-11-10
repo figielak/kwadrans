@@ -2,7 +2,7 @@
 <!-- ≤ 40 lines. Maintained by `telos status set <key>=<value>`; never edit by hand.
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 16-kropki-i-kreski
-Task: 16-03
+Task: 16-04
 Next: /telos:do
 Blockers: none
 Awaiting user: 08, 09, 12
@@ -15,6 +15,6 @@ Awaiting user: 08, 09, 12
 
 ## Recent
 <!-- max 3, newest first: "- NN-MM done: one line" -->
+- 16-03 done: ekran Kropek i kresek z wyborem i potwierdzeniem
 - 16-02 done: silnik Kropek i kresek, GAMES, karta Jak grać
 - 16-01 done: zasady Kropek i kresek w ZASADY-GIER i KONCEPT
-- 15-jak-grac closed: karty Jak grać dla gier głównych; otwarte: ikona w Kampus Tour, sticky tytuł okienka

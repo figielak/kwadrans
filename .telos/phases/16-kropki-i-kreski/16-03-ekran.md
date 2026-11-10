@@ -2,7 +2,7 @@
 id: 16-03
 title: Ekran planszy z wyborem kreski
 type: code          # code | doc | audit
-status: approved    # draft | approved | in-progress | done | blocked | reverted
+status: done        # draft | approved | in-progress | done | blocked | reverted
 critical: false
 effort: normal      # normal | hard
 depends: [16-02]         # task IDs, e.g. [01-01]
@@ -55,10 +55,13 @@ Zbudować ekran partii: plansza kropek i kresek z wyborem i potwierdzeniem, kwad
 - Dodać animację nowej kreski i kwadratu przez `useFresh`.
 
 ## Acceptance
-- [ ] all listed tests pass
-- [ ] `pnpm --filter web exec vitest run src/games/KropkiIKreski.test.tsx` → exit 0
-- [ ] `pnpm run typecheck` → exit 0
+- [x] all listed tests pass
+- [x] `pnpm --filter web exec vitest run src/games/KropkiIKreski.test.tsx` → exit 0
+- [x] `pnpm run typecheck` → exit 0
 
 ## Result
-<!-- filled by do: 3–5 lines (audit: ≤ 10, findings + proposed follow-ups)
-     last line always: "Deviations: none" or "Deviations: path — why" -->
+Ekran `KropkiIKreski.tsx`: licznik kwadratów, plansza SVG z kropkami, kreskami i kwadratami z inicjałem, romby-przyciski między kropkami, wybór i potwierdzenie (`tap`, `freePick`, `edgeName`), komunikaty i `StickyBar`.
+16 testów ekranu na prawdziwych widokach `playerView` (2 i 4 osoby, 3×3 i 7×7). RED: pierwszy przebieg padał na braku modułu.
+Błąd znaleziony testem: po ostatniej kresce zostawał komunikat „Masz kwadrat”; dodano `!over`. Dwie asercje testu poprawiono (`\w` nie łapie „ą”, klasa `disabled:` w tekście przycisku).
+Pełne `pnpm run test` zielone; nie sprawdzono jeszcze wyglądu w przeglądarce (podpięcie w 16-04).
+Deviations: none
