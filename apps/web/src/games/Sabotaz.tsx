@@ -169,6 +169,34 @@ function CoveredStack({ count, color, popAt }: { count: number; color: string; p
   );
 }
 
+/**
+ * Zakryte karty całego stołu jako wachlarz koszulek w kolorach właścicieli, z liczbą na odznace, żeby nie liczyć.
+ * Kart jest najwyżej 24 (6 osób po 4), więc odstęp i skręt maleją z liczbą, a wachlarz mieści się na 360 px.
+ */
+function TableFan({ owners, colorOf }: { owners: string[]; colorOf: (id: string | null) => string }) {
+  const n = owners.length;
+  if (n === 0) return null;
+  const step = n > 1 ? Math.min(20, Math.floor(240 / (n - 1))) : 0;
+  const turn = Math.min(5, 36 / n);
+  return (
+    <span className="relative my-1.5 flex h-12 items-center" aria-hidden="true">
+      {owners.map((id, i) => (
+        <span
+          key={i}
+          className="h-12 w-9 shrink-0 origin-bottom rounded-[4px] border bg-surface"
+          style={{
+            marginLeft: i ? step - 36 : 0,
+            transform: `rotate(${(i - (n - 1) / 2) * turn}deg)`,
+            borderColor: colorOf(id),
+            backgroundImage: `repeating-linear-gradient(135deg, ${tint(colorOf(id), 45)} 0 2px, transparent 2px 5px)`,
+          }}
+        />
+      ))}
+      <span className="absolute -top-2.5 -right-3 grid h-6 min-w-6 place-items-center rounded-full bg-fg px-1.5 font-mono text-xs font-semibold text-bg tabular-nums">{n}</span>
+    </span>
+  );
+}
+
 /** Rundy partii: zakończona w kolorze osoby, która zapunktowała; pudło na własnej Pułapce puste. */
 function RoundTrack({ history, current, colorOf }: { history: SabotazRound[]; current: number; colorOf: (id: string | null) => string }) {
   return (
@@ -460,9 +488,9 @@ export function SabotazBoard({ view, me, players, waitingFor, onMove, places, dr
         ) : (
           <>
             {view.phase !== "initial" && (
-              <p className="flex items-baseline gap-1.5">
-                <span className="font-mono text-2xl font-semibold tabular-nums">{onTable}</span>
-                <span className="label">{plural(onTable, "karta", "karty", "kart")} na stole</span>
+              <p>
+                <TableFan owners={view.players.flatMap((p) => Array<string>(view.stackSizes[p]).fill(p))} colorOf={colorOf} />
+                <span className="sr-only">{`${onTable} ${plural(onTable, "karta", "karty", "kart")} na stole`}</span>
               </p>
             )}
             {view.bid !== null && (
