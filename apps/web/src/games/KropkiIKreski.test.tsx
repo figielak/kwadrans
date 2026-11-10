@@ -161,6 +161,28 @@ describe("licznik i kwadraty", () => {
   });
 });
 
+describe("licznik przy wielu graczach", () => {
+  const counter = (html: string) => html.match(/<div class="grid gap-1.5"[^>]*>(.*?)<\/div><\/div><div class="rounded-inset/)![1];
+  const LONG = [lobby(A, "Aleksandra-Maria", "#3b9eff"), lobby(B, "Bartłomiej-Jan", "#ffc53d"), lobby(C, "Celina-Zofia", "#46a758"), lobby(D, "Dominik-Piotr", "#8e7cff")];
+
+  test("zawsze jeden rząd, przy 2 osobach nicki", () => {
+    const html = render(view(setup([A, B], "mala"), A), { canMove: false, players: LONG });
+    expect(html).toContain("grid-template-columns:repeat(2,");
+    expect(counter(html)).toMatch(/>Aleksandra-Maria</);
+  });
+
+  test("przy 3-4 osobach inicjał zamiast nicku, pełny nick w etykiecie, żeby długie nicki nie ucinały się w 360 px", () => {
+    for (const ids of [[A, B, C], [A, B, C, D]]) {
+      const html = render(view(setup(ids, "mala"), A), { canMove: false, players: LONG });
+      expect(html).toContain(`grid-template-columns:repeat(${ids.length},`);
+      const row = counter(html);
+      expect(row).not.toMatch(/>Aleksandra-Maria</);
+      expect(row).toMatch(/>A</);
+      expect(row).toContain('aria-label="Aleksandra-Maria: 0"');
+    }
+  });
+});
+
 describe("zasady ekranu", () => {
   test("stan zastany nie ma klas animacji", () => {
     const state = draw(setup([A, B], "mala"), [0, 3, 12, 13, 5]);

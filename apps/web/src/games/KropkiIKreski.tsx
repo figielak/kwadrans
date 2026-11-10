@@ -49,6 +49,7 @@ export function KropkiIKreskiScreen({ view, players, canMove, picked, onTap, onS
   const over = view.edges.every(Boolean);
   const myColor = colorOf(view.turn);
   const pickedFree = freePick(view, canMove, picked);
+  const compact = view.players.length > 2;
   const counts = view.players.map((_, seat) => view.boxes.filter((b) => b === seat).length);
   // Kreski i kwadraty zastane po odświeżeniu stoją od razu; animuje się tylko to, co pojawiło się po wejściu.
   const { isNew } = useFresh([...view.edges.flatMap((e, i) => (e ? [`e${i}`] : [])), ...view.boxes.flatMap((b, i) => (b === null ? [] : [`b${i}`]))]);
@@ -57,20 +58,23 @@ export function KropkiIKreskiScreen({ view, players, canMove, picked, onTap, onS
   const pct = (v: number) => `${((v + 0.5) / (n + 1)) * 100}%`;
 
   return (
-    <div className="flex flex-1 flex-col gap-3">
-      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${view.players.length}, minmax(0, 1fr))` }}>
+    <div className="flex flex-1 flex-col gap-2">
+      {/* Jeden rząd: przy 3-4 osobach zamiast nicku inicjał (ten sam co na kwadratach i awatarach), bo nicki nie zmieszczą się w 360 px,
+          a drugi rząd wypchnąłby planszę 7×7 poza 640 px. Pełny nick zostaje w etykiecie. */}
+      <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${view.players.length}, minmax(0, 1fr))` }}>
         {view.players.map((id, seat) => (
           <div
             key={id}
             aria-current={!over && view.turn === seat ? "true" : undefined}
-            className="flex min-w-0 items-center justify-between gap-1.5 rounded-inset border border-line px-2 py-1.5 text-sm"
+            aria-label={`${nicks[seat]}: ${counts[seat]}`}
+            className="flex min-w-0 items-center justify-between gap-1 rounded-inset border border-line px-2 py-1 text-[13px]"
             style={!over && view.turn === seat ? { borderColor: colorOf(seat) } : undefined}
           >
-            <span className="flex min-w-0 items-center gap-1.5">
-              <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: colorOf(seat) }} aria-hidden />
-              <span className="truncate">{nicks[seat]}</span>
+            <span className="flex min-w-0 items-center gap-1.5" aria-hidden>
+              <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: colorOf(seat) }} />
+              <span className="truncate">{compact ? labels[seat] : nicks[seat]}</span>
             </span>
-            <b data-count={seat} className="tabular-nums">{counts[seat]}</b>
+            <b data-count={seat} className="tabular-nums" aria-hidden>{counts[seat]}</b>
           </div>
         ))}
       </div>
