@@ -7,7 +7,7 @@ Faza kończy się po TDD, ekranie, podpięciu i odbiorze technicznym 2 i 4 gracz
 - D-01: 2-4 graczy (odpowiedź użytkownika, 2026-11-09).
 - D-02: Trzy rozmiary planszy jako tryby w lobby: 3×3, 5×5 (domyślny) i 7×7 kwadratów (odpowiedź użytkownika, 2026-11-09).
 - D-03: Na każdej planszy wybór i potwierdzenie: pierwsze dotknięcie pokazuje kreskę, drugie w tym samym miejscu albo przycisk ją stawia (odpowiedź użytkownika, 2026-11-09).
-- D-04: Założenia planu zaakceptowane przez użytkownika (2026-11-09): `id` to `kropki-i-kreski`, limit tury 60 s, po limicie losowa wolna kreska, remis na szczycie bez zwycięzcy, nazwa w UI „Kropki i kreski” mimo zalecenia najwyżej dwóch słów z ZASADY §1.
+- D-04: Założenia planu zaakceptowane przez użytkownika (2026-11-09): `id` to `kropki-i-kreski`, limit tury 60 s, po limicie losowa wolna kreska, remis na szczycie bez zwycięzcy, nazwa w UI „Kropki i kreski” mimo zalecenia najwyżej dwóch słów z ZASADY §1. → HISTORY
 
 ## Constraints
 - Praca na gałęzi `faza/16-kropki-i-kreski`, commity w trakcie, merge przy `/telos:done`, push tylko na prośbę.
