@@ -29,11 +29,18 @@ describe("changelog", () => {
     for (const s of ["lobby", "wyrzucić", "przerwać", "Rekordy"]) expect(t).toContain(s);
   });
 
-  test("najnowsza wersja 1.2.1 opisuje gospodarza i walkower przy aktualizacji", () => {
-    expect(VERSION).toBe("1.2.1");
+  test("wersja 1.2.1 opisuje gospodarza i walkower przy aktualizacji", () => {
+    const entry = CHANGELOG.find((e) => e.version === "1.2.1")!;
+    expect(entry.date).toBe("2026-11-11");
+    const t = entry.changes.join(" ");
+    for (const s of ["gospodarz", "walkowerem"]) expect(t).toContain(s);
+  });
+
+  test("najnowsza wersja 1.3.0 opisuje partię, która przeżywa aktualizację strony", () => {
+    expect(VERSION).toBe("1.3.0");
     expect(CHANGELOG[0].date).toBe("2026-11-11");
     const t = CHANGELOG[0].changes.join(" ");
-    for (const s of ["gospodarz", "walkowerem"]) expect(t).toContain(s);
+    for (const s of ["aktualizację", "pokoju", "Odświeżenie"]) expect(t).toContain(s);
   });
 
   test("aktualna wersja to najnowszy wpis, numery się nie powtarzają", () => {
