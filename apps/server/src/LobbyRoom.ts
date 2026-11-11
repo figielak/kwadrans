@@ -62,6 +62,8 @@ mkdirSync(dirname(dbPath), { recursive: true });
 export const stats = openStats(dbPath);
 
 type Timer = { clear(): void };
+/** Zegary z terminem: jeden naraz, opisany danymi, żeby dało się go zapisać i uzbroić od nowa. */
+type Deadline = { kind: "turn" | "intro" | "countdown" | "vote" | "next"; endsAt: number };
 
 const newRng = () => createRng(crypto.getRandomValues(new Uint32Array(1))[0]);
 const defaultMode = (def: GameDefinition<unknown, unknown>) => (def.modes?.find((m) => m.default) ?? def.modes?.[0])?.id ?? null;
@@ -105,7 +107,7 @@ export class LobbyRoom extends Room {
   private awaitingReturn = new Map<string, ReturnType<Room["allowReconnection"]>>();
   private match: Match | null = null;
   private turnTimer?: Timer;
-  private turnEndsAt: number | null = null;
+  private deadline: Deadline | null = null;
   /** Instrukcja mini-gry i wspólne odliczanie; limit gry rusza dopiero po ich końcu. */
   private intro = false;
   private countdown = false;
@@ -291,11 +293,7 @@ export class LobbyRoom extends Room {
       if (options.length === 0) return;
       this.vote = { options, votes: {} };
       this.resetReady();
-      this.turnEndsAt = Date.now() + VOTE_SECONDS * 1000;
-      this.turnTimer = this.clock.setTimeout(() => {
-        this.guarded("koniec głosowania", () => this.finishVote(), () => this.toLobby());
-        this.update();
-      }, VOTE_SECONDS * 1000);
+      this.arm("vote", VOTE_SECONDS * 1000);
     });
 
     this.on("vote", (client, { id }) => {
@@ -480,8 +478,7 @@ export class LobbyRoom extends Room {
     this.vote = null;
     this.match = null;
     this.resetReady();
-    this.turnTimer?.clear();
-    this.turnEndsAt = null;
+    this.disarm();
     if (!this.tournament) return;
     // Powrót na ekran turnieju: ustawienia zostają, tabela i lista gier nie.
     this.tournament = create(this.tournament.config);
@@ -516,8 +513,7 @@ export class LobbyRoom extends Room {
   private finishVote() {
     const gameId = voteWinner(this.vote!.options, this.vote!.votes, newRng());
     this.vote = null;
-    this.turnTimer?.clear();
-    this.turnEndsAt = null;
+    this.disarm();
     this.tournament = null;
     this.markedBy = {};
     this.gameId = gameId;
@@ -555,29 +551,55 @@ export class LobbyRoom extends Room {
     this.intro = def.minPlayers === 1;
     this.countdown = false;
     this.skipIntro = this.intro && skipIntro;
-    this.turnTimer?.clear();
-    this.turnEndsAt = null;
+    this.disarm();
     if (!this.intro) return this.startTurnTimer();
     if (this.seats.length === 1) return;
-    this.turnEndsAt = Date.now() + introSeconds * 1000;
+    this.arm("intro", introSeconds * 1000);
+  }
+
+  private disarm() {
+    this.turnTimer?.clear();
+    this.deadline = null;
+  }
+
+  /** Jedyny sposób na zegar z terminem. Po upływie `deadline` zostaje (klient widzi 0), dopóki nie ruszy następny. */
+  private arm(kind: Deadline["kind"], ms: number) {
+    this.turnTimer?.clear();
+    const deadline = (this.deadline = { kind, endsAt: Date.now() + ms });
     this.turnTimer = this.clock.setTimeout(() => {
-      this.guarded("koniec instrukcji", () => this.startCountdown(), () => this.finish({}, "aborted"));
+      // Zegar zastąpiony albo zgaszony w tej samej chwili nie należy już do bieżącej partii.
+      if (this.deadline !== deadline) return;
+      this.expire(kind);
       this.update();
-    }, introSeconds * 1000);
+    }, ms);
+  }
+
+  /** Zegary nie mają nad sobą try Colyseusa, więc każdy błąd kończy się tutaj wyjściem, które nie zostawia pokoju w połowie. */
+  private expire(kind: Deadline["kind"]) {
+    if (kind === "vote") return this.guarded("koniec głosowania", () => this.finishVote(), () => this.toLobby());
+    if (kind === "intro") return this.guarded("koniec instrukcji", () => this.startCountdown(), () => this.finish({}, "aborted"));
+    if (kind === "countdown") {
+      if (this.phase !== "playing" || !this.countdown) return;
+      return this.guarded("koniec odliczania", () => this.endIntro(), () => this.finish({}, "aborted"));
+    }
+    // Jak w limicie tury: błąd w zasadach gry nie może zabić procesu, turniej wraca do lobby.
+    if (kind === "next") return this.guarded("następna gra turnieju", () => this.startTournamentGame(), () => this.toLobby());
+    // Ruch zastępczy za każdego, na kogo wciąż czekamy (w rozstawianiu może to być dwóch graczy).
+    // Bez niego nie ruszyłby kolejny limit i partia wisiałaby bez końca, więc po błędzie kończy się bez zwycięzcy.
+    this.guarded("ruch po limicie czasu", () => {
+      const { def, rng } = this.match!;
+      for (const player of def.waitingFor(this.match!.state)) {
+        if (this.phase !== "playing") break;
+        this.play(player, def.timeoutMove!(this.match!.state, player, rng), { source: "timeout" });
+      }
+    }, () => this.finish({}, "aborted"));
   }
 
   private startCountdown() {
     if (this.phase !== "playing" || !this.intro || this.countdown) return;
     if (this.seats.length === 1) return this.endIntro();
-    this.turnTimer?.clear();
     this.countdown = true;
-    this.turnEndsAt = Date.now() + COUNTDOWN_SECONDS * 1000;
-    const match = this.match;
-    this.turnTimer = this.clock.setTimeout(() => {
-      if (this.phase !== "playing" || this.match !== match || !this.countdown) return;
-      this.guarded("koniec odliczania", () => this.endIntro(), () => this.finish({}, "aborted"));
-      this.update();
-    }, COUNTDOWN_SECONDS * 1000);
+    this.arm("countdown", COUNTDOWN_SECONDS * 1000);
   }
 
   private endIntro() {
@@ -614,8 +636,7 @@ export class LobbyRoom extends Room {
     this.measure(outcome);
     this.phase = "over";
     this.resetReady();
-    this.turnTimer?.clear();
-    this.turnEndsAt = null;
+    this.disarm();
     this.intro = false;
     this.countdown = false;
     // Kto wyszedł w trakcie, nie siedzi już w seats, więc nie dostaje porażki.
@@ -655,17 +676,7 @@ export class LobbyRoom extends Room {
       this.scores[champion] = (this.scores[champion] ?? 0) + 1;
       return win(TOURNAMENT_ID, champion);
     }
-    this.turnEndsAt = Date.now() + NEXT_SECONDS * 1000;
-    this.turnTimer = this.clock.setTimeout(() => {
-      try {
-        this.startTournamentGame();
-      } catch (error) {
-        // Jak w limicie tury: błąd w zasadach gry nie może zabić procesu, turniej wraca do lobby.
-        this.logError("następna gra turnieju", error);
-        this.toLobby();
-      }
-      this.update();
-    }, NEXT_SECONDS * 1000);
+    this.arm("next", NEXT_SECONDS * 1000);
   }
 
   /** Jeden anonimowy wpis na partię; błąd zapisu pomiaru nie może zepsuć końca partii. */
@@ -682,27 +693,11 @@ export class LobbyRoom extends Room {
   private startTurnTimer() {
     // Instrukcja i odliczanie nie zużywają limitu gry.
     if (this.intro) return;
-    this.turnTimer?.clear();
-    this.turnEndsAt = null;
-    const { def, state, rng } = this.match!;
+    this.disarm();
+    const { def, state } = this.match!;
     const seconds = def.turn?.(state).seconds ?? def.turnSeconds;
     if (!seconds || !def.timeoutMove || def.waitingFor(state).length === 0) return;
-    const ms = seconds * 1000;
-    this.turnEndsAt = Date.now() + ms;
-    this.turnTimer = this.clock.setTimeout(() => {
-      // Ruch zastępczy za każdego, na kogo wciąż czekamy (w rozstawianiu może to być dwóch graczy).
-      try {
-        for (const player of def.waitingFor(this.match!.state)) {
-          if (this.phase !== "playing") break;
-          this.play(player, def.timeoutMove!(this.match!.state, player, rng), { source: "timeout" });
-        }
-      } catch (error) {
-        // Bez ruchu zastępczego nie ruszyłby kolejny limit i partia wisiałaby bez końca, więc kończy się bez zwycięzcy.
-        this.logError("ruch po limicie czasu", error);
-        this.finish({}, "aborted");
-      }
-      this.update();
-    }, ms);
+    this.arm("turn", seconds * 1000);
   }
 
   /** Wołane także poza try (po obsłudze wiadomości, z zegarów), więc błąd widoku gry kończy się tu: stan nie dochodzi, pokój działa. */
@@ -728,12 +723,12 @@ export class LobbyRoom extends Room {
       scores: this.scores,
       evening: this.eveningView,
       wishes: this.wishes,
-      vote: this.vote && { ...this.vote, msLeft: Math.max(0, (this.turnEndsAt ?? 0) - Date.now()) },
+      vote: this.vote && { ...this.vote, msLeft: Math.max(0, (this.deadline?.endsAt ?? 0) - Date.now()) },
       game: match && {
         // Obserwator dostaje widok gracza "", czyli bez czyichkolwiek ukrytych informacji.
         view: match.def.playerView(match.state, this.seats.includes(id) ? id : ""),
         waitingFor: match.def.waitingFor(match.state),
-        msLeft: this.turnEndsAt && Math.max(0, this.turnEndsAt - Date.now()),
+        msLeft: this.deadline && Math.max(0, this.deadline.endsAt - Date.now()),
         intro: this.intro,
         countdown: this.countdown,
         skipIntro: this.intro && this.skipIntro,
