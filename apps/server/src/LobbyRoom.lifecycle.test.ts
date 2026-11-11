@@ -366,7 +366,7 @@ describe("B4: błąd zapisu statystyk zostawia koniec partii w połowie", () => 
     expect(view(p1).game!.result).toHaveProperty("ranking");
   });
 
-  test.fails("stats.ts: błąd w środku transakcji nie blokuje kolejnych zapisów (brak ROLLBACK)", () => {
+  test("stats.ts: błąd w środku transakcji nie blokuje kolejnych zapisów (brak ROLLBACK)", () => {
     const db = openStats(":memory:");
     expect(() => db.record("gra", [{} as never], "a")).toThrow();
     expect(() => db.record("gra", ["a"], "a")).not.toThrow();

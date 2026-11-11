@@ -99,20 +99,32 @@ export function openStats(path: string) {
     return queries.get(order)!;
   };
 
+  // Bez ROLLBACK po błędzie transakcja zostaje otwarta i każdy kolejny BEGIN rzuca aż do restartu.
+  const transaction = (fn: () => void) => {
+    db.exec("BEGIN");
+    try {
+      fn();
+      db.exec("COMMIT");
+    } catch (error) {
+      db.exec("ROLLBACK");
+      throw error;
+    }
+  };
+
   return {
     record(gameId: string, nicks: string[], winner: string) {
       const at = Date.now();
-      db.exec("BEGIN");
-      for (const nick of nicks) insert.run(gameId, nick, Number(nick === winner), at);
-      db.exec("COMMIT");
+      transaction(() => {
+        for (const nick of nicks) insert.run(gameId, nick, Number(nick === winner), at);
+      });
     },
 
     /** Jeden wpis na partię w pokoju. Dzień gry dopisuje tylko ukończona partia co najmniej dwóch osób (solo, walkover i przerwana się nie liczą). */
     recordRoomGame({ roomKey, gameId, players, outcome, nicks, at = Date.now() }: RoomGameEntry) {
-      db.exec("BEGIN");
-      insertRoomGame.run(roomKey, gameId, players, outcome, at);
-      if (outcome === "completed" && players >= 2) for (const nick of nicks) insertDay.run(nickKey(nick), localDay(at));
-      db.exec("COMMIT");
+      transaction(() => {
+        insertRoomGame.run(roomKey, gameId, players, outcome, at);
+        if (outcome === "completed" && players >= 2) for (const nick of nicks) insertDay.run(nickKey(nick), localDay(at));
+      });
     },
 
     /** Miary z planu §10 od chwili `since`; ułamki 0-1 bez zaokrąglania. Pokoje bez żadnej partii z 2+ osobami nie wchodzą do miar. */
@@ -161,10 +173,10 @@ export function openStats(path: string) {
      */
     recordScores(gameId: string, rows: { nick: string; score: number; tie: number | null; detail?: unknown }[], order?: RecordOrder) {
       const at = Date.now();
-      db.exec("BEGIN");
-      for (const { nick, score, tie, detail } of rows) insertScore.run(gameId, nick, score, tie, at, detail === undefined ? null : JSON.stringify(detail));
-      if (order) query(order).trim.run(gameId);
-      db.exec("COMMIT");
+      transaction(() => {
+        for (const { nick, score, tie, detail } of rows) insertScore.run(gameId, nick, score, tie, at, detail === undefined ? null : JSON.stringify(detail));
+        if (order) query(order).trim.run(gameId);
+      });
     },
 
     /** Partia, w której padł rekord gry, albo null (brak wyników albo rekord sprzed zapisu partii). */
