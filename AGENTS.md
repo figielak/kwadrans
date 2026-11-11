@@ -53,6 +53,7 @@ Przed zgłoszeniem zmiany jako gotowej: `pnpm typecheck && pnpm test` bez błęd
   Jawny wyjątek: kanał `live` to dekoracyjna liczba zgłaszana przez klienta, przekazywana rywalom bez `validateMove`; nie wpływa na stan zasad, wyniki ani rekordy.
 - **Losowość tylko z `rng`** przekazanego do `setup` i `applyMove`. Żadnego `Math.random` ani `Date.now` w zasadach.
 - **Stan gry to zwykły obiekt JSON**, `applyMove` zwraca nowy i nie zmienia poprzedniego.
+  Pokoje przeżywają restart serwera, więc zmiana kształtu stanu istniejącej gry podbija jej `stateVersion` (szczegóły: `ZASADY.md`).
 - **Ukryte informacje** filtruje `playerView`; obserwator dostaje widok dla `""`.
 - **`apps/server` nie może mieć bezpośredniej zależności `zod`** (druga kopia `@colyseus/core` daje
   „seat reservation expired”). Schematy trzymamy w `packages/games`.

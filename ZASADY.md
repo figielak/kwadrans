@@ -64,6 +64,7 @@ Nagłówek pliku to komentarz z listą zasad, które testy ustalają (wzór: `st
 - **Koniec gry**: wygrana każdego gracza (nie tylko pierwszego), remis, ranking w dobrej kolejności, `waitingFor` puste po końcu.
 - **Limit czasu**: `timeoutMove` w każdej fazie zwraca ruch, który przechodzi `validateMove`.
 - **Stan**: `applyMove` nie zmienia poprzedniego obiektu; stan przeżywa `JSON.parse(JSON.stringify(...))`.
+  Pilnuje tego wspólny `zapis.test.ts` (partia zapisywana po każdym ruchu toczy się tak samo), bo pokoje są zapisywane w SQLite.
 
 ### Testy zależne od typu
 
@@ -99,6 +100,8 @@ Te rzeczy działają tak samo w każdej grze. Odstępstwo wymaga wpisu w `ZASADY
 - **Losowość tylko z `rng`** przekazanego do `setup` i `applyMove`. Żadnego `Math.random` ani `Date.now` w zasadach.
   Losowość czysto klienckiej dekoracji lub wyboru gry nie ustala wyzwania, punktacji ani stanu zasad i nie podlega tej regule.
 - **Stan to zwykły obiekt** dający się zapisać do JSON, a `applyMove` zwraca nowy.
+  Zmiana kształtu stanu istniejącej gry, po której partia sprzed wdrożenia nie może toczyć się dalej (nowe wymagane pole, inne znaczenie pola),
+  podbija `stateVersion` tej gry: serwer odtwarza po restarcie zapisane pokoje, a taką partię zamienia na lobby.
 - **`validateMove` jest jedynym strażnikiem.** Ekran może blokować przyciski, ale serwer niczego nie zakłada.
   Mini-gry zachowują model zaufania opisany w `ZASADY-GIER.md` §1: czas i reakcje mierzy klient, aby opóźnienie sieci
   nie wpływało na pomiar; serwer waliduje dane i liczy wynik tam, gdzie ma dane surowe (np. Koło z punktów rysunku).

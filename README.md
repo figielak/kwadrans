@@ -44,7 +44,7 @@ Dokładne zasady każdej gry: [ZASADY-GIER.md](ZASADY-GIER.md).
 Telefon (PWA, React)  ⇄  WebSocket  ⇄  Serwer Colyseus (Node)
                                           │
                                           ├─ logika gier (czyste funkcje TS)
-                                          └─ SQLite (ranking i rekordy; stan pokoi w pamięci)
+                                          └─ SQLite (ranking, rekordy i zapis pokoi na czas restartu)
 ```
 
 Serwer jest jedynym źródłem prawdy. Klient wysyła intencje („rzucam kośćmi”), serwer je waliduje, losuje,
@@ -110,3 +110,7 @@ Aktualizacja:
 ```sh
 docker compose pull && docker compose up -d
 ```
+
+Aktualizacja nie kończy partii: przed zamknięciem serwer zapisuje pokoje do SQLite (ten sam wolumen co ranking), po starcie je odtwarza,
+a otwarte strony same wracają na swoje miejsca. Przerwa trwa tyle, ile wymiana kontenera. Tak samo działa restart i awaria (traci najwyżej ostatnie 5 s).
+Zapis starszy niż godzina przepada. W dev to samo dzieje się przy każdym restarcie `node --watch`.

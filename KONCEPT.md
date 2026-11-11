@@ -33,6 +33,7 @@ Dev i deploy: `README.md`. Stan prac i plan: `.telos/ROADMAP.md`.
   Zerwane połączenie nie ma podsumowania, tylko dotychczasowy komunikat. Ostatni widok pokoju trzyma `App`, serwer bez zmian.
 - **Dostęp**: strona publiczna, ale do gry trzeba znać kod pokoju. Brak publicznej listy pokoi.
 - **Odporność na słabe Wi-Fi**: automatyczne ponowne łączenie, stan gry zawsze po stronie serwera.
+- **Odporność na restart serwera**: pokoje są zapisywane w SQLite i wracają po deployu, restarcie i awarii; gracze sami wracają na swoje miejsca (sekcja 3, „Zapis pokoi”).
 - **Tryb cichy**: domyślnie bez dźwięku (jedyny wyjątek to klik metronomu w Rytmie), ciemny motyw, wibracje zamiast powiadomień, limit czasu na turę.
 
 ## 2. Gry
@@ -98,7 +99,7 @@ bez ekranu ustawień i bez gotowości gości, grają wszyscy w pokoju (do 6). Pe
 Telefon (PWA, React)  ⇄  WebSocket  ⇄  Serwer Colyseus (Node)
                                           │
                                           ├─ logika gier (czyste funkcje TS)
-                                          └─ SQLite (ranking wygranych i rekordy mini-gier po nicku; stan pokoi w pamięci)
+                                          └─ SQLite (ranking wygranych i rekordy mini-gier po nicku; zapis pokoi na czas restartu)
 ```
 
 **Zasada:** serwer jest jedynym źródłem prawdy. Klient wysyła intencje („rzucam kośćmi”),
@@ -119,6 +120,7 @@ interface GameDefinition<State, Move> {
   name: string;
   minPlayers: number;
   maxPlayers: number;
+  stateVersion?: number;                // wersja kształtu stanu (brak = 0); podbita, gdy stara partia nie może toczyć się dalej
   moveSchema: z.ZodType<Move>;          // kształt ruchu z sieci; reguły sprawdza validateMove
   modes?: { id: string; name: string; hint: string; default?: boolean }[]; // tryby do wyboru w lobby
   setup(players: PlayerId[], rng: Rng, mode?: string): State;
@@ -164,6 +166,16 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
   odznaka na kropce to właśnie te punkty (w turnieju dalej punkty turnieju), `scores` bez zmian.
   `RoomView.evening` niesie tylko liczbę partii, unikalne id rozegranych gier, gotową tabelę i tytuły; historia nie idzie przez sieć.
   Liczba wpisów widoku nie rośnie od kolejnych partii tych samych osób i gier. Dotychczasowe `scores` i ranking wygranych pozostają.
+- **Zapis pokoi**: stan pokoju żyje w pamięci, a jego kopia w tabeli `rooms` (jeden wiersz JSON na pokój, `snapshot` w `LobbyRoom.ts`).
+  Zapis następuje najpóźniej 5 s po zmianie (punkt kontrolny, jeden na serię zmian) oraz przy zamykaniu serwera (SIGTERM i nieobsłużony wyjątek, `saveRooms`).
+  Przy starcie, zanim serwer przyjmie połączenia, `restoreRooms` odtwarza pokoje zapisane w ostatniej godzinie: ten sam kod, te same id graczy,
+  partia, turniej, głosowanie, punkty wieczoru i licznik pokoi na IP. Wszyscy są wtedy rozłączeni i mają zwykłe 10 minut na powrót tokenem Colyseusa
+  (zapisanym razem z pokojem); kto nie wróci, jest rozliczany jak przy zerwanym połączeniu. Serwer zamyka połączenia kodem `MAY_TRY_RECONNECT`,
+  więc otwarta strona wraca sama (do 40 prób, około 3 minut), a odświeżona czeka na serwer do 2 minut i nie wyrzuca tokenu (`resume.ts`).
+  Zegary są zapisane jako pozostały czas, więc przestój nie zjada tury; po odtworzeniu każdy ma co najmniej 10 s.
+  Nie zapisujemy liczników limitu wiadomości ani `rng` (partia dostaje nowe ziarno). Awaria traci najwyżej ostatnie 5 s zmian.
+  Gra, której kształt stanu zmienił się we wdrożeniu, podbija `stateVersion`: pokój z taką partią wraca do lobby (ludzie i punkty wieczoru zostają),
+  tak samo gdy gra nie umie odczytać zapisanego stanu. Zepsuty zapis jednego pokoju nie blokuje pozostałych. Pokój zamknięty zwyczajnie kasuje swój zapis.
 - Po limicie tury serwer wykonuje `timeoutMove` (losowy ruch), nie przegraną. Limit odnawia się tylko,
   gdy zmienia się `waitingFor` (albo `key` z `turn`) lub ten sam gracz ma kolejny ruch.
 - Gracze bez miejsca oglądają partię. Nowy gracz dostaje miejsce sam, jeśli gra wybrana i jest wolne.
@@ -270,8 +282,8 @@ Prościej i bezpiecznie dla gier z ukrytymi informacjami.
 ## 5. Struktura repozytorium
 
 - `packages/games/src/`: `core.ts` (kontrakt, RNG, utilsy), `lobby.ts`, `turniej.ts`, `index.ts` (`GAMES`), płasko `<gra>.ts` + `<gra>.test.ts`.
-- `apps/server/src/`: `index.ts`, `LobbyRoom.ts` (pokój Colyseus), `stats.ts` (SQLite i API rekordów).
-- `apps/web/src/`: `net.ts` (połączenie, reconnect), `Dev.tsx` (tryb `/dev?n=4`: ramki `/?dev=N` z własnym tokenem i nickiem, tylko w dev), `screens/`, `games/<Gra>.tsx`, `index.css`.
+- `apps/server/src/`: `index.ts`, `LobbyRoom.ts` (pokój Colyseus, zapis i odtwarzanie pokoi), `stats.ts` (SQLite: wyniki, rekordy, tabela `rooms`).
+- `apps/web/src/`: `net.ts` (połączenie, reconnect), `resume.ts` (powrót po odświeżeniu strony), `Dev.tsx` (tryb `/dev?n=4`: ramki `/?dev=N` z własnym tokenem i nickiem, tylko w dev), `screens/`, `games/<Gra>.tsx`, `index.css`.
 
 Szczegółowa mapa kodu: `.telos/MAP.md`.
 

@@ -70,6 +70,6 @@ Plany w `.planning/*-PLAN.md`, wymagania i status w `.telos/PROPOSALS.md`. Każd
 - Z dawnego planu w KONCEPT.md: Poprawka (gra karciana) i zapis stanu pokoi w SQLite.
 
 ## Znane ryzyka (z dawnego `.planning/codebase/CONCERNS.md`, 2026-10-21)
-- Stan pokoi w pamięci: restart lub deploy kończy partie i zeruje limity IP (plan: zapis w SQLite).
+- Resolved in phase 13: rooms are saved to SQLite (`rooms` table) and restored on boot; restart, deploy and crash keep matches and IP limits.
 - `cf-connecting-ip` można podrobić z pominięciem Cloudflare. Duże pliki: `KampusTour.tsx`, `Statki.tsx`, `MiniGame.tsx`.
 - Mini-gry powielają szkielet (intro, timeout, ranking); poprawka w jednej nie trafia do innych.
