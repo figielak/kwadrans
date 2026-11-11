@@ -306,6 +306,22 @@ describe("B3: wyjątek poza try zabija cały serwer", () => {
     }
   });
 
+  test("błąd widoku jednego gracza nie odcina od stanu pozostałych", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { p1, p2, send, view } = await gomoku();
+    const playerView = GAMES["piec-w-rzedzie"].playerView;
+    const broken = vi.spyOn(GAMES["piec-w-rzedzie"], "playerView").mockImplementation((state, id) => {
+      if (id === p1.sessionId) throw new Error("błąd widoku");
+      return playerView(state, id);
+    });
+    try {
+      send(p1, "move", { x: 7, y: 7 });
+      expect(view(p2).game!.waitingFor).toEqual([p2.sessionId]);
+    } finally {
+      broken.mockRestore();
+    }
+  });
+
   test("błąd widoku gry po limicie tury nie wychodzi z zegara pokoju", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     await gomoku();
