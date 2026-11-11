@@ -293,7 +293,7 @@ describe("B2: gospodarz przechodzi na rozłączonego", () => {
 describe("B3: wyjątek poza try zabija cały serwer", () => {
   // Colyseus nie łapie wyjątków z obsługi wiadomości ani z zegara pokoju, a Server rejestruje
   // process.on("uncaughtException") → gracefullyShutdown: padają wszystkie pokoje (i odpala się B1).
-  test.fails("błąd widoku gry po ruchu nie wychodzi z obsługi wiadomości", async () => {
+  test("błąd widoku gry po ruchu nie wychodzi z obsługi wiadomości", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const { p1, send } = await gomoku();
     const broken = vi.spyOn(GAMES["piec-w-rzedzie"], "playerView").mockImplementation(() => {
@@ -306,7 +306,7 @@ describe("B3: wyjątek poza try zabija cały serwer", () => {
     }
   });
 
-  test.fails("błąd widoku gry po limicie tury nie wychodzi z zegara pokoju", async () => {
+  test("błąd widoku gry po limicie tury nie wychodzi z zegara pokoju", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     await gomoku();
     const broken = vi.spyOn(GAMES["piec-w-rzedzie"], "playerView").mockImplementation(() => {
@@ -319,7 +319,7 @@ describe("B3: wyjątek poza try zabija cały serwer", () => {
     }
   });
 
-  test.fails("błąd zasad na końcu instrukcji mini-gry nie wychodzi z zegara pokoju", async () => {
+  test("błąd zasad na końcu instrukcji mini-gry nie wychodzi z zegara pokoju", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const { seats: [p1, p2], send } = await open(2);
     send(p1, "pickGame", { gameId: "stoper" });

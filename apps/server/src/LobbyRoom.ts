@@ -246,7 +246,7 @@ export class LobbyRoom extends Room {
     });
 
     // Własny kanał: bez this.on, pełnego update i zużywania limitu zwykłych wiadomości.
-    this.onMessage("live", (client: Client, raw: unknown) => {
+    this.onMessage("live", (client: Client, raw: unknown) => this.guarded("wiadomość live", () => {
       if (this.phase !== "playing" || this.intro || !this.match?.def.live || this.seats.length < 2 || !this.seats.includes(client.sessionId)) return;
       const second = Math.floor(Date.now() / 1000);
       const entry = this.liveCounts.get(client.sessionId);
@@ -260,10 +260,10 @@ export class LobbyRoom extends Room {
       for (const other of this.clients) {
         if (other.sessionId !== client.sessionId) other.send("live", { id: client.sessionId, value });
       }
-    });
+    }));
 
     // Reakcje jak live: bez this.on i pełnego update, jedna na sekundę od osoby. Zły kształt nie zużywa limitu; nadawca też dostaje, bo tak widzi, że przeszło.
-    this.onMessage("react", (client: Client, raw: unknown) => {
+    this.onMessage("react", (client: Client, raw: unknown) => this.guarded("wiadomość react", () => {
       if (this.phase === "lobby" || this.clients.length < 2) return;
       const parsed = ROOM_MESSAGES.react.safeParse(raw);
       if (!parsed.success) return;
@@ -271,7 +271,7 @@ export class LobbyRoom extends Room {
       if (this.reactCounts.get(client.sessionId) === second) return;
       this.reactCounts.set(client.sessionId, second);
       for (const other of this.clients) other.send("react", { id: client.sessionId, index: parsed.data.index });
-    });
+    }));
 
     // Po partii `ready` znaczy „chcę rewanż”; rewanż rusza, gdy chcą wszyscy grający.
     this.on("rematch", (client) => {
@@ -291,7 +291,7 @@ export class LobbyRoom extends Room {
       this.resetReady();
       this.turnEndsAt = Date.now() + VOTE_SECONDS * 1000;
       this.turnTimer = this.clock.setTimeout(() => {
-        this.finishVote();
+        this.guarded("koniec głosowania", () => this.finishVote(), () => this.toLobby());
         this.update();
       }, VOTE_SECONDS * 1000);
     });
@@ -427,6 +427,16 @@ export class LobbyRoom extends Room {
     console.error(`[${this.roomId}] ${this.gameId ?? "lobby"}, ${where}:`, error);
   }
 
+  /** Zegary i własne kanały: Colyseus nie łapie ich wyjątków, a uncaughtException zamyka cały serwer. Błąd zostaje w pokoju. */
+  private guarded(where: string, fn: () => void, recover?: () => void) {
+    try {
+      fn();
+    } catch (error) {
+      this.logError(where, error);
+      recover?.();
+    }
+  }
+
   private withinRateLimit(id: string) {
     const second = Math.floor(Date.now() / 1000);
     const entry = this.messageCounts.get(id);
@@ -536,7 +546,7 @@ export class LobbyRoom extends Room {
     if (this.seats.length === 1) return;
     this.turnEndsAt = Date.now() + introSeconds * 1000;
     this.turnTimer = this.clock.setTimeout(() => {
-      this.startCountdown();
+      this.guarded("koniec instrukcji", () => this.startCountdown(), () => this.finish({}, "aborted"));
       this.update();
     }, introSeconds * 1000);
   }
@@ -550,7 +560,7 @@ export class LobbyRoom extends Room {
     const match = this.match;
     this.turnTimer = this.clock.setTimeout(() => {
       if (this.phase !== "playing" || this.match !== match || !this.countdown) return;
-      this.endIntro();
+      this.guarded("koniec odliczania", () => this.endIntro(), () => this.finish({}, "aborted"));
       this.update();
     }, COUNTDOWN_SECONDS * 1000);
   }
@@ -679,8 +689,11 @@ export class LobbyRoom extends Room {
     }, ms);
   }
 
+  /** Wołane także poza try (po obsłudze wiadomości, z zegarów), więc błąd widoku gry kończy się tu: stan nie dochodzi, pokój działa. */
   private update() {
-    for (const client of this.clients) client.send("room", this.viewFor(client.sessionId));
+    this.guarded("rozsyłanie stanu", () => {
+      for (const client of this.clients) client.send("room", this.viewFor(client.sessionId));
+    });
     this.touch();
   }
 
