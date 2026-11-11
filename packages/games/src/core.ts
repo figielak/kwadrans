@@ -240,6 +240,20 @@ export function withSum(rng: Rng, n: number, min: number, max: number, total: nu
   }
 }
 
+/**
+ * Przepisuje id gracza w zwykłym obiekcie JSON (stan partii, punkty, głosy): klucze i całe wartości tekstowe.
+ * Zwraca kopię; kolejność kluczy zostaje, bo bywa kolejnością graczy.
+ */
+export function renameId<T>(value: T, from: PlayerId, to: PlayerId): T {
+  const swap = (v: unknown): unknown => {
+    if (v === from) return to;
+    if (Array.isArray(v)) return v.map(swap);
+    if (v === null || typeof v !== "object") return v;
+    return Object.fromEntries(Object.entries(v).map(([key, item]) => [key === from ? to : key, swap(item)]));
+  };
+  return swap(value) as T;
+}
+
 /** Tasuje kopię tablicy (Fisher-Yates). */
 export function shuffle<T>(items: readonly T[], rng: Rng): T[] {
   const a = [...items];

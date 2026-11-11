@@ -33,6 +33,7 @@ import {
   PLAYER_COLORS,
   placesFromResult,
   REMATCH_INTRO_SECONDS,
+  renameId,
   type Rng,
   KICKED_CLOSE_CODE,
   ROOM_MESSAGES,
@@ -47,6 +48,8 @@ import {
 import { openStats, type RoomGameOutcome } from "./stats.ts";
 
 const RECONNECT_SECONDS = 10 * 60; // telefon śpi między turami
+/** Tyle rozłączony gospodarz trzyma rolę, gdy w pokoju jest ktoś obecny; krótkie zerwanie jej nie zabiera. */
+const HOST_WAIT_MS = 15_000;
 const IDLE_MS = 60 * 60 * 1000;
 const ROOMS_PER_IP = 3;
 // Pokoje solo liczą się osobno: wszyscy na jednym Wi-Fi mają jedno IP.
@@ -183,6 +186,7 @@ export class LobbyRoom extends Room {
   /** Rozłączeni, na których powrót czekamy; wyrzucenie anuluje czekanie. `client` trzyma token powrotu do zapisu pokoju. */
   private awaitingReturn = new Map<string, { client: Pick<Client, "reconnectionToken">; reconnection: ReturnType<Room["allowReconnection"]> }>();
   private checkpoint?: Timer;
+  private hostWait?: Timer;
   private match: Match | null = null;
   private turnTimer?: Timer;
   private deadline: Deadline | null = null;
@@ -528,11 +532,17 @@ export class LobbyRoom extends Room {
   }
 
   onJoin(client: Client, _options: unknown, auth: { nick: string }) {
-    const taken = new Set([...this.players.values()].map((p) => p.color));
-    const color = PLAYER_COLORS.find((c) => !taken.has(c))!;
-    this.players.set(client.sessionId, { id: client.sessionId, nick: auth.nick, color, connected: true, ready: false });
-    // Powrót pod nową sesją odświeża pisownię także bez rozegrania kolejnej partii.
     const key = nickKey(auth.nick);
+    // Powrót kodem po utracie tokenu: rozłączony o tym samym nicku to ta sama osoba, więc nowa sesja bierze jego miejsce.
+    // Obecnego gracza nikt tak nie zastąpi; pokój solo nie ma kodu.
+    const ghost = this.solo ? undefined : [...this.players.values()].find((p) => !p.connected && nickKey(p.nick) === key);
+    if (ghost) this.takeOver(ghost, client.sessionId, auth.nick);
+    else {
+      const taken = new Set([...this.players.values()].map((p) => p.color));
+      const color = PLAYER_COLORS.find((c) => !taken.has(c))!;
+      this.players.set(client.sessionId, { id: client.sessionId, nick: auth.nick, color, connected: true, ready: false });
+    }
+    // Powrót pod nową sesją odświeża pisownię także bez rozegrania kolejnej partii.
     const previousNick = this.evening.nicks[key];
     if (Object.hasOwn(this.evening.nicks, key) && previousNick !== auth.nick) {
       this.evening = { ...this.evening, nicks: { ...this.evening.nicks, [key]: auth.nick } };
@@ -544,9 +554,35 @@ export class LobbyRoom extends Room {
     }
     if (!this.hostId) this.hostId = client.sessionId;
     // Gra już wybrana i jest wolne miejsce: nowy gracz od razu gra, gospodarz nie musi go zaznaczać.
-    if (this.phase === "lobby" && this.seats.length < this.maxSeats()) this.seats = [...this.seats, client.sessionId];
+    if (!ghost && this.phase === "lobby" && this.seats.length < this.maxSeats()) this.seats = [...this.seats, client.sessionId];
     if (this.solo) this.startMatch(GAMES[this.gameId!]);
     this.update();
+  }
+
+  /** Nowa sesja zamiast rozłączonej: to samo miejsce w pokoju i w partii, kolor, rola gospodarza, punkty i głosy pod nowym id. */
+  private takeOver(ghost: LobbyPlayer, id: string, nick: string) {
+    const from = ghost.id;
+    const swap = <T>(value: T) => renameId(value, from, id);
+    // Mapa od nowa, żeby kolejność graczy została.
+    this.players = new Map([...this.players].map(([key, p]) => (key === from ? [id, { ...p, id, nick, connected: true }] : [key, p])));
+    this.hostId = swap(this.hostId);
+    this.seats = swap(this.seats);
+    this.tournament = swap(this.tournament);
+    this.markedBy = swap(this.markedBy);
+    this.scores = swap(this.scores);
+    this.vote = swap(this.vote);
+    this.wishes = swap(this.wishes);
+    this.liveValues = swap(this.liveValues);
+    this.began = new Set(swap([...this.began]));
+    if (this.match) {
+      this.match.state = swap(this.match.state);
+      this.match.result = swap(this.match.result);
+    }
+    this.messageCounts.delete(from);
+    this.liveCounts.delete(from);
+    this.reactCounts.delete(from);
+    // Stary token przestaje działać; czekające onLeave ducha kończy się na removePlayer, które nie ma już kogo usuwać.
+    this.awaitingReturn.get(from)?.reconnection.reject();
   }
 
   async onLeave(client: Client, code?: number) {
@@ -564,6 +600,8 @@ export class LobbyRoom extends Room {
   /** Czeka na powrót rozłączonego; false, gdy nie wrócił na czas albo został wyrzucony. */
   private async returned(client: Client, player: LobbyPlayer) {
     player.connected = false;
+    // Reszta mogła już zgodzić się na rewanż i czekać tylko na niego.
+    this.guarded("rewanż po zerwaniu połączenia", () => this.maybeRematch());
     this.update();
     try {
       const reconnection = this.allowReconnection(client, RECONNECT_SECONDS);
@@ -618,6 +656,7 @@ export class LobbyRoom extends Room {
   onDispose() {
     this.turnTimer?.clear();
     this.checkpoint?.clear();
+    this.hostWait?.clear();
     liveRooms.delete(this);
     // Pokój, który skończył się sam, nie ma do czego wracać; przy zamykaniu serwera zapis czeka na odtworzenie.
     if (!stopping) this.guarded("kasowanie zapisu pokoju", () => stats.dropRoom(this.roomId));
@@ -672,6 +711,29 @@ export class LobbyRoom extends Room {
 
   private isHost(client: Client) {
     return client.sessionId === this.hostId;
+  }
+
+  /** Rozłączony gospodarz po HOST_WAIT_MS oddaje rolę pierwszemu obecnemu i po powrocie jej nie odzyskuje.
+   *  Czas biegnie od chwili, gdy jest komu ją oddać, więc po restarcie serwera nie przegrywa z szybszym telefonem o sekundy. */
+  private watchHost() {
+    const stuck = () => {
+      const host = this.players.get(this.hostId);
+      return host && !host.connected ? [...this.players.values()].find((p) => p.connected) : undefined;
+    };
+    if (!stuck()) {
+      this.hostWait?.clear();
+      this.hostWait = undefined;
+      return;
+    }
+    this.hostWait ??= this.clock.setTimeout(() => {
+      this.hostWait = undefined;
+      const next = stuck();
+      if (!next) return;
+      this.hostId = next.id;
+      // Gospodarz nie ma życzeń, sam wybiera.
+      delete this.wishes[next.id];
+      this.update();
+    }, HOST_WAIT_MS);
   }
 
   private resetReady() {
@@ -739,9 +801,13 @@ export class LobbyRoom extends Room {
 
   private maybeRematch() {
     const def = this.gameId ? GAMES[this.gameId] : undefined;
-    if (this.phase !== "over" || this.vote || !def || this.seats.length < def.minPlayers) return;
-    if (!this.seats.every((id) => this.players.get(id)?.ready)) return;
+    // Rozłączony nie blokuje rewanżu: liczą się obecni, o ile starcza ich na grę.
+    const present = this.seats.filter((id) => this.players.get(id)?.connected);
+    if (this.phase !== "over" || this.vote || !def || present.length < def.minPlayers) return;
+    if (!present.every((id) => this.players.get(id)?.ready)) return;
+    // W turnieju miejsce zostaje (punkty serii); w zwykłej grze rozłączony zjadałby limity tur, więc ogląda.
     if (this.tournament) return this.startTournamentGame();
+    this.seats = present;
     // Na zmianę: kto zaczynał, w rewanżu rusza się ostatni. W mini-grach (minPlayers 1) wszyscy grają naraz,
     // więc rotacja nic nie daje, a tylko przestawia graczy w nagłówku i tabeli.
     if (def.minPlayers > 1) this.seats = [...this.seats.slice(1), this.seats[0]];
@@ -916,6 +982,7 @@ export class LobbyRoom extends Room {
     // Osobno dla każdego: błąd widoku jednej osoby nie odcina pozostałych.
     for (const client of this.clients) this.guarded("rozsyłanie stanu", () => client.send("room", this.viewFor(client.sessionId)));
     this.touch();
+    this.watchHost();
     // Punkt kontrolny: zapis niedługo po zmianie, jeden na serię zmian.
     this.checkpoint ??= this.clock.setTimeout(() => this.save(), CHECKPOINT_MS);
   }

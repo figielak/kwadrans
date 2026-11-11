@@ -148,7 +148,7 @@ potem `def.places(state)`, a gdy obu brak, zwraca `null`. W trakcie partii i po 
 również zwraca `null`. Miejsca uwzględniają remisy, nie zmieniają zwycięzcy ani punktacji. Poza mini-grami `places` mają
 Memory, Kalambury, Państwa-miasta, Kampus Tour i Gomoku (pełna plansza bez wygranej: obaj na pierwszym miejscu).
 Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResults`, `rankPlaces`, `ranked`, `byCompletion` (ukończenie przed timeoutem), `shuffle`, `average`, `byHitsThenAverage`, `byScoreThenAverage`,
-`normalize`, `nickKey`, `initials` (inicjały na kropkach graczy), `standing`, `compareRecords`, `soloState`, `dailyGame`, `withSum` (losowanie o stałej sumie, żeby każda partia miała tyle samo do zdobycia).
+`normalize`, `nickKey`, `initials` (inicjały na kropkach graczy), `standing`, `compareRecords`, `soloState`, `dailyGame`, `renameId` (przepisanie id gracza w stanie JSON), `withSum` (losowanie o stałej sumie, żeby każda partia miała tyle samo do zdobycia).
 
 ### Reguły platformy (obowiązują każdą grę)
 
@@ -171,7 +171,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
   Przy starcie, zanim serwer przyjmie połączenia, `restoreRooms` odtwarza pokoje zapisane w ostatniej godzinie: ten sam kod, te same id graczy,
   partia, turniej, głosowanie, punkty wieczoru i licznik pokoi na IP. Wszyscy są wtedy rozłączeni i mają zwykłe 10 minut na powrót tokenem Colyseusa
   (zapisanym razem z pokojem); kto nie wróci, jest rozliczany jak przy zerwanym połączeniu. Serwer zamyka połączenia kodem `MAY_TRY_RECONNECT`,
-  więc otwarta strona wraca sama (do 40 prób, około 3 minut), a odświeżona czeka na serwer do 2 minut i nie wyrzuca tokenu (`resume.ts`).
+  więc otwarta strona wraca sama (do 40 prób, około 3 minut, potem dalej tą samą drogą co odświeżona, bez kasowania tokenu), a odświeżona czeka na serwer do 2 minut i nie wyrzuca tokenu (`resume.ts`).
   Zegary są zapisane jako pozostały czas, więc przestój nie zjada tury; po odtworzeniu każdy ma co najmniej 10 s.
   Nie zapisujemy liczników limitu wiadomości ani `rng` (partia dostaje nowe ziarno). Awaria traci najwyżej ostatnie 5 s zmian.
   Gra, której kształt stanu zmienił się we wdrożeniu, podbija `stateVersion`: pokój z taką partią wraca do lobby (ludzie i punkty wieczoru zostają),
@@ -179,7 +179,12 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
 - Po limicie tury serwer wykonuje `timeoutMove` (losowy ruch), nie przegraną. Limit odnawia się tylko,
   gdy zmienia się `waitingFor` (albo `key` z `turn`) lub ten sam gracz ma kolejny ruch.
 - Gracze bez miejsca oglądają partię. Nowy gracz dostaje miejsce sam, jeśli gra wybrana i jest wolne.
-- Rewanż po zgodzie wszystkich grających, kolejność miejsc rotuje (poza mini-grami, gdzie wszyscy grają naraz); do lobby zabiera wszystkich tylko gospodarz.
+- Rewanż po zgodzie wszystkich obecnych grających, kolejność miejsc rotuje (poza mini-grami, gdzie wszyscy grają naraz); do lobby zabiera wszystkich tylko gospodarz.
+  Rozłączony nie blokuje rewanżu: gdy obecnych starcza na grę, rewanż rusza bez niego, a on zostaje w pokoju jako obserwator. W turnieju „Dalej” też liczy tylko obecnych, ale miejsce rozłączonego zostaje.
+- **Powrót kodem**: kto wchodzi do pokoju kodem pod nickiem rozłączonego gracza (ten sam `nickKey`), przejmuje jego miejsce zamiast wejść jako druga osoba: kolor, rola gospodarza,
+  miejsce w partii, punkty i głosy przechodzą na nową sesję (`takeOver` w `LobbyRoom.ts` przepisuje id przez `renameId` z core.ts), a stary token przestaje działać.
+  Obecnego gracza o tym samym nicku nikt nie zastąpi. Wygraną w rankingu dostaje jeden wpis na nick, także gdy w partii grają dwie osoby o tym samym nicku.
+- **Zastępca gospodarza**: gospodarz rozłączony dłużej niż 15 s (`HOST_WAIT_MS`, liczone od chwili, gdy w pokoju jest ktoś obecny) oddaje rolę pierwszemu obecnemu i po powrocie jej nie odzyskuje.
 - **Głosowanie „Inna gra”**: po partii każdy grający może je rozpocząć (`otherGame`), poza pokojem solo i trwającym turniejem. Serwer losuje do 3 gier (`voteOptions`): bez bieżącej,
   pasujące do liczby `seats`, co najmniej dwie niegrane w tym pokoju (`evening.played`), gdy takie są. Głosują i grają obecne `seats` (`vote: { id }`, liczy się ostatni głos), obserwatorzy tylko oglądają;
   `RoomView.vote` niesie opcje, głosy i `msLeft`. Komplet głosów albo `VOTE_SECONDS = 10` rozstrzyga (`voteWinner`: najwięcej głosów, remis i brak głosów przez `rng`), a wybrana gra rusza w trybie domyślnym

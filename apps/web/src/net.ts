@@ -183,6 +183,9 @@ async function tryResume(): Promise<Room | null> {
   return room && remember(room);
 }
 
+/** Ponowna próba powrotu po tym, jak SDK wyczerpało własne: serwer trzyma miejsce dłużej, a token wciąż jest ważny. */
+export const returnToRoom = () => tryResume();
+
 export const forgetRoom = () => write(TOKEN_KEY, null);
 
 export const NO_ROOM = "Nie ma pokoju o tym kodzie.";

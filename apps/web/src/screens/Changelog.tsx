@@ -12,7 +12,8 @@ export const CHANGELOG: { version: string; date: string; changes: string[] }[] =
       "Partia przeżywa aktualizację strony: po krótkiej przerwie wszyscy sami wracają do tego samego pokoju i grają dalej, a przerwa nie zabiera czasu na ruch. Odświeżenie strony w trakcie takiej przerwy nie odbiera miejsca w pokoju",
       "Odświeżone ekrany Sabotażu, Wyprawy, Podróbki, Kalamburów i Państw-miast: więcej widać od razu, mniej trzeba liczyć",
       "Rekordy: wynik jest na pierwszym planie, widać, ile brakuje ci do lidera, a na górze czeka rekord, który najłatwiej teraz zdobyć",
-      "Gdy gospodarz wyjdzie z pokoju, jego rolę przejmuje ktoś obecny, a nie osoba, która akurat straciła połączenie",
+      "Gdy gospodarz wyjdzie z pokoju albo straci połączenie na dłużej niż 15 sekund, jego rolę przejmuje ktoś obecny",
+      "Zgubione połączenie mniej psuje: wejście kodem pod tym samym nickiem oddaje ci twoje miejsce w partii, a rewanż nie czeka na osobę, która straciła połączenie",
     ],
   },
   {

@@ -2,7 +2,7 @@ import type { Room } from "@colyseus/sdk";
 import { GAMES, KICKED_CLOSE_CODE, type RoomView } from "@kwadrans/games";
 import { CloseCode } from "@colyseus/sdk";
 import { useEffect, useRef, useState } from "react";
-import { forgetRoom, resumeRoom, watchRoom } from "./net.ts";
+import { forgetRoom, resumeRoom, returnToRoom, watchRoom } from "./net.ts";
 import { nickKey } from "@kwadrans/games";
 import { Evening } from "./screens/Evening.tsx";
 import { shouldSummarize } from "./screens/evening.ts";
@@ -52,6 +52,19 @@ export function App() {
     room.onDrop(() => setDropped(true));
     room.onReconnect(() => setDropped(false));
     room.onLeave((code) => {
+      // SDK poddało się po około 3 minutach, a serwer trzyma miejsce 10: token zostaje i próbujemy dalej jak po odświeżeniu strony.
+      if (code === CloseCode.FAILED_TO_RECONNECT) {
+        setRoom(null);
+        setView(null);
+        setDropped(false);
+        setResuming(true);
+        returnToRoom().then((r) => {
+          setRoom(r);
+          setResuming(false);
+          if (!r) setNotice("Połączenie z pokojem zostało zamknięte.");
+        });
+        return;
+      }
       forgetRoom();
       // Własne wyjście po co najmniej dwóch partiach kończy wieczór podsumowaniem; zerwane połączenie dostaje dotychczasowy komunikat.
       if (shouldSummarize(lastView.current, code)) setSummary({ evening: lastView.current!.evening, meKey: nickKey(lastNick.current) });

@@ -122,8 +122,10 @@ export function openStats(path: string) {
   return {
     record(gameId: string, nicks: string[], winner: string) {
       const at = Date.now();
+      // Dwie osoby o tym samym nicku to w rankingu jedna osoba: wygraną dostaje jeden wpis, nie oba.
+      const winnerAt = nicks.indexOf(winner);
       transaction(() => {
-        for (const nick of nicks) insert.run(gameId, nick, Number(nick === winner), at);
+        nicks.forEach((nick, i) => insert.run(gameId, nick, Number(i === winnerAt), at));
       });
     },
 
