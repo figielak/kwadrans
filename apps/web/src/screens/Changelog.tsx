@@ -4,6 +4,14 @@ import { Screen } from "./ui.tsx";
 /** Historia wersji strony, najnowsza na górze. Nowy wpis na początku listy to zarazem nowy numer wersji. */
 export const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "1.2.1",
+    date: "2026-11-11",
+    changes: [
+      "Gdy gospodarz wyjdzie z pokoju, jego rolę przejmuje ktoś obecny, a nie osoba, która akurat straciła połączenie",
+      "Aktualizacja strony w trakcie partii nie dopisuje już nikomu wygranej walkowerem",
+    ],
+  },
+  {
     version: "1.2.0",
     date: "2026-11-10",
     changes: [
