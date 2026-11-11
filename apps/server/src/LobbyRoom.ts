@@ -632,7 +632,8 @@ export class LobbyRoom extends Room {
         titles: titles(this.evening),
       };
     }
-    const win = (gameId: string, winnerId: string) => stats.record(gameId, this.seats.map(nick), nick(winnerId));
+    // Błąd bazy nie zmienia końca partii: wynik, scores, wieczór i turniej rozliczają się jak przy udanym zapisie.
+    const win = (gameId: string, winnerId: string) => this.guarded("zapis wygranej", () => stats.record(gameId, this.seats.map(nick), nick(winnerId)));
     if (result.winner) win(this.gameId!, result.winner);
     // Rekordy mini-gier: wynik każdego gracza, także solo. Gra przerwana nie ma rankingu, więc się nie zapisuje.
     const { record } = this.match.def;
@@ -640,7 +641,7 @@ export class LobbyRoom extends Room {
       const { state } = this.match;
       const finite = (n: number | undefined) => (n !== undefined && Number.isFinite(n) ? n : null);
       const scores = this.seats.map((id) => ({ nick: nick(id), score: record.score(state, id), tie: finite(record.tie?.score(state, id)), detail: soloState(state as { players: string[] }, id) }));
-      stats.recordScores(this.gameId!, scores.filter((s) => Number.isFinite(s.score)), record);
+      this.guarded("zapis rekordów", () => stats.recordScores(this.gameId!, scores.filter((s) => Number.isFinite(s.score)), record));
     }
     if (!this.tournament) {
       if (result.winner) this.scores[result.winner] = (this.scores[result.winner] ?? 0) + 1;

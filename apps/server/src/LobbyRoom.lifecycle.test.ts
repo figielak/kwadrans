@@ -337,7 +337,7 @@ describe("B3: wyjątek poza try zabija cały serwer", () => {
 });
 
 describe("B4: błąd zapisu statystyk zostawia koniec partii w połowie", () => {
-  test.fails("ruch kończący partię: wygrana liczy się w pokoju mimo błędu bazy", async () => {
+  test("ruch kończący partię: wygrana liczy się w pokoju mimo błędu bazy", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.spyOn(stats, "record").mockImplementation(() => {
       throw new Error("database is locked");
@@ -348,7 +348,7 @@ describe("B4: błąd zapisu statystyk zostawia koniec partii w połowie", () => 
     expect(ctx.view(ctx.p1).scores).toEqual({ [ctx.p1.sessionId]: 1 });
   });
 
-  test.fails("koniec po limicie: ukończona partia nie zamienia się w przerwaną z drugim wpisem pomiaru", async () => {
+  test("koniec po limicie: ukończona partia nie zamienia się w przerwaną z drugim wpisem pomiaru", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const measured = vi.spyOn(stats, "recordRoomGame");
     vi.spyOn(stats, "recordScores").mockImplementation(() => {
