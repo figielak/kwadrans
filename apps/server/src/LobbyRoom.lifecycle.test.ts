@@ -278,7 +278,7 @@ describe("B1: zamknięcie pokoju rozlicza trwającą partię", () => {
 });
 
 describe("B2: gospodarz przechodzi na rozłączonego", () => {
-  test.fails("gospodarz wychodzi, następny w kolejce jest rozłączony: gospodarzem zostaje ktoś obecny", async () => {
+  test("gospodarz wychodzi, następny w kolejce jest rozłączony: gospodarzem zostaje ktoś obecny", async () => {
     const { seats: [p1, p2, p3], view } = await open(3);
     p2.socket.drop();
     await tick();

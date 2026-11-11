@@ -387,7 +387,11 @@ export class LobbyRoom extends Room {
     this.liveCounts.delete(id);
     this.reactCounts.delete(id);
     delete this.wishes[id];
-    if (this.hostId === id) this.hostId = this.players.keys().next().value ?? "";
+    // Nowy gospodarz to pierwszy obecny; na powrót rozłączonego pokój czekałby do 10 minut bez nikogo, kto może dać start.
+    if (this.hostId === id) {
+      const present = [...this.players.values()].find((p) => p.connected);
+      this.hostId = present?.id ?? this.players.keys().next().value ?? "";
+    }
     if (this.seats.includes(id)) {
       this.seats = this.seats.filter((s) => s !== id);
       // Walkower: w grze 1v1 wygrywa ten, kto został. W turnieju gra przepada bez punktów, a turniej trwa.
