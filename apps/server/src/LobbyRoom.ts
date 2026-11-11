@@ -82,6 +82,8 @@ export class LobbyRoom extends Room {
   private hostId = "";
   private creatorIp: string | undefined;
   private idle?: Timer;
+  /** Pokój jest zamykany (disconnect): odpadający gracze niczego nie rozliczają. */
+  private closing = false;
 
   /** Gra solo z ekranu głównego: pokój na jedną osobę, który od razu startuje wybraną mini-grę. */
   private solo = false;
@@ -355,7 +357,7 @@ export class LobbyRoom extends Room {
 
   async onLeave(client: Client, code?: number) {
     const player = this.players.get(client.sessionId);
-    if (!player) return;
+    if (!player || this.closing) return;
     if (code !== CloseCode.CONSENTED) {
       player.connected = false;
       this.update();
@@ -371,6 +373,8 @@ export class LobbyRoom extends Room {
       } finally {
         this.awaitingReturn.delete(client.sessionId);
       }
+      // Zamknięcie pokoju odrzuca też czekanie na powrót: to nie jest wyjście gracza.
+      if (this.closing) return;
     }
     this.removePlayer(client.sessionId);
     this.update();
@@ -394,6 +398,13 @@ export class LobbyRoom extends Room {
       else if (this.vote) this.voteAfterLeave(id);
       else this.maybeRematch();
     }
+  }
+
+  /** Wyłączenie serwera (onBeforeShutdown) i bezczynność (touch) zamykają pokój tędy. Kto wtedy odpada, nie wyszedł:
+   *  bez walkowera, wpisu pomiaru, rewanżu ani kolejnej gry turnieju. */
+  override disconnect(closeCode?: number) {
+    this.closing = true;
+    return super.disconnect(closeCode);
   }
 
   onDispose() {

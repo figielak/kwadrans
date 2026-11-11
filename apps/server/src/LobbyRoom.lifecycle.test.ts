@@ -249,7 +249,7 @@ function winGomoku({ p1, p2, send }: Awaited<ReturnType<typeof gomoku>>) {
 describe("B1: zamknięcie pokoju rozlicza trwającą partię", () => {
   // Deploy, restart i nieobsłużony wyjątek kończą się tym samym: Colyseus woła disconnect(SERVER_SHUTDOWN) na każdym pokoju.
   // allowReconnection odrzuca wtedy powrót od razu („disposing”), więc onLeave usuwa graczy po kolei jak przy zwykłym wyjściu.
-  test.fails("wyłączenie serwera w trakcie 1v1 nie zapisuje wygranej walkowerem", async () => {
+  test("wyłączenie serwera w trakcie 1v1 nie zapisuje wygranej walkowerem", async () => {
     const record = vi.spyOn(stats, "record");
     const measured = vi.spyOn(stats, "recordRoomGame");
     const { room } = await gomoku();
@@ -259,7 +259,7 @@ describe("B1: zamknięcie pokoju rozlicza trwającą partię", () => {
     expect(measured.mock.calls.map(([entry]) => entry.outcome)).not.toContain("walkover");
   });
 
-  test.fails("zamknięcie bezczynnego pokoju po partii nie startuje rewanżu i nie dopisuje przerwanej partii", async () => {
+  test("zamknięcie bezczynnego pokoju po partii nie startuje rewanżu i nie dopisuje przerwanej partii", async () => {
     const measured = vi.spyOn(stats, "recordRoomGame");
     const { seats: [p1, p2], send, view } = await open(2);
     send(p1, "pickGame", { gameId: "stoper" });
