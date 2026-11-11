@@ -1,5 +1,6 @@
 import { Client, type Room } from "@colyseus/sdk";
 import type { RecordRow, RoomView } from "@kwadrans/games";
+import { RESUME_WAIT_MS, resume } from "./resume.ts";
 
 // W dev serwer gry stoi obok Vite na porcie 2567 tego samego hosta (działa też z telefonu w LAN).
 const serverUrl = import.meta.env.DEV ? `http://${location.hostname}:2567` : location.origin;
@@ -94,6 +95,8 @@ function noteRoom(v: RoomView) {
   writeRecent([{ code: v.code, gameId, players: v.players.length, at: Date.now() }, ...rooms.filter((r) => r.code !== v.code)]);
 }
 
+const RECONNECT_TRIES = 40;
+
 // Serwer wysyła stan pokoju od razu po dołączeniu, zanim React podepnie nasłuch,
 // więc nasłuch wisi tu od początku, a ostatni stan czeka na komponent.
 type LiveMessage = { id: string; value: number };
@@ -135,6 +138,8 @@ function remember(room: Room, nick?: string) {
   write(TOKEN_KEY, room.reconnectionToken);
   if (nick) write(NICK_KEY, nick);
   room.onReconnect(() => write(TOKEN_KEY, room.reconnectionToken));
+  // Domyślne 15 prób to około 50 s; restart serwera na Pi z pobraniem obrazu potrafi trwać dłużej. 40 prób to około 3 minut.
+  room.reconnection.maxRetries = RECONNECT_TRIES;
   return room;
 }
 
@@ -168,12 +173,14 @@ async function tryResume(): Promise<Room | null> {
   // Token ma postać "KOD:sesja". Link do innego pokoju wygrywa z powrotem do starego.
   const linked = codeFromUrl();
   if (linked && linked !== token.split(":")[0]) return null;
-  try {
-    return remember(await client.reconnect(token));
-  } catch {
-    write(TOKEN_KEY, null);
-    return null;
-  }
+  const { room, gone } = await resume({
+    reconnect: () => client.reconnect(token),
+    // Dowolna trasa z nagłówkiem CORS: w dev frontend stoi na innym porcie niż serwer.
+    serverUp: () => fetch(`${serverUrl}/api/rooms?kody=`).then((r) => r.ok, () => false),
+    wait: () => new Promise((done) => setTimeout(done, RESUME_WAIT_MS)),
+  });
+  if (gone) write(TOKEN_KEY, null);
+  return room && remember(room);
 }
 
 export const forgetRoom = () => write(TOKEN_KEY, null);
