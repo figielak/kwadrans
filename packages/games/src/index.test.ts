@@ -5,6 +5,7 @@ import {
   MINI_GAME_IDS,
   PODROBKA_ANSWER_MAX,
   PODROBKA_ROUNDS,
+  renameId,
   PODROBKA_SUMMARY_SECONDS,
   PODROBKA_VOTE_SECONDS,
   PODROBKA_WRITE_SECONDS,
@@ -450,4 +451,41 @@ describe("P4-034: jedna lista mini-gier i stałe z przedrostkiem gry", () => {
       expect(all[`SLEDZENIE_${name}`], name).toBeTypeOf("number");
     }
   });
+});
+
+// Powrót kodem pod nową sesją przejmuje miejsce rozłączonego: pokój przepisuje id gracza w stanie partii (`renameId`).
+// Stan po przepisaniu musi być taki, jakby partia od początku toczyła się z nowym id.
+describe("renameId: przepisanie id gracza w stanie partii", () => {
+  const OLD = "stara-sesja";
+  const NEW = "nowa-sesja";
+
+  test("zmienia klucze i wartości na każdej głębokości, nie rusza oryginału ani podobnych napisów", () => {
+    const state = { players: ["a", OLD], turn: OLD, hands: { [OLD]: [1, { owner: OLD }], a: [] }, note: `${OLD}!`, n: 3, none: null };
+    const copy = structuredClone(state);
+    expect(renameId(state, OLD, NEW)).toEqual({ players: ["a", NEW], turn: NEW, hands: { [NEW]: [1, { owner: NEW }], a: [] }, note: `${OLD}!`, n: 3, none: null });
+    expect(state).toEqual(copy);
+  });
+
+  test("zachowuje kolejność kluczy (kolejność graczy w mapach)", () => {
+    expect(Object.keys(renameId({ a: 1, [OLD]: 2, b: 3 }, OLD, NEW) as object)).toEqual(["a", NEW, "b"]);
+  });
+
+  for (const def of Object.values(GAMES)) {
+    test(`${def.id}: partia z przepisanym id toczy się jak partia od początku z nowym id`, () => {
+      const others = Array.from({ length: def.minPlayers - 1 }, (_, i) => `gracz-${i}`);
+      const run = (id: string, rename: boolean) => {
+        const rng = createRng(7);
+        let state = def.setup([...others, id], rng);
+        const states = [state];
+        for (let step = 0; step < 40 && def.timeoutMove; step++) {
+          const [player] = def.waitingFor(state);
+          if (player === undefined) break;
+          state = def.applyMove(state, player, def.timeoutMove(state, player, rng), rng);
+          states.push(state);
+        }
+        return rename ? states.map((s) => renameId(s, OLD, NEW)) : states;
+      };
+      expect(run(OLD, true)).toEqual(run(NEW, false));
+    });
+  }
 });

@@ -334,3 +334,14 @@ describe("pomiar: room_games i miary", () => {
     db.close();
   });
 });
+
+describe("wygrana przy dwóch wpisach o tym samym nicku", () => {
+  it("dwie osoby o jednym nicku w partii: jedna wygrana, nie dwie", () => {
+    const stats = openStats(":memory:");
+    stats.record("chinczyk", ["Ala", "Ola", "Ala"], "Ala");
+    expect(stats.ranking().chinczyk).toEqual([
+      { nick: "Ala", wins: 1, played: 2 },
+      { nick: "Ola", wins: 0, played: 1 },
+    ]);
+  });
+});

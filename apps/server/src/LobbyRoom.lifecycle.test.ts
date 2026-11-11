@@ -402,3 +402,142 @@ describe("B5: utrata tokenu powrotu to utrata miejsca", () => {
     expect(view(p1).phase).toBe("playing");
   });
 });
+
+/** Wejście kodem pod nową sesją, jak z ekranu głównego po utracie tokenu. */
+async function joinAs(roomId: string, nick: string) {
+  const reservation = await matchMaker.joinById(roomId, { nick }, context);
+  const seat = await connect(roomId, reservation.sessionId);
+  await tick();
+  return seat;
+}
+
+describe("powrót kodem przejmuje miejsce rozłączonego o tym samym nicku", () => {
+  test("w trakcie partii: jedna osoba zamiast ducha, partia trwa, a wracający gra dalej swoim miejscem", async () => {
+    const { roomId, p1, p2, view, send } = await gomoku();
+    send(p1, "move", { x: 7, y: 7 });
+    p2.socket.drop();
+    await tick();
+    const back = await joinAs(roomId, "p2");
+    expect(view(p1).phase).toBe("playing");
+    expect(ids(view(p1))).toEqual([p1.sessionId, back.sessionId]);
+    expect(view(p1).seats).toEqual([p1.sessionId, back.sessionId]);
+    expect(player(view(p1), back)).toMatchObject({ nick: "p2", connected: true, color: player(p2.views.at(-1)!, p2)!.color });
+    expect(view(back).game!.waitingFor).toEqual([back.sessionId]);
+    send(back, "move", { x: 8, y: 8 });
+    expect(view(p1).game!.waitingFor).toEqual([p1.sessionId]);
+    // Czas powrotu ducha mija: nic się nie rozlicza, bo ducha już nie ma.
+    await tick(RECONNECT_MS + 1000);
+    expect(view(p1).phase).toBe("playing");
+    expect(ids(view(p1))).toEqual([p1.sessionId, back.sessionId]);
+  });
+
+  test("nick porównuje nickKey, zostaje nowa pisownia; gospodarz wraca jako gospodarz", async () => {
+    const { roomId, seats: [p1, p2], view } = await open(2);
+    p1.socket.drop();
+    await tick();
+    const back = await joinAs(roomId, "P1");
+    expect(ids(view(p2))).toEqual([back.sessionId, p2.sessionId]);
+    expect(view(p2).hostId).toBe(back.sessionId);
+    expect(player(view(p2), back)!.nick).toBe("P1");
+  });
+
+  test("punkty pokoju i stary token przechodzą na nową sesję: stara sesja już nie wróci", async () => {
+    const { roomId, p1, p2, view } = await gomoku();
+    p1.socket.drop(CloseCode.CONSENTED);
+    await tick();
+    expect(view(p2).scores).toEqual({ [p2.sessionId]: 1 });
+    p2.socket.drop();
+    await tick();
+    const watcher = await joinAs(roomId, "widz");
+    const back = await joinAs(roomId, "p2");
+    expect(view(watcher).scores).toEqual({ [back.sessionId]: 1 });
+    await expect(matchMaker.reconnect(roomId, { reconnectionToken: p2.client.reconnectionToken })).rejects.toThrow();
+  });
+
+  test("obecny gracz o tym samym nicku zostaje: druga osoba wchodzi obok", async () => {
+    const { roomId, seats: [p1, p2], view } = await open(2);
+    const twin = await joinAs(roomId, "p2");
+    expect(ids(view(p1))).toEqual([p1.sessionId, p2.sessionId, twin.sessionId]);
+  });
+});
+
+describe("rozłączony gospodarz oddaje rolę", () => {
+  const HOST_WAIT_MS = 15_000;
+
+  test("po 15 s gospodarzem zostaje pierwszy obecny i może dać start; powrót dawnego gospodarza tego nie cofa", async () => {
+    const { seats: [p1, p2, p3], view, send, reconnect } = await open(3);
+    p1.socket.drop();
+    await tick(HOST_WAIT_MS - 1000);
+    expect(view(p2).hostId).toBe(p1.sessionId);
+    await tick(1000);
+    expect(view(p2).hostId).toBe(p2.sessionId);
+    send(p2, "pickGame", { gameId: "piec-w-rzedzie" });
+    expect(view(p3).gameId).toBe("piec-w-rzedzie");
+    const back = await reconnect(p1);
+    expect(view(back).hostId).toBe(p2.sessionId);
+  });
+
+  test("gospodarz wraca przed czasem: rola zostaje, także po upływie 15 s od zerwania", async () => {
+    const { seats: [p1, p2], view, reconnect } = await open(2);
+    p1.socket.drop();
+    await tick(5000);
+    await reconnect(p1);
+    await tick(HOST_WAIT_MS);
+    expect(view(p2).hostId).toBe(p1.sessionId);
+  });
+
+  test("w trakcie partii nowy gospodarz może ją przerwać", async () => {
+    const { p1, p2, view, send } = await gomoku();
+    p1.socket.drop();
+    await tick(HOST_WAIT_MS);
+    send(p2, "stopGame");
+    expect(view(p2).phase).toBe("lobby");
+  });
+});
+
+describe("rewanż nie czeka na rozłączonych", () => {
+  /** Chińczyk we trzech albo czterech po przerwanej partii (ostatni wyszedł sam), czyli faza `over` z resztą na miejscach. */
+  async function over(n: number) {
+    const ctx = await open(n);
+    const [host, ...guests] = ctx.seats;
+    ctx.send(host, "pickGame", { gameId: "chinczyk" });
+    for (const guest of guests) ctx.send(guest, "ready", { ready: true });
+    ctx.send(host, "start");
+    expect(ctx.view(host).phase).toBe("playing");
+    guests.at(-1)!.socket.drop(CloseCode.CONSENTED);
+    await tick();
+    expect(ctx.view(host).phase).toBe("over");
+    return ctx;
+  }
+
+  test("rozłączony nie blokuje: rewanż rusza z obecnymi, a on zostaje w pokoju bez miejsca", async () => {
+    const { seats: [p1, p2, p3], view, send } = await over(4);
+    p2.socket.drop();
+    await tick();
+    send(p1, "rematch");
+    expect(view(p1).phase).toBe("over");
+    send(p3, "rematch");
+    expect(view(p1).phase).toBe("playing");
+    expect([...view(p1).seats].sort()).toEqual([p1.sessionId, p3.sessionId].sort());
+    expect(ids(view(p1))).toContain(p2.sessionId);
+  });
+
+  test("zerwanie ostatniego niegotowego rusza rewanż, na który reszta już się zgodziła", async () => {
+    const { seats: [p1, p2, p3], view, send } = await over(4);
+    send(p1, "rematch");
+    send(p3, "rematch");
+    expect(view(p1).phase).toBe("over");
+    p2.socket.drop();
+    await tick();
+    expect(view(p1).phase).toBe("playing");
+    expect(view(p1).seats).not.toContain(p2.sessionId);
+  });
+
+  test("za mało obecnych na grę: rewanż czeka", async () => {
+    const { seats: [p1, p2], view, send } = await over(3);
+    p2.socket.drop();
+    await tick();
+    send(p1, "rematch");
+    expect(view(p1).phase).toBe("over");
+  });
+});
