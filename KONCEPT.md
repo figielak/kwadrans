@@ -13,12 +13,13 @@ Dev i deploy: `README.md`. Stan prac i plan: `.telos/ROADMAP.md`.
   (Kampus Tour, Chińczyk, Labirynt i Kropki i kreski 2-4, Gomoku i Statki 2, Sabotaż i Podróbka 3-6, nie wystartują z mniejszą liczbą); reszta ogląda.
 - **Mobile-first**: telefon w pionie, bez instalacji (PWA z ikoną na ekranie głównym).
 - **Bez kont**: gracz wpisuje nick i kod pokoju. Token sesji w `localStorage` pozwala wrócić do gry po odświeżeniu strony.
-  Nick jest zapamiętany po pierwszym wpisaniu (ekran główny pokazuje „Grasz jako … · zmień”), tak samo trzy ostatnie pokoje z ostatniej doby do szybkiego powrotu
-  (sekcja „Wróć do pokoju”: tylko pokoje, w których było co najmniej 2 graczy i które jeszcze istnieją, sprawdza to `/api/rooms`).
+  Nick jest zapamiętany po pierwszym wpisaniu (ekran główny pokazuje kółko z inicjałem w nagłówku, jego dotknięcie otwiera zmianę nicku), tak samo trzy ostatnie pokoje z ostatniej doby do szybkiego powrotu
+  (wiersze „Wróć do …” na górze sekcji „Ze znajomymi”: tylko pokoje, w których było co najmniej 2 graczy i które jeszcze istnieją, sprawdza to `/api/rooms`).
 - **Ekran główny**: sekcja „Ze znajomymi” stoi wyżej niż „Sam”, bo najwięcej radości daje gra z innymi (zawsze, także przy wejściu z linku `/?kod=`).
   „Ze znajomymi” łączy „Utwórz pokój” i pole kodu. „Sam” to wyzwanie dnia, do dwóch gier
   dobranych pod rekordy (cudzy rekord, do którego graczowi najbliżej, i własny do obrony), „Losowa gra” i lista wszystkich mini-gier.
-  Wypełniony przycisk ekranu jest jeden: „Utwórz pokój”, a po wpisaniu pełnego kodu „Dołącz” („Utwórz pokój” przechodzi wtedy na obrys). „Zagraj” przy wyzwaniu ma zawsze obrys.
+  Wypełniony przycisk ekranu jest jeden: „Utwórz pokój”, a przy pełnym kodzie „Dołącz” („Utwórz pokój” przechodzi wtedy na obrys; „Dołącz” bez pełnego kodu nie istnieje, bo ostatni wpisany znak dołącza od razu). Wyzwanie dnia to w całości klikalny kafel bez wypełnienia.
+  Podpowiedzi rekordów pomijają zerowe wyniki w grach, w których wyższy wynik jest lepszy, bo nie ma czego bić ani bronić.
   Rankingi wygranych gier głównych i turnieju są na dole ekranu „Rekordy” (puchar w nagłówku); równe wygrane i partie to to samo miejsce.
   Stopka pokazuje aktualną wersję strony i otwiera ekran „Co nowego” z opisem zmian w kolejnych wersjach (`CHANGELOG` w `Changelog.tsx`).
 - **Gra solo**: mini-gra z ekranu głównego to po cichu pokój na jedną osobę (`solo` w opcjach tworzenia i w `RoomView`), który od razu startuje grę:
@@ -199,7 +200,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
   jeśli został jeden gracz, wygrywa walkowerem; przy większej liczbie kończy się bez zwycięzcy.
 - Lobby: gospodarz wybiera grę i daje start, goście potwierdzają gotowość albo wskazują, w co chcą grać (`wish`, tylko w lobby, `null` kasuje, jedno życzenie na osobę;
   widać je jako kropkę gracza przy grze, `RoomView.wishes`; start, wybór gry i Szybka seria je czyszczą, wyjście gracza też). Sam w pokoju gracz widzi duży kod; od dwóch osób kod
-  zwija się do paska u góry, a gracze to rząd awatarów (kolory rozwija dotknięcie własnego, przy wolnym miejscu „Zaproś”); każdy może zmienić swój kolor
+  zwija się do paska u góry. Gracze to zawsze rząd awatarów (kolory rozwija dotknięcie własnego, przy wolnym miejscu „Zaproś”); każdy może zmienić swój kolor
   (poza partią); link `/?kod=ABCD` z przyciskiem udostępniania. Lista w lobby to gry główne oraz kafle „Turniej” i „Mini-gry”.
 - **Przerwanie partii**: w trakcie partii (poza solo) ikona wyjścia w nagłówku otwiera potwierdzenie. Gospodarz może przerwać grę dla wszystkich (`stopGame`): pokój wraca do lobby bez zwycięzcy, punktów i rekordów, a w turnieju przepada cały turniej; ustawienia zostają. Każdy może też wyjść z pokoju, co rozlicza zwykłe wyjście.
 - **Wyrzucanie**: gospodarz w lobby może usunąć gościa (`kick: { id }`, dotknięcie awatara i potwierdzenie), także rozłączonego, co anuluje czekanie na jego powrót i zwalnia miejsce. Wyrzucony dostaje komunikat na ekranie głównym (`KICKED_CLOSE_CODE`) i może wrócić tym samym kodem; punkty wieczoru zostają jak przy zwykłym wyjściu. W trakcie partii wyrzucać nie można.

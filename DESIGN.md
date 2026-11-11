@@ -84,21 +84,22 @@ Te fragmenty najlepiej oddają styl. Nowy ekran powinien wyglądać jak ich rodz
 
 ### 3.1 Karta „Ze znajomymi” na ekranie głównym (`Home.tsx`)
 
-Najlepszy przykład hierarchii. Sekcja stoi na górze, bo najwięcej radości daje gra z innymi. Od góry: jedyny wypełniony przycisk ekranu
-(„Utwórz pokój”) na pełną szerokość, pod nim linia „Albo dołącz kodem” i pole kodu z przyciskiem „Dołącz”. Wzrok ląduje na czerwieni bez żadnego nagłówka,
-a „Dołącz” przejmuje wypełnienie dopiero po wpisaniu pełnego kodu (wtedy „Utwórz pokój” ma obrys). Karta „Sam” pod spodem ma tylko obrysy:
-ikona gry w kwadracie `accent-soft`, nazwa pogrubiona, jedna linia stanu i „Zagraj” z obrysem (D4-066, D1).
+Najlepszy przykład hierarchii. Sekcja stoi na górze, bo najwięcej radości daje gra z innymi, i nie ma kafla, więc czerwień leży wprost na tle z poświatą.
+Od góry: wiersze „Wróć do …” (tylko gdy pokój jeszcze istnieje), jedyny wypełniony przycisk ekranu („Utwórz pokój”) na pełną szerokość, pod nim „Albo wpisz kod” i cztery komórki kodu.
+Komórki to jedno prawdziwe, niewidoczne pole nad nimi, a aktywna ma ramkę i obrys `accent`; pusta ma nieruchomą kropkę `fg-subtle` (bez migającego kursora, bo pętli nie ma). Ostatni znak dołącza od razu; „Dołącz” pojawia się wypełniony tylko przy pełnym kodzie (kod z linku, ponowna próba, łączenie), a „Utwórz pokój” ma wtedy obrys.
+Nick to kółko z inicjałem w nagłówku (tło `line`), obok pucharu; zaraz po zapisaniu nicku jedno zdanie `fg-muted` pod nagłówkiem mówi, jak go zmienić. W sekcji „Sam” kaflem jest tylko wyzwanie dnia, w całości przycisk: ikona gry w kwadracie `accent-soft`, `.label`, nazwa pogrubiona, jedna linia stanu i ikona „Zagraj” w kółku z obrysem.
+Podpowiedzi rekordów leżą pod nim bez ramki: nazwa, powód („Do pobicia · masz 6,0%”, „Do obrony”) i rekord mono po prawej.
 
-Do skopiowania: jedna akcja wypełniona, pozostałe `btn-ghost`; podpis sekcji z małą ikoną leży nad kaflem, nie w nim.
+Do skopiowania: jedna akcja wypełniona, kafel tylko dla tego, co ma się wyróżniać, a nie dla każdej grupy; podpis sekcji z małą ikoną leży nad treścią, nie w niej.
 
 ### 3.2 Kod pokoju w lobby (`Code` w `Lobby.tsx`)
 
-Jedyny naprawdę duży element aplikacji: cztery znaki mono 60 px z szerokim odstępem, nad nimi `.label`, obok okrągły przycisk udostępniania.
-Kod jest tu treścią ekranu, więc dostaje rozmiar plakatu, a instrukcja pod nim zostaje w 14 px `fg-muted`.
+Jedyny naprawdę duży element aplikacji: cztery znaki mono 60 px bez kafla, rozłożone na całą szerokość jak komórki pola kodu na ekranie głównym, nad nimi `.label` i „Wyjdź”.
+Kod jest tu treścią ekranu, więc dostaje rozmiar plakatu, a instrukcja pod nim zostaje w 14 px `fg-muted`. Udostępnia „Zaproś” w rzędzie awatarów, więc osobnego przycisku nie ma.
 
 Do skopiowania: gdy ekran ma jedną informację do przekazania, powiększ ją i wycisz resztę, zamiast dodawać ramki i kolory.
 
-Ten rozmiar kod ma tylko, gdy gracz jest sam w pokoju i musi go przekazać. Od dwóch osób zwija się do `TopBar` (kod mono 18 px z udostępnianiem), a gracze bez wybranej gry to rząd awatarów bez kafla:
+Ten rozmiar kod ma tylko, gdy gracz jest sam w pokoju i musi go przekazać; gry główne mają wtedy zakres osób i jedno zdanie nad listą („Te gry ruszą, gdy ktoś dołączy.”) zamiast „brakuje” na każdym kaflu. Od dwóch osób kod zwija się do `TopBar` (kod mono 18 px z udostępnianiem). Gracze bez wybranej gry to zawsze, także przy jednej osobie, rząd awatarów bez kafla:
 kółko 44 px w kolorze gracza z inicjałem (`initials`), pod nim skracany nick, korona w rogu kółka. Kolumny dzielą całą szerokość, przy wolnym miejscu ostatnia to przerywane kółko „Zaproś” (udostępnia link).
 Kolory są zwinięte: rozwija je dotknięcie własnego awatara (podpis „ty” z ołówkiem, obrys `fg` w trakcie), a wybór koloru zwija je z powrotem.
 Gospodarz dotyka cudzego awatara, żeby go wyrzucić: w tym samym miejscu pojawia się „Wyrzucić …?” z „Anuluj” i „Wyrzuć” (obrys, tekst `warning`). Rozłączony ma u gospodarza znaczek X w rogu kółka.
@@ -159,7 +160,7 @@ Podpowiedź wykresu zostaje po dotknięciu, mysz chowa ją po zjechaniu z wykres
 |---|---|---|
 | focus (klawiatura) | obrys 2 px `accent`, odsunięty o 2 px | `.btn`, `.field`, suwak koloru |
 | pole w edycji | ramka `accent` zamiast `line-hover` | kod pokoju, nick |
-| przycisk nieaktywny | krycie 40%, bez reakcji na dotyk | „Dołącz” bez pełnego kodu (dodatkowo `btn-ghost` zamiast `btn-primary`; z pełnym kodem to on jest wypełniony) |
+| przycisk nieaktywny | krycie 40%, bez reakcji na dotyk | akcje ekranu głównego w trakcie „Łączenie…” |
 | kafel zaznaczony | ramka `accent`, tło `accent-soft`, ikona `fill`, `aria-pressed` | wybrana gra w lobby |
 | kafel przygaszony, ale do wybrania | krycie 60%, podpis mówi dlaczego („brakuje 1 gracza”) | gra, do której jest za mało osób |
 | turniej: losowo | zwykły kafel `surface`, min. 72 px | stan domyślny każdej gry |
@@ -169,7 +170,7 @@ Podpowiedź wykresu zostaje po dotknięciu, mysz chowa ją po zjechaniu z wykres
 | ładowanie | tekst przycisku zmienia się na czasownik z wielokropkiem, wszystkie akcje ekranu nieaktywne; bez spinnera. Ekran bez przycisku pokazuje sam czasownik w `fg-muted` (`role="status"`) | „Łączenie…”, „Tworzenie…”, „Uruchamianie…”, „Wczytywanie…” |
 | brak odpowiedzi serwera | jedno zdanie `fg-muted` zamiast listy; nigdy pusta lista ani „nie grane” | „Nie udało się wczytać rekordów.” |
 | pokój zamknięty | kafel z ikoną `Info` nad sekcjami ekranu głównego (`role="status"`), nie błąd pola kodu; znika przy następnej próbie | „Połączenie z pokojem zostało zamknięte.” |
-| stan pusty | jedno zdanie `fg-muted` w miejscu treści, bez ilustracji | „Dziś nikt jeszcze nie grał” |
+| stan pusty | jedno zdanie `fg-muted` w miejscu treści, bez ilustracji | „Zdobądź pierwszy wynik dnia”, „nie grane” |
 | błąd formularza | ikona i tekst 14 px w `warning` pod polem (`role="alert"`); ramka i obrys focusu pola też w `warning`, zamiast akcentu | zły kod pokoju (`Problem` w `Home.tsx`) |
 | lider rankingu | korona `fill`: w `gold` przy cudzym rekordzie (i własnym bez koloru gracza), w kolorze gracza przy własnym | ekran „Rekordy”, rankingi wygranych |
 | karta gry w „Rekordach” | ikona w kafelku (u lidera w kolorze gracza), nazwa i lider po lewej, rekord dużą liczbą mono po prawej, pod nim przewaga, strata („brakuje …”) albo chip „łatwy łup” / „nie grane”; „Do pobicia” od najbliższych rekordów, nad listą karta „Najbliżej rekordu” z „Zagraj” | ekran „Rekordy” |
@@ -190,7 +191,7 @@ Stan pusty mówi, czemu jest pusto: „Za krótka partia na ciekawostki.”, w t
 ## 5. Zasady, które z tego wynikają
 
 - **Akcent jest rzadki.** Jeden wypełniony przycisk platformy na ekranie; znak aplikacji może zachować akcent,
-  bo identyfikuje markę, nie proponuje kolejnej czynności. Link w tekście („zmień”) to `fg-muted` z podkreśleniem.
+  bo identyfikuje markę, nie proponuje kolejnej czynności. Link w tekście to `fg-muted` z podkreśleniem.
 - **Akcent należy do platformy, kolor gracza do partii.** Wypełniony akcentem jest przycisk, który prowadzi przez aplikację
   („Zagraj”, „Start”, gotowość, „Rewanż”, „Dalej” między grami turnieju, „Jeszcze raz”). Akcja w trakcie partii („Zatwierdź”, „Gotowe”,
   „Rzuć”, „Zgarnij”, „Dalej” między rundami partii, gotowość rozstawienia w Statkach) jest wypełniona kolorem gracza z tekstem `bg`.

@@ -72,13 +72,22 @@ test("lobby: gospodarz może dotknąć cudzego awatara, żeby wyrzucić, gość 
   expect(lobby(3, "p2")).not.toContain("wyrzuć z pokoju");
 });
 
-test("lobby: „Zaproś” jest tylko przy wolnym miejscu, sam w pokoju zostaje duży kod z kolorami", () => {
+test("lobby: „Zaproś” jest tylko przy wolnym miejscu, sam w pokoju duży kod i ten sam rząd awatarów ze zwiniętymi kolorami", () => {
   expect(lobby(5)).toContain("Zaproś");
   expect(lobby(6)).not.toContain("Zaproś");
   const alone = lobby(1);
-  expect(alone).not.toContain("Zaproś");
-  expect(alone).toContain('role="radiogroup"');
+  expect(alone).toContain("Zaproś");
+  expect(alone).not.toContain('role="radiogroup"');
   expect(alone).toContain("Podaj kod znajomym");
+});
+
+test("lobby: sam w pokoju jedno zdanie zamiast „brakuje” na każdym kaflu; od dwóch osób podpis wraca przy grach na więcej", () => {
+  const alone = lobby(1);
+  expect(alone).toContain("Te gry ruszą, gdy ktoś dołączy.");
+  expect(alone).not.toContain("brakuje");
+  expect(alone).toContain("3-6 os.");
+  expect(lobby(2)).not.toContain("Te gry ruszą");
+  expect(lobby(2)).toContain("brakuje 1 gracza");
 });
 
 test("11-06: Sabotaż w lobby ma nazwę, ikonę, opis i limit 3-6, a nie jest mini-grą ani grą z rekordem", () => {

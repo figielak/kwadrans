@@ -6,15 +6,15 @@ import { expect, test } from "vitest";
 const src = new URL(".", import.meta.url).pathname;
 const read = (file: string) => readFileSync(join(src, file), "utf8");
 
-test("07-06: jedyny wypełniony przycisk to „Utwórz pokój”, z pełnym kodem „Dołącz”; „Zagraj” zawsze obrys", () => {
+test("07-06: jedyny wypełniony przycisk to „Utwórz pokój”, z pełnym kodem „Dołącz”; wyzwanie dnia to kafel bez wypełnienia", () => {
   const home = read("screens/Home.tsx");
-  expect(home).not.toContain('className="btn btn-primary w-full"');
-  // „Utwórz pokój” oddaje wypełnienie po pełnym kodzie, „Dołącz” je przejmuje.
+  // „Utwórz pokój” oddaje wypełnienie po pełnym kodzie, „Dołącz” pojawia się dopiero wtedy.
   expect(home).toContain('className={`btn w-full ${full ? "btn-ghost" : "btn-primary"}`} disabled={!!busy} onClick={() => go("create")}');
-  expect(home).toContain('className={`btn shrink-0 ${full ? "btn-primary" : "btn-ghost"}`}');
-  // „Zagraj” przy wyzwaniu: bez btn-primary w żadnym stanie.
-  const daily = home.slice(home.indexOf("play(daily.gameId)") - 120, home.indexOf("play(daily.gameId)"));
-  expect(daily).toContain('className="btn btn-ghost w-full"');
+  expect(home).toMatch(/\{full && \(\s*<button type="submit" className="btn btn-primary w-full"/);
+  // Wyzwanie dnia: cały kafel jest przyciskiem, bez btn-primary w żadnym stanie.
+  const at = home.indexOf("play(daily.gameId)");
+  const daily = home.slice(home.lastIndexOf("<button", at), at);
+  expect(daily).toContain('className="tile');
   expect(daily).not.toContain("btn-primary");
   // Jedyne wystąpienia btn-primary w pliku to dwa warunkowe powyżej.
   expect(home.match(/btn-primary/g)).toHaveLength(2);

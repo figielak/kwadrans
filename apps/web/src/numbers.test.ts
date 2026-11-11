@@ -25,7 +25,7 @@ test("F4-101: duże odczyty liczb są mono (zdania mogą zostać Satoshi)", () =
 });
 
 test("F4-102: podpisy bloków to .label", () => {
-  expect(read("screens/Lobby.tsx")).toContain('<span className="label">Twój kolor</span>');
+  expect(read("screens/Lobby.tsx")).toContain('<h2 className="label">Gracze</h2>');
   expect(read("games/Zakupy.tsx")).toContain('<span className="label">Lista zakupów</span>');
   expect(read("screens/Records.tsx")).toMatch(/<dt className="label[^"]*">\{item\.label\}<\/dt>/);
   expect(read("games/KampusSummary.tsx")).not.toContain('<dt className="text-fg-muted">');
