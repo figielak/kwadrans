@@ -106,7 +106,10 @@ export function openStats(path: string) {
       fn();
       db.exec("COMMIT");
     } catch (error) {
-      db.exec("ROLLBACK");
+      // Część błędów (np. pełny dysk) SQLite wycofuje sam; wtedy ROLLBACK rzuca i zasłoniłby pierwotny błąd.
+      try {
+        db.exec("ROLLBACK");
+      } catch {}
       throw error;
     }
   };

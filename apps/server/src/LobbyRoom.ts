@@ -707,9 +707,8 @@ export class LobbyRoom extends Room {
 
   /** Wołane także poza try (po obsłudze wiadomości, z zegarów), więc błąd widoku gry kończy się tu: stan nie dochodzi, pokój działa. */
   private update() {
-    this.guarded("rozsyłanie stanu", () => {
-      for (const client of this.clients) client.send("room", this.viewFor(client.sessionId));
-    });
+    // Osobno dla każdego: błąd widoku jednej osoby nie odcina pozostałych.
+    for (const client of this.clients) this.guarded("rozsyłanie stanu", () => client.send("room", this.viewFor(client.sessionId)));
     this.touch();
   }
 
