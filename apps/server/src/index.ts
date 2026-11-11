@@ -3,7 +3,7 @@ import { matchMaker, Server } from "@colyseus/core";
 import { WebSocketTransport } from "@colyseus/ws-transport";
 import { dailyGame, GAMES, MINI_GAME_IDS } from "@kwadrans/games";
 import express from "express";
-import { LobbyRoom, stats } from "./LobbyRoom.ts";
+import { LobbyRoom, restoreRooms, saveRooms, stats } from "./LobbyRoom.ts";
 
 const port = Number(process.env.PORT ?? 2567);
 const webDist = fileURLToPath(new URL("../../web/dist", import.meta.url));
@@ -11,6 +11,13 @@ const webDist = fileURLToPath(new URL("../../web/dist", import.meta.url));
 const server = new Server({
   // Domyślne 4 KB nie mieści rysunku z Narysuj koło (do 1000 punktów, ok. 19 KB): ws zamykał połączenie kodem 1009 i gracz wypadał z pokoju.
   transport: new WebSocketTransport({ maxPayload: 32 * 1024 }),
+  // Pokoje sprzed restartu wracają, zanim serwer zacznie przyjmować połączenia: klient, który wraca za wcześnie, straciłby miejsce.
+  beforeListen: async () => {
+    // Konstruktor serwera dopiero zaczyna przygotowywać matchmaker; bez tego pokój nie ma jeszcze gdzie powstać.
+    await matchMaker.onReady;
+    const restored = await restoreRooms();
+    if (restored) console.log(`odtworzone pokoje: ${restored}`);
+  },
   express: (app) => {
     app.get("/health", (_req, res) => {
       res.send("ok");
@@ -45,5 +52,7 @@ const server = new Server({
 });
 
 server.define("lobby", LobbyRoom);
+// SIGTERM (deploy, restart) i nieobsłużony wyjątek: zapis pokoi, dopóki połączenia jeszcze żyją.
+server.onBeforeShutdown(saveRooms);
 await server.listen(port);
 console.log(`listening on :${port}`);

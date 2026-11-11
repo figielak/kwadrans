@@ -66,6 +66,11 @@ export function openStats(path: string) {
   db.exec("CREATE TABLE IF NOT EXISTS room_games (room_key TEXT NOT NULL, game_id TEXT NOT NULL, players INTEGER NOT NULL, outcome TEXT NOT NULL, at INTEGER NOT NULL)");
   // Dni gry bez pokoju i gry (D-09): tylko osoba i doba lokalna, do liczenia powrotów.
   db.exec("CREATE TABLE IF NOT EXISTS played_days (nick_key TEXT NOT NULL, day TEXT NOT NULL, PRIMARY KEY (nick_key, day))");
+  // Zapis pokoi: jeden wiersz na pokój (JSON z `LobbyRoom.snapshot`), żyje od punktu kontrolnego do odtworzenia albo zamknięcia pokoju.
+  db.exec("CREATE TABLE IF NOT EXISTS rooms (code TEXT PRIMARY KEY, json TEXT NOT NULL, at INTEGER NOT NULL)");
+  const upsertRoom = db.prepare("INSERT INTO rooms VALUES (?1, ?2, ?3) ON CONFLICT (code) DO UPDATE SET json = ?2, at = ?3");
+  const deleteRoom = db.prepare("DELETE FROM rooms WHERE code = ?");
+  const selectRooms = db.prepare("SELECT code, json FROM rooms WHERE at >= ? ORDER BY at, code");
   const insert = db.prepare("INSERT INTO results VALUES (?, ?, ?, ?)");
   const insertRoomGame = db.prepare("INSERT INTO room_games VALUES (?, ?, ?, ?, ?)");
   const insertDay = db.prepare("INSERT OR IGNORE INTO played_days VALUES (?, ?)");
@@ -159,6 +164,24 @@ export function openStats(path: string) {
         returningNicks: days.n,
         interrupted,
       };
+    },
+
+    saveRoom(code: string, json: string, at = Date.now()) {
+      upsertRoom.run(code, json, at);
+    },
+
+    dropRoom(code: string) {
+      deleteRoom.run(code);
+    },
+
+    /** Zapisane pokoje nie starsze niż `since`; tabela zostaje pusta, więc każdy zapis odtwarza się najwyżej raz. */
+    takeRooms(since: number): { code: string; json: string }[] {
+      let rows: { code: string; json: string }[] = [];
+      transaction(() => {
+        rows = selectRooms.all(since) as { code: string; json: string }[];
+        db.exec("DELETE FROM rooms");
+      });
+      return rows;
     },
 
     ranking() {

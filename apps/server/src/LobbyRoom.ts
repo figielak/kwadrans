@@ -63,7 +63,84 @@ export const stats = openStats(dbPath);
 
 type Timer = { clear(): void };
 /** Zegary z terminem: jeden naraz, opisany danymi, żeby dało się go zapisać i uzbroić od nowa. */
-type Deadline = { kind: "turn" | "intro" | "countdown" | "vote" | "next"; endsAt: number };
+type Deadline = { kind: "turn" | "intro" | "countdown" | "vote" | "next"; endsAt: number; fired?: boolean };
+
+const ROOM_NAME = "lobby";
+/** Zmiana kształtu zapisu pokoju (nie stanu gry: ten ma `stateVersion`) podbija wersję; starsze zapisy przepadają. */
+const SNAPSHOT_VERSION = 1;
+/** Zmiany w pokoju trafiają do bazy najwyżej raz na tyle: przy awarii przepada co najwyżej ostatnie 5 s. */
+const CHECKPOINT_MS = 5000;
+/** Po odtworzeniu każdy zegar ma co najmniej tyle, żeby gracze zdążyli wrócić, zanim ruszy ruch zastępczy. */
+const RESTORE_GRACE_MS = 10_000;
+
+/** Pokój w bazie: wszystko, czego nie da się odbudować. Liczniki limitów, `rng` i zegar bezczynności ruszają od nowa. */
+interface Snapshot {
+  v: number;
+  /** `token` to token powrotu Colyseusa: po restarcie gracz wraca nim pod to samo id. */
+  players: (LobbyPlayer & { token?: string })[];
+  hostId: string;
+  creatorIp?: string;
+  roomKey: string;
+  solo: boolean;
+  phase: Phase;
+  gameId: string | null;
+  mode: string | null;
+  seats: string[];
+  tournament: Tournament | null;
+  markedBy: Record<string, string>;
+  scores: Record<string, number>;
+  evening: Evening;
+  eveningView: RoomView["evening"];
+  vote: { options: string[]; votes: Record<string, string> } | null;
+  wishes: Record<string, string>;
+  match: { stateVersion: number; state: unknown; result: GameResult | null; players: number; nicks: string[] } | null;
+  intro: boolean;
+  countdown: boolean;
+  skipIntro: boolean;
+  began: string[];
+  liveValues: Record<string, number>;
+  /** Pozostały czas zamiast terminu: przestój serwera nie zjada tury. */
+  timer: { kind: Deadline["kind"]; msLeft: number; fired: boolean } | null;
+}
+
+const liveRooms = new Set<LobbyRoom>();
+/** Zapisy czekające na `onCreate`; poza `restoreRooms` puste, więc opcja `restore` od klienta nic nie znaczy. */
+const pendingRestore = new Map<string, Snapshot>();
+/** Serwer się zamyka: pokoje zostawiają swój zapis w bazie zamiast go kasować. */
+let stopping = false;
+
+/** Zapis wszystkich pokoi przed zamknięciem serwera (SIGTERM, nieobsłużony wyjątek); połączenia są jeszcze otwarte, więc tokeny są aktualne. */
+export function saveRooms() {
+  stopping = true;
+  for (const room of liveRooms) room.save();
+}
+
+/** Odtwarza pokoje zapisane w ostatniej godzinie (starszy i tak zamknęłaby bezczynność). Woła się raz, przed przyjęciem połączeń. */
+export async function restoreRooms() {
+  stopping = false;
+  let rows: { code: string; json: string }[] = [];
+  try {
+    rows = stats.takeRooms(Date.now() - IDLE_MS);
+  } catch (error) {
+    console.error("odczyt zapisanych pokoi:", error);
+  }
+  let restored = 0;
+  for (const { code, json } of rows) {
+    // Zepsuty zapis jednego pokoju nie blokuje pozostałych.
+    try {
+      const snapshot = JSON.parse(json) as Snapshot;
+      if (snapshot.v !== SNAPSHOT_VERSION || !snapshot.players.length) throw new Error(`zapis w wersji ${snapshot.v}`);
+      pendingRestore.set(code, snapshot);
+      await matchMaker.createRoom(ROOM_NAME, { restore: code });
+      restored++;
+    } catch (error) {
+      console.error(`[${code}] odtwarzanie pokoju:`, error);
+    } finally {
+      pendingRestore.delete(code);
+    }
+  }
+  return restored;
+}
 
 const newRng = () => createRng(crypto.getRandomValues(new Uint32Array(1))[0]);
 const defaultMode = (def: GameDefinition<unknown, unknown>) => (def.modes?.find((m) => m.default) ?? def.modes?.[0])?.id ?? null;
@@ -103,8 +180,9 @@ export class LobbyRoom extends Room {
   private vote: { options: string[]; votes: Record<string, string> } | null = null;
   /** Życzenia gości w lobby: gracz → gra. */
   private wishes: Record<string, string> = {};
-  /** Rozłączeni, na których powrót czekamy; wyrzucenie anuluje czekanie. */
-  private awaitingReturn = new Map<string, ReturnType<Room["allowReconnection"]>>();
+  /** Rozłączeni, na których powrót czekamy; wyrzucenie anuluje czekanie. `client` trzyma token powrotu do zapisu pokoju. */
+  private awaitingReturn = new Map<string, { client: Pick<Client, "reconnectionToken">; reconnection: ReturnType<Room["allowReconnection"]> }>();
+  private checkpoint?: Timer;
   private match: Match | null = null;
   private turnTimer?: Timer;
   private deadline: Deadline | null = null;
@@ -122,15 +200,20 @@ export class LobbyRoom extends Room {
   /** Dane dekoracyjne od klientów, nigdy nie trafiają do stanu zasad ani wyników. */
   private liveValues: Record<string, number> = {};
 
-  async onCreate(options?: { solo?: unknown }) {
-    if (typeof options?.solo === "string" && MINI_GAME_IDS.includes(options.solo)) {
-      this.solo = true;
-      this.gameId = options.solo;
-      this.maxClients = 1;
+  async onCreate(options?: { solo?: unknown; restore?: unknown }) {
+    const saved = typeof options?.restore === "string" ? pendingRestore.get(options.restore) : undefined;
+    if (saved) this.roomId = options!.restore as string;
+    else {
+      if (typeof options?.solo === "string" && MINI_GAME_IDS.includes(options.solo)) {
+        this.solo = true;
+        this.gameId = options.solo;
+        this.maxClients = 1;
+      }
+      let code = roomCode(Math.random);
+      while ((await matchMaker.query({ roomId: code })).length > 0) code = roomCode(Math.random);
+      this.roomId = code;
     }
-    let code = roomCode(Math.random);
-    while ((await matchMaker.query({ roomId: code })).length > 0) code = roomCode(Math.random);
-    this.roomId = code;
+    liveRooms.add(this);
     this.touch();
 
     // gameId null: powrót z ekranu gry do listy gier.
@@ -212,7 +295,7 @@ export class LobbyRoom extends Room {
     // Także rozłączonego, który inaczej trzymałby miejsce i blokował start przez czas powrotu. Wrócić można tym samym kodem.
     this.on("kick", (client, { id }) => {
       if (!this.isHost(client) || this.phase !== "lobby" || id === client.sessionId || !this.players.has(id)) return;
-      this.awaitingReturn.get(id)?.reject();
+      this.awaitingReturn.get(id)?.reconnection.reject();
       this.clients.find((c) => c.sessionId === id)?.leave(KICKED_CLOSE_CODE);
       // Od razu, bo martwe połączenie zamyka się dopiero po chwili i nie może wtedy przejść w czekanie na powrót.
       this.removePlayer(id);
@@ -314,6 +397,119 @@ export class LobbyRoom extends Room {
       this.measure("aborted");
       this.toLobby();
     });
+
+    if (saved) this.restore(saved);
+  }
+
+  /** Publiczne tylko dla `saveRooms`. Błąd zapisu zostaje w pokoju: gra toczy się dalej, najwyżej nie przeżyje restartu. */
+  save() {
+    this.checkpoint?.clear();
+    this.checkpoint = undefined;
+    this.guarded("zapis pokoju", () => stats.saveRoom(this.roomId, JSON.stringify(this.snapshot())));
+  }
+
+  private snapshot(): Snapshot {
+    const token = (id: string) => this.clients.find((c) => c.sessionId === id)?.reconnectionToken ?? this.awaitingReturn.get(id)?.client.reconnectionToken;
+    const { match, deadline } = this;
+    return {
+      v: SNAPSHOT_VERSION,
+      players: [...this.players.values()].map((p) => ({ ...p, token: token(p.id) })),
+      hostId: this.hostId,
+      creatorIp: this.creatorIp,
+      roomKey: this.roomKey,
+      solo: this.solo,
+      phase: this.phase,
+      gameId: this.gameId,
+      mode: this.mode,
+      seats: this.seats,
+      tournament: this.tournament,
+      markedBy: this.markedBy,
+      scores: this.scores,
+      evening: this.evening,
+      eveningView: this.eveningView,
+      vote: this.vote,
+      wishes: this.wishes,
+      match: match && { stateVersion: match.def.stateVersion ?? 0, state: match.state, result: match.result, players: match.players, nicks: match.nicks },
+      intro: this.intro,
+      countdown: this.countdown,
+      skipIntro: this.skipIntro,
+      began: [...this.began],
+      liveValues: this.liveValues,
+      timer: deadline && { kind: deadline.kind, msLeft: Math.max(0, deadline.endsAt - Date.now()), fired: deadline.fired === true },
+    };
+  }
+
+  /** Pokój po restarcie: ten sam kod i te same id graczy; wszyscy są rozłączeni i mają zwykły czas na powrót. */
+  private restore(saved: Snapshot) {
+    this.solo = saved.solo;
+    if (saved.solo) this.maxClients = 1;
+    this.hostId = saved.hostId;
+    this.roomKey = saved.roomKey;
+    this.phase = saved.phase;
+    this.gameId = saved.gameId;
+    this.mode = saved.mode;
+    this.seats = saved.seats;
+    this.tournament = saved.tournament;
+    this.markedBy = saved.markedBy;
+    this.scores = saved.scores;
+    this.evening = saved.evening;
+    this.eveningView = saved.eveningView;
+    this.vote = saved.vote;
+    this.wishes = saved.wishes;
+    this.intro = saved.intro;
+    this.countdown = saved.countdown;
+    this.skipIntro = saved.skipIntro;
+    this.began = new Set(saved.began);
+    this.liveValues = saved.liveValues;
+    for (const { token: _, ...player } of saved.players) this.players.set(player.id, { ...player, connected: false });
+
+    const def = saved.gameId ? GAMES[saved.gameId] : undefined;
+    if (saved.match && def && (def.stateVersion ?? 0) === saved.match.stateVersion && this.readable(def, saved.match.state)) {
+      this.match = { def, ...saved.match, rng: newRng() };
+      const { timer } = saved;
+      if (timer?.fired) this.deadline = { kind: timer.kind, endsAt: Date.now(), fired: true };
+      else if (timer) this.arm(timer.kind, Math.max(timer.msLeft, RESTORE_GRACE_MS));
+    } else if (saved.phase !== "lobby") {
+      // Partia sprzed wdrożenia, której ta wersja gry nie poprowadzi: pokój, ludzie i punkty wieczoru zostają.
+      this.toLobby();
+      this.intro = this.countdown = this.skipIntro = false;
+      this.began.clear();
+      this.liveValues = {};
+    }
+    // Gra usunięta z rejestru: lobby bez wyboru.
+    if (this.gameId && !GAMES[this.gameId]) {
+      this.gameId = this.mode = null;
+      this.seats = [];
+    }
+
+    if (saved.creatorIp !== undefined) {
+      this.creatorIp = saved.creatorIp;
+      roomsByIp.set(saved.creatorIp, (roomsByIp.get(saved.creatorIp) ?? 0) + 1);
+    }
+    // Colyseus liczy osoby przy wejściu; odtworzeni nie wchodzą, tylko wracają, więc licznik (ekran „Wróć do pokoju”) ustawiamy sami.
+    (this as unknown as { _listing: { clients: number } })._listing.clients = saved.players.length;
+    for (const { id, nick, token } of saved.players) {
+      // Zwykłe czekanie na powrót, tylko zamiast zerwanego połączenia jest sam token. Bez tokenu nikt nie wróci, więc losowy.
+      const ghost = { sessionId: id, reconnectionToken: token ?? randomUUID(), auth: { nick } } as unknown as Client;
+      void this.returned(ghost, this.players.get(id)!).then((back) => {
+        if (back || this.closing) return;
+        this.guarded("brak powrotu po restarcie", () => this.removePlayer(id));
+        this.update();
+      });
+    }
+  }
+
+  /** Czy ta wersja gry umie jeszcze czytać zapisany stan: błąd tutaj nie może wracać przy każdym rozsyłaniu widoku. */
+  private readable(def: GameDefinition<unknown, unknown>, state: unknown) {
+    try {
+      def.waitingFor(state);
+      def.isOver(state);
+      for (const id of [...this.seats, ""]) def.playerView(state, id);
+      return true;
+    } catch (error) {
+      this.logError("odczyt zapisanej partii", error);
+      return false;
+    }
   }
 
   onAuth(_client: Client, options: { nick?: unknown }, context: AuthContext) {
@@ -357,25 +553,35 @@ export class LobbyRoom extends Room {
     const player = this.players.get(client.sessionId);
     if (!player || this.closing) return;
     if (code !== CloseCode.CONSENTED) {
-      player.connected = false;
-      this.update();
-      const reconnection = this.allowReconnection(client, RECONNECT_SECONDS);
-      this.awaitingReturn.set(client.sessionId, reconnection);
-      try {
-        await reconnection;
-        player.connected = true;
-        this.update();
-        return;
-      } catch {
-        // nie wrócił na czas albo został wyrzucony
-      } finally {
-        this.awaitingReturn.delete(client.sessionId);
-      }
+      if (await this.returned(client, player)) return;
       // Zamknięcie pokoju odrzuca też czekanie na powrót: to nie jest wyjście gracza.
       if (this.closing) return;
     }
     this.removePlayer(client.sessionId);
     this.update();
+  }
+
+  /** Czeka na powrót rozłączonego; false, gdy nie wrócił na czas albo został wyrzucony. */
+  private async returned(client: Client, player: LobbyPlayer) {
+    player.connected = false;
+    this.update();
+    try {
+      const reconnection = this.allowReconnection(client, RECONNECT_SECONDS);
+      this.awaitingReturn.set(client.sessionId, { client, reconnection });
+      await reconnection;
+      player.connected = true;
+      this.update();
+      return true;
+    } catch {
+      return false;
+    } finally {
+      this.awaitingReturn.delete(client.sessionId);
+    }
+  }
+
+  /** Zamknięcie serwera: kod, po którym SDK klienta samo próbuje wrócić, zamiast pokazać koniec połączenia. */
+  override onBeforeShutdown() {
+    this.disconnect(CloseCode.MAY_TRY_RECONNECT).catch(() => {});
   }
 
   /** Usuwa gracza z pokoju i rozlicza jego miejsce; drugie wywołanie dla tej samej osoby nic nie zmienia. */
@@ -411,6 +617,10 @@ export class LobbyRoom extends Room {
 
   onDispose() {
     this.turnTimer?.clear();
+    this.checkpoint?.clear();
+    liveRooms.delete(this);
+    // Pokój, który skończył się sam, nie ma do czego wracać; przy zamykaniu serwera zapis czeka na odtworzenie.
+    if (!stopping) this.guarded("kasowanie zapisu pokoju", () => stats.dropRoom(this.roomId));
     if (this.creatorIp === undefined) return;
     const left = (roomsByIp.get(this.creatorIp) ?? 1) - 1;
     if (left > 0) roomsByIp.set(this.creatorIp, left);
@@ -565,10 +775,11 @@ export class LobbyRoom extends Room {
   /** Jedyny sposób na zegar z terminem. Po upływie `deadline` zostaje (klient widzi 0), dopóki nie ruszy następny. */
   private arm(kind: Deadline["kind"], ms: number) {
     this.turnTimer?.clear();
-    const deadline = (this.deadline = { kind, endsAt: Date.now() + ms });
+    const deadline: Deadline = (this.deadline = { kind, endsAt: Date.now() + ms });
     this.turnTimer = this.clock.setTimeout(() => {
       // Zegar zastąpiony albo zgaszony w tej samej chwili nie należy już do bieżącej partii.
       if (this.deadline !== deadline) return;
+      deadline.fired = true;
       this.expire(kind);
       this.update();
     }, ms);
@@ -705,6 +916,8 @@ export class LobbyRoom extends Room {
     // Osobno dla każdego: błąd widoku jednej osoby nie odcina pozostałych.
     for (const client of this.clients) this.guarded("rozsyłanie stanu", () => client.send("room", this.viewFor(client.sessionId)));
     this.touch();
+    // Punkt kontrolny: zapis niedługo po zmianie, jeden na serię zmian.
+    this.checkpoint ??= this.clock.setTimeout(() => this.save(), CHECKPOINT_MS);
   }
 
   private viewFor(id: string): RoomView {

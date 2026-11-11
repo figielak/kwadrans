@@ -16,6 +16,11 @@ export interface GameDefinition<State, Move> {
   name: string;
   minPlayers: number;
   maxPlayers: number;
+  /**
+   * Wersja kształtu stanu; brak pola to 0. Podbij przy każdej zmianie `State`, po której stara partia nie może toczyć się dalej:
+   * pokój zapisany przed wdrożeniem wraca wtedy do lobby zamiast do partii.
+   */
+  stateVersion?: number;
   /** Kształt ruchu przychodzącego z sieci; reguły sprawdza dopiero validateMove. */
   moveSchema: z.ZodType<Move>;
   /** Tryby do wyboru w lobby, w kolejności wyświetlania; domyślny ma `default` (bez flagi: pierwszy). Gra bez trybów pomija to pole. */

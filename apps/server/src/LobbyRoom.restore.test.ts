@@ -105,7 +105,8 @@ async function restart(roomIds: string[], seats: Seat[], away = 0) {
   for (const seat of seats) seat.token = seat.client.reconnectionToken;
   saveRooms();
   for (const roomId of roomIds) room(roomId).onBeforeShutdown();
-  await tick(100);
+  // Pokój z kimś rozłączonym zamyka się sekundę dłużej: Colyseus odrzuca czekanie na powrót i dopiero potem sprząta.
+  await tick(1500);
   for (const roomId of roomIds) expect(room(roomId), `pokój ${roomId} zamknięty`).toBeUndefined();
   await tick(away);
   return restoreRooms();
