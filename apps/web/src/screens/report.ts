@@ -28,3 +28,9 @@ export function warnings(g: ReportGame): string[] {
   if (g.solo + g.introLeft >= 5 && g.introLeft / Math.max(1, g.matches) >= 0.3) out.push("porzucana na instrukcji");
   return out.slice(0, 2);
 }
+
+/** „10.11.26”: data bez miesiąca słownie, mieści się w wąskiej kolumnie. */
+export const shortDate = (at: number) => {
+  const d = new Date(at);
+  return `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getFullYear()).slice(2)}`;
+};

@@ -3,8 +3,8 @@ import { GAMES, type Report, type ReportGame } from "@kwadrans/games";
 import { useEffect, useState } from "react";
 import { fetchReport } from "../net.ts";
 import { ICONS } from "./Lobby.tsx";
-import { matchesWord, since } from "./profile.ts";
-import { duration, one, percent, warnings } from "./report.ts";
+import { matchesWord } from "./profile.ts";
+import { duration, one, percent, shortDate, warnings } from "./report.ts";
 import { Screen } from "./ui.tsx";
 
 const PERIODS = [
@@ -91,7 +91,7 @@ export function Statystyki() {
             </section>
           )}
           <p className="text-xs text-fg-muted">
-            Ukończone: partie z wynikiem. Rewanże: partie po „Jeszcze raz” i rewanżu. Porzucona instrukcja: wyjście z mini-gry przed startem. Wybrana: kafel gry w lobby,
+            Ukończone: partie z wynikiem. Rewanże: partie po „Jeszcze raz” i rewanżu. Wyjście z instrukcji: zamknięcie mini-gry przed startem. Wybrana: kafel gry w lobby,
             porzucona: zmiana wyboru bez startu. Głosowanie: wygrane z pokazanych. Partie sprzed historii nie mają czasu trwania.
           </p>
         </>
@@ -127,12 +127,13 @@ function GameRow({ game: g }: { game: ReportGame }) {
     ["Mediana", duration(g.medianSeconds)],
     ["Średnio osób", one(g.avgPlayers)],
     main ? ["Walkowery", String(g.walkovers)] : ["Solo", percent(g.solo, g.matches)],
-    main ? ["Wybrana / porzucona", `${g.picked} / ${g.dropped}`] : ["Porzucona instrukcja", String(g.introLeft)],
+    main ? ["Wybrana", String(g.picked)] : ["Wyjście z instrukcji", String(g.introLeft)],
+    main ? ["Porzucona", String(g.dropped)] : ["Wybrana w pokoju", String(g.picked)],
     ["Głosowanie", `${g.voteWon} z ${g.voteShown}`],
-    main ? ["Jak grać", String(g.howTo)] : ["Wybrana w pokoju", String(g.picked)],
+    ...(main ? [["Jak grać", String(g.howTo)] as [string, string]] : []),
     ["Timeouty / partię", one(g.timeoutsPerMatch)],
     ["Reakcje / partię", one(g.reactionsPerMatch)],
-    ["Ostatnio", g.lastAt ? since(g.lastAt) : "brak"],
+    ["Ostatnio", g.lastAt ? shortDate(g.lastAt) : "brak"],
   ];
   return (
     <div className="rounded-inset border border-line bg-surface p-3">

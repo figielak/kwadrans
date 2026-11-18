@@ -173,7 +173,7 @@ function ProfileView({ nick, own, dropped, onBack, onEditNick, onOpen }: {
                       <span className="flex shrink-0 items-center gap-1 text-sm text-fg-muted">
                         {p.place === 1 ? <Crown size={14} weight="fill" className="text-gold" aria-label="1. miejsce" /> : `${p.place}.`} z {p.of}
                       </span>
-                      <span className="w-20 shrink-0 text-right font-mono text-sm tabular-nums">{formatBest(p.id, p.best)}</span>
+                      <span className="shrink-0 text-right font-mono text-sm whitespace-nowrap tabular-nums">{formatBest(p.id, p.best)}</span>
                     </li>
                   );
                 })}
