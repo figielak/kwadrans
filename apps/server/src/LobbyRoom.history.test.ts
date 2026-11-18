@@ -80,6 +80,8 @@ function winGomoku(send: (player: number, type: string, raw?: unknown) => void) 
 async function stoper(n: number) {
   const ctx = await openRoom(n);
   ctx.send(0, "pickGame", { gameId: "stoper" });
+  // Mini-gra sadza wszystkich; ostatni klient zostaje obserwatorem.
+  ctx.send(0, "toggleSeat", { id: ctx.clients[n].sessionId });
   for (let i = 1; i < n; i++) ctx.send(i, "ready", { ready: true });
   ctx.send(0, "start");
   for (let i = 0; i < n; i++) ctx.send(i, "begin");
@@ -164,7 +166,8 @@ describe("historia partii z pokoju", () => {
     full.send(2, "ready", { ready: true });
     full.send(0, "start");
     full.send(0, "stopGame");
-    expect(full.entries()[0]).toMatchObject({ kind: "tournament", source: "tournament" });
+    // Oba pokoje zapisują przez ten sam `stats`, więc wpis pełnego turnieju jest ostatni.
+    expect(full.entries().at(-1)).toMatchObject({ kind: "tournament", source: "tournament" });
   });
 
   test("solo: źródło z opcji tworzenia, wyjście z instrukcji to porzucona instrukcja", async () => {
@@ -221,7 +224,7 @@ describe("sygnały gier", () => {
     const { options } = snapshot().vote!;
     send(0, "vote", { id: options[1] });
     send(1, "vote", { id: options[1] });
-    expect(signalled()).toEqual([...options.map((id) => `${id}:voteShown`), `${options[1]}:voteWon`]);
+    expect(signalled().filter((s) => !s.endsWith(":picked"))).toEqual([...options.map((id) => `${id}:voteShown`), `${options[1]}:voteWon`]);
   });
 
   test("Jak grać: raz na osobę i grę, w Setup albo w partii; mini-gra i nieznana gra się nie liczą", async () => {
