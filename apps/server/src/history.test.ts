@@ -251,3 +251,120 @@ describe("import starych wyników", () => {
     expect(openStats(path).history("ala")).toHaveLength(3);
   });
 });
+
+describe("szczegóły raportu (insights)", () => {
+  const DAY = 86_400_000;
+  // Wtorek 10.11.2026, 20:00.
+  const at = (dayOffset: number, hour = 20) => new Date(2026, 10, 10 + dayOffset, hour, 0).getTime();
+  const now = at(0, 23);
+
+  function seeded() {
+    const stats = openStats(":memory:");
+    // Wieczór w pokoju A: dwie ukończone partie (Statki 5 min, Memory 10 min) i jedna przerwana.
+    stats.recordMatch(match("statki", [p("Ala", 1), p("Ola", 2)], { roomKey: "A", mode: "klasyczny", startedAt: at(0), endedAt: at(0) + 5 * MIN }));
+    stats.recordMatch(match("memory", [p("Ala", 2), p("Ola", 1), p("Ela", 3)], { roomKey: "A", source: "vote", startedAt: at(0) + 6 * MIN, endedAt: at(0) + 16 * MIN }));
+    stats.recordMatch(match("memory", [p("Ala", null), p("Ola", null), p("Ela", null)], { roomKey: "A", source: "rematch", outcome: "stopped", startedAt: at(0) + 17 * MIN, endedAt: at(0) + 18 * MIN }));
+    // Pokój B: mini-gra w pokoju, jedna partia, to jeszcze nie wieczór.
+    stats.recordMatch(match("stoper", [p("Ala", 1), p("Ola", 2)], { roomKey: "B", startedAt: at(-1, 9), endedAt: at(-1, 9) + MIN }));
+    // Solo Uli dwa dni temu i wczoraj: Ula wraca.
+    stats.recordMatch(match("stoper", [p("Ula", 1, { won: false })], { roomKey: "S1", kind: "solo", source: "daily", startedAt: at(-2, 8), endedAt: at(-2, 8) + 30_000 }));
+    stats.recordMatch(match("stoper", [p("Ula", 1, { won: false })], { roomKey: "S2", kind: "solo", source: "list", startedAt: at(-1, 8), endedAt: at(-1, 8) + 30_000 }));
+    // Stara partia Ali sprzed okresu: Ala nie jest nowa.
+    stats.recordMatch(match("statki", [p("Ala", 1), p("Ola", 2)], { roomKey: "Z", startedAt: at(-40), endedAt: at(-40) + 5 * MIN }));
+    return stats;
+  }
+
+  it("liczby zbiorcze: partie, ukończone, gracze, nowi, powracający, dni, wieczory, czas gry", () => {
+    const { totals } = seeded().insights(at(-7), now);
+    expect(totals).toEqual({
+      matches: 6,
+      completed: 5,
+      players: 4,
+      newPlayers: 2,
+      returning: 3,
+      days: 3,
+      evenings: 1,
+      playSeconds: 5 * 60 + 10 * 60 + 60 + 60 + 30 + 30,
+    });
+  });
+
+  it("przebieg dzienny od początku okresu do dziś, z zerami, w podziale na gry główne, mini-gry w pokoju i solo", () => {
+    const { daily } = seeded().insights(at(-3), now);
+    expect(daily).toEqual([
+      { day: "2026-11-07", main: 0, mini: 0, solo: 0 },
+      { day: "2026-11-08", main: 0, mini: 0, solo: 1 },
+      { day: "2026-11-09", main: 0, mini: 1, solo: 1 },
+      { day: "2026-11-10", main: 3, mini: 0, solo: 0 },
+    ]);
+  });
+
+  it("całość zaczyna przebieg od pierwszej partii", () => {
+    const { daily } = seeded().insights(0, now);
+    expect(daily[0].day).toBe("2026-10-01");
+    expect(daily).toHaveLength(41);
+  });
+
+  it("godziny: tydzień od poniedziałku, 24 godziny", () => {
+    const { hours } = seeded().insights(at(-7), now);
+    expect(hours).toHaveLength(7);
+    expect(hours.every((row) => row.length === 24)).toBe(true);
+    // Wtorek 20:00: trzy partie pokoju A; poniedziałek 9:00 stoper, 8:00 solo; niedziela 8:00 solo.
+    expect(hours[1][20]).toBe(3);
+    expect(hours[0][9]).toBe(1);
+    expect(hours[0][8]).toBe(1);
+    expect(hours[6][8]).toBe(1);
+  });
+
+  it("źródła, rodzaje i wielkość stołu", () => {
+    const i = seeded().insights(at(-7), now);
+    expect(i.sources).toEqual([
+      { source: "host", n: 2 },
+      { source: "daily", n: 1 },
+      { source: "list", n: 1 },
+      { source: "rematch", n: 1 },
+      { source: "vote", n: 1 },
+    ]);
+    expect(i.kinds).toEqual([
+      { kind: "room", n: 4 },
+      { kind: "solo", n: 2 },
+    ]);
+    expect(i.sizes).toEqual([
+      { players: 1, n: 2 },
+      { players: 2, n: 2 },
+      { players: 3, n: 2 },
+    ]);
+  });
+
+  it("wieczory: mediana partii i długości", () => {
+    expect(seeded().insights(at(-7), now).evenings).toEqual({ count: 1, medianMatches: 2, medianMinutes: 18 });
+  });
+
+  it("gracze: partie, dni, wygrane, ulubiona gra, pierwsza i ostatnia partia, czy nowy", () => {
+    const { players } = seeded().insights(at(-7), now);
+    expect(players.map((p) => p.nick)).toEqual(["Ala", "Ola", "Ela", "Ula"]);
+    expect(players[0]).toEqual({ key: "ala", nick: "Ala", matches: 4, days: 2, wins: 2, favorite: "memory", firstAt: at(-40), lastAt: at(0) + 17 * MIN, isNew: false });
+    expect(players[3]).toMatchObject({ key: "ula", matches: 2, days: 2, wins: 0, favorite: "stoper", isNew: true });
+  });
+
+  it("szczegóły gry: tryby, źródła, wyniki, stoły, mediana czasu wg stołu, czołówka i 12 tygodni", () => {
+    const { games } = seeded().insights(at(-7), now);
+    expect(games.memory).toEqual({
+      modes: [{ mode: null, n: 2 }],
+      sources: [{ source: "rematch", n: 1 }, { source: "vote", n: 1 }],
+      outcomes: [{ outcome: "completed", n: 1 }, { outcome: "stopped", n: 1 }],
+      sizes: [{ players: 3, n: 2 }],
+      medianBySize: [{ players: 3, seconds: 600 }],
+      top: [
+        { nick: "Ala", matches: 2, wins: 0 },
+        { nick: "Ela", matches: 2, wins: 0 },
+        { nick: "Ola", matches: 2, wins: 1 },
+      ],
+      weekly: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+    });
+    expect(games.statki.modes).toEqual([{ mode: "klasyczny", n: 1 }]);
+    // Tygodnie liczą się od `now` niezależnie od okresu: stara partia sprzed 40 dni wpada w szósty tydzień wstecz.
+    expect(games.statki.weekly).toEqual([0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+    expect(games.kalambury).toBeUndefined();
+    void DAY;
+  });
+});
