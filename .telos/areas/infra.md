@@ -1,4 +1,4 @@
-<!-- telos-area: commit d2a83565b27b4ed140b9b8ac4ecc20baf471783d · 2026-11-18 · paths: Dockerfile, docker-compose.yml, .dockerignore, cloudflared/, .github/, package.json, pnpm-lock.yaml, pnpm-workspace.yaml, tsconfig.base.json -->
+<!-- telos-area: commit 44d721f9c5805f4a74c7e5979fa64a2d3faa10d5 · 2026-11-18 · paths: Dockerfile, docker-compose.yml, .dockerignore, cloudflared/, .github/, package.json, pnpm-lock.yaml, pnpm-workspace.yaml, tsconfig.base.json -->
 # infra
 
 ## Purpose

@@ -1,4 +1,4 @@
-<!-- telos-area: commit d2a83565b27b4ed140b9b8ac4ecc20baf471783d · 2026-11-18 · paths: KONCEPT.md, ZASADY-GIER.md, ZASADY.md, DESIGN.md, README.md, .planning/, .claude/ -->
+<!-- telos-area: commit 44d721f9c5805f4a74c7e5979fa64a2d3faa10d5 · 2026-11-18 · paths: KONCEPT.md, ZASADY-GIER.md, ZASADY.md, DESIGN.md, README.md, .planning/, .claude/ -->
 # docs
 
 ## Purpose
