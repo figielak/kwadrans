@@ -191,3 +191,12 @@ Bramki: `pnpm typecheck && pnpm test`, `pnpm --filter web build`.
 Do akceptacji: 3 zamki, 6 cyfr i wskazówek, 180 s/3 próby, rozmowa poza aplikacją,
 jedna osoba wpisująca, wspólny wynik bez trwałego rankingu, wyjątek od walkoweru.
 Zatrzymanie po implementacji, dokumentacji i pełnym odbiorze tego zakresu.
+
+## Wymagania
+<!-- Przeniesione z .telos/PROPOSALS.md (2026-11-18). -->
+- [ ] **SZYFR-01**: 2–6 osób, 3 zamki po 6 cyfr, 180 s i 3 próby na zamek, wspólny sukces tylko przy 3/3.
+- [ ] **SZYFR-02**: Generator łańcucha, jedno rozwiązanie, każda wskazówka niezbędna, rozdział wymagający udziału każdego gracza.
+- [ ] **SZYFR-03**: Prywatne wskazówki, publiczny szkic jednego wprowadzającego, nieodnawialny termin, zaufany expire, ochrona starych prób, reconnect i wyjaśnienia odsłon.
+- [ ] **SZYFR-04**: Opcjonalny kontrakt cooperative/teamResult, poprawne statusy drużyny, brak indywidualnych pucharów i walkoweru, bez zmiany istniejących wyników/stats gier.
+- [ ] **SZYFR-05**: Mobilny ekran wskazówek i klawiatura, komplet podpięć bez rekordów, dokumenty kontraktu i zasad, TDD generatora oraz integracji platformy.
+- [ ] **SZYFR-06**: Typy/testy/build, niezależna kontrola rozwiązań, partie 2/6 i podziały 3/4/5, WebSocket, telefon, timeout/reload/wyjście/rewanż i próba współpracy z ludźmi.
