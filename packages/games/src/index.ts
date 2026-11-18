@@ -18,6 +18,7 @@ import { obrot } from "./obrot.ts";
 import { panstwaMiasta } from "./panstwa-miasta.ts";
 import { sabotaz } from "./sabotaz.ts";
 import { kropkiIKreski } from "./kropki-i-kreski.ts";
+import { licytacja } from "./licytacja.ts";
 import { labirynt } from "./labirynt.ts";
 import { piecWRzedzie } from "./piec-w-rzedzie.ts";
 import { przytrzymaj } from "./przytrzymaj.ts";
@@ -136,6 +137,16 @@ export {
 } from "./sabotaz.ts";
 export { BLANKS as SUDOKU_BLANKS, PENALTY_MS as SUDOKU_PENALTY_MS, total as sudokuTotal, type View as SudokuView } from "./sudoku.ts";
 export {
+  CHOOSE_SECONDS as LICYTACJA_CHOOSE_SECONDS,
+  HAND as LICYTACJA_HAND,
+  PRIZES as LICYTACJA_PRIZES,
+  REVEAL_SECONDS as LICYTACJA_REVEAL_SECONDS,
+  ROUNDS as LICYTACJA_ROUNDS,
+  type Move as LicytacjaMove,
+  type RoundRecord as LicytacjaRound,
+  type View as LicytacjaView,
+} from "./licytacja.ts";
+export {
   EXPEDITIONS as WYPRAWA_EXPEDITIONS,
   DECISION_SECONDS as WYPRAWA_DECISION_SECONDS,
   SUMMARY_SECONDS as WYPRAWA_SUMMARY_SECONDS,
@@ -201,6 +212,7 @@ export const GAMES: Record<string, GameDefinition<any, any>> = Object.assign(Obj
   [sabotaz.id]: sabotaz,
   [wyprawa.id]: wyprawa,
   [podrobka.id]: podrobka,
+  [licytacja.id]: licytacja,
 });
 
 /** Id mini-gier (gry solo, minPlayers 1): pula turnieju i lista na ekranie mini-gier. */

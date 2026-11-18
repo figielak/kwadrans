@@ -18,6 +18,7 @@ Reguły platformy (limit tury, rewanż, walkower, obserwatorzy) są w `KONCEPT.m
 | Sabotaż | `sabotaz` | 3-6 | 30 s pierwsze karty, 60 s ruch, 15 s odsłona | po kolei, ukryty stan (pierwsze karty i odsłona równocześnie) |
 | Wyprawa | `wyprawa` | 2-6 | 20 s decyzja, 15 s odsłona | równoczesna, ukryty stan |
 | Podróbka | `podrobka` | 3-6 | 30 s odpowiedź, 60 s głos, 15 s odsłona | równoczesna, ukryty stan |
+| Licytacja na ślepo | `licytacja` | 2-6 | 20 s wybór, 10 s odsłona | równoczesna, ukryty stan |
 | Refleks | `refleks` | 1-6 | 60 s | mini-gra |
 | Sekwencja | `simon` | 1-6 | 300 s | mini-gra |
 | Stoper | `stoper` | 1-6 | 60 s | mini-gra |
@@ -1328,3 +1329,82 @@ Gra w zamykanie kwadratów. Gracze po kolei dorysowują kreski między sąsiedni
 - Losowość tylko w `timeoutMove`.
 - Limit tury 60 s. Po czasie serwer wykonuje `timeoutMove`: losową wolną kreskę z przekazanego `rng` (może zamknąć kwadrat, wtedy tura trwa dalej i dostaje nowy limit).
 - Ekran: pion, mieści się na 360×640. Dotknięcie kreski tylko ją wybiera (podgląd), ruch wysyła przycisk potwierdzenia; pola dotykowe min. 48 px.
+
+## 15. Licytacja na ślepo (`licytacja`)
+
+Licytacja o nagrody zakrytymi kartami. W każdej rundzie odkrywa się nagroda, a wszyscy naraz kładą jedną kartę z ręki.
+Równe karty się znoszą, nagrodę bierze najlepsza karta bez pary. Nazwy i oprawa są własne, gra nie ma trybów (`modes` brak).
+
+- 2-6 graczy, wszyscy ruszają naraz. Stałe w `licytacja.ts` (w `index.ts` z przedrostkiem `LICYTACJA_`): `ROUNDS = 15`, `HAND = 15`,
+  `PRIZES` (poniżej), `CHOOSE_SECONDS = 20`, `REVEAL_SECONDS = 10`.
+  Stan ma też `nonce` z `rng` w `setup` (odróżnia partię od rewanżu, czyści lokalny wybór na ekranie).
+- Nazwa w UI ma trzy słowa wbrew `ZASADY.md` §1 (decyzja użytkownika, jak przy Kropkach i kreskach).
+
+### Karty i nagrody
+
+- Każdy gracz ma rękę kart od 1 do `HAND` (15), każdą wartość raz. Zagrana karta odpada do końca partii.
+- `PRIZES`: 15 nagród, każda wartość raz: od −5 do −1 i od +1 do +10 (razem +40). Kolejność tasuje `rng` w `setup`, skład jest stały.
+- Jawne dla wszystkich: punkty, odkryta nagroda i pula, pozostałe ręce wszystkich (wynikają z zagranych kart), zbiór nagród jeszcze nieodkrytych
+  i przebieg wszystkich rozstrzygniętych rund. Tajna jest kolejność nieodkrytych nagród i karta wybrana w bieżącej rundzie do rozstrzygnięcia.
+
+### Przebieg rundy
+
+1. Serwer odkrywa następną nagrodę i dokłada ją do **puli** (pula to lista nagród; zwykle jedna, więcej po przeniesieniu).
+2. Każdy potajemnie wybiera kartę z ręki. Dotknięcie wybiera, „Gotowe” zatwierdza. Do zatwierdzenia wybór jest lokalny i zmienny, potem nieodwołalny.
+   Jawna jest gotowość, nigdy wybrana karta. Ruch `play` powstaje przy zatwierdzeniu.
+3. Gdy wszyscy zatwierdzili (albo dostali ruch timeoutu), serwer odkrywa komplet naraz. Karty, które zagrała więcej niż jedna osoba, **znoszą się**.
+4. Kierunek wyznacza znak **najnowszej** nagrody w puli: dodatnia, wygrywa najwyższa karta bez pary; ujemna, wygrywa najniższa karta bez pary.
+   Zwycięzca rundy dostaje sumę całej puli (może być ujemna), pula się zeruje.
+5. Gdy żadna karta nie zostaje bez pary, nikt nie bierze puli i **przechodzi ona do następnej rundy** razem z następną nagrodą.
+6. Zagrane karty odpadają z rąk wszystkich, także te zniesione.
+
+Przykłady: nagroda +7, karty 12, 12, 9: dwunastki się znoszą, 9 bierze +7. Nagroda −4, karty 3, 3, 8, 1: trójki się znoszą, 1 bierze −4.
+Dwie osoby kładą 6 i 6 o +3: pula przechodzi; w następnej rundzie odkrywa się −2, pula to +3 i −2, kierunek ujemny (najnowsza),
+karty 2 i 10: 2 bierze +1.
+
+### Odsłona i koniec
+
+- Po rozstrzygnięciu rundy (poza ostatnią) jest **odsłona** (`reveal`, `REVEAL_SECONDS` wspólnie): karty wszystkich, zniesione pary, zwycięzca rundy i punkty.
+  Następna runda rusza po `next` od wszystkich albo po limicie (`next` za każdego, kto jeszcze nie kliknął).
+- **Ostatnia runda rozstrzyga się sama**: w rundzie `ROUNDS` każdy ma jedną kartę, więc po odsłonie przedostatniej rundy serwer od razu
+  kładzie ostatnie karty, rozstrzyga rundę i przechodzi w `over`, bez wyboru i bez dodatkowego `next`. Ostatnia odsłona zostaje w widoku bez limitu.
+- Pula, która po ostatniej rundzie została bez zwycięzcy, przepada.
+- Wygrywa najwięcej punktów. Równe punkty dają wspólne miejsca (`places` przez `rankPlaces`, 1, 1, 3, ...), remis na szczycie to brak zwycięzcy (`rankResults`).
+  Bez dodatkowego tie-breaka. Zakres wyniku gracza: od −15 do +55.
+
+### Ruchy
+
+Każdy ruch niesie `nonce` i numer rundy; ruch z innym `nonce` lub numerem odpada.
+
+| Ruch | Faza | Znaczenie |
+|---|---|---|
+| `{ type: "play", card }` | `choose` | zatwierdzenie karty z własnej ręki (liczba całkowita 1-15) |
+| `{ type: "next" }` | `reveal` | gotowość do następnej rundy |
+
+Fazy: `choose`, `reveal`, `over`. `validateMove` jest jedynym strażnikiem: sprawdza fazę, `nonce`, numer rundy, miejsce przy stole, kartę w ręce
+i brak wcześniejszego zatwierdzenia; duplikat odpada. Obserwator nigdy nie rusza.
+
+### Limity i skończoność
+
+- Timeout wyboru to losowa karta z własnej ręki (z przekazanego `rng`), timeout odsłony to `next`. Oba ruchy są legalne także w normalnej grze.
+- Klucz `turn()`: `nonce:runda:faza`. Ruch innego gracza terminu nie odnawia; nowa runda liczy 20 s od nowa.
+- `waitingFor`: w `choose` osoby bez zatwierdzonej karty, w `reveal` osoby bez `next`, w `over` pusto.
+- Górna granica czekania: `14 × 20 + 14 × 10 = 420 s` (7 min), bez opóźnień sieci i serwera.
+- Wyjście gracza w trakcie partii: walkower według reguł platformy (`KONCEPT.md` sekcja 3). Chwilowe rozłączenie uruchamia zwykłe timeouty.
+
+### Widoki (`playerView`)
+
+- **Gracz**: stan publiczny, własna ręka, własna zatwierdzona karta w bieżącej rundzie i lista osób gotowych. Cudze karty dopiero po rozstrzygnięciu.
+- **Obserwator** (`""`, także nieznane id) widzi tylko stan publiczny, bez niczyjej karty przed rozstrzygnięciem.
+- Żaden widok nie niesie kolejności nieodkrytych nagród ani ziarna; nieodkryte nagrody idą jako posortowany zbiór.
+
+### Ekran i odbiór
+
+- Pion, mieści się na 360×640: „Runda 3/15”, duża karta nagrody z pulą, nieodkryte nagrody w jednym wierszu, gracze z punktami i znakiem gotowości.
+  Na dole własna ręka jako siatka 5×3 kart (min. 48 px), wybrana karta w kolorze gracza z drugim sygnałem zaznaczenia, i „Gotowe”.
+  Po zatwierdzeniu tekst „Czekasz na pozostałych”. W odsłonie karty wszystkich, zniesione pary przekreślone, zwycięzca rundy w swoim kolorze, „Dalej”.
+- Odbiór w `/dev`: pełna partia 2 i 6 graczy z obserwatorem, runda z przeniesioną pulą, ruch po limicie i rewanż z nowym `nonce`.
+
+### Balans
+
+Nie jest potwierdzony. Do obserwacji: częstość przenoszenia puli przy 2 osobach i to, czy 20 s wystarcza przy 6.

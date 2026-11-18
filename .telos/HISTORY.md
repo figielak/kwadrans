@@ -7,6 +7,7 @@
      "- approach: … — reason (ref, YYYY-MM-DD)" ← injected into plan/quick bundles
      `history add remove … --path <relative-path>` or `--approach <text>` records one target.
      `history add revert …` clears only its exact selector; no selector means Log only. -->
+- approach: ręczne skróty kontekstu w .telos/ (GAMES.md, AUDIT.md, PROPOSALS.md, LESSONS.md) zamiast obszarów — Ręczne skróty w .telos/ (GAMES, AUDIT, PROPOSALS, LESSONS) dezaktualizowały się bez kotwicy; wiedza w .telos/areas/, archiwum 53da0f3 (quick, 2026-11-18)
 - approach: dodanie zod jako zależności apps/server — Bezpośrednia zależność zod w apps/server psuje dołączanie do pokoju (quick, 2026-11-05)
 - approach: osobne losowanie rodzaju planszy lub wytrzymałości balonu zamiast kompletu — Osobne losowanie trudności na planszę zastąpione potasowanymi kompletami (quick, 2026-11-05)
 - approach: losowy cel Stopera (6-14 s) lub losowe BPM Rytmu — Losowy cel Stopera i losowe tempo Rytmu dawały nierówne szanse rekordów (quick, 2026-11-05)
@@ -20,6 +21,12 @@
      kinds: decision | phase | revert | remove | quick | profile | init
      ref: NN, NN-MM, ADR NNN, quick, telos
      Archive is installed first; after an interrupted write it may duplicate live Log rows. -->
+- 2026-11-18 phase 18: closed 18-licytacja: ZASADY-GIER §15, 39 testów zasad i pełny pnpm test (games 3006, server 321, web 671), kafel, karta Jak grać i ekran w lobby, odbiór 2 i 6 graczy z obserwatorem na 360×640
+- 2026-11-18 decision quick: Migracja do telos 0.2: config v2, blok w AGENTS.md, 8 obszarów w .telos/areas/, MAP bez numerów linii (limit 600), rozpiski faz 07-16 w formacie 0.1 w gicie pod 53da0f3
+- 2026-11-18 remove quick: Ręczne skróty w .telos/ (GAMES, AUDIT, PROPOSALS, LESSONS) dezaktualizowały się bez kotwicy; wiedza w .telos/areas/, archiwum 53da0f3
+- 2026-11-18 phase 17: closed 17-statystyki-i-profile: historia partii, profil gracza i ukryty raport /statystyki (17-01..17-07)
+- 2026-11-18 phase 13: closed 13-zapis-pokoi: pokoje w SQLite wracają po restarcie, deployu i awarii (13-01..13-07), wpis 1.2.0 w changelogu
+- 2026-11-18 phase 07: closed 07-atrakcyjnosc: etapy 0-3 (pomiar, wyniki, wspólny start, live, chwile i reakcje, głosowanie, tabela wieczoru, Szybka seria, podsumowanie wieczoru), 23/23 zadań; etapy 4-5 przeniesione do osobnej fazy
 - 2026-11-10 phase 16: closed 16-kropki-i-kreski: gra główna Kropki i kreski (2-4 osoby, plansze 3×3, 5×5, 7×7) z testami zasad, ekranem, lobby, kartą Jak grać i odbiorem technicznym
 - 2026-11-10 decision 16: D-04: id gry to kropki-i-kreski (klucz rankingu w SQLite, nie zmienia się), limit tury 60 s, po limicie losowa wolna kreska, remis na szczycie bez zwycięzcy, nazwa w UI „Kropki i kreski”
 - 2026-11-09 phase 15: closed 15-jak-grac: 11 gier głównych ma kartę Jak grać (sekcja w Setup i okienko w partii), test pilnuje kompletu, odbiór 360×640 przy 2 i 6 graczach; znana wada: Kampus Tour bez ikony w partii
@@ -44,6 +51,3 @@
 - 2026-11-05 decision 05: P4-022: mini-gra ma jeden termin od końca instrukcji; wyniki rywali go nie odnawiają (2026-10-31)
 - 2026-11-05 decision 05: Losowanie trudności kompletami: Liczenie czwórki działań, Obrót szóstki, W pamięci floor(n/3) mnożeń, Balon 11-20 (P4-057..060, 2026-10-31)
 - 2026-11-05 decision 05: P4-061: Refleks i Stój! mierzą od pierwszej klatki z bodźcem (rAF) do e.timeStamp; Stoper i Wieża bez zmian (2026-10-31)
-- 2026-11-05 phase 05: Audyt spójności M1 zamknięty: 62/62 pakietów, 267/267 części; otwarte odbiory U03/U04/U09/U14/P11 (2026-10-31)
-- 2026-11-05 decision quick: Prowadzenie projektu przeniesione z GSD (.planning/) do .telos/; .planning zostaje archiwum audytu
-- 2026-11-05 init telos: initialized (standard profile)

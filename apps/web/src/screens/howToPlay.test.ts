@@ -3,6 +3,8 @@ import {
   KALAMBURY_HALF_SECONDS,
   KAMPUS_ROUNDS,
   KRESKI_TURN_SECONDS,
+  LICYTACJA_CHOOSE_SECONDS,
+  LICYTACJA_ROUNDS,
   PODROBKA_ROUNDS,
   PODROBKA_VOTE_SECONDS,
   PODROBKA_WRITE_SECONDS,
@@ -14,7 +16,7 @@ import { expect, test } from "vitest";
 import { HOW_TO_PLAY, type HowToPlay } from "./howToPlay.ts";
 
 const NEW_GAMES = ["sabotaz", "wyprawa", "podrobka"];
-const OLD_GAMES = ["kropki-i-kreski", "piec-w-rzedzie", "statki", "chinczyk", "memory", "kalambury", "labirynt", "panstwa-miasta"];
+const OLD_GAMES = ["licytacja", "kropki-i-kreski", "piec-w-rzedzie", "statki", "chinczyk", "memory", "kalambury", "labirynt", "panstwa-miasta"];
 const CARDS = [...NEW_GAMES, ...OLD_GAMES, "kampus-tour"];
 const limit = (id: string) => (id === "kampus-tour" ? 1800 : 900);
 const text = (card: HowToPlay) => [card.goal, ...card.flow, ...card.scoring, ...card.watch].join(" ");
@@ -87,4 +89,12 @@ test("Kropki i kreski podają limit ruchu i kolejny ruch po zamknięciu kwadratu
   const card = text(HOW_TO_PLAY["kropki-i-kreski"]!);
   expect(card).toContain(String(KRESKI_TURN_SECONDS));
   expect(card).toMatch(/kolejn\w+ (ruch|kresk)/i);
+});
+
+test("Licytacja podaje rundy, czas wyboru, znoszenie równych kart i przechodzenie nagrody", () => {
+  const card = text(HOW_TO_PLAY.licytacja!);
+  expect(card).toContain(String(LICYTACJA_ROUNDS));
+  expect(card).toContain(String(LICYTACJA_CHOOSE_SECONDS));
+  expect(card).toMatch(/znoszą/);
+  expect(card).toMatch(/przechodzi do następnej rundy/);
 });

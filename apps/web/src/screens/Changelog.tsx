@@ -4,6 +4,13 @@ import { Screen } from "./ui.tsx";
 /** Historia wersji strony, najnowsza na górze. Nowy wpis na początku listy to zarazem nowy numer wersji. */
 export const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "1.4.0",
+    date: "2026-11-18",
+    changes: [
+      "Nowa gra dla 2-6 osób: Licytacja na ślepo. Co rundę odkrywa się nagroda, a wszyscy naraz kładą zakrytą kartę od 1 do 15. Równe karty się znoszą, a gdy nikt nie wygra, nagroda przechodzi do następnej rundy",
+    ],
+  },
+  {
     version: "1.3.0",
     date: "2026-11-18",
     changes: [

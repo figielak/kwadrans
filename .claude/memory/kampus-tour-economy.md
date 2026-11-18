@@ -22,4 +22,4 @@ Zatwierdzone 2026-10-07:
 - Otwarte: przy 2 graczach landmark zwraca się po ~19 rundach (mnożnik czynszu albo krótszy limit rund, decyzja po testach).
 
 **Why:** balans ustalony z użytkownikiem, nie wynika z kodu.
-**How to apply:** trzymać jako stałe w kampus-tour.ts. Powiązane: [[project-progress]].
+**How to apply:** trzymać jako stałe w kampus-tour.ts. Kod: `.telos/areas/games.md`.

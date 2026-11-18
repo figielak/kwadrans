@@ -2,6 +2,9 @@ import {
   KALAMBURY_HALF_SECONDS,
   KAMPUS_ROUNDS,
   KRESKI_TURN_SECONDS,
+  LICYTACJA_CHOOSE_SECONDS,
+  LICYTACJA_HAND,
+  LICYTACJA_ROUNDS,
   PM_ANSWER_MAX,
   PM_CATEGORIES,
   PODROBKA_ROUNDS,
@@ -61,6 +64,19 @@ export const HOW_TO_PLAY: Record<string, HowToPlay> = {
     watch: [
       "Podróbka jest wykryta tylko wtedy, gdy ma samodzielnie najwięcej głosów i co najmniej 2. Remis na prowadzeniu oznacza ucieczkę.",
       "Broń odpowiedzi, nie cytuj swojego pytania. Brak odpowiedzi od kogokolwiek anuluje rundę: wszyscy dostają 0.",
+    ],
+  },
+  licytacja: {
+    goal: `Zbierz najwięcej punktów z nagród w ${LICYTACJA_ROUNDS} rundach.`,
+    flow: [
+      `Masz karty od 1 do ${LICYTACJA_HAND}, każdą raz. W każdej rundzie odkrywa się nagroda od −5 do +10.`,
+      `Wszyscy naraz kładą zakrytą kartę: dotknij karty i zatwierdź „Gotowe”. Masz ${LICYTACJA_CHOOSE_SECONDS} s.`,
+      "Potem karty się odkrywają. Nagrodę dodatnią bierze najwyższa karta, ujemną najniższa.",
+    ],
+    scoring: ["Punkty to suma zdobytych nagród. Wygrywa najwięcej punktów, a remis na szczycie oznacza brak zwycięzcy."],
+    watch: [
+      "Równe karty się znoszą: nagrodę bierze najlepsza karta, której nikt nie powtórzył. Gdy takiej nie ma, nagroda przechodzi do następnej rundy.",
+      "Zagrana karta przepada, także zniesiona. Ostatnia runda rozgrywa się sama, a po limicie czasu karta wybiera się losowo.",
     ],
   },
   "kropki-i-kreski": {

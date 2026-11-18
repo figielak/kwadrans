@@ -87,6 +87,7 @@ rozbudowa do landmarku, wykupienie pola rywala za 2× wartość, wygrana przez b
 | Sabotaż | `sabotaz` | 3-6 | zakryte stosy, licytacja i odkrywanie od góry, 6 rund bez eliminacji, punkty 2/1/0 |
 | Wyprawa | `wyprawa` | 2-6 | wspólny szlak, tajne równoczesne decyzje powrotu, bank i ryzyko drugiego takiego samego zagrożenia, 5 wypraw |
 | Podróbka | `podrobka` | 3-6 | prywatne pytania, jedna tajna osoba z innym, podobnym; tajne głosowanie i odsłona, 6 rund, punkty 2/3 |
+| Licytacja na ślepo | `licytacja` | 2-6 | odkryta nagroda, wszyscy naraz kładą zakrytą kartę 1-15, równe karty się znoszą, pula przechodzi dalej, 15 rund |
 | Państwa-miasta | `panstwa-miasta` | 2-6 | wszyscy piszą naraz, STOP, głosowanie; limit per faza (`turn()`) |
 | Poprawka | (do zrobienia) | 2-6 | gra karciana typu Uno, ukryte ręce, własne karty |
 

@@ -270,3 +270,21 @@ describe("Kropki i kreski: klucz decyzji (16-04)", () => {
     expect(read("games/KropkiIKreski.tsx")).not.toContain("vibrate");
   });
 });
+
+describe("Licytacja: klucz decyzji (18-05)", () => {
+  const view = (extra: object = {}) => ({ nonce: 7, round: 1, phase: "choose", ...extra });
+  const key = (v: object, me = "a", waiting = ["a", "b", "c"]) => decisionKey("licytacja", v, me, waiting);
+
+  test("każda runda i odsłona to nowa decyzja, nowy nonce też", () => {
+    const keys = [view(), view({ phase: "reveal" }), view({ round: 2 }), view({ round: 2, phase: "reveal" }), view({ nonce: 8 })].map((v) => key(v));
+    expect(keys.every((k) => k !== null)).toBe(true);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  test("cudze zatwierdzenie nie zmienia klucza; po moim, dla widza i w over go nie ma", () => {
+    expect(key(view(), "a", ["a", "b", "c"])).toBe(key(view(), "a", ["a"]));
+    expect(key(view(), "a", ["b", "c"])).toBeNull();
+    expect(key(view(), "", ["a", "b"])).toBeNull();
+    expect(key(view({ phase: "over", round: 15 }), "a", [])).toBeNull();
+  });
+});

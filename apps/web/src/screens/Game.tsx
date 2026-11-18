@@ -1,6 +1,6 @@
 import type { Room } from "@colyseus/sdk";
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Play, Shuffle, SignOut, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiIKreskiView, type KropkiView, type LabiryntView, type MemoryView, MINI_GAME_IDS, nickKey, type PanstwaMiastaView, type PiecWRzedzieView, type PodrobkaView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, type SabotazView, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, type WyprawaView, winner as tournamentWinner } from "@kwadrans/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiIKreskiView, type KropkiView, type LabiryntView, type LicytacjaView, type MemoryView, MINI_GAME_IDS, nickKey, type PanstwaMiastaView, type PiecWRzedzieView, type PodrobkaView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, type SabotazView, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, type WyprawaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
@@ -12,6 +12,7 @@ import { KropkiIKreski } from "../games/KropkiIKreski.tsx";
 import { Labirynt } from "../games/Labirynt.tsx";
 import { Sabotaz } from "../games/Sabotaz.tsx";
 import { Podrobka } from "../games/Podrobka.tsx";
+import { Licytacja } from "../games/Licytacja.tsx";
 import { Wyprawa } from "../games/Wyprawa.tsx";
 import { PiecWRzedzie } from "../games/PiecWRzedzie.tsx";
 import { FleetLeft, Statki } from "../games/Statki.tsx";
@@ -37,6 +38,7 @@ interface Props {
 /** Gry główne, których wynik to jedna liczba: bohater po partii pokazuje ją przy graczu z różnicą do osoby wyżej. */
 const MAIN_SCORE: Record<string, (view: unknown, id: string) => number> = {
   wyprawa: (view, id) => (view as { bank: Record<string, number> }).bank[id] ?? Number.NaN,
+  licytacja: (view, id) => (view as { score: Record<string, number> }).score[id] ?? Number.NaN,
 };
 
 export function Game({ room, view, me, dropped, send, onLeave }: Props) {
@@ -111,7 +113,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
   const focus =
     def.id === "kalambury"
       ? (game.view as KalamburyView).drawer
-      : def.id === "panstwa-miasta" || def.id === "podrobka" || ((def.id === "sabotaz" || def.id === "wyprawa") && simultaneous)
+      : def.id === "panstwa-miasta" || def.id === "podrobka" || ((def.id === "sabotaz" || def.id === "wyprawa" || def.id === "licytacja") && simultaneous)
         ? game.waitingFor.includes(me)
           ? me
           : undefined
@@ -675,6 +677,18 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
             />
           )}
 
+          {def.id === "licytacja" && (
+            <Licytacja
+              key={(game.view as LicytacjaView).nonce}
+              view={game.view as LicytacjaView}
+              me={me}
+              players={view.players}
+              waitingFor={game.waitingFor}
+              places={game.places}
+              onMove={(move) => send("move", move)}
+            />
+          )}
+
           {def.id === "wyprawa" && (
             <Wyprawa
               key={(game.view as WyprawaView).nonce}
@@ -724,10 +738,11 @@ const SIMULTANEOUS = new Set([...MINI_GAME_IDS, "panstwa-miasta", "podrobka"]);
  * Sabotaż jest równoczesny tylko w pierwszych kartach i odsłonie; układanie, licytacja i odkrywanie idą po kolei.
  * Wyprawa: decyzje i odsłona idą naraz, więc nawet jedyny gracz na szlaku nie ma „Ruchu”, tylko własną decyzję.
  * Podróbka: odpowiedzi, głosy i odsłona idą naraz we wszystkich fazach, jak w Państwach-miastach.
+ * Licytacja: wybór karty i odsłona idą naraz; w over nikt nie rusza.
  */
 export const isSimultaneous = (gameId: string, view: unknown) => {
   const { phase } = view as { phase?: string };
-  return SIMULTANEOUS.has(gameId) || (gameId === "sabotaz" && (phase === "initial" || phase === "summary")) || (gameId === "wyprawa" && (phase === "decision" || phase === "summary"));
+  return SIMULTANEOUS.has(gameId) || (gameId === "sabotaz" && (phase === "initial" || phase === "summary")) || (gameId === "wyprawa" && (phase === "decision" || phase === "summary")) || (gameId === "licytacja" && (phase === "choose" || phase === "reveal"));
 };
 
 const SCHULTE_LAST = SCHULTE_SIZE * SCHULTE_SIZE;

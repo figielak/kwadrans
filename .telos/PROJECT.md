@@ -4,8 +4,8 @@
 
 ## Purpose
 Prywatna platforma gier multiplayer w przeglądarce: kod pokoju, każdy gra na swoim telefonie.
-games.figielak.dev, do 6 osób w pokoju, bez kont (nick + token sesji). 8 gier głównych, 30 mini-gier, turniej,
-gra solo, wyzwanie dnia i rekordy. Wartość: każda gra działa i wygląda tak samo przewidywalnie, kod zgadza się
+games.figielak.dev, do 6 osób w pokoju, bez kont (nick + token sesji). Gry główne (katalog: `KONCEPT.md` §2), 30 mini-gier,
+turniej, gra solo, wyzwanie dnia, rekordy, profil gracza i historia partii. Wartość: każda gra działa i wygląda tak samo przewidywalnie, kod zgadza się
 z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami.
 
 ## Rules
@@ -35,10 +35,8 @@ z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami
 
 ## Context
 Źródła prawdy (przy sprzeczności wygrywają): `KONCEPT.md`, `ZASADY-GIER.md`, `ZASADY.md`, `DESIGN.md`
-(przy sprzeczności z DESIGN wygrywa ZASADY), `AGENTS.md`. Skróty w `.telos/` (czytaj tylko potrzebny):
-- `GAMES.md`: katalog wszystkich gier z `id`, typem, limitem, wynikiem i najważniejszymi stałymi.
-- `AUDIT.md`: zakończony audyt spójności (fazy 01-05), decyzje ZG4-v1, wyjątki, otwarte odbiory.
-- `PROPOSALS.md`: propozycje po audycie (atrakcyjność, 5 nowych gier) z wymaganiami; pełne plany w `.planning/*-PLAN.md`.
+(przy sprzeczności z DESIGN wygrywa ZASADY), `AGENTS.md`. Kod: `.telos/MAP.md` → `.telos/areas/<obszar>.md`.
+Archiwum: audyt M1 `fb0f5d2`; skróty AUDIT/PROPOSALS/GAMES/LESSONS i rozpiski faz 07-16 `53da0f3`.
 
 ## Out of scope
 - Konta użytkowników i dane osobowe: tylko nick i losowy token sesji. Nick jest publiczny: trafia do rankingów i historii partii (profil), bez IP i innych danych.
