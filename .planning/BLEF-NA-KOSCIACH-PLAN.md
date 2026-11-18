@@ -122,3 +122,11 @@ nie powód do automatycznego dodawania trybu punktowego.
 
 Do akceptacji: 3 kości, brak jokerów, eliminacja, limit 60 s, ranking kolejności odpadania.
 Zatrzymanie po kompletnym podpięciu, dokumentacji i odbiorze; żadnej implementacji w tym zadaniu.
+
+## Wymagania
+<!-- Przeniesione z .telos/PROPOSALS.md (2026-11-18). -->
+- [ ] **BLEF-01**: 2–6 osób, 3 kości, podbijanie liczby/oczek bez jokerów i poprawne sprawdzenie „co najmniej”.
+- [ ] **BLEF-02**: Utrata jednej kości, eliminacja, kolejność kolejnych tur, pełny ranking odpadania i legalne timeouty.
+- [ ] **BLEF-03**: Prywatne rzuty, widok odpadniętego i obserwatora, odsłony/historia, JSON, rng i odrzucanie starych ruchów.
+- [ ] **BLEF-04**: Mobilny ekran, komplet podpięć gry głównej, wygrana w statystykach, dokumenty i TDD.
+- [ ] **BLEF-05**: Typy/testy/build, pełne partie 2/6 z obserwatorem, timeout/reload/reconnect/wyjście/rewanż, WebSocket, telefon i odbiór długości partii oraz czekania po eliminacji.

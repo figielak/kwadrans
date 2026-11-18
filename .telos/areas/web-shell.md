@@ -27,3 +27,4 @@ channel, moments and reactions, vibration and timing probes.
 ## Pitfalls
 - Playwright tabs share `localStorage`: the second player enters via `http://127.0.0.1:5173` (other origin), Vite with `--host`.
 - Leave the dev servers (:2567, :5173) running after work; the user tests by hand.
+- To test without touching the user's dev servers: `pnpm --filter web build`, then `PORT=2568 DB_PATH=<scratch> node src/index.ts` in `apps/server` (serves `web/dist`). Never `pkill -f` with a pattern from your own command.

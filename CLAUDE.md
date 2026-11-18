@@ -2,5 +2,5 @@
 @KONCEPT.md
 @.claude/memory/MEMORY.md
 
-Context digests in `.telos/` (read on demand): GAMES.md (all games) · AUDIT.md (audit M1, known risks, open items)
-· PROPOSALS.md (post-audit proposals). In task `Read first`, cite sources directly, e.g. `ZASADY.md §5`.
+In task `Read first`, cite sources directly, e.g. `ZASADY.md §5`. Archived `.telos/` digests (AUDIT, PROPOSALS, GAMES,
+LESSONS) and phase plans 07-16: `git show 53da0f3:.telos/<file>`.
