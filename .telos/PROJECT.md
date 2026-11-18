@@ -41,7 +41,7 @@ z dokumentacją, a wyniki i rekordy są uczciwe i porównywalne między partiami
 - `PROPOSALS.md`: propozycje po audycie (atrakcyjność, 5 nowych gier) z wymaganiami; pełne plany w `.planning/*-PLAN.md`.
 
 ## Out of scope
-- Konta użytkowników i dane osobowe: tylko nick i losowy token sesji.
+- Konta użytkowników i dane osobowe: tylko nick i losowy token sesji. Nick jest publiczny: trafia do rankingów i historii partii (profil), bez IP i innych danych.
 - Publiczna lista pokoi: do gry trzeba znać kod.
 - Service worker: PWA to manifest i ikony.
 - Dźwięk: tryb cichy, jedyny wyjątek to metronom w Rytmie. Jasny motyw.

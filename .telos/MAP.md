@@ -17,7 +17,7 @@
 ## Flows
 - Ruch gracza: `apps/web/src/screens/Game.tsx:377-405` wysyła ruch → schemat `apps/server/src/LobbyRoom.ts:178` → walidacja i zastosowanie `apps/server/src/LobbyRoom.ts:362-381` → widok per gracz `apps/server/src/LobbyRoom.ts:456-487` → `apps/web/src/net.ts:101-122` → `apps/web/src/App.tsx:35-40`
 - Limit tury: `apps/server/src/LobbyRoom.ts:430-455` wywołuje ruch zegara przez tę samą ścieżkę walidacji
-- Koniec partii i zapis wyników: `apps/server/src/LobbyRoom.ts:382-429` → `apps/server/src/stats.ts:64-104`
+- Koniec partii i zapis wyników: `LobbyRoom.finish` → `measure` (pomiar i historia partii) → `apps/server/src/stats.ts`, `apps/server/src/history.ts`
 - Dołączenie i powrót: `apps/web/src/net.ts:123-160` → `apps/server/src/LobbyRoom.ts:213-259`
 - Start partii i rewanż: `apps/server/src/LobbyRoom.ts:328-361`; turniej: `apps/server/src/LobbyRoom.ts:318-327`, `packages/games/src/turniej.ts`
 
@@ -31,13 +31,15 @@
 ### Serwer
 - Pokój: `apps/server/src/LobbyRoom.ts:85-259` (cykl życia), `apps/server/src/LobbyRoom.ts:260-277` (wiadomości)
 - Ranking i rekordy w SQLite: `apps/server/src/stats.ts:16-104`
-- Testy: `apps/server/src/LobbyRoom.test.ts`, `apps/server/src/stats.test.ts`
+- Historia partii, profil, raport gier i sygnały (`matches`, `match_players`, `game_signals`): `apps/server/src/history.ts`; typy wspólne z web: `packages/games/src/profil.ts`; API `/api/profile/:nick`, `/api/profile/:nick/history`, `/api/report`: `apps/server/src/index.ts`
+- Testy: `apps/server/src/LobbyRoom.test.ts`, `apps/server/src/stats.test.ts`, `apps/server/src/history.test.ts`, `apps/server/src/LobbyRoom.history.test.ts`
 
 ### Ekrany klienta
 - Ekran gry: `apps/web/src/screens/Game.tsx`; start: `apps/web/src/screens/Home.tsx`
 - Lobby, ikony i opisy gier: `apps/web/src/screens/Lobby.tsx:64-107`, `apps/web/src/screens/Lobby.tsx:297-343`
 - Przed partią: `apps/web/src/screens/Setup.tsx`; lista mini-gier: `apps/web/src/screens/MiniGames.tsx`
 - Rekordy: `apps/web/src/screens/Records.tsx:115-294`, `apps/web/src/screens/Records.tsx:295-466`
+- Profil gracza: `apps/web/src/screens/Profile.tsx`, teksty `apps/web/src/screens/profile.ts`; ukryty raport `/statystyki`: `apps/web/src/screens/Statystyki.tsx`, `apps/web/src/screens/report.ts`
 - Wspólne UI: `apps/web/src/screens/ui.tsx:172-252` (tabela), `apps/web/src/screens/ui.tsx:308-405` (rundy), `apps/web/src/screens/ui.tsx:423-495` (instrukcja)
 
 ### UI gier

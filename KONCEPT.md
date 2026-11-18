@@ -13,7 +13,7 @@ Dev i deploy: `README.md`. Stan prac i plan: `.telos/ROADMAP.md`.
   (Kampus Tour, Chińczyk, Labirynt i Kropki i kreski 2-4, Gomoku i Statki 2, Sabotaż i Podróbka 3-6, nie wystartują z mniejszą liczbą); reszta ogląda.
 - **Mobile-first**: telefon w pionie, bez instalacji (PWA z ikoną na ekranie głównym).
 - **Bez kont**: gracz wpisuje nick i kod pokoju. Token sesji w `localStorage` pozwala wrócić do gry po odświeżeniu strony.
-  Nick jest zapamiętany po pierwszym wpisaniu (ekran główny pokazuje kółko z inicjałem w nagłówku, jego dotknięcie otwiera zmianę nicku), tak samo trzy ostatnie pokoje z ostatniej doby do szybkiego powrotu
+  Nick jest zapamiętany po pierwszym wpisaniu (ekran główny pokazuje kółko z inicjałem w nagłówku, jego dotknięcie otwiera profil gracza, a w nim zmianę nicku), tak samo trzy ostatnie pokoje z ostatniej doby do szybkiego powrotu
   (wiersze „Wróć do …” na górze sekcji „Ze znajomymi”: tylko pokoje, w których było co najmniej 2 graczy i które jeszcze istnieją, sprawdza to `/api/rooms`).
 - **Ekran główny**: sekcja „Ze znajomymi” stoi wyżej niż „Sam”, bo najwięcej radości daje gra z innymi (zawsze, także przy wejściu z linku `/?kod=`).
   „Ze znajomymi” łączy „Utwórz pokój” i pole kodu. „Sam” to wyzwanie dnia, do dwóch gier
@@ -21,6 +21,14 @@ Dev i deploy: `README.md`. Stan prac i plan: `.telos/ROADMAP.md`.
   Wypełniony przycisk ekranu jest jeden: „Utwórz pokój”, a przy pełnym kodzie „Dołącz” („Utwórz pokój” przechodzi wtedy na obrys; „Dołącz” bez pełnego kodu nie istnieje, bo ostatni wpisany znak dołącza od razu). Wyzwanie dnia to w całości klikalny kafel bez wypełnienia.
   Podpowiedzi rekordów pomijają zerowe wyniki w grach, w których wyższy wynik jest lepszy, bo nie ma czego bić ani bronić.
   Rankingi wygranych gier głównych i turnieju są na dole ekranu „Rekordy” (puchar w nagłówku); równe wygrane i partie to to samo miejsce.
+- **Profil gracza**: publiczny, bez logowania, rozpoznawany po `nickKey` jak rankingi (`Profile.tsx`). Otwiera go kółko na ekranie głównym (własny, z „Zmień nick”),
+  nick w rankingach na ekranie „Rekordy” i wiersz tabeli w podsumowaniu wieczoru; z listy „Z kim gra” przechodzi się do profilu rywala, „Wróć” cofa o jeden.
+  Pokazuje: od kiedy gra i ile dni, ukończone partie, wygrane wieczory (pokoje z co najmniej dwiema ukończonymi partiami z innymi, mistrz po punktach jak w pokoju, remis na szczycie też),
+  najlepszą serię pierwszych miejsc, partie i wygrane per gra, miejsca w rekordach mini-gier, bilans z innymi (kto był wyżej w ukończonych partiach 2+ osób, do 10 osób)
+  i historię partii stronami po 20, od najnowszej. Wyniki sprzed historii są zaimportowane jako partie bez czasu trwania (gry główne: zwycięzca pierwszy, reszta druga).
+- **Raport gier** (`/statystyki`): ukryta strona bez linku z aplikacji i bez indeksowania. Dla każdej gry w okresie 7/30/90 dni albo całości: partie, gracze, ukończone,
+  rewanże, mediana czasu, średnio osób, walkowery albo udział solo, wybór i porzucenie w lobby, wyjście z instrukcji mini-gry, głosowanie, otwarcia „Jak grać”,
+  timeouty i reakcje na partię; gry bez partii osobno. Krótkie uwagi („często przerywana”, „przegrywa głosowania”) pojawiają się dopiero przy kilku próbach.
   Stopka pokazuje aktualną wersję strony i otwiera ekran „Co nowego” z opisem zmian w kolejnych wersjach (`CHANGELOG` w `Changelog.tsx`).
 - **Gra solo**: mini-gra z ekranu głównego to po cichu pokój na jedną osobę (`solo` w opcjach tworzenia i w `RoomView`), który od razu startuje grę:
   bez lobby, kodu, wyboru koloru i wpisu w ostatnich pokojach. Po partii „Jeszcze raz” albo „Wyjdź”; wyniki trafiają do tych samych rekordów.
@@ -167,6 +175,12 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
   odznaka na kropce to właśnie te punkty (w turnieju dalej punkty turnieju), `scores` bez zmian.
   `RoomView.evening` niesie tylko liczbę partii, unikalne id rozegranych gier, gotową tabelę i tytuły; historia nie idzie przez sieć.
   Liczba wpisów widoku nie rośnie od kolejnych partii tych samych osób i gier. Dotychczasowe `scores` i ranking wygranych pozostają.
+- **Historia partii** (`history.ts`, tabele `matches` i `match_players`, trzymane bezterminowo): każda partia, także solo, przerwana i walkower, w chwili końca:
+  gra, tryb, rodzaj (solo, pokój, turniej, szybka seria), źródło (gospodarz, głosowanie, rewanż, turniej; solo: lista, losowa, wyzwanie dnia, rekordy, podane przez klienta jako etykieta),
+  początek i koniec, czy minęła instrukcja, obserwatorzy, wynik partii (`completed`, `walkover`, `aborted`, `stopped` po „Przerwij”), liczba reakcji, a dla każdego, kto siedział przy stole
+  na starcie: nick, miejsce (wychodzący bez miejsca), wygrana (tylko przy 2+ osobach), wynik rekordu mini-gry i liczba ruchów zegara. Zamknięcie pokoju przez serwer partii nie zapisuje.
+  Obok anonimowe liczniki per gra i dzień (`game_signals`): wybór gry w lobby, porzucenie wyboru bez startu, pokazanie i wygrana w głosowaniu, otwarcie „Jak grać”
+  (wiadomość `howTo`, raz na osobę i grę w pokoju). Błąd zapisu nie zmienia końca partii. `room_games` (pomiar bez nicków) zostaje osobno.
 - **Zapis pokoi**: stan pokoju żyje w pamięci, a jego kopia w tabeli `rooms` (jeden wiersz JSON na pokój, `snapshot` w `LobbyRoom.ts`).
   Zapis następuje najpóźniej 5 s po zmianie (punkt kontrolny, jeden na serię zmian) oraz przy zamykaniu serwera (SIGTERM i nieobsłużony wyjątek, `saveRooms`).
   Przy starcie, zanim serwer przyjmie połączenia, `restoreRooms` odtwarza pokoje zapisane w ostatniej godzinie: ten sam kod, te same id graczy,
@@ -275,7 +289,7 @@ Prościej i bezpiecznie dla gier z ukrytymi informacjami.
 |---|---|
 | Język | TypeScript (wszędzie) |
 | Monorepo | pnpm workspaces |
-| Serwer / pokoje | Colyseus (Node.js) + Express (statyczny frontend, `/api/stats`, `/api/records`, `/api/records/:gameId/top`, `/api/daily`, `/api/rooms`) |
+| Serwer / pokoje | Colyseus (Node.js) + Express (statyczny frontend, `/api/stats`, `/api/records`, `/api/records/:gameId/top`, `/api/daily`, `/api/rooms`, `/api/profile/:nick`, `/api/profile/:nick/history`, `/api/report`) |
 | Walidacja wiadomości | zod (tylko w `packages/games`) |
 | Frontend | Vite + React, Tailwind, animacje w CSS (`index.css`) |
 | Ikony | Phosphor Icons |
@@ -304,4 +318,4 @@ Cloudflare Tunnel bez otwierania portów. SQLite w wolumenie objętym backupem h
 - Rzuty kośćmi i tasowanie kart tylko na serwerze.
 - Walidacja każdego ruchu (czy to tura gracza, czy ruch jest dozwolony, czy stać go na zakup).
 - Rate limiting wiadomości i limit liczby pokoi na IP.
-- Brak danych osobowych: tylko nick i losowy token sesji.
+- Brak danych osobowych: tylko nick i losowy token sesji. Nick jest publiczny: trafia do rankingów i historii partii, bez IP, tokenów i id sesji.

@@ -4,6 +4,14 @@ import { Screen } from "./ui.tsx";
 /** Historia wersji strony, najnowsza na górze. Nowy wpis na początku listy to zarazem nowy numer wersji. */
 export const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "1.3.0",
+    date: "2026-11-18",
+    changes: [
+      "Profil gracza: kółko z inicjałem na ekranie głównym pokazuje twoją historię partii, gry, rekordy, wygrane wieczory i bilans z osobami, z którymi grasz. Nick zmienisz teraz na profilu",
+      "Profil każdego gracza otworzysz, dotykając jego nicku w rekordach albo w podsumowaniu wieczoru",
+    ],
+  },
+  {
     version: "1.2.0",
     date: "2026-11-11",
     changes: [
