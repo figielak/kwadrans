@@ -26,9 +26,11 @@ Dev i deploy: `README.md`. Stan prac i plan: `.telos/ROADMAP.md`.
   Pokazuje: od kiedy gra i ile dni, ukończone partie, wygrane wieczory (pokoje z co najmniej dwiema ukończonymi partiami z innymi, mistrz po punktach jak w pokoju, remis na szczycie też),
   najlepszą serię pierwszych miejsc, partie i wygrane per gra, miejsca w rekordach mini-gier, bilans z innymi (kto był wyżej w ukończonych partiach 2+ osób, do 10 osób)
   i historię partii stronami po 20, od najnowszej. Wyniki sprzed historii są zaimportowane jako partie bez czasu trwania (gry główne: zwycięzca pierwszy, reszta druga).
-- **Raport gier** (`/statystyki`): ukryta strona bez linku z aplikacji i bez indeksowania. Dla każdej gry w okresie 7/30/90 dni albo całości: partie, gracze, ukończone,
-  rewanże, mediana czasu, średnio osób, walkowery albo udział solo, wybór i porzucenie w lobby, wyjście z instrukcji mini-gry, głosowanie, otwarcia „Jak grać”,
-  timeouty i reakcje na partię; gry bez partii osobno. Krótkie uwagi („często przerywana”, „przegrywa głosowania”) pojawiają się dopiero przy kilku próbach.
+- **Raport gier** (`/statystyki`): ukryta strona właściciela, bez linku z aplikacji i bez indeksowania. Jako jedyny ekran ma szeroki układ na laptopa (do 1400 px; na telefonie tabele przewijają się w panelu).
+  Okres 7/30/90 dni albo całość. Liczby zbiorcze (partie, ukończone, gracze, nowi, wracający, dni, wieczory, czas gry), partie dzień po dniu (gry główne, mini-gry w pokoju, solo),
+  siatka dzień tygodnia × godzina, źródła partii, rodzaje, liczba osób przy stole i mediany wieczorów. Tabela gier z sortowaniem, filtrem główne/mini, trendem 12 tygodni i rozwijanymi szczegółami
+  (tryby, źródła, sposób zakończenia, mediana czasu wg liczby osób, kto gra najczęściej) oraz tabela graczy. Krótkie uwagi („często przerywana”, „przegrywa głosowania”) dopiero przy kilku próbach.
+  Kolory wykresów to trzy tokeny `--color-series-*` sprawdzone walidatorem palety.
   Stopka pokazuje aktualną wersję strony i otwiera ekran „Co nowego” z opisem zmian w kolejnych wersjach (`CHANGELOG` w `Changelog.tsx`).
 - **Gra solo**: mini-gra z ekranu głównego to po cichu pokój na jedną osobę (`solo` w opcjach tworzenia i w `RoomView`), który od razu startuje grę:
   bez lobby, kodu, wyboru koloru i wpisu w ostatnich pokojach. Po partii „Jeszcze raz” albo „Wyjdź”; wyniki trafiają do tych samych rekordów.

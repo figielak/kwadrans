@@ -35,6 +35,11 @@
   /* Korona lidera cudzego rekordu (własny rekord ma kolor gracza). */
   --color-gold: #f2c14e;
 
+  /* Wykresy raportu /statystyki: trzy serie sprawdzone walidatorem palety na tle surface (CVD i kontrast 3:1). */
+  --color-series-1: #3987e5;
+  --color-series-2: #d95926;
+  --color-series-3: #199e70;
+
   --font-sans: "Satoshi", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, monospace;
 

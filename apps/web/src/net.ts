@@ -1,5 +1,5 @@
 import { Client, type Room } from "@colyseus/sdk";
-import type { HistoryRow, Profile, RecordRow, Report, RoomView, SOLO_SOURCES } from "@kwadrans/games";
+import type { HistoryRow, Insights, Profile, RecordRow, Report, RoomView, SOLO_SOURCES } from "@kwadrans/games";
 
 type SoloSource = (typeof SOLO_SOURCES)[number];
 import { RESUME_WAIT_MS, resume } from "./resume.ts";
@@ -51,7 +51,7 @@ export const fetchHistory = (nick: string, before?: number): Promise<HistoryRow[
     .catch(() => null);
 
 /** Raport gier z ostatnich `days` dni (0: całość); przy błędzie null. */
-export const fetchReport = (days: number): Promise<Report | null> =>
+export const fetchReport = (days: number): Promise<(Report & { insights: Insights }) | null> =>
   fetch(`${serverUrl}/api/report?dni=${days}`)
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null);
