@@ -3,7 +3,7 @@
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 18-licytacja
 Task: none
-Next: 18-04 Game screen
+Next: 18-05 Wiring
 Blockers: none
 Awaiting user: 08, 09, 12
 <!-- Blockers: "NN-MM: reason". Awaiting user: IDs only, e.g. "02:Q-01, 02:D-03" -->

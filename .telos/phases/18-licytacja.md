@@ -19,7 +19,7 @@ lobby, and a technical acceptance with 2 and 6 players plus an observer on 360×
   `packages/games/src/licytacja.ts` modelled on `wyprawa.ts:160-217` (`turn` key per phase, `ready`, `timeoutMove`);
   exports and `GAMES` entry in `packages/games/src/index.ts`; card in `apps/web/src/screens/howToPlay.ts` + its test.
   Accept: `pnpm --filter @kwadrans/games exec vitest run src/licytacja.test.ts` and `pnpm run test` exit 0.
-- [ ] **18-04 Game screen**
+- [x] **18-04 Game screen**
   `apps/web/src/games/Licytacja.tsx`: prize and pot on top, player row with "chose" marks, own hand as a 5×3 grid of
   48 px cards with select-and-confirm, reveal of all cards with winner in their colour, end table. Fits 360×640.
 - [ ] **18-05 Wiring**
