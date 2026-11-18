@@ -39,7 +39,7 @@ export function Setup({ view, me, dropped, send, onLeave }: Props) {
           </div>
         </div>
         <p className="mt-2 text-sm text-fg-muted">{BLURBS[def.id]}</p>
-        <RulesDetails gameId={def.id} />
+        <RulesDetails gameId={def.id} onOpen={() => send("howTo", { gameId: def.id })} />
       </section>
 
       {def.modes && (

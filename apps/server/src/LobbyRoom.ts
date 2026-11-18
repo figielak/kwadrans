@@ -45,7 +45,8 @@ import {
   type Tournament,
   winner,
 } from "@kwadrans/games";
-import { openStats, type RoomGameOutcome } from "./stats.ts";
+import { type MatchKind, type MatchOutcome, type MatchSource, type Signal, SOLO_SOURCES } from "./history.ts";
+import { openStats } from "./stats.ts";
 
 const RECONNECT_SECONDS = 10 * 60; // telefon śpi między turami
 /** Tyle rozłączony gospodarz trzyma rolę, gdy w pokoju jest ktoś obecny; krótkie zerwanie jej nie zabiera. */
@@ -96,7 +97,10 @@ interface Snapshot {
   eveningView: RoomView["evening"];
   vote: { options: string[]; votes: Record<string, string> } | null;
   wishes: Record<string, string>;
-  match: { stateVersion: number; state: unknown; result: GameResult | null; players: number; nicks: string[] } | null;
+  match: ({ stateVersion: number; state: unknown; result: GameResult | null } & Partial<MatchLog> & Pick<MatchLog, "players" | "nicks">) | null;
+  /** Od fazy 17; starsze zapisy ich nie mają. */
+  quick?: boolean;
+  soloSource?: MatchSource;
   intro: boolean;
   countdown: boolean;
   skipIntro: boolean;
@@ -148,14 +152,27 @@ export async function restoreRooms() {
 const newRng = () => createRng(crypto.getRandomValues(new Uint32Array(1))[0]);
 const defaultMode = (def: GameDefinition<unknown, unknown>) => (def.modes?.find((m) => m.default) ?? def.modes?.[0])?.id ?? null;
 
-interface Match {
+/** To, co o partii trafia do historii (`stats.recordMatch`); żyje razem z partią i jej zapisem. */
+interface MatchLog {
+  /** Stan przy starcie: onLeave zmienia `seats` jeszcze przed `finish`, a pomiar liczy osoby od początku partii. */
+  players: number;
+  nicks: string[];
+  startedAt: number;
+  source: MatchSource;
+  kind: MatchKind;
+  observers: number;
+  /** Mini-gra: czy minęła instrukcja. */
+  started: boolean;
+  /** Ruchy zegara po nickKey (id sesji zmienia się przy powrocie kodem). */
+  timeouts: Record<string, number>;
+  reactions: number;
+}
+
+interface Match extends MatchLog {
   def: GameDefinition<unknown, unknown>;
   state: unknown;
   rng: Rng;
   result: GameResult | null;
-  /** Stan przy starcie: onLeave zmienia `seats` jeszcze przed `finish`, a pomiar liczy osoby od początku partii. */
-  players: number;
-  nicks: string[];
 }
 
 export class LobbyRoom extends Room {
@@ -203,8 +220,16 @@ export class LobbyRoom extends Room {
   private reactCounts = new Map<string, number>();
   /** Dane dekoracyjne od klientów, nigdy nie trafiają do stanu zasad ani wyników. */
   private liveValues: Record<string, number> = {};
+  /** Szybka seria to turniej bez ustawień; historia odróżnia ją od pełnego turnieju. */
+  private quick = false;
+  /** Miejsce na ekranie głównym, z którego ruszyło solo; tylko etykieta w historii. */
+  private soloSource: MatchSource = "list";
+  /** Gra wybrana w lobby i jeszcze nie rozpoczęta: zmiana wyboru albo powrót do listy ją porzuca. */
+  private picked: string | null = null;
+  /** Kto już otworzył „Jak grać” której gry (nickKey:gameId), żeby jedna osoba liczyła się raz. */
+  private howToSeen = new Set<string>();
 
-  async onCreate(options?: { solo?: unknown; restore?: unknown }) {
+  async onCreate(options?: { solo?: unknown; from?: unknown; restore?: unknown }) {
     const saved = typeof options?.restore === "string" ? pendingRestore.get(options.restore) : undefined;
     if (saved) this.roomId = options!.restore as string;
     else {
@@ -212,6 +237,7 @@ export class LobbyRoom extends Room {
         this.solo = true;
         this.gameId = options.solo;
         this.maxClients = 1;
+        this.soloSource = SOLO_SOURCES.find((s) => s === options.from) ?? "list";
       }
       let code = roomCode(Math.random);
       while ((await matchMaker.query({ roomId: code })).length > 0) code = roomCode(Math.random);
@@ -224,6 +250,11 @@ export class LobbyRoom extends Room {
     this.on("pickGame", (client, { gameId }) => {
       const def = gameId === null ? undefined : GAMES[gameId];
       if (!this.isHost(client) || this.phase !== "lobby" || (gameId !== null && !def)) return;
+      if (gameId !== this.picked) {
+        this.dropPicked();
+        if (gameId) this.signal(gameId, "picked");
+        this.picked = gameId;
+      }
       this.gameId = gameId;
       this.tournament = null;
       this.markedBy = {};
@@ -238,6 +269,8 @@ export class LobbyRoom extends Room {
       const { must = [], skip = [] } = this.tournament?.config ?? {};
       const config = cleanConfig({ length, must, skip }, MINI_GAME_IDS);
       if (!this.isHost(client) || this.phase !== "lobby" || !config) return;
+      this.dropPicked();
+      this.quick = false;
       // Miejsca dostają wszyscy tylko przy wyborze turnieju; zmiana ustawień nie rusza tych, których gospodarz przesadził.
       if (!this.tournament) this.seats = [...this.players.keys()];
       this.tournament = create(config);
@@ -251,6 +284,8 @@ export class LobbyRoom extends Room {
       const config = cleanConfig({ length: QUICK_SERIES_LENGTH, must: [], skip: [] }, MINI_GAME_IDS);
       if (!this.isHost(client) || this.phase !== "lobby" || !config) return;
       this.seats = [...this.players.keys()].slice(0, MAX_PLAYERS);
+      this.dropPicked();
+      this.quick = true;
       this.tournament = begin(create(config), MINI_GAME_IDS, newRng());
       this.markedBy = {};
       this.wishes = {};
@@ -361,6 +396,7 @@ export class LobbyRoom extends Room {
       const second = Math.floor(Date.now() / 1000);
       if (this.reactCounts.get(client.sessionId) === second) return;
       this.reactCounts.set(client.sessionId, second);
+      if (this.phase === "playing" && this.match) this.match.reactions++;
       for (const other of this.clients) other.send("react", { id: client.sessionId, index: parsed.data.index });
     }));
 
@@ -379,6 +415,7 @@ export class LobbyRoom extends Room {
       const options = voteOptions(Object.values(GAMES), this.seats.length, this.gameId!, this.eveningView.played, newRng());
       if (options.length === 0) return;
       this.vote = { options, votes: {} };
+      for (const id of options) this.signal(id, "voteShown");
       this.resetReady();
       this.arm("vote", VOTE_SECONDS * 1000);
     });
@@ -398,8 +435,18 @@ export class LobbyRoom extends Room {
     // Gospodarz przerywa trwającą partię. Bez finish: przerwana partia nie rozlicza się, a w ostatniej grze turnieju nie wyłania mistrza.
     this.on("stopGame", (client) => {
       if (!this.isHost(client) || this.phase !== "playing" || this.solo) return;
-      this.measure("aborted");
+      this.measure("stopped");
       this.toLobby();
+    });
+
+    // Karta „Jak grać” gry głównej: raz na osobę i grę w tym pokoju, tylko do raportu gier.
+    this.on("howTo", (client, { gameId }) => {
+      const player = this.players.get(client.sessionId);
+      if (!player || !GAMES[gameId] || GAMES[gameId].minPlayers === 1) return;
+      const seen = `${nickKey(player.nick)}:${gameId}`;
+      if (this.howToSeen.has(seen)) return;
+      this.howToSeen.add(seen);
+      this.signal(gameId, "howTo");
     });
 
     if (saved) this.restore(saved);
@@ -433,7 +480,9 @@ export class LobbyRoom extends Room {
       eveningView: this.eveningView,
       vote: this.vote,
       wishes: this.wishes,
-      match: match && { stateVersion: match.def.stateVersion ?? 0, state: match.state, result: match.result, players: match.players, nicks: match.nicks },
+      match: match && (({ def, rng: _, ...rest }) => ({ stateVersion: def.stateVersion ?? 0, ...rest }))(match),
+      quick: this.quick,
+      soloSource: this.soloSource,
       intro: this.intro,
       countdown: this.countdown,
       skipIntro: this.skipIntro,
@@ -465,11 +514,18 @@ export class LobbyRoom extends Room {
     this.skipIntro = saved.skipIntro;
     this.began = new Set(saved.began);
     this.liveValues = saved.liveValues;
+    this.quick = saved.quick ?? false;
+    this.soloSource = saved.soloSource ?? "list";
     for (const { token: _, ...player } of saved.players) this.players.set(player.id, { ...player, connected: false });
 
     const def = saved.gameId ? GAMES[saved.gameId] : undefined;
     if (saved.match && def && (def.stateVersion ?? 0) === saved.match.stateVersion && this.readable(def, saved.match.state)) {
-      this.match = { def, ...saved.match, rng: newRng() };
+      const { stateVersion: _, ...match } = saved.match;
+      // Zapis sprzed fazy 17 nie zna początku ani źródła partii: od chwili odtworzenia, jak od gospodarza.
+      this.match = {
+        startedAt: Date.now(), source: "host", kind: this.matchKind(), observers: 0, started: !saved.intro, timeouts: {}, reactions: 0,
+        ...match, def, rng: newRng(),
+      };
       const { timer } = saved;
       if (timer?.fired) this.deadline = { kind: timer.kind, endsAt: Date.now(), fired: true };
       else if (timer) this.arm(timer.kind, Math.max(timer.msLeft, RESTORE_GRACE_MS));
@@ -555,7 +611,7 @@ export class LobbyRoom extends Room {
     if (!this.hostId) this.hostId = client.sessionId;
     // Gra już wybrana i jest wolne miejsce: nowy gracz od razu gra, gospodarz nie musi go zaznaczać.
     if (!ghost && this.phase === "lobby" && this.seats.length < this.maxSeats()) this.seats = [...this.seats, client.sessionId];
-    if (this.solo) this.startMatch(GAMES[this.gameId!]);
+    if (this.solo) this.startMatch(GAMES[this.gameId!], INTRO_SECONDS, false, this.soloSource);
     this.update();
   }
 
@@ -765,7 +821,7 @@ export class LobbyRoom extends Room {
     this.gameId = this.tournament!.games[this.tournament!.index];
     this.mode = null;
     this.resetReady();
-    this.startMatch(GAMES[this.gameId]);
+    this.startMatch(GAMES[this.gameId], INTRO_SECONDS, false, "tournament");
   }
 
   private maybeFinishVote() {
@@ -784,14 +840,16 @@ export class LobbyRoom extends Room {
   /** Wynik głosowania rusza jak nowa gra: tryb domyślny, pełna instrukcja, bez skończonego turnieju. */
   private finishVote() {
     const gameId = voteWinner(this.vote!.options, this.vote!.votes, newRng());
+    this.signal(gameId, "voteWon");
     this.vote = null;
     this.disarm();
     this.tournament = null;
+    this.quick = false;
     this.markedBy = {};
     this.gameId = gameId;
     this.mode = defaultMode(GAMES[gameId]);
     try {
-      this.startMatch(GAMES[gameId]);
+      this.startMatch(GAMES[gameId], INTRO_SECONDS, false, "vote");
     } catch (error) {
       // Jak w turnieju: błąd w zasadach gry nie może zostawić pokoju bez wyjścia.
       this.logError("start gry po głosowaniu", error);
@@ -812,13 +870,18 @@ export class LobbyRoom extends Room {
     // więc rotacja nic nie daje, a tylko przestawia graczy w nagłówku i tabeli.
     if (def.minPlayers > 1) this.seats = [...this.seats.slice(1), this.seats[0]];
     this.resetReady();
-    this.startMatch(def, REMATCH_INTRO_SECONDS, this.solo);
+    this.startMatch(def, REMATCH_INTRO_SECONDS, this.solo, "rematch");
   }
 
-  private startMatch(def: GameDefinition<unknown, unknown>, introSeconds = INTRO_SECONDS, skipIntro = false) {
+  private startMatch(def: GameDefinition<unknown, unknown>, introSeconds = INTRO_SECONDS, skipIntro = false, source: MatchSource = "host") {
     const rng = newRng();
     const nicks = this.seats.map((id) => this.players.get(id)?.nick ?? "?");
-    this.match = { def, state: def.setup(this.seats, rng, this.mode ?? undefined), rng, result: null, players: this.seats.length, nicks };
+    this.picked = null;
+    this.match = {
+      def, state: def.setup(this.seats, rng, this.mode ?? undefined), rng, result: null, players: this.seats.length, nicks,
+      startedAt: Date.now(), source, kind: this.matchKind(), observers: this.players.size - this.seats.length,
+      started: def.minPlayers > 1, timeouts: {}, reactions: 0,
+    };
     this.phase = "playing";
     this.began.clear();
     this.liveValues = {};
@@ -880,6 +943,7 @@ export class LobbyRoom extends Room {
   }
 
   private endIntro() {
+    if (this.match) this.match.started = true;
     this.intro = false;
     this.countdown = false;
     this.skipIntro = false;
@@ -890,6 +954,10 @@ export class LobbyRoom extends Room {
   private play(player: string, move: unknown, context: MoveContext) {
     const match = this.match!;
     if (!match.def.validateMove(match.state, player, move, context)) return;
+    if (context.source === "timeout") {
+      const key = nickKey(this.players.get(player)?.nick ?? "?");
+      match.timeouts[key] = (match.timeouts[key] ?? 0) + 1;
+    }
     const before = match.def.waitingFor(match.state).join();
     const keyBefore = match.def.turn?.(match.state).key;
     match.state = match.def.applyMove(match.state, player, move, match.rng);
@@ -907,10 +975,16 @@ export class LobbyRoom extends Room {
     if (after.join() !== before || after.length === 1) this.startTurnTimer();
   }
 
-  private finish(result: GameResult, outcome: RoomGameOutcome = "completed") {
+  private finish(result: GameResult, outcome: MatchOutcome = "completed") {
     if (!this.match) return;
     this.match.result = result;
-    this.measure(outcome);
+    {
+      const { def, state } = this.match;
+      const ranked = result.ranking ? (result.places ?? def.places?.(state) ?? null) : null;
+      // Jedna osoba przy stole (solo, walkower) jest pierwsza, o ile partia ma wynik.
+      const places = this.seats.length === 1 && (result.ranking || result.winner) ? { [this.seats[0]]: 1 } : placesFromResult(result, ranked, this.seats);
+      this.measure(outcome, places, result.winner);
+    }
     this.phase = "over";
     this.resetReady();
     this.disarm();
@@ -956,14 +1030,53 @@ export class LobbyRoom extends Room {
     this.arm("next", NEXT_SECONDS * 1000);
   }
 
-  /** Jeden anonimowy wpis na partię; błąd zapisu pomiaru nie może zepsuć końca partii. */
-  private measure(outcome: RoomGameOutcome) {
-    const { players, nicks } = this.match!;
+  /**
+   * Anonimowy wpis pomiaru i wpis historii z nickami; błąd zapisu nie może zepsuć końca partii.
+   * `places` po id sesji obecnych przy stole; kto wyszedł, nie ma miejsca.
+   */
+  private measure(outcome: MatchOutcome, places: Record<string, number> | null = null, winnerId?: string) {
+    const match = this.match!;
+    const { players, nicks } = match;
     try {
-      stats.recordRoomGame({ roomKey: this.roomKey, gameId: this.gameId!, players, outcome, nicks });
+      stats.recordRoomGame({ roomKey: this.roomKey, gameId: this.gameId!, players, outcome: outcome === "stopped" ? "aborted" : outcome, nicks });
     } catch (error) {
       this.logError("pomiar partii", error);
     }
+    const record = match.result?.ranking ? match.def.record : undefined;
+    const seatOf = new Map(this.seats.map((id) => [nickKey(this.players.get(id)?.nick ?? "?"), id]));
+    this.guarded("zapis historii", () => stats.recordMatch({
+      roomKey: this.roomKey, gameId: this.gameId!, mode: this.mode, kind: match.kind, source: match.source,
+      startedAt: match.startedAt, endedAt: Date.now(), started: match.started, observers: match.observers, outcome, reactions: match.reactions,
+      players: nicks.map((nick) => {
+        const key = nickKey(nick);
+        const id = seatOf.get(key);
+        // Dwie osoby o tym samym nicku w jednej partii: druga nie znajdzie już miejsca, jak w rankingu wygranych.
+        seatOf.delete(key);
+        const score = id !== undefined && record ? record.score(match.state, id) : null;
+        return {
+          nick: id !== undefined ? (this.players.get(id)?.nick ?? nick) : nick,
+          place: id !== undefined ? (places?.[id] ?? null) : null,
+          won: id !== undefined && id === winnerId && players >= 2,
+          score: score !== null && Number.isFinite(score) ? score : null,
+          left: id === undefined,
+          timeouts: match.timeouts[key] ?? 0,
+        };
+      }),
+    }));
+  }
+
+  private matchKind(): MatchKind {
+    return this.solo ? "solo" : this.tournament ? (this.quick ? "quick" : "tournament") : "room";
+  }
+
+  /** Licznik raportu gier; błąd bazy nic w pokoju nie zmienia. */
+  private signal(gameId: string, kind: Signal) {
+    this.guarded("sygnał gry", () => stats.signal(gameId, kind));
+  }
+
+  private dropPicked() {
+    if (this.picked) this.signal(this.picked, "dropped");
+    this.picked = null;
   }
 
   /** Po limicie czasu serwer wykonuje ruch za gracza, który nie zdążył. */

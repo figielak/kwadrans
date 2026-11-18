@@ -2,6 +2,7 @@ import { Check, ShareNetwork, Trophy } from "@phosphor-icons/react";
 import type { RoomView } from "@kwadrans/games";
 import { useState } from "react";
 import { champions, shareText } from "./evening.ts";
+import { Profile } from "./Profile.tsx";
 import { EveningTable, Screen } from "./ui.tsx";
 
 /**
@@ -10,6 +11,8 @@ import { EveningTable, Screen } from "./ui.tsx";
  */
 export function Evening({ evening, meKey, onDone }: { evening: RoomView["evening"]; meKey: string; onDone: () => void }) {
   const [copied, setCopied] = useState(false);
+  /** Profil z tabeli wieczoru; „Wróć” wraca do podsumowania. */
+  const [profile, setProfile] = useState<string | null>(null);
   const top = champions(evening);
   const text = shareText(evening);
   // Bez navigator.share przycisk kopiuje; bez schowka znika.
@@ -26,6 +29,11 @@ export function Evening({ evening, meKey, onDone }: { evening: RoomView["evening
     setTimeout(() => setCopied(false), 2000);
   }
 
+  if (profile) {
+    const me = evening.table.find((row) => row.key === meKey)?.nick ?? null;
+    return <Profile nick={profile} me={me} onBack={() => setProfile(null)} />;
+  }
+
   return (
     <Screen dropped={false}>
       <section className="tile flex flex-col items-center gap-1 py-6 text-center">
@@ -35,7 +43,7 @@ export function Evening({ evening, meKey, onDone }: { evening: RoomView["evening
         <p className="text-sm text-fg-muted">{top.length === 1 ? "Mistrz wieczoru" : "Remis na szczycie"} · {top[0]?.points ?? 0} pkt</p>
       </section>
 
-      <EveningTable evening={evening} present={evening.table.map((row) => row.key)} meKey={meKey} />
+      <EveningTable evening={evening} present={evening.table.map((row) => row.key)} meKey={meKey} onNick={setProfile} />
 
       {evening.titles.length > 0 && (
         <section className="tile" aria-label="Tytuły wieczoru">

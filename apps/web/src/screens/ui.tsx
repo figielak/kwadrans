@@ -1,5 +1,5 @@
 import type { Icon } from "@phosphor-icons/react";
-import { ArrowLeft, CaretDown, Check, HandTap, ShareNetwork, SignOut, Smiley, Timer, Trophy, WifiSlash } from "@phosphor-icons/react";
+import { ArrowLeft, CaretDown, CaretRight, Check, HandTap, ShareNetwork, SignOut, Smiley, Timer, Trophy, WifiSlash } from "@phosphor-icons/react";
 import { REACTIONS, type RoomView } from "@kwadrans/games";
 import { createContext, Fragment, type ReactNode, type Ref, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
@@ -12,7 +12,8 @@ import { bestRound, type Hero, revealOrder } from "./results.ts";
  * Tabela wieczoru: punkty za wszystkie partie w pokoju. Tylko przy 2+ grach, zwięzła (jeden wiersz na osobę, bez tytułów),
  * żeby przy wynikach nie była większa od bohatera. Remis dzieli miejsce; kto wyszedł, zostaje i jest przygaszony.
  */
-export function EveningTable({ evening, present, meKey }: { evening: RoomView["evening"]; present: string[]; meKey: string }) {
+/** `onNick` (podsumowanie wieczoru): wiersz otwiera profil gracza. */
+export function EveningTable({ evening, present, meKey, onNick }: { evening: RoomView["evening"]; present: string[]; meKey: string; onNick?: (nick: string) => void }) {
   if (evening.games < 2 || evening.table.length === 0) return null;
   const places = evening.table.map((r) => 1 + evening.table.filter((o) => o.points > r.points).length);
   return (
@@ -23,14 +24,28 @@ export function EveningTable({ evening, present, meKey }: { evening: RoomView["e
       </h2>
       <ol className="flex flex-col gap-0.5 text-sm">
         {evening.table.map((r, i) => (
-          <li key={r.key} className={`flex items-center gap-2 ${present.includes(r.key) ? "" : "text-fg-muted"}`}>
-            <span className="w-5 font-mono text-fg-muted tabular-nums">{places[i]}.</span>
-            <span className="min-w-0 flex-1 truncate">
-              {r.nick}
-              {r.key === meKey && <span className="text-fg-muted"> (ty)</span>}
-              {!present.includes(r.key) && <span className="text-xs"> · wyszedł</span>}
-            </span>
-            <span className="font-mono font-semibold tabular-nums">{r.points}</span>
+          <li key={r.key} className={present.includes(r.key) ? "" : "text-fg-muted"}>
+            {(() => {
+              const row = (
+                <>
+                  <span className="w-5 font-mono text-fg-muted tabular-nums">{places[i]}.</span>
+                  <span className="min-w-0 flex-1 truncate">
+                    {r.nick}
+                    {r.key === meKey && <span className="text-fg-muted"> (ty)</span>}
+                    {!present.includes(r.key) && <span className="text-xs"> · wyszedł</span>}
+                  </span>
+                  <span className="font-mono font-semibold tabular-nums">{r.points}</span>
+                </>
+              );
+              return onNick ? (
+                <button type="button" className="flex min-h-12 w-full items-center gap-2 text-left" aria-label={`Profil: ${r.nick}, ${r.points} pkt`} onClick={() => onNick(r.nick)}>
+                  {row}
+                  <CaretRight size={14} className="shrink-0 text-fg-muted" aria-hidden />
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">{row}</div>
+              );
+            })()}
           </li>
         ))}
       </ol>

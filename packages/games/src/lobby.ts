@@ -121,4 +121,6 @@ export const ROOM_MESSAGES = {
   live: z.object({ value: z.number().int().min(0).max(9999) }),
   // Emotka z REACTIONS; osobny kanał i limit, jak live.
   react: z.object({ index: z.number().int().min(0).max(5) }),
+  // Otwarcie karty „Jak grać”: tylko licznik w statystykach gier, nic w pokoju się nie zmienia.
+  howTo: z.object({ gameId: z.string() }),
 };

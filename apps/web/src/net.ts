@@ -1,5 +1,7 @@
 import { Client, type Room } from "@colyseus/sdk";
-import type { RecordRow, RoomView } from "@kwadrans/games";
+import type { HistoryRow, Insights, Profile, RecordRow, Report, RoomView, SOLO_SOURCES } from "@kwadrans/games";
+
+type SoloSource = (typeof SOLO_SOURCES)[number];
 import { RESUME_WAIT_MS, resume } from "./resume.ts";
 
 // W dev serwer gry stoi obok Vite na porcie 2567 tego samego hosta (działa też z telefonu w LAN).
@@ -33,6 +35,24 @@ export const fetchTopRecord = (gameId: string): Promise<unknown> =>
 /** Wyzwanie dnia: gra na dziś i dzisiejsze wyniki, od najlepszego; przy błędzie null (kafel się nie pokaże). */
 export const fetchDaily = (): Promise<{ gameId: string; rows: RecordRow[] } | null> =>
   fetch(`${serverUrl}/api/daily`)
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null);
+
+/** Profil gracza po nicku; null, gdy nick nie ma partii, false, gdy serwer nie odpowie. */
+export const fetchProfile = (nick: string): Promise<Profile | null | false> =>
+  fetch(`${serverUrl}/api/profile/${encodeURIComponent(nick)}`)
+    .then((r) => (r.ok ? r.json() : r.status === 404 ? null : false))
+    .catch(() => false);
+
+/** Strona historii partii (20, od najnowszej); `before` to id ostatniej pokazanej. Przy błędzie null. */
+export const fetchHistory = (nick: string, before?: number): Promise<HistoryRow[] | null> =>
+  fetch(`${serverUrl}/api/profile/${encodeURIComponent(nick)}/history${before ? `?przed=${before}` : ""}`)
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null);
+
+/** Raport gier z ostatnich `days` dni (0: całość); przy błędzie null. */
+export const fetchReport = (days: number): Promise<(Report & { insights: Insights }) | null> =>
+  fetch(`${serverUrl}/api/report?dni=${days}`)
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null);
 
@@ -143,8 +163,8 @@ function remember(room: Room, nick?: string) {
   return room;
 }
 
-/** `solo`: id mini-gry, którą pokój od razu startuje dla jednego gracza. */
-export const createRoom = async (nick: string, solo?: string) => remember(await client.create("lobby", { nick, solo }), nick);
+/** `solo`: id mini-gry, którą pokój od razu startuje dla jednego gracza; `from`: skąd na ekranie głównym (tylko etykieta w historii). */
+export const createRoom = async (nick: string, solo?: string, from?: SoloSource) => remember(await client.create("lobby", { nick, solo, from }), nick);
 
 export const joinRoom = async (code: string, nick: string) =>
   remember(await client.joinById(code, { nick }), nick);
