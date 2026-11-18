@@ -12,7 +12,7 @@ lobby, and a technical acceptance with 2 and 6 players plus an observer on 360×
 - [x] **18-01 Rules in the docs**
   `ZASADY-GIER.md`: table row (`licytacja | 2-6 | 20 s wybór, 10 s odsłona | równoczesna, ukryty stan`) and §15 in
   the short order of §14; `KONCEPT.md` §2.2 row. Accept: `grep -q "## 15. Licytacja" ZASADY-GIER.md`.
-- [ ] **18-02 Rule tests (own commit, before code)**
+- [x] **18-02 Rule tests (own commit, before code)**
   `packages/games/src/licytacja.test.ts`: setup, simultaneous choice, cancel-out, carry-over, negative pot, last
   round, timeout, ranking with ties, hidden choices in `playerView`, JSON round-trip, immutability. Not changed later.
 - [ ] **18-03 Engine and registry**
