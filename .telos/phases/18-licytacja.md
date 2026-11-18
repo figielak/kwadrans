@@ -15,7 +15,7 @@ lobby, and a technical acceptance with 2 and 6 players plus an observer on 360×
 - [x] **18-02 Rule tests (own commit, before code)**
   `packages/games/src/licytacja.test.ts`: setup, simultaneous choice, cancel-out, carry-over, negative pot, last
   round, timeout, ranking with ties, hidden choices in `playerView`, JSON round-trip, immutability. Not changed later.
-- [ ] **18-03 Engine and registry**
+- [x] **18-03 Engine and registry**
   `packages/games/src/licytacja.ts` modelled on `wyprawa.ts:160-217` (`turn` key per phase, `ready`, `timeoutMove`);
   exports and `GAMES` entry in `packages/games/src/index.ts`; card in `apps/web/src/screens/howToPlay.ts` + its test.
   Accept: `pnpm --filter @kwadrans/games exec vitest run src/licytacja.test.ts` and `pnpm run test` exit 0.
@@ -40,4 +40,5 @@ lobby, and a technical acceptance with 2 and 6 players plus an observer on 360×
   resolves itself (one card left each). Timeout plays a random card from the hand via `rng`. Remaining hands are public (played cards are seen), only the current choice is hidden.
 - Assumed: winner is the highest sum; a tie on top has no winner, `places` share ties; no `record`, `live`, `stateVersion`.
 - Risk: with 2 players ties are frequent and long carry-overs can feel flat; check in 18-06, change only by test + doc.
+- 18-03 deviation: two type-only fixes in `licytacja.test.ts` (readonly `sum` argument, typed `cards` record); no assertion changed.
 - CHANGELOG entry only before publishing to `master`, outside this phase.

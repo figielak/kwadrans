@@ -111,7 +111,7 @@ function timeoutAll(s: State, rng: Rng = createRng(3), onEach: (s: State) => voi
 }
 
 const view = (s: State, player: string) => game.playerView(s, player) as View;
-const sum = (values: number[]) => values.reduce((a, b) => a + b, 0);
+const sum = (values: readonly number[]) => values.reduce((a, b) => a + b, 0);
 const scoreSum = (s: State) => sum(Object.values(s.score));
 
 describe("definicja", () => {
@@ -294,8 +294,9 @@ describe("runda", () => {
 
   test("kolejność wiadomości nie zmienia wyniku", () => {
     const s = fixed(THREE, 6);
-    const forward = round(s, { [A]: 4, [B]: 10, [C]: 10 });
-    const backward = [C, B, A].reduce((acc, p) => send(acc, p, play(acc, { [A]: 4, [B]: 10, [C]: 10 }[p])), s);
+    const cards: Record<string, number> = { [A]: 4, [B]: 10, [C]: 10 };
+    const forward = round(s, cards);
+    const backward = [C, B, A].reduce((acc, p) => send(acc, p, play(acc, cards[p])), s);
     expect(backward.score).toEqual(forward.score);
     expect(backward.history).toEqual(forward.history);
   });

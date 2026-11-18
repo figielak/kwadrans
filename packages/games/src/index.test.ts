@@ -53,7 +53,7 @@ const EAGER: Record<string, (rng: () => number, state: unknown) => unknown[]> = 
 
 test("rejestr: id z sieci nie trafia w pola prototypu obiektu, a klucz to id gry", () => {
   for (const id of ["constructor", "toString", "__proto__", "hasOwnProperty", "nie-ma-takiej"]) expect(GAMES[id], id).toBeUndefined();
-  expect(Object.keys(GAMES)).toHaveLength(42);
+  expect(Object.keys(GAMES)).toHaveLength(43);
   for (const [id, game] of Object.entries(GAMES)) expect(game.id).toBe(id);
 });
 
@@ -304,6 +304,7 @@ test("losowe partie przeszły przez każdą fazę gier wielofazowych (timeoutMov
     sabotaz: ["initial", "place", "bid", "reveal", "summary"],
     wyprawa: ["decision", "summary"],
     podrobka: ["write", "vote", "summary"],
+    licytacja: ["choose", "reveal"],
   };
   for (const [id, phases] of Object.entries(expected)) expect([...visited[id]].sort(), id).toEqual([...phases].sort());
 });
