@@ -1,0 +1,237 @@
+import { type Client, CloseCode } from "@colyseus/core";
+import type { RoomView } from "@kwadrans/games";
+import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
+import type { MatchEntry } from "./history.ts";
+
+// 17: pokój zapisuje każdą partię do historii (profil, raport) i liczy sygnały gier.
+vi.mock("@colyseus/core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@colyseus/core")>();
+  return { ...actual, matchMaker: { ...actual.matchMaker, query: vi.fn(async () => []) } };
+});
+
+let LobbyRoom: typeof import("./LobbyRoom.ts").LobbyRoom;
+let stats: typeof import("./LobbyRoom.ts").stats;
+beforeAll(async () => {
+  vi.stubEnv("DB_PATH", ":memory:");
+  try {
+    ({ LobbyRoom, stats } = await import("./LobbyRoom.ts"));
+  } finally {
+    vi.unstubAllEnvs();
+  }
+});
+
+const rooms: InstanceType<typeof LobbyRoom>[] = [];
+beforeEach(() => {
+  vi.useFakeTimers();
+});
+afterEach(() => {
+  for (const room of rooms.splice(0)) {
+    room.onDispose();
+    room.clock.clear();
+    room.clock.stop();
+  }
+  vi.clearAllTimers();
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+});
+
+/** n grających i (gdy jest miejsce) jeden obserwator; nicki jak id sesji. */
+async function openRoom(n: number, options?: { solo?: string; from?: string }) {
+  const room = new LobbyRoom();
+  rooms.push(room);
+  const handlers = new Map<string, (client: Client, raw: unknown) => void>();
+  vi.spyOn(room, "onMessage").mockImplementation((type, handler) => {
+    handlers.set(String(type), handler as unknown as (client: Client, raw: unknown) => void);
+  });
+  vi.spyOn(room.clock, "setTimeout").mockImplementation((callback, ms, ...args) => {
+    const timer = setTimeout(callback, ms, ...args);
+    return { clear: () => clearTimeout(timer) } as ReturnType<typeof room.clock.setTimeout>;
+  });
+  await room.onCreate(options);
+  const total = options?.solo ? 1 : n + 1;
+  const clients = Array.from({ length: total }, (_, i) => ({ sessionId: `p${i + 1}`, send: vi.fn() } as unknown as Client));
+  for (const client of clients) {
+    room.clients.push(client);
+    room.onJoin(client, {}, { nick: client.sessionId });
+  }
+  const send = (player: number, type: string, raw: unknown = {}) => handlers.get(type)!(clients[player], raw);
+  const snapshot = (player = 0): RoomView => vi.mocked(clients[player].send).mock.calls.filter(([type]) => type === "room").at(-1)![1] as RoomView;
+  const recorded = vi.spyOn(stats, "recordMatch");
+  const signals = vi.spyOn(stats, "signal");
+  const entries = () => recorded.mock.calls.map(([entry]) => entry as MatchEntry);
+  const signalled = () => signals.mock.calls.map(([gameId, kind]) => `${gameId}:${kind}`);
+  return { room, send, snapshot, clients, entries, signalled };
+}
+
+async function gomoku() {
+  const ctx = await openRoom(2);
+  ctx.send(0, "pickGame", { gameId: "piec-w-rzedzie" });
+  ctx.send(1, "ready", { ready: true });
+  ctx.send(0, "start");
+  expect(ctx.snapshot().phase).toBe("playing");
+  return ctx;
+}
+function winGomoku(send: (player: number, type: string, raw?: unknown) => void) {
+  for (const x of [0, 1, 2, 3, 4]) {
+    send(0, "move", { x, y: 0 });
+    if (x < 4) send(1, "move", { x, y: 1 });
+  }
+}
+async function stoper(n: number) {
+  const ctx = await openRoom(n);
+  ctx.send(0, "pickGame", { gameId: "stoper" });
+  for (let i = 1; i < n; i++) ctx.send(i, "ready", { ready: true });
+  ctx.send(0, "start");
+  for (let i = 0; i < n; i++) ctx.send(i, "begin");
+  vi.advanceTimersByTime(3000);
+  return ctx;
+}
+
+describe("historia partii z pokoju", () => {
+  test("ukończona partia: gra, tryb, rodzaj, źródło, czas, obserwatorzy, miejsca i wygrana", async () => {
+    vi.setSystemTime(new Date(2026, 10, 10, 20, 0));
+    const { send, entries } = await gomoku();
+    vi.advanceTimersByTime(5000);
+    winGomoku(send);
+    expect(entries()).toHaveLength(1);
+    const [entry] = entries();
+    expect(entry).toMatchObject({
+      gameId: "piec-w-rzedzie",
+      kind: "room",
+      source: "host",
+      outcome: "completed",
+      started: true,
+      observers: 1,
+      reactions: 0,
+      players: [
+        { nick: "p1", place: 1, won: true, left: false, timeouts: 0, score: null },
+        { nick: "p2", place: 2, won: false, left: false, timeouts: 0, score: null },
+      ],
+    });
+    expect(entry.endedAt - entry.startedAt).toBe(5000);
+    expect(entry.roomKey).toMatch(/.{8,}/);
+  });
+
+  test("przerwana przez gospodarza: `stopped`, bez miejsc", async () => {
+    const { send, entries } = await gomoku();
+    send(0, "stopGame");
+    expect(entries()[0]).toMatchObject({ outcome: "stopped", players: [{ place: null, won: false }, { place: null, won: false }] });
+  });
+
+  test("wyjście w trakcie: walkower, wychodzący ma `left`", async () => {
+    const { room, entries, clients } = await gomoku();
+    await room.onLeave(clients[1], CloseCode.CONSENTED);
+    expect(entries()[0]).toMatchObject({ outcome: "walkover", players: [{ nick: "p1", place: 1, won: true }, { nick: "p2", place: null, left: true }] });
+  });
+
+  test("ruchy zegara liczą się graczowi, reakcje partii", async () => {
+    const { send, entries } = await gomoku();
+    vi.advanceTimersByTime(60_000);
+    send(0, "react", { index: 1 });
+    vi.advanceTimersByTime(1000);
+    send(1, "react", { index: 2 });
+    send(0, "stopGame");
+    expect(entries()[0].players[0].timeouts).toBe(1);
+    expect(entries()[0].reactions).toBe(2);
+  });
+
+  test("rewanż ma źródło `rematch`", async () => {
+    const { send, entries } = await gomoku();
+    winGomoku(send);
+    send(0, "rematch");
+    send(1, "rematch");
+    send(0, "stopGame");
+    expect(entries().map((e) => e.source)).toEqual(["host", "rematch"]);
+  });
+
+  test("mini-gra: wynik rekordu i miejsca z remisami", async () => {
+    const { send, entries } = await stoper(2);
+    send(0, "move", { type: "result", deviation: 100 });
+    send(1, "move", { type: "result", deviation: 200 });
+    expect(entries()[0]).toMatchObject({ gameId: "stoper", outcome: "completed", players: [{ nick: "p1", place: 1, won: true }, { nick: "p2", place: 2 }] });
+    expect(entries()[0].players.every((p) => typeof p.score === "number")).toBe(true);
+  });
+
+  test("turniej i szybka seria mają swój rodzaj", async () => {
+    const quick = await openRoom(2);
+    quick.send(0, "quickSeries");
+    quick.send(0, "stopGame");
+    expect(quick.entries()[0]).toMatchObject({ kind: "quick", source: "tournament" });
+
+    const full = await openRoom(2);
+    full.send(0, "pickTournament", { length: 3 });
+    full.send(1, "ready", { ready: true });
+    full.send(2, "ready", { ready: true });
+    full.send(0, "start");
+    full.send(0, "stopGame");
+    expect(full.entries()[0]).toMatchObject({ kind: "tournament", source: "tournament" });
+  });
+
+  test("solo: źródło z opcji tworzenia, wyjście z instrukcji to porzucona instrukcja", async () => {
+    const { room, entries, clients } = await openRoom(1, { solo: "stoper", from: "daily" });
+    await room.onLeave(clients[0], CloseCode.CONSENTED);
+    expect(entries()[0]).toMatchObject({ kind: "solo", source: "daily", outcome: "aborted", started: false, players: [{ nick: "p1", place: null, won: false }] });
+  });
+
+  test("solo: nieznane źródło to lista, „Jeszcze raz” to rewanż, a jedyny gracz nie wygrywa", async () => {
+    const { send, entries } = await openRoom(1, { solo: "stoper", from: "hack" });
+    send(0, "begin");
+    send(0, "move", { type: "result", deviation: 100 });
+    send(0, "rematch");
+    expect(entries()[0]).toMatchObject({ kind: "solo", source: "list", started: true, players: [{ place: 1, won: false }] });
+    send(0, "begin");
+    send(0, "move", { type: "result", deviation: 50 });
+    expect(entries()[1]).toMatchObject({ source: "rematch" });
+  });
+
+  test("błąd zapisu historii nie psuje końca partii", async () => {
+    const { send, snapshot } = await gomoku();
+    vi.spyOn(stats, "recordMatch").mockImplementation(() => {
+      throw new Error("pełny dysk");
+    });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    winGomoku(send);
+    expect(snapshot().phase).toBe("over");
+  });
+});
+
+describe("sygnały gier", () => {
+  test("wybór gry i powrót bez startu: picked i dropped; wybór i start: tylko picked", async () => {
+    const { send, signalled } = await openRoom(2);
+    send(0, "pickGame", { gameId: "statki" });
+    send(0, "pickGame", { gameId: null });
+    send(0, "pickGame", { gameId: "piec-w-rzedzie" });
+    send(1, "ready", { ready: true });
+    send(0, "start");
+    expect(signalled()).toEqual(["statki:picked", "statki:dropped", "piec-w-rzedzie:picked"]);
+  });
+
+  test("zmiana gry na inną też porzuca poprzednią", async () => {
+    const { send, signalled } = await openRoom(2);
+    send(0, "pickGame", { gameId: "statki" });
+    send(0, "pickGame", { gameId: "memory" });
+    expect(signalled()).toEqual(["statki:picked", "statki:dropped", "memory:picked"]);
+  });
+
+  test("głosowanie: każda pokazana opcja i zwycięzca", async () => {
+    const { send, snapshot, signalled } = await stoper(2);
+    send(0, "move", { type: "result", deviation: 100 });
+    send(1, "move", { type: "result", deviation: 200 });
+    send(0, "otherGame");
+    const { options } = snapshot().vote!;
+    send(0, "vote", { id: options[1] });
+    send(1, "vote", { id: options[1] });
+    expect(signalled()).toEqual([...options.map((id) => `${id}:voteShown`), `${options[1]}:voteWon`]);
+  });
+
+  test("Jak grać: raz na osobę i grę, w Setup albo w partii; mini-gra i nieznana gra się nie liczą", async () => {
+    const { send, signalled } = await openRoom(2);
+    send(0, "pickGame", { gameId: "statki" });
+    send(0, "howTo", { gameId: "statki" });
+    send(0, "howTo", { gameId: "statki" });
+    send(1, "howTo", { gameId: "statki" });
+    send(1, "howTo", { gameId: "stoper" });
+    send(1, "howTo", { gameId: "nie-ma" });
+    expect(signalled().filter((s) => s.endsWith("howTo"))).toEqual(["statki:howTo", "statki:howTo"]);
+  });
+});
