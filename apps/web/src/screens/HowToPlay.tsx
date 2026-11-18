@@ -29,11 +29,11 @@ export function RulesBody({ card }: { card: HowToPlay }) {
 }
 
 /** Zwinięta sekcja pod opisem gry (przed partią). Nie otwiera się sama. */
-export function RulesDetails({ gameId }: { gameId: string }) {
+export function RulesDetails({ gameId, onOpen }: { gameId: string; onOpen?: () => void }) {
   const card = HOW_TO_PLAY[gameId];
   if (!card) return null;
   return (
-    <details className="group mt-1">
+    <details className="group mt-1" onToggle={(e) => e.currentTarget.open && onOpen?.()}>
       <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
         <Question size={20} className="shrink-0" aria-hidden />
         <span className="flex-1">Jak grać</span>
@@ -47,7 +47,8 @@ export function RulesDetails({ gameId }: { gameId: string }) {
 }
 
 /** Ikona „?” z okienkiem w trakcie partii; stan otwarcia jest lokalny, czas tury biegnie dalej. */
-export function RulesButton({ gameId }: { gameId: string }) {
+/** `onOpen` zgłasza otwarcie do statystyk gier (serwer liczy osobę raz). */
+export function RulesButton({ gameId, onOpen }: { gameId: string; onOpen?: () => void }) {
   const card = HOW_TO_PLAY[gameId];
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -58,7 +59,10 @@ export function RulesButton({ gameId }: { gameId: string }) {
         type="button"
         className="btn-icon"
         aria-label="Jak grać"
-        onClick={() => ref.current?.showModal()}
+        onClick={() => {
+          ref.current?.showModal();
+          onOpen?.();
+        }}
       >
         <Question size={24} aria-hidden />
       </button>

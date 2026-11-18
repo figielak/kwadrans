@@ -358,10 +358,10 @@ test("15-03: TournamentSetup nie pokazuje „Jak grać”", () => {
 
 test("15-03: Game montuje RulesButton tylko w fazie playing i przekazuje help grom z własnym nagłówkiem", () => {
   const game = read("Game.tsx");
-  expect(game).toMatch(/view\.phase === "playing" && <RulesButton gameId=\{def\.id\} \/>/);
+  expect(game).toMatch(/view\.phase === "playing" && <RulesButton gameId=\{def\.id\}[^\n]*?\/>/);
   for (const name of ["PanstwaMiasta", "Kalambury"]) {
     const mount = game.slice(game.indexOf(`<${name}\n`), game.indexOf("onMove", game.indexOf(`<${name}\n`)));
-    expect(mount, name).toMatch(/help=\{ownHeader && <><RulesButton gameId=\{def\.id\} \/>\{exitButton\}<\/>\}/);
+    expect(mount, name).toMatch(/help=\{ownHeader && <><RulesButton gameId=\{def\.id\}[^\n]*?\/>\{exitButton\}<\/>\}/);
   }
 });
 

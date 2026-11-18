@@ -453,7 +453,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
               )}
               {(reactable || view.phase === "playing") && (
                 <div className="-my-3 ml-auto flex shrink-0 items-center">
-                  {view.phase === "playing" && <RulesButton gameId={def.id} />}
+                  {view.phase === "playing" && <RulesButton gameId={def.id} onOpen={() => send("howTo", { gameId: def.id })} />}
                   {exitButton}
                   {reactable && view.phase === "playing" && <ReactionToggle onReact={react} />}
                 </div>
@@ -632,7 +632,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
               waitingFor={game.waitingFor}
               ranking={game.result?.ranking}
               timer={ownHeader && <Countdown game={game} total={def.turn?.(game.view).seconds} color={turnColor} tense />}
-              help={ownHeader && <><RulesButton gameId={def.id} />{exitButton}</>}
+              help={ownHeader && <><RulesButton gameId={def.id} onOpen={() => send("howTo", { gameId: def.id })} />{exitButton}</>}
               onMove={(move) => send("move", move)}
             />
           )}
@@ -645,7 +645,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
               players={view.players}
               ranking={game.result?.ranking}
               timer={ownHeader && <Countdown game={drawTime ?? game} total={drawTime?.total ?? def.turn?.(game.view).seconds} color={turnColor} tense calm={(game.view as KalamburyView).phase === "reveal"} />}
-              help={ownHeader && <><RulesButton gameId={def.id} />{exitButton}</>}
+              help={ownHeader && <><RulesButton gameId={def.id} onOpen={() => send("howTo", { gameId: def.id })} />{exitButton}</>}
               onMove={(move) => send("move", move)}
             />
           )}

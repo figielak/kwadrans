@@ -5,6 +5,7 @@ import { MiniGame } from "../games/MiniGame.tsx";
 import { fetchRanking, fetchRecords, fetchTopRecord, type RankingRow } from "../net.ts";
 import { ICONS } from "./Lobby.tsx";
 import { recordChange, recordSummary } from "./results.ts";
+import { Profile } from "./Profile.tsx";
 import { Screen } from "./ui.tsx";
 
 const num = (n: number) => n.toFixed(1).replace(".", ",");
@@ -65,7 +66,8 @@ const orderOf = (gameId: string) => GAMES[gameId].record!;
 /** Miejsce wiersza w posortowanej liście; remis = to samo miejsce. */
 const placeAt = (gameId: string, rows: RecordRow[], i: number) => rows.findIndex((r) => compareRecords(orderOf(gameId))(r, rows[i]) === 0) + 1;
 /** Ranking rekordów jednej gry: czołówka, a gdy mój wiersz jest niżej, dochodzi na końcu z prawdziwym miejscem. */
-export function RecordList({ gameId, rows, me, color, limit = 5 }: { gameId: string; rows: RecordRow[]; me: string | null; color?: string; limit?: number }) {
+/** `onNick` (ekran „Rekordy”): nick jest przyciskiem, który otwiera profil. */
+export function RecordList({ gameId, rows, me, color, limit = 5, onNick }: { gameId: string; rows: RecordRow[]; me: string | null; color?: string; limit?: number; onNick?: (nick: string) => void }) {
   if (rows.length === 0) return <p className="text-sm text-fg-muted">Nikt jeszcze nie grał. Pierwszy wynik będzie rekordem.</p>;
   const mine = me ? rows.findIndex((r) => nickKey(r.nick) === nickKey(me)) : -1;
   const shown = rows.slice(0, limit).map((_, i) => i);
@@ -86,10 +88,7 @@ export function RecordList({ gameId, rows, me, color, limit = 5 }: { gameId: str
             ) : (
               <span className={`w-6 font-mono font-semibold tabular-nums ${i === mine ? "" : "text-fg-muted"}`}>{placeAt(gameId, rows, i)}.</span>
             )}
-            <span className="min-w-0 flex-1 truncate">
-              {rows[i].nick}
-              {i === mine && " (ty)"}
-            </span>
+            <NickName nick={rows[i].nick} mine={i === mine} onNick={onNick} />
             <span className="font-mono tabular-nums">
               {formatBest(gameId, rows[i].best)}
               {formatTie(gameId, rows[i].tie) && <span className="opacity-60"> · {formatTie(gameId, rows[i].tie)}</span>}
@@ -98,6 +97,23 @@ export function RecordList({ gameId, rows, me, color, limit = 5 }: { gameId: str
         );
       })}
     </ol>
+  );
+}
+
+/** Nick w rankingu; z `onNick` to przycisk z polem dotyku 48 px, który otwiera profil. */
+/** `inset`: wiersz ma już własny odstęp w pionie, więc przycisk wchodzi w niego, zamiast go powiększać. */
+function NickName({ nick, mine, onNick, inset = true }: { nick: string; mine: boolean; onNick?: (nick: string) => void; inset?: boolean }) {
+  const text = (
+    <>
+      {nick}
+      {mine && " (ty)"}
+    </>
+  );
+  if (!onNick) return <span className="min-w-0 flex-1 truncate">{text}</span>;
+  return (
+    <button type="button" className={`${inset ? "-my-2" : ""} min-h-12 min-w-0 flex-1 truncate text-left`} aria-label={`Profil: ${nick}`} onClick={() => onNick(nick)}>
+      {text}
+    </button>
   );
 }
 
@@ -231,6 +247,7 @@ interface CardProps {
   loaded: boolean;
   onOpen: () => void;
   onPlay?: (gameId: string) => void;
+  onNick?: (nick: string) => void;
 }
 
 /** Różnica między dwoma wynikami w jednostkach gry: w głównym wyniku albo, przy równym, w drugim kryterium. */
@@ -266,7 +283,7 @@ const Chip = ({ children, className = "" }: { children: ReactNode; className?: s
 );
 
 /** Karta gry: rekord dużą liczbą po prawej, pod nim to, co z niego wynika dla mnie. Rozwinięta pokazuje ranking i rekordową partię. */
-function GameCard({ game, nick, color, loaded, onOpen, onPlay }: CardProps) {
+function GameCard({ game, nick, color, loaded, onOpen, onPlay, onNick }: CardProps) {
   const { id, rows, mine } = game;
   const lead = mine?.place === 1;
   const leader = rows[0];
@@ -318,7 +335,7 @@ function GameCard({ game, nick, color, loaded, onOpen, onPlay }: CardProps) {
         <CaretDown size={14} className="shrink-0 text-fg-muted transition-transform duration-180 group-open:rotate-180" aria-hidden />
       </summary>
       <div className="border-t border-line px-3 pb-3">
-        <RecordList gameId={id} rows={rows} me={nick} color={color} limit={10} />
+        <RecordList gameId={id} rows={rows} me={nick} color={color} limit={10} onNick={onNick} />
         {loaded && <TopGame gameId={id} nick={rows[0].nick} color={lead ? color : undefined} />}
         {onPlay && (
           <button type="button" className="btn btn-ghost mt-3 w-full" onClick={() => onPlay(id)}>
@@ -391,6 +408,8 @@ export function Records({
   const [opened, setOpened] = useState<string[]>([]);
   const [allFresh, setAllFresh] = useState(false);
   const [ranking, setRanking] = useState<Record<string, RankingRow[]>>({});
+  /** Otwarty profil gracza z rankingu; zamknięcie wraca na to samo miejsce listy. */
+  const [profile, setProfile] = useState<string | null>(null);
   useEffect(() => {
     fetchRecords().then(setRecords);
     fetchRanking().then(setRanking);
@@ -421,12 +440,15 @@ export function Records({
                 loaded={opened.includes(g.id)}
                 onOpen={() => setOpened((o) => (o.includes(g.id) ? o : [...o, g.id]))}
                 onPlay={onPlay}
+                onNick={setProfile}
               />
             </li>
           ))}
         </ul>
       </section>
     );
+
+  if (profile) return <Profile nick={profile} me={nick} dropped={dropped} onBack={() => setProfile(null)} />;
 
   return (
     <Screen dropped={dropped}>
@@ -497,7 +519,7 @@ export function Records({
             </section>
           )}
 
-          <Wins ranking={ranking} me={nick} color={color} />
+          <Wins ranking={ranking} me={nick} color={color} onNick={setProfile} />
         </>
       )}
     </Screen>
@@ -505,7 +527,7 @@ export function Records({
 }
 
 /** Wygrane partie w grach głównych i turniejach (mini-gry mają rekordy wyżej). Równe wygrane i partie to to samo miejsce. */
-function Wins({ ranking, me, color }: { ranking: Record<string, RankingRow[]>; me: string | null; color?: string }) {
+function Wins({ ranking, me, color, onNick }: { ranking: Record<string, RankingRow[]>; me: string | null; color?: string; onNick: (nick: string) => void }) {
   // Turniej nie jest grą z rejestru, ale ma własny ranking.
   const title = (id: string) => (id === TOURNAMENT_ID ? "Turniej" : GAMES[id]?.minPlayers > 1 ? GAMES[id].name : undefined);
   const key = me && nickKey(me);
@@ -527,14 +549,11 @@ function Wins({ ranking, me, color }: { ranking: Record<string, RankingRow[]>; m
               const place = rows.findIndex((x) => x.wins === r.wins && x.played === r.played) + 1;
               const mine = nickKey(r.nick) === key;
               return (
-                <li key={r.nick} className="flex items-center gap-3 py-0.5" style={mine ? { color } : undefined}>
+                <li key={r.nick} className="flex items-center gap-3" style={mine ? { color } : undefined}>
                   <span className={`flex w-6 font-mono tabular-nums ${mine ? "" : "text-fg-muted"}`}>
                     {place === 1 ? <Crown size={14} weight="fill" className={mine ? "" : "text-gold"} aria-label="1. miejsce" /> : `${place}.`}
                   </span>
-                  <span className="min-w-0 flex-1 truncate">
-                    {r.nick}
-                    {mine && " (ty)"}
-                  </span>
+                  <NickName nick={r.nick} mine={mine} onNick={onNick} inset={false} />
                   <span role="img" className="font-mono tabular-nums" aria-label={`${r.wins} wygranych z ${r.played} partii`}>
                     {r.wins} z {r.played}
                   </span>

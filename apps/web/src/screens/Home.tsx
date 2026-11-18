@@ -5,6 +5,7 @@ import type { Room } from "@colyseus/sdk";
 import { Changelog, VERSION } from "./Changelog.tsx";
 import { ICONS } from "./Lobby.tsx";
 import { MiniGameGrid } from "./MiniGames.tsx";
+import { Profile } from "./Profile.tsx";
 import { formatBest, Records } from "./Records.tsx";
 import { Screen } from "./ui.tsx";
 import { codeFromUrl, createRoom, errorText, fetchDaily, fetchRecords, fetchRooms, forgetRecent, joinRoom, NO_ROOM, recentRooms, saveNick, savedNick } from "../net.ts";
@@ -43,6 +44,7 @@ const Problem = ({ id, children }: { id?: string; children: string }) => (
 );
 
 type Busy = "create" | "join" | "solo" | null;
+type SoloFrom = Parameters<typeof createRoom>[2];
 
 export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) => void; notice?: string }) {
   const [nick, setNick] = useState(savedNick);
@@ -57,7 +59,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
   const [notice, setNotice] = useState(closedNotice);
   const [soloError, setSoloError] = useState("");
   const [busy, setBusy] = useState<Busy>(null);
-  const [screen, setScreen] = useState<"records" | "all" | "changelog" | null>(null);
+  const [screen, setScreen] = useState<"records" | "all" | "changelog" | "profile" | null>(null);
   const [recent, setRecent] = useState(recentRooms);
   /** Które z ostatnich pokoi jeszcze istnieją (kod → liczba graczy); dopóki serwer nie odpowie, sekcji nie ma. */
   const [alive, setAlive] = useState<Record<string, number>>({});
@@ -81,7 +83,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
   }
 
   /** `arg`: kod pokoju przy dołączaniu, id mini-gry przy grze solo. */
-  async function go(action: Exclude<Busy, null>, arg = code) {
+  async function go(action: Exclude<Busy, null>, arg = code, from?: SoloFrom) {
     const clean = checkNick();
     setRoomError("");
     setSoloError("");
@@ -89,7 +91,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
     if (!clean) return;
     setBusy(action);
     try {
-      onRoom(action === "join" ? await joinRoom(arg, clean) : await createRoom(clean, action === "solo" ? arg : undefined));
+      onRoom(action === "join" ? await joinRoom(arg, clean) : await createRoom(clean, action === "solo" ? arg : undefined, from));
       history.replaceState(null, "", "/");
     } catch (e) {
       const text = errorText(e);
@@ -103,11 +105,18 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
       setBusy(null);
     }
   }
-  const play = (gameId: string) => go("solo", gameId);
+  const play = (gameId: string, from: SoloFrom = "list") => go("solo", gameId, from);
 
   const me = cleanNick(nick);
-  if (screen === "records") return <Records nick={me} onBack={() => setScreen(null)} onPlay={play} />;
+  if (screen === "records") return <Records nick={me} onBack={() => setScreen(null)} onPlay={(id) => play(id, "records")} />;
   if (screen === "changelog") return <Changelog onBack={() => setScreen(null)} />;
+  if (screen === "profile" && me) {
+    const editNick = () => {
+      setScreen(null);
+      setEditing(true);
+    };
+    return <Profile nick={me} me={me} onBack={() => setScreen(null)} onEditNick={editNick} />;
+  }
   if (screen === "all") {
     return (
       <Screen dropped={false}>
@@ -120,7 +129,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
           {busy === "solo" ? "Uruchamianie…" : "Dotknij gry, żeby zagrać samemu."}
         </p>
         {records === null && <p className="text-sm text-fg-muted">Nie udało się wczytać rekordów.</p>}
-        <MiniGameGrid records={records} nick={me} disabled={!!busy} onPick={play} />
+        <MiniGameGrid records={records} nick={me} disabled={!!busy} onPick={(id) => play(id)} />
       </Screen>
     );
   }
@@ -158,7 +167,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
             type="button"
             className="tile flex w-full items-center gap-3 p-4 text-left transition-transform duration-180 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-40"
             disabled={!!busy}
-            onClick={() => play(daily.gameId)}
+            onClick={() => play(daily.gameId, "daily")}
           >
             <span className="flex size-12 shrink-0 items-center justify-center rounded-inset bg-accent-soft text-accent">
               <DailyIcon size={24} weight="fill" aria-hidden />
@@ -188,7 +197,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
               const PickIcon = ICONS[id] ?? Play;
               return (
                 <li key={id}>
-                  <button type="button" className="flex min-h-12 w-full items-center gap-3 text-left" disabled={!!busy} onClick={() => play(id)}>
+                  <button type="button" className="flex min-h-12 w-full items-center gap-3 text-left" disabled={!!busy} onClick={() => play(id, "records")}>
                     <PickIcon size={20} className="shrink-0" aria-hidden />
                     <span className="flex min-w-0 flex-1 flex-col py-1.5 leading-tight">
                       <span className="truncate">{GAMES[id].name}</span>
@@ -215,7 +224,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
             type="button"
             className="btn btn-ghost px-2 whitespace-nowrap"
             disabled={!!busy}
-            onClick={() => play(MINI_GAME_IDS[Math.floor(Math.random() * MINI_GAME_IDS.length)])}
+            onClick={() => play(MINI_GAME_IDS[Math.floor(Math.random() * MINI_GAME_IDS.length)], "random")}
           >
             <Shuffle size={18} weight="bold" className="shrink-0" aria-hidden />
             Losowa gra
@@ -343,7 +352,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
         <Logo />
         <h1 className="flex-1 text-3xl font-semibold tracking-tight">Kwadrans</h1>
         {!editing && (
-          <button type="button" className="btn size-12 bg-line p-0 text-lg font-semibold" aria-label={`Grasz jako ${nick}. Zmień nick`} disabled={!!busy} onClick={() => setEditing(true)}>
+          <button type="button" className="btn size-12 bg-line p-0 text-lg font-semibold" aria-label={`Twój profil: ${nick}`} disabled={!!busy} onClick={() => setScreen("profile")}>
             {initials([nick])[0]}
           </button>
         )}
@@ -390,7 +399,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
 
       {named && !editing && (
         <p role="status" className="text-sm text-fg-muted">
-          Grasz jako <span className="font-semibold text-fg">{nick}</span>. Nick zmienisz, dotykając kółka u góry.
+          Grasz jako <span className="font-semibold text-fg">{nick}</span>. Kółko u góry otwiera twój profil, tam też zmienisz nick.
         </p>
       )}
 

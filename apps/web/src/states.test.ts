@@ -28,7 +28,7 @@ describe("platforma", () => {
     const home = read("screens/Home.tsx");
     expect(home).toContain("Uruchamianie…");
     expect(home).toMatch(/aria-label="Rekordy i rankingi"[^>]*disabled=\{!!busy\}|disabled=\{!!busy\}[^>]*aria-label="Rekordy i rankingi"/);
-    expect(home).toMatch(/disabled=\{!!busy\}[^>]*onClick=\{\(\) => setEditing\(true\)\}/);
+    expect(home).toMatch(/disabled=\{!!busy\}[^>]*onClick=\{\(\) => setScreen\("profile"\)\}/);
   });
 
   test("brak odpowiedzi serwera nie wygląda jak brak rekordów", () => {

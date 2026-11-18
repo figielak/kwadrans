@@ -12,7 +12,7 @@ test("07-06: jedyny wypełniony przycisk to „Utwórz pokój”, z pełnym kode
   expect(home).toContain('className={`btn w-full ${full ? "btn-ghost" : "btn-primary"}`} disabled={!!busy} onClick={() => go("create")}');
   expect(home).toMatch(/\{full && \(\s*<button type="submit" className="btn btn-primary w-full"/);
   // Wyzwanie dnia: cały kafel jest przyciskiem, bez btn-primary w żadnym stanie.
-  const at = home.indexOf("play(daily.gameId)");
+  const at = home.indexOf("play(daily.gameId");
   const daily = home.slice(home.lastIndexOf("<button", at), at);
   expect(daily).toContain('className="tile');
   expect(daily).not.toContain("btn-primary");
