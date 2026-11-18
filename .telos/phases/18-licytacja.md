@@ -22,7 +22,7 @@ lobby, and a technical acceptance with 2 and 6 players plus an observer on 360×
 - [x] **18-04 Game screen**
   `apps/web/src/games/Licytacja.tsx`: prize and pot on top, player row with "chose" marks, own hand as a 5×3 grid of
   48 px cards with select-and-confirm, reveal of all cards with winner in their colour, end table. Fits 360×640.
-- [ ] **18-05 Wiring**
+- [x] **18-05 Wiring**
   `apps/web/src/screens/Game.tsx` (score map :39, simultaneous phases :730, mount next to :678),
   `apps/web/src/screens/Lobby.tsx` (icon :512-520, description :561-569). Accept: `pnpm run typecheck && pnpm run build`.
 - [ ] **18-06 Technical acceptance**

@@ -344,6 +344,11 @@ describe("równoczesność w nagłówku (11-06)", () => {
     expect(isSimultaneous("wyprawa", { phase: "over" })).toBe(false);
   });
 
+  test("Licytacja: wybór i odsłona są równoczesne, koniec nie", () => {
+    for (const phase of ["choose", "reveal"]) expect(isSimultaneous("licytacja", { phase }), phase).toBe(true);
+    expect(isSimultaneous("licytacja", { phase: "over" })).toBe(false);
+  });
+
   test("Podróbka: pisanie, głosowanie i odsłona są równoczesne", () => {
     for (const phase of ["write", "vote", "summary"]) expect(isSimultaneous("podrobka", { phase }), phase).toBe(true);
   });

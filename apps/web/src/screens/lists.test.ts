@@ -133,6 +133,23 @@ test("10-07: Wyprawa w lobby ma nazwę, ikonę, opis i limit 2-6, a nie jest min
   expect(GAMES.wyprawa.record).toBeUndefined();
 });
 
+test("18-05: Licytacja w lobby ma nazwę, ikonę, opis i limit 2-6, a nie jest mini-grą ani grą z rekordem", () => {
+  const html = lobby(2);
+  expect(html).toContain("Licytacja na ślepo");
+  expect(ICONS.licytacja).toBeDefined();
+  expect(BLURBS.licytacja).toMatch(/znoszą/);
+  expect(BLURBS.licytacja).not.toMatch(/kwadrans|Geier|—/i);
+  expect(MINI_GAME_IDS).not.toContain("licytacja");
+  expect(GAMES.licytacja.record).toBeUndefined();
+});
+
+test("18-05: Game montuje Licytację po nonce z ruchem, miejscami i oczekującymi", () => {
+  const game = read("Game.tsx");
+  expect(game).toMatch(/<Licytacja\s+key=\{\(game\.view as LicytacjaView\)\.nonce\}/);
+  const mount = game.slice(game.indexOf("<Licytacja"), game.indexOf("/>", game.indexOf("<Licytacja")));
+  for (const prop of ["me={me}", "players={view.players}", "waitingFor={game.waitingFor}", "places={game.places}", 'send("move", move)']) expect(mount).toContain(prop);
+});
+
 test("10-07: Game montuje Wyprawę po nonce z ruchem, miejscami i oczekującymi, w ResultDetails", () => {
   const game = read("Game.tsx");
   expect(game).toMatch(/<Wyprawa\s+key=\{\(game\.view as WyprawaView\)\.nonce\}/);
