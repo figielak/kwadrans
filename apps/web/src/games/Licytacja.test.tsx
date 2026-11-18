@@ -148,7 +148,8 @@ describe("wybór karty", () => {
     const carried = nextAll(round(s, { [A]: 6, [B]: 6 }));
     const html = board(carried, A);
     expect(view(carried).pot).toHaveLength(2);
-    expect(html).toContain("Pula z poprzednich rund");
+    expect(html).toMatch(/>Pula</);
+    expect(html).toContain("data-pot=");
     expect(html).toMatch(upward(view(carried).pot) ? /najwyższa karta/ : /najniższa karta/);
   });
 });

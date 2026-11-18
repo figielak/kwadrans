@@ -25,7 +25,7 @@ lobby, and a technical acceptance with 2 and 6 players plus an observer on 360×
 - [x] **18-05 Wiring**
   `apps/web/src/screens/Game.tsx` (score map :39, simultaneous phases :730, mount next to :678),
   `apps/web/src/screens/Lobby.tsx` (icon :512-520, description :561-569). Accept: `pnpm run typecheck && pnpm run build`.
-- [ ] **18-06 Technical acceptance**
+- [x] **18-06 Technical acceptance**
   `/dev?n=2` and `/dev?n=6` with an observer at 360×640 (Playwright screenshots): full game, a tie that carries the pot,
   a timeout pick, rematch with a fresh `nonce`. Accept: no overflow, no console errors, `pnpm run test` exit 0.
 
@@ -41,4 +41,10 @@ lobby, and a technical acceptance with 2 and 6 players plus an observer on 360×
 - Assumed: winner is the highest sum; a tie on top has no winner, `places` share ties; no `record`, `live`, `stateVersion`.
 - Risk: with 2 players ties are frequent and long carry-overs can feel flat; check in 18-06, change only by test + doc.
 - 18-03 deviation: two type-only fixes in `licytacja.test.ts` (readonly `sum` argument, typed `cards` record); no assertion changed.
+- 18-06 result: full games with 2 players + observer and 6 players in `/dev` (Playwright, 360×640): carried pot, timeout pick,
+  real 20:20 tie with shared 1st place, rematch with fresh `nonce`, no console errors. Choose screen 640 px at 2 and 6 players
+  (round and deck count moved into the prize tile, 5-6 players as one row of dots with scores); reveal and end may scroll.
+  The observer at 6 players is covered by `playerView("")` tests: a room holds 6 people, as in Wyprawa.
+- Found in 18-06, outside this phase: a full room (6 disconnected players) answers "Ten pokój jest już pełny" before the
+  code takeover by nick (`takeOver` in `LobbyRoom.ts`), so a player who lost the token cannot return by code.
 - CHANGELOG entry only before publishing to `master`, outside this phase.

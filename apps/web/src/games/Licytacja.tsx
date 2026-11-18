@@ -68,39 +68,49 @@ function Dot({ id, label, players, ready = false }: { id: string; label: string;
   );
 }
 
-/** „Runda n/15” i nieodkryte nagrody w jednym wierszu. */
+/** „Runda n/15” i liczba nagród w talii; same nagrody są w zwijanej sekcji pod graczami. */
 function Header({ view }: { view: LicytacjaView }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex items-baseline justify-between gap-2">
       <span className="label">Runda {Math.min(view.round, LICYTACJA_ROUNDS)}/{LICYTACJA_ROUNDS}</span>
       {view.prizesLeft.length > 0 && (
-        <p className="flex flex-wrap items-center gap-1 text-xs text-fg-muted">
-          <span className="mr-0.5">W talii:</span>
-          {view.prizesLeft.map((prize, i) => (
-            <span key={i} data-left={prize} className={`rounded-[6px] border px-1 font-mono tabular-nums ${prize < 0 ? "border-warning/50 text-warning" : "border-line"}`}>
-              {signed(prize)}
-            </span>
-          ))}
-        </p>
+        <span className="text-sm text-fg-muted">
+          W talii: <span className="font-mono tabular-nums">{view.prizesLeft.length}</span>
+        </span>
       )}
     </div>
   );
 }
 
+/** Nieodkryte nagrody jako małe żetony, ujemne w kolorze ostrzeżenia. */
+function PrizesLeft({ prizes }: { prizes: number[] }) {
+  return (
+    <p className="flex flex-wrap items-center gap-1 text-xs">
+      {prizes.map((prize, i) => (
+        <span key={i} data-left={prize} className={`rounded-[6px] border px-1 font-mono tabular-nums ${prize < 0 ? "border-warning/50 text-warning" : "border-line"}`}>
+          {signed(prize)}
+        </span>
+      ))}
+    </p>
+  );
+}
+
 /** Nagroda tej rundy; przy przeniesionej puli rozpisana suma i kierunek z najnowszej. */
-function Prize({ pot, fresh }: { pot: number[]; fresh: boolean }) {
+function Prize({ view, fresh }: { view: LicytacjaView; fresh: boolean }) {
+  const pot = view.pot;
   const newest = pot.at(-1) ?? 0;
   const up = upward(pot);
   const Arrow = up ? ArrowUp : ArrowDown;
   return (
-    <div className={`tile flex items-center gap-4 p-4 ${fresh ? "animate-[card-in_0.35s_ease-out]" : ""}`}>
-      <div className={`grid h-20 w-16 shrink-0 place-items-center rounded-[10px] border-2 ${newest < 0 ? "border-warning text-warning" : "border-fg"}`}>
-        <span className="font-mono text-3xl font-semibold tabular-nums">{signed(newest)}</span>
+    <div className={`tile flex items-center gap-3 px-3 py-2.5 ${fresh ? "animate-[card-in_0.35s_ease-out]" : ""}`}>
+      <div className={`grid h-16 w-14 shrink-0 place-items-center rounded-inset border-2 ${newest < 0 ? "border-warning text-warning" : "border-fg"}`}>
+        <span className="font-mono text-2xl font-semibold tabular-nums">{signed(newest)}</span>
       </div>
-      <div className="flex min-w-0 flex-col gap-1">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="flex items-center gap-1.5 label">
           <Gift size={14} aria-hidden="true" />
-          {pot.length > 1 ? "Pula z poprzednich rund" : "Nagroda"}
+          {pot.length > 1 ? "Pula" : "Nagroda"}
+          <span className="ml-auto">Runda {view.round}/{LICYTACJA_ROUNDS}</span>
         </span>
         {pot.length > 1 && (
           <span className="font-mono text-sm tabular-nums" data-pot={total(pot)}>
@@ -111,6 +121,11 @@ function Prize({ pot, fresh }: { pot: number[]; fresh: boolean }) {
           <Arrow size={14} weight="bold" aria-hidden="true" />
           {up ? "Bierze najwyższa karta bez pary" : "Bierze najniższa karta bez pary"}
         </span>
+        {view.prizesLeft.length > 0 && (
+          <span className="text-xs text-fg-muted">
+            W talii: <span className="font-mono tabular-nums">{view.prizesLeft.length}</span>
+          </span>
+        )}
       </div>
     </div>
   );
@@ -119,12 +134,33 @@ function Prize({ pot, fresh }: { pot: number[]; fresh: boolean }) {
 /** Gracze z punktami; w wyborze znak gotowości (nigdy wybrana karta). */
 function Roster({ view, me, players }: { view: LicytacjaView; me: string; players: LobbyPlayer[] }) {
   const labels = initials(view.players.map((id) => players.find((p) => p.id === id)?.nick ?? "?"));
+  // Przy 5-6 osobach jeden rząd: kropka z inicjałem i punkty; nicki są w kropkach nagłówka, a czytnik dostaje je tekstem.
+  if (view.players.length > 4) {
+    return (
+      <ul className="grid grid-cols-6 gap-1">
+        {view.players.map((id, i) => {
+          const ready = view.phase === "choose" && view.ready.includes(id);
+          return (
+            <li key={id} data-player={id} className={`flex flex-col items-center gap-0.5 rounded-inset border py-1 ${id === me ? "border-fg-muted" : "border-line"}`}>
+              <Dot id={id} label={labels[i]} players={players} ready={ready} />
+              <span className="font-mono text-xs font-semibold tabular-nums">{signed(view.score[id])}</span>
+              <span className="sr-only">
+                {players.find((p) => p.id === id)?.nick ?? "?"}
+                {id === me ? " (ty)" : ""}
+                {ready ? ", gotowe" : ""}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
   return (
     <ul className="grid grid-cols-2 gap-1.5">
       {view.players.map((id, i) => {
         const ready = view.phase === "choose" && view.ready.includes(id);
         return (
-          <li key={id} data-player={id} className="flex min-h-10 items-center gap-1.5 rounded-[10px] border border-line px-2">
+          <li key={id} data-player={id} className={`flex min-h-10 items-center gap-1.5 rounded-inset border px-2 ${id === me ? "border-fg-muted" : "border-line"}`}>
             <Dot id={id} label={labels[i]} players={players} ready={ready} />
             <span className="min-w-0 flex-1 truncate text-sm font-medium">
               {players.find((p) => p.id === id)?.nick ?? "?"}
@@ -139,13 +175,14 @@ function Roster({ view, me, players }: { view: LicytacjaView; me: string; player
   );
 }
 
-/** Karty, które zostały rywalom (jawne, bo zagrane karty wszyscy widzieli). */
+/** Nagrody w talii i karty, które zostały rywalom (jawne, bo zagrane karty wszyscy widzieli). */
 function RivalHands({ view, me, nick }: { view: LicytacjaView; me: string; nick: (id: string) => string }) {
   const rivals = view.players.filter((id) => id !== me);
   return (
-    <details className="rounded-[10px] border border-line px-3">
-      <summary className="flex min-h-12 cursor-pointer items-center text-sm">Karty rywali</summary>
-      <ul className="flex flex-col gap-1 pb-3 text-sm">
+    <details className="rounded-inset border border-line px-3">
+      <summary className="flex min-h-12 cursor-pointer items-center text-sm">Talia i karty rywali</summary>
+      {view.prizesLeft.length > 0 && <PrizesLeft prizes={view.prizesLeft} />}
+      <ul className="flex flex-col gap-1 pt-2 pb-3 text-sm">
         {rivals.map((id) => (
           <li key={id} data-hand={id} className="flex gap-2">
             <span className="w-20 shrink-0 truncate text-fg-muted">{nick(id)}</span>
@@ -185,7 +222,7 @@ export function HandControls({ view, me, waitingFor, color, draft, onDraft, onMo
                 key={card}
                 type="button"
                 data-card={card}
-                className={`flex min-h-12 items-center justify-center rounded-[10px] border-2 font-mono text-lg font-semibold tabular-nums transition-colors duration-100 ${has ? "" : "border-dashed border-line text-fg-subtle opacity-40"}`}
+                className={`flex min-h-12 items-center justify-center rounded-inset border-2 font-mono text-lg font-semibold tabular-nums transition-colors duration-100 ${has ? "" : "border-dashed border-line text-fg-subtle opacity-40"}`}
                 style={on ? { borderColor: color, backgroundColor: `color-mix(in srgb, ${color} 22%, transparent)` } : has ? { borderColor: "var(--color-line)" } : undefined}
                 aria-pressed={on}
                 aria-label={has ? `Karta ${card}` : `Karta ${card}, zagrana`}
@@ -211,12 +248,9 @@ export function HandControls({ view, me, waitingFor, color, draft, onDraft, onMo
           </p>
         ) : (
           active && (
-            <>
-              <button type="button" className="btn btn-player w-full" style={{ backgroundColor: color }} disabled={!send} onClick={() => send && onMove(send)}>
-                {send ? `Gotowe · ${send.card}` : "Gotowe"}
-              </button>
-              <p className="text-center text-xs text-fg-muted">Bez Gotowe po czasie karta wybierze się losowo.</p>
-            </>
+            <button type="button" className="btn btn-player w-full" style={{ backgroundColor: color }} disabled={!send} onClick={() => send && onMove(send)}>
+              {send ? `Gotowe · ${send.card}` : "Gotowe"}
+            </button>
           )
         )}
       </div>
@@ -307,7 +341,7 @@ function Final({ view, players, nick, me, places }: { view: LicytacjaView; playe
         ))}
       </ul>
       {last && <RoundReveal record={last} players={players} nick={nick} me={me} fresh={false} last />}
-      <details className="rounded-[10px] border border-line px-3">
+      <details className="rounded-inset border border-line px-3">
         <summary className="flex min-h-12 cursor-pointer items-center text-sm">Przebieg rund</summary>
         <ol className="flex flex-col gap-1 pb-3 text-sm">
           {view.history.map((record) => (
@@ -342,12 +376,11 @@ export function LicytacjaBoard({ view, me, players, waitingFor, onMove, places, 
 
   return (
     <div className="flex flex-1 flex-col gap-3">
-      <Header view={view} />
       {!seated && <p className="text-sm text-fg-muted">Oglądasz licytację.</p>}
       {view.phase === "reveal" && record ? (
         <RoundReveal record={record} players={players} nick={nick} me={me} fresh={isNew(`round:${view.nonce}:${record.round}`)} last={false} />
       ) : (
-        <Prize pot={view.pot} fresh={isNew(`prize:${view.nonce}:${view.round}`)} />
+        <Prize view={view} fresh={isNew(`prize:${view.nonce}:${view.round}`)} />
       )}
       <Roster view={view} me={me} players={players} />
       <RivalHands view={view} me={me} nick={nick} />
