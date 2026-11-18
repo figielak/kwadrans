@@ -1,7 +1,7 @@
 import type { DatabaseSync } from "node:sqlite";
 import {
-  addGame, eveningTable, GAMES, type Evening, type HistoryRow, type MatchEntry, type MatchKind, type MatchOutcome, type MatchSource, nickKey,
-  type Profile, type Report, type ReportGame, type Signal, SIGNALS,
+  addGame, eveningTable, GAMES, type Evening, type GameDetail, type HistoryRow, type Insights, type MatchEntry, type MatchKind, type MatchOutcome, type MatchSource,
+  nickKey, type PlayerStat, type Profile, type Report, type ReportGame, type Signal, SIGNALS,
 } from "@kwadrans/games";
 
 export { type MatchEntry, type MatchKind, type MatchOutcome, type MatchSource, type Signal, SOLO_SOURCES } from "@kwadrans/games";
@@ -138,6 +138,8 @@ export function openHistory(db: DatabaseSync, transaction: (fn: () => void) => v
       };
     },
 
+    insights,
+
     /** Każda gra z listy (także bez partii) od chwili `since`. */
     report(gameIds: string[], since: number): Report {
       const rows = db.prepare(`
@@ -169,6 +171,123 @@ export function openHistory(db: DatabaseSync, transaction: (fn: () => void) => v
       return { games, totals: { matches: totals.matches, players: totals.players, days: totals.days } };
     },
   };
+
+  /** Szczegóły okresu liczone w pamięci: przy skali Kwadransu to setki partii, a jedno przejście jest prostsze niż kilkanaście zapytań. */
+  function insights(since: number, now = Date.now()): Insights {
+    type Row = { id: number; room_key: string; game_id: string; mode: string | null; kind: MatchKind; source: MatchSource; outcome: MatchOutcome; started_at: number; ended_at: number; players: number };
+    type Seat = { match_id: number; nick_key: string; nick: string; place: number | null; won: number };
+    const WEEK = 7 * 86_400_000;
+    const from = Math.min(since, now - 12 * WEEK);
+    const all = db.prepare("SELECT id, room_key, game_id, mode, kind, source, outcome, started_at, ended_at, players FROM matches WHERE started_at >= ? ORDER BY id").all(from) as Row[];
+    const seats = db.prepare("SELECT p.match_id, p.nick_key, p.nick, p.place, p.won FROM match_players p JOIN matches m ON m.id = p.match_id WHERE m.started_at >= ? ORDER BY p.match_id, p.seat").all(from) as Seat[];
+    const seatsOf = new Map<number, Seat[]>();
+    for (const s of seats) seatsOf.set(s.match_id, [...(seatsOf.get(s.match_id) ?? []), s]);
+    const rows = all.filter((m) => m.started_at >= since);
+    const counted = <K extends string | number | null>(keys: K[]) => {
+      const map = new Map<K, number>();
+      for (const k of keys) map.set(k, (map.get(k) ?? 0) + 1);
+      return [...map].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])));
+    };
+    const bySize = (list: Row[]) => counted(list.map((m) => m.players)).map(([players, n]) => ({ players, n })).sort((a, b) => a.players - b.players);
+    const seconds = (m: Row) => (m.ended_at - m.started_at) / 1000;
+    const timed = (m: Row) => m.source !== "import";
+
+    // Przebieg dzienny: od początku okresu albo pierwszej partii, do dziś włącznie.
+    const isMain = (gameId: string) => (GAMES[gameId]?.minPlayers ?? 1) > 1;
+    const daily: Insights["daily"] = [];
+    const start = since > 0 ? since : Math.min(now, ...rows.map((m) => m.started_at));
+    const day = new Date(start);
+    day.setHours(12, 0, 0, 0);
+    const index = new Map<string, Insights["daily"][number]>();
+    for (; localDay(day.getTime()) <= localDay(now); day.setDate(day.getDate() + 1)) {
+      const entry = { day: localDay(day.getTime()), main: 0, mini: 0, solo: 0 };
+      daily.push(entry);
+      index.set(entry.day, entry);
+    }
+    const hours = Array.from({ length: 7 }, () => Array<number>(24).fill(0));
+    for (const m of rows) {
+      const entry = index.get(localDay(m.started_at));
+      if (entry) entry[m.kind === "solo" ? "solo" : isMain(m.game_id) ? "main" : "mini"]++;
+      const d = new Date(m.started_at);
+      hours[(d.getDay() + 6) % 7][d.getHours()]++;
+    }
+
+    // Gracze w okresie: pierwsza i ostatnia partia z całej historii.
+    const span = new Map((db.prepare("SELECT p.nick_key AS key, MIN(m.started_at) AS first, MAX(m.started_at) AS last FROM match_players p JOIN matches m ON m.id = p.match_id GROUP BY p.nick_key").all() as { key: string; first: number; last: number }[]).map((r) => [r.key, r]));
+    const people = new Map<string, { nick: string; matches: number; days: Set<string>; wins: number; games: string[] }>();
+    for (const m of rows) {
+      for (const s of seatsOf.get(m.id) ?? []) {
+        const person = people.get(s.nick_key) ?? { nick: s.nick, matches: 0, days: new Set<string>(), wins: 0, games: [] };
+        people.set(s.nick_key, person);
+        person.nick = s.nick;
+        person.matches++;
+        person.days.add(localDay(m.started_at));
+        person.wins += Number(s.won === 1 && m.players >= 2);
+        person.games.push(m.game_id);
+      }
+    }
+    const players: PlayerStat[] = [...people].map(([key, p]) => ({
+      key, nick: p.nick, matches: p.matches, days: p.days.size, wins: p.wins, favorite: counted(p.games)[0]?.[0] ?? null,
+      firstAt: span.get(key)!.first, lastAt: span.get(key)!.last, isNew: span.get(key)!.first >= since,
+    })).sort((a, b) => b.matches - a.matches || b.wins - a.wins || a.key.localeCompare(b.key));
+
+    // Wieczory: pokoje (bez solo i importu) z co najmniej dwiema ukończonymi partiami z innymi; długość od pierwszego startu do ostatniego końca.
+    const rooms = new Map<string, Row[]>();
+    for (const m of rows) if (m.kind !== "solo" && m.source !== "import") rooms.set(m.room_key, [...(rooms.get(m.room_key) ?? []), m]);
+    const evenings = [...rooms.values()].filter((list) => list.filter((m) => m.outcome === "completed" && m.players >= 2).length >= 2);
+
+    const games: Record<string, GameDetail> = {};
+    for (const gameId of new Set(rows.map((m) => m.game_id))) {
+      const list = rows.filter((m) => m.game_id === gameId);
+      const done = list.filter((m) => m.outcome === "completed" && timed(m));
+      const top = new Map<string, { nick: string; matches: number; wins: number }>();
+      for (const m of list) {
+        for (const s of seatsOf.get(m.id) ?? []) {
+          const t = top.get(s.nick_key) ?? { nick: s.nick, matches: 0, wins: 0 };
+          top.set(s.nick_key, { nick: s.nick, matches: t.matches + 1, wins: t.wins + Number(s.won === 1 && m.players >= 2) });
+        }
+      }
+      const weekly = Array<number>(12).fill(0);
+      for (const m of all) {
+        const ago = Math.floor((now - m.started_at) / WEEK);
+        if (m.game_id === gameId && ago >= 0 && ago < 12) weekly[11 - ago]++;
+      }
+      games[gameId] = {
+        modes: counted(list.map((m) => m.mode)).map(([mode, n]) => ({ mode, n })),
+        sources: counted(list.map((m) => m.source)).map(([source, n]) => ({ source, n })),
+        outcomes: counted(list.map((m) => m.outcome)).map(([outcome, n]) => ({ outcome, n })),
+        sizes: bySize(list),
+        medianBySize: bySize(done).map(({ players }) => ({ players, seconds: median(done.filter((m) => m.players === players).map(seconds)) })),
+        top: [...top.values()].sort((a, b) => b.matches - a.matches || a.nick.localeCompare(b.nick)).slice(0, 5),
+        weekly,
+      };
+    }
+
+    return {
+      totals: {
+        matches: rows.length,
+        completed: rows.filter((m) => m.outcome === "completed").length,
+        players: players.length,
+        newPlayers: players.filter((p) => p.isNew).length,
+        returning: players.filter((p) => p.days >= 2).length,
+        days: new Set(rows.map((m) => localDay(m.started_at))).size,
+        evenings: evenings.length,
+        playSeconds: rows.filter(timed).reduce((sum, m) => sum + seconds(m), 0),
+      },
+      daily,
+      hours,
+      sources: counted(rows.map((m) => m.source)).map(([source, n]) => ({ source, n })),
+      kinds: counted(rows.map((m) => m.kind)).map(([kind, n]) => ({ kind, n })),
+      sizes: bySize(rows),
+      evenings: {
+        count: evenings.length,
+        medianMatches: median(evenings.map((list) => list.filter((m) => m.outcome === "completed").length)),
+        medianMinutes: evenings.length ? median(evenings.map((list) => (Math.max(...list.map((m) => m.ended_at)) - Math.min(...list.map((m) => m.started_at))) / 60_000)) : null,
+      },
+      players,
+      games,
+    };
+  }
 
   /** Wieczory gracza: pokoje (bez solo i importu) z co najmniej dwiema ukończonymi partiami z innymi; punkty jak w pokoju. */
   function evenings(key: string) {

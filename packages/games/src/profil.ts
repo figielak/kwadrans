@@ -84,3 +84,45 @@ export interface Report {
   games: ReportGame[];
   totals: { matches: number; players: number; days: number };
 }
+
+export interface PlayerStat {
+  key: string;
+  nick: string;
+  /** Partie w okresie (także przerwane). */
+  matches: number;
+  days: number;
+  wins: number;
+  favorite: string | null;
+  /** Pierwsza i ostatnia partia w ogóle, nie tylko w okresie. */
+  firstAt: number;
+  lastAt: number;
+  /** Pierwsza partia w okresie. */
+  isNew: boolean;
+}
+
+export interface GameDetail {
+  modes: { mode: string | null; n: number }[];
+  sources: { source: MatchSource; n: number }[];
+  outcomes: { outcome: MatchOutcome; n: number }[];
+  sizes: { players: number; n: number }[];
+  /** Mediana czasu ukończonych partii (bez importu) wg liczby grających. */
+  medianBySize: { players: number; seconds: number }[];
+  top: { nick: string; matches: number; wins: number }[];
+  /** Partie w 12 ostatnich tygodniach, od najstarszego; liczone od teraz, niezależnie od okresu. */
+  weekly: number[];
+}
+
+/** Szczegóły raportu do szerokiej strony /statystyki. Gry bez partii w okresie nie mają wpisu w `games`. */
+export interface Insights {
+  totals: { matches: number; completed: number; players: number; newPlayers: number; returning: number; days: number; evenings: number; playSeconds: number };
+  /** Doba po dobie od początku okresu (albo pierwszej partii) do dziś. */
+  daily: { day: string; main: number; mini: number; solo: number }[];
+  /** [dzień tygodnia od poniedziałku][godzina]: liczba rozpoczętych partii. */
+  hours: number[][];
+  sources: { source: MatchSource; n: number }[];
+  kinds: { kind: MatchKind; n: number }[];
+  sizes: { players: number; n: number }[];
+  evenings: { count: number; medianMatches: number; medianMinutes: number | null };
+  players: PlayerStat[];
+  games: Record<string, GameDetail>;
+}

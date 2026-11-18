@@ -62,7 +62,7 @@ const server = new Server({
     app.get("/api/report", (req, res) => {
       const days = Number(req.query.dni);
       const since = Number.isFinite(days) && days > 0 ? Date.now() - days * 86_400_000 : 0;
-      res.set("Access-Control-Allow-Origin", "*").json(stats.report(Object.keys(GAMES), since));
+      res.set("Access-Control-Allow-Origin", "*").json({ ...stats.report(Object.keys(GAMES), since), insights: stats.insights(since) });
     });
     app.use(express.static(webDist));
     // Ukryta strona raportu to ten sam frontend; bez linku z aplikacji i bez indeksowania.
