@@ -9,8 +9,8 @@ ZASADY-GIER has the game section, rule tests and `pnpm run test` pass, the tile 
 lobby, and a technical acceptance with 2 and 6 players plus an observer on 360×640 passes.
 
 ## Tasks
-- [ ] **18-01 Rules in the docs**
-  `ZASADY-GIER.md`: table row (`licytacja | 2-6 | 20 s wybór, 15 s odsłona | równoczesna, ukryty stan`) and §15 in
+- [x] **18-01 Rules in the docs**
+  `ZASADY-GIER.md`: table row (`licytacja | 2-6 | 20 s wybór, 10 s odsłona | równoczesna, ukryty stan`) and §15 in
   the short order of §14; `KONCEPT.md` §2.2 row. Accept: `grep -q "## 15. Licytacja" ZASADY-GIER.md`.
 - [ ] **18-02 Rule tests (own commit, before code)**
   `packages/games/src/licytacja.test.ts`: setup, simultaneous choice, cancel-out, carry-over, negative pot, last
@@ -36,8 +36,8 @@ lobby, and a technical acceptance with 2 and 6 players plus an observer on 360×
 - Assumed: prizes are 15 cards −5..−1 and +1..+10 shuffled by `rng`; every hand is 1-15, each card once.
 - Assumed: the sign of the newest prize decides the direction for the whole pot (positive: highest unique card,
   negative: lowest unique card), so a pot summing to 0 still has a rule; the pot left after round 15 is discarded.
-- Assumed: after the reveal a 15 s summary with "Dalej" readiness, as in Wyprawa; timeout plays a random card from
-  the hand via `rng`. Remaining hands are public (played cards are seen), only the current choice is hidden.
+- 18-01: the reveal lasts 10 s (`REVEAL_SECONDS`, not 15: 15 reveals would drag) with "Dalej" readiness; round 15
+  resolves itself (one card left each). Timeout plays a random card from the hand via `rng`. Remaining hands are public (played cards are seen), only the current choice is hidden.
 - Assumed: winner is the highest sum; a tie on top has no winner, `places` share ties; no `record`, `live`, `stateVersion`.
 - Risk: with 2 players ties are frequent and long carry-overs can feel flat; check in 18-06, change only by test + doc.
 - CHANGELOG entry only before publishing to `master`, outside this phase.
