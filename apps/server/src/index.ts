@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { matchMaker, Server } from "@colyseus/core";
 import { WebSocketTransport } from "@colyseus/ws-transport";
-import { dailyGame, GAMES, MINI_GAME_IDS } from "@kwadrans/games";
+import { dailyGame, GAMES, MINI_GAME_IDS, nickKey } from "@kwadrans/games";
 import express from "express";
 import { LobbyRoom, restoreRooms, saveRooms, stats } from "./LobbyRoom.ts";
 
@@ -47,7 +47,28 @@ const server = new Server({
       const found = (await Promise.all(codes.map((roomId) => matchMaker.query({ roomId })))).flat();
       res.set("Access-Control-Allow-Origin", "*").json(Object.fromEntries(found.map((r) => [r.roomId, r.clients])));
     });
+    // Profil gracza po nicku (nickKey), publiczny jak rankingi; 404, gdy nick nie ma żadnej partii.
+    app.get("/api/profile/:nick", (req, res) => {
+      const profile = stats.profile(nickKey(req.params.nick));
+      if (!profile) return void res.set("Access-Control-Allow-Origin", "*").sendStatus(404);
+      res.set("Access-Control-Allow-Origin", "*").json(profile);
+    });
+    // Historia stronami: `przed` to id ostatniej partii poprzedniej strony.
+    app.get("/api/profile/:nick/history", (req, res) => {
+      const before = Number(req.query.przed);
+      res.set("Access-Control-Allow-Origin", "*").json(stats.history(nickKey(req.params.nick), Number.isInteger(before) && before > 0 ? before : undefined));
+    });
+    // Raport gier do ukrytej strony /statystyki: `dni` to okres wstecz, 0 albo brak to całość.
+    app.get("/api/report", (req, res) => {
+      const days = Number(req.query.dni);
+      const since = Number.isFinite(days) && days > 0 ? Date.now() - days * 86_400_000 : 0;
+      res.set("Access-Control-Allow-Origin", "*").json(stats.report(Object.keys(GAMES), since));
+    });
     app.use(express.static(webDist));
+    // Ukryta strona raportu to ten sam frontend; bez linku z aplikacji i bez indeksowania.
+    app.get("/statystyki", (_req, res) => {
+      res.set("X-Robots-Tag", "noindex").sendFile(`${webDist}/index.html`);
+    });
   },
 });
 
