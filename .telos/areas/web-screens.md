@@ -1,4 +1,4 @@
-<!-- telos-area: commit d2a83565b27b4ed140b9b8ac4ecc20baf471783d · 2026-11-18 · paths: apps/web/src/screens/ -->
+<!-- telos-area: commit e618e97aeaa6c822f3aea64f167382f2c7b0fc48 · 2026-11-18 · paths: apps/web/src/screens/ -->
 # web-screens
 
 ## Purpose
@@ -6,11 +6,11 @@ Platform screens: Home, Lobby, Setup, the game shell, mini-game list, Records, P
 Changelog, How to play, and shared UI pieces.
 
 ## Entry points
-- `apps/web/src/screens/Game.tsx:38-42` — `MAIN_SCORE` map and `Game`
-- `apps/web/src/screens/Game.tsx:204-700` — mount of each main game screen (keyed by `nonce`)
-- `apps/web/src/screens/Game.tsx:721-735` — `SIMULTANEOUS` games and phases
-- `apps/web/src/screens/Lobby.tsx:509-600` — `ICONS` and `BLURBS` of games; guarded by `apps/web/src/screens/lists.test.ts`
-- `apps/web/src/screens/howToPlay.ts:25` — `HOW_TO_PLAY` cards, a test keeps the set complete
+- `apps/web/src/screens/Game.tsx:39-44` — `MAIN_SCORE` map and `Game`
+- `apps/web/src/screens/Game.tsx:204-705` — mount of each main game screen (keyed by `nonce`; Licytacja at `:680`)
+- `apps/web/src/screens/Game.tsx:735-745` — `SIMULTANEOUS` games and `isSimultaneous` phases (Sabotaż, Wyprawa, Licytacja)
+- `apps/web/src/screens/Lobby.tsx:510-600` — `ICONS` and `BLURBS` of games; guarded by `apps/web/src/screens/lists.test.ts`
+- `apps/web/src/screens/howToPlay.ts:25` — `HOW_TO_PLAY` cards (Licytacja `:69`), a test keeps the set complete
 - `apps/web/src/screens/ui.tsx` — `EveningTable`, `VoteCards`, `ResultHero`, `ScoreTable`, `RoundTable`, `StickyBar`, `Intro`
 - `apps/web/src/screens/Records.tsx`, `apps/web/src/screens/Profile.tsx`, `apps/web/src/screens/Statystyki.tsx`, `apps/web/src/screens/Evening.tsx`
 - `apps/web/src/screens/Changelog.tsx` — `CHANGELOG` shown from the footer

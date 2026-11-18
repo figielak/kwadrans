@@ -21,6 +21,7 @@
      kinds: decision | phase | revert | remove | quick | profile | init
      ref: NN, NN-MM, ADR NNN, quick, telos
      Archive is installed first; after an interrupted write it may duplicate live Log rows. -->
+- 2026-11-18 phase 18: closed 18-licytacja: ZASADY-GIER §15, 39 testów zasad i pełny pnpm test (games 3006, server 321, web 671), kafel, karta Jak grać i ekran w lobby, odbiór 2 i 6 graczy z obserwatorem na 360×640
 - 2026-11-18 decision quick: Migracja do telos 0.2: config v2, blok w AGENTS.md, 8 obszarów w .telos/areas/, MAP bez numerów linii (limit 600), rozpiski faz 07-16 w formacie 0.1 w gicie pod 53da0f3
 - 2026-11-18 remove quick: Ręczne skróty w .telos/ (GAMES, AUDIT, PROPOSALS, LESSONS) dezaktualizowały się bez kotwicy; wiedza w .telos/areas/, archiwum 53da0f3
 - 2026-11-18 phase 17: closed 17-statystyki-i-profile: historia partii, profil gracza i ukryty raport /statystyki (17-01..17-07)
@@ -50,4 +51,3 @@
 - 2026-11-05 decision 05: P4-022: mini-gra ma jeden termin od końca instrukcji; wyniki rywali go nie odnawiają (2026-10-31)
 - 2026-11-05 decision 05: Losowanie trudności kompletami: Liczenie czwórki działań, Obrót szóstki, W pamięci floor(n/3) mnożeń, Balon 11-20 (P4-057..060, 2026-10-31)
 - 2026-11-05 decision 05: P4-061: Refleks i Stój! mierzą od pierwszej klatki z bodźcem (rAF) do e.timeStamp; Stoper i Wieża bez zmian (2026-10-31)
-- 2026-11-05 phase 05: Audyt spójności M1 zamknięty: 62/62 pakietów, 267/267 części; otwarte odbiory U03/U04/U09/U14/P11 (2026-10-31)
