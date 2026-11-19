@@ -3,7 +3,7 @@
      Holds pointers only: phase state lives in ROADMAP, task state in the task file. -->
 Phase: 19-atrakcyjnosc-etapy-4-5
 Task: none
-Next: 19-02 Jaśniejsze powierzchnie i etykiety
+Next: 19-03 Rejestr podglądów i pilot na 5 kaflach
 Blockers: none
 Awaiting user: 09,12
 <!-- Blockers: "NN-MM: reason". Awaiting user: IDs only, e.g. "02:Q-01, 02:D-03" -->

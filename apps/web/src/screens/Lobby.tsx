@@ -474,7 +474,7 @@ export function Tile({ icon: TileIcon, name, hint, picked, dim, wishes, onClick 
       type="button"
       aria-pressed={picked}
       className={`relative flex min-h-14 items-center gap-2.5 rounded-inset border p-2 text-left transition-[color,background-color,border-color,opacity] duration-180 ${
-        picked ? "border-accent bg-accent-soft" : "border-transparent bg-surface hover:border-line-hover"
+        picked ? "border-accent bg-accent-soft" : "border-transparent bg-surface-raised hover:border-line-hover"
       } ${dim ? "opacity-60" : ""}`}
       onClick={onClick}
     >

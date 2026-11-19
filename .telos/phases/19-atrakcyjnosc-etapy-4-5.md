@@ -43,7 +43,7 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
   `DESIGN.md` §1-2 i `ZASADY.md` §4: nowe tokeny (`surface-raised`), `.label` w Satoshi bez wersalików, mono tylko dla
   kodów, czasów i wyników. Bez kodu. Accept: dokumenty nie przeczą sobie (`grep -n "label\|mono" DESIGN.md ZASADY.md`).
 
-- [ ] **19-02 Jaśniejsze powierzchnie i etykiety**
+- [x] **19-02 Jaśniejsze powierzchnie i etykiety**
   `apps/web/src/index.css:13-41` (`@theme`): jaśniejsze `--color-surface`, nowy `--color-surface-raised` (kafle gier, plansze),
   wyraźniejszy `--color-line`; `.tile` (`:72-78`) z mniej przezroczystym tłem. `.label` (`:80-86`): `font-family` Satoshi,
   bez `text-transform` i `letter-spacing`, rozmiar ~13 px. Przejrzyj użycia `.label` (`grep -rn '"label' apps/web/src`)
@@ -135,4 +135,5 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
   a w razie spadków płynności zostawiamy podgląd tylko na „Dla was teraz” i karcie wybranej gry.
 - Ryzyko: dwie zakładki tego samego nicku startujące wyzwanie naraz mogą obie dostać układ dnia; akceptowalne.
 - Ryzyko: restart serwera w trakcie dziennej próby daje nowe `rng`, ale stan po `setup` jest już zapisany, więc układ zostaje.
+- 19-02: `surface` #1c1c1f (fg-muted 5,02:1, fg 14,5:1), `surface-raised` #232327 (fg-muted 4,63:1, fg 13,4:1), `line` biel 12%, `surface-glass` 70%.
 - Carry-over 06 (odbiory U03, U04, U09, U14, P11) zostaje przy fazie 06.

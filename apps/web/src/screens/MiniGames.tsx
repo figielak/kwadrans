@@ -63,7 +63,7 @@ export function MiniGameGrid({ records, nick, color, picked, disabled, wishes, o
               disabled={disabled}
               data-game={id}
               className={`relative flex min-h-20 flex-col items-start gap-1 rounded-inset border p-2 text-left transition-colors duration-180 ${
-                picked === id ? "border-accent bg-accent-soft" : "border-transparent bg-surface hover:border-line-hover"
+                picked === id ? "border-accent bg-accent-soft" : "border-transparent bg-surface-raised hover:border-line-hover"
               }`}
               onClick={() => onPick(id)}
             >
