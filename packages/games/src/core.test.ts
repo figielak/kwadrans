@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { byHitsThenAverage, byScoreThenAverage, compareRecords, createRng, dailyGame, dailySeed, initials, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing, withSum } from "./core.ts";
+import { byHitsThenAverage, byScoreThenAverage, compareRecords, createRng, dailyGame, dailySeed, dailyStreak, initials, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing, withSum } from "./core.ts";
 
 test("ten sam seed daje ten sam ciąg", () => {
   const a = createRng(42);
@@ -298,5 +298,44 @@ describe("dailySeed", () => {
     const seeds = new Set<number>();
     for (let day = 20_000; day < 20_030; day++) for (const id of ["stoper", "refleks", "w-pamieci"]) seeds.add(dailySeed(day, id));
     expect(seeds.size).toBe(90);
+  });
+});
+
+// 19-07: seria dni wyzwania bez kary: jeden brak w 7 dniach wybaczony, dziś jeszcze nie grane nie przerywa.
+describe("dailyStreak", () => {
+  const T = 20_400;
+  const run = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
+
+  test("brak dni: zero", () => {
+    expect(dailyStreak([], T)).toEqual({ streak: 0, total: 0 });
+  });
+
+  test("dni z rzędu do dziś", () => {
+    expect(dailyStreak(run(T - 4, T), T)).toEqual({ streak: 5, total: 5 });
+  });
+
+  test("dziś jeszcze nie grane nie przerywa serii do wczoraj", () => {
+    expect(dailyStreak(run(T - 4, T - 1), T)).toEqual({ streak: 4, total: 4 });
+  });
+
+  test("jeden brak w tygodniu jest wybaczony, seria liczy zagrane dni", () => {
+    expect(dailyStreak([...run(T - 6, T - 3), ...run(T - 1, T)], T)).toEqual({ streak: 6, total: 6 });
+  });
+
+  test("dwa braki w 7 dniach kończą serię", () => {
+    expect(dailyStreak([T - 8, T - 7, T - 5, T - 4, T - 2, T - 1, T], T)).toEqual({ streak: 5, total: 7 });
+  });
+
+  test("braki co 7 dni nie kończą serii", () => {
+    const days = run(T - 20, T).filter((d) => d !== T - 3 && d !== T - 10 && d !== T - 17);
+    expect(dailyStreak(days, T)).toEqual({ streak: days.length, total: days.length });
+  });
+
+  test("po przerwie seria zero, łączna liczba dni zostaje; powtórki i przyszłość się nie liczą", () => {
+    expect(dailyStreak([T - 30, T - 29, T - 29, T + 1], T)).toEqual({ streak: 0, total: 2 });
+  });
+
+  test("jeden opuszczony dzień przed dziś: seria trwa (brak wybaczony)", () => {
+    expect(dailyStreak(run(T - 3, T - 2), T)).toEqual({ streak: 2, total: 2 });
   });
 });

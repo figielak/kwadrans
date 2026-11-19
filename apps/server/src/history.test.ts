@@ -459,3 +459,28 @@ describe("ranking dnia", () => {
     expect(stats.dailyRanking({ id: "refleks", lower: false }, midnight).map((r) => r.nick)).toEqual(["Ola", "Ala"]);
   });
 });
+
+// 19-07: seria dni wyzwania liczy dni z rozpoczętą próbą z kafla (także treningiem), po lokalnej dobie.
+describe("seria dni wyzwania", () => {
+  const day = (offset: number, hour = 12) => new Date(2026, 10, 10 + offset, hour).getTime();
+  const solo = (nick: string, at: number, extra: Partial<MatchEntry> = {}) =>
+    match("stoper", [p(nick, null)], { kind: "solo", source: "daily", startedAt: at, endedAt: at + MIN, ...extra });
+
+  it("dni z rozpoczętą próbą z kafla wyzwania, bez instrukcji bez startu i bez innych źródeł", () => {
+    const stats = openStats(":memory:");
+    stats.recordMatch(solo("Ala", day(0, 9)));
+    stats.recordMatch(solo("Ala", day(0, 21)));
+    stats.recordMatch(solo("Ala", day(1, 0)));
+    stats.recordMatch(solo("Ala", day(2), { started: false }));
+    stats.recordMatch(solo("Ala", day(3), { source: "list" }));
+    const midnight = (offset: number) => Math.round(new Date(2026, 10, 10 + offset).getTime() / 86_400_000);
+    expect(stats.dailyDays("ala")).toEqual([midnight(0), midnight(1)]);
+  });
+
+  it("profil ma serię i łączną liczbę dni wyzwania", () => {
+    const stats = openStats(":memory:");
+    for (const offset of [0, 1, 2]) stats.recordMatch(solo("Ala", day(offset)));
+    expect(stats.profile("ala", day(2))!.daily).toEqual({ streak: 3, total: 3 });
+    expect(stats.profile("ala", day(30))!.daily).toEqual({ streak: 0, total: 3 });
+  });
+});
