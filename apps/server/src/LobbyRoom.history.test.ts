@@ -153,6 +153,9 @@ describe("historia partii z pokoju", () => {
     send(1, "move", { type: "result", deviation: 200 });
     expect(entries()[0]).toMatchObject({ gameId: "stoper", outcome: "completed", players: [{ nick: "p1", place: 1, won: true }, { nick: "p2", place: 2 }] });
     expect(entries()[0].players.every((p) => typeof p.score === "number")).toBe(true);
+    // Drugie kryterium trafia do historii zawsze, przy grze bez niego jako null (ranking dnia).
+    expect(entries()[0].players.every((p) => p.tie === null || typeof p.tie === "number")).toBe(true);
+    expect(entries()[0].players.every((p) => "tie" in p)).toBe(true);
   });
 
   test("turniej i szybka seria mają swój rodzaj", async () => {

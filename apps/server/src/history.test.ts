@@ -420,3 +420,42 @@ describe("próba wyzwania dnia", () => {
     expect(stats.dailyTaken("ala", "stoper", midnight)).toBe(true);
   });
 });
+
+// 19-06: ranking dnia to pierwsze próby z kafla wyzwania (wspólny układ), nie najlepsze wyniki z dowolnej partii.
+describe("ranking dnia", () => {
+  const midnight = new Date(2026, 10, 10).getTime();
+  const order = { id: "refleks", lower: true, tie: { lower: true } };
+  const attempt = (nick: string, score: number | null, tie: number | null, extra: Partial<MatchEntry> = {}) =>
+    match("refleks", [p(nick, score === null ? null : 1, { score, tie })], { kind: "solo", source: "daily", daily: true, ...extra });
+
+  it("tylko rozpoczęte próby dnia z wynikiem, od północy, w porządku rekordu z drugim kryterium", () => {
+    const stats = openStats(":memory:");
+    stats.recordMatch(attempt("Ala", 250, 3));
+    stats.recordMatch(attempt("Ola", 250, 2));
+    stats.recordMatch(attempt("Ewa", 240, null));
+    stats.recordMatch(attempt("Iza", null, null, { outcome: "aborted" }));
+    stats.recordMatch(attempt("Jan", 100, null, { started: false }));
+    stats.recordMatch(attempt("Kuba", 100, null, { startedAt: midnight - MIN }));
+    stats.recordMatch(attempt("Lena", 100, null, { daily: false }));
+    stats.recordMatch(match("refleks", [p("Marek", 1, { score: 100 })]));
+    expect(stats.dailyRanking(order, midnight)).toEqual([
+      { nick: "Ewa", best: 240, tie: null, played: 1 },
+      { nick: "Ola", best: 250, tie: 2, played: 1 },
+      { nick: "Ala", best: 250, tie: 3, played: 1 },
+    ]);
+  });
+
+  it("trening po próbie nie poprawia wyniku dnia", () => {
+    const stats = openStats(":memory:");
+    stats.recordMatch(attempt("Ala", 300, null));
+    stats.recordMatch(attempt("Ala", 200, null, { daily: false }));
+    expect(stats.dailyRanking(order, midnight)).toEqual([{ nick: "Ala", best: 300, tie: null, played: 1 }]);
+  });
+
+  it("wyższy wynik lepszy w grach na punkty", () => {
+    const stats = openStats(":memory:");
+    stats.recordMatch(attempt("Ala", 10, null));
+    stats.recordMatch(attempt("Ola", 12, null));
+    expect(stats.dailyRanking({ id: "refleks", lower: false }, midnight).map((r) => r.nick)).toEqual(["Ola", "Ala"]);
+  });
+});
