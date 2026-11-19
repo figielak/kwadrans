@@ -484,3 +484,39 @@ describe("seria dni wyzwania", () => {
     expect(stats.profile("ala", day(30))!.daily).toEqual({ streak: 0, total: 3 });
   });
 });
+
+// 19-08: pojedynek dwóch osób na regułach bilansu z profilu, opcjonalnie w jednej grze.
+describe("pojedynki", () => {
+  const seeded = () => {
+    const stats = openStats(":memory:");
+    stats.recordMatch(match("statki", [p("Ala", 1), p("Ola", 2)]));
+    stats.recordMatch(match("statki", [p("Ola", 1), p("ala", 2)]));
+    stats.recordMatch(match("chinczyk", [p("Ala", 1), p("Ola", 2), p("Iza", 3)]));
+    stats.recordMatch(match("memory", [p("Ala", 1), p("Ola", 1)]));
+    stats.recordMatch(match("statki", [p("Ala", 1), p("Ola", null, { left: true })], { outcome: "walkover" }));
+    stats.recordMatch(match("statki", [p("Ala", null), p("Ola", null)], { outcome: "aborted" }));
+    stats.recordMatch(match("stoper", [p("Ala", 1)], { kind: "solo" }));
+    return stats;
+  };
+
+  it("bilans każdej pary obecnych: kto był wyżej, remis miejsc osobno, partie nieukończone pominięte", () => {
+    expect(seeded().duels(["ala", "ola", "iza"])).toEqual([
+      { a: "ala", b: "iza", wins: [1, 0], ties: 0, matches: 1 },
+      { a: "ala", b: "ola", wins: [2, 1], ties: 1, matches: 4 },
+      { a: "iza", b: "ola", wins: [0, 1], ties: 0, matches: 1 },
+    ]);
+  });
+
+  it("kolejność nicków nie zmienia wyniku, gra zawęża", () => {
+    const stats = seeded();
+    expect(stats.duels(["ola", "ala"])).toEqual(stats.duels(["ala", "ola"]));
+    expect(stats.duels(["ala", "ola"], "statki")).toEqual([{ a: "ala", b: "ola", wins: [1, 1], ties: 0, matches: 2 }]);
+  });
+
+  it("bez wspólnych partii albo z jednym nickiem: pusto", () => {
+    const stats = seeded();
+    expect(stats.duels(["ala", "nikt"])).toEqual([]);
+    expect(stats.duels(["ala"])).toEqual([]);
+    expect(stats.duels([])).toEqual([]);
+  });
+});
