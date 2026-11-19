@@ -1,6 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 import {
-  addGame, compareRecords, dailyStreak, eveningTable, GAMES, type Evening, type GameDetail, type HistoryRow, type Insights, type MatchEntry, type MatchKind, type MatchOutcome, type MatchSource,
+  addGame, compareRecords, dailyStreak, type Duel, eveningTable, GAMES, type Evening, type GameDetail, type HistoryRow, type Insights, type MatchEntry, type MatchKind, type MatchOutcome, type MatchSource,
   nickKey, type PlayerStat, type Profile, type RecordOrder, type RecordRow, type Report, type ReportGame, type Signal, SIGNALS,
 } from "@kwadrans/games";
 
@@ -117,6 +117,22 @@ export function openHistory(db: DatabaseSync, transaction: (fn: () => void) => v
     },
 
     dailyDays,
+
+    /** Pojedynki każdej pary podanych osób (unikalne `nickKey`), na regułach bilansu z profilu; `gameId` zawęża do jednej gry. */
+    duels(keys: string[], gameId?: string): Duel[] {
+      const unique = [...new Set(keys)];
+      if (unique.length < 2) return [];
+      const marks = unique.map(() => "?").join();
+      const rows = db.prepare(`
+        SELECT a.nick_key AS a, b.nick_key AS b, COUNT(*) AS matches,
+          SUM(a.place < b.place) AS aw, SUM(a.place > b.place) AS bw, SUM(a.place = b.place) AS ties
+        FROM match_players a JOIN match_players b ON b.match_id = a.match_id AND a.nick_key < b.nick_key JOIN matches m ON m.id = a.match_id
+        WHERE ${VERSUS} AND a.place IS NOT NULL AND b.place IS NOT NULL AND a.nick_key IN (${marks}) AND b.nick_key IN (${marks})
+          ${gameId ? "AND m.game_id = ?" : ""}
+        GROUP BY a.nick_key, b.nick_key ORDER BY a.nick_key, b.nick_key`).all(...unique, ...unique, ...(gameId ? [gameId] : [])) as
+        { a: string; b: string; matches: number; aw: number; bw: number; ties: number }[];
+      return rows.map((r) => ({ a: r.a, b: r.b, wins: [r.aw, r.bw], ties: r.ties, matches: r.matches }));
+    },
 
     /** Czy ten nick zaczął już dziś (od `since`) próbę wyzwania w tej grze; wtedy kolejna to trening z losowym układem. */
     dailyTaken(key: string, gameId: string, since: number): boolean {

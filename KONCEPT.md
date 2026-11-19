@@ -241,7 +241,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
 - **Rekord stołu**: najlepszy wynik wszech czasów spośród osób obecnych w pokoju (po `nickKey`), z wierszy `/api/records`, liczony u klienta (`tableRecord` w core.ts).
   Stoi obok rekordu wszech czasów w panelu po partii, na ekranie instrukcji i na karcie wybranej gry, tylko gdy różni się od lidera; solo go nie ma.
 - **Pojedynki**: bilans dwóch osób (`nickKey`) w ukończonych partiach 2+ osób, kto był wyżej, na tych samych regułach co bilans w profilu
-  (remis miejsc bez punktu, bez solo i partii nieukończonych; wyniki sprzed historii też się liczą), opcjonalnie zawężony do jednej gry (`/api/duels?nicks=…&game=…`, do 6 nicków).
+  (remis miejsc bez punktu, bez solo i partii nieukończonych; wyniki sprzed historii też się liczą), opcjonalnie zawężony do jednej gry (`/api/duels?n=…&n=…&game=…`, do 6 nicków).
   Lobby pokazuje pod graczami jedną linię „Ty : Ola 7:4” dla obecnych, z którymi gracz ma historię (obserwator jej nie widzi); po partii i na ekranie gry
   głównej bilans w tej grze. Dotknięcie nicku otwiera profil.
 - Turniej ma ekran ustawień (`TournamentSetup` w `Setup.tsx`): `pickTournament` (gospodarz) ustawia liczbę gier, `markGame` (każdy) zaznacza jedną grę; obie kasują gotowość gości.

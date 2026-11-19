@@ -89,7 +89,7 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
   dostaje „Seria 5 dni” (od 2 dni), po przerwie „Łącznie 23 dni”. Bez ognia, odliczań i słów o stracie.
   Accept: `pnpm test`; kafel mieści się w jednej linii na 360 px.
 
-- [ ] **19-08 Pojedynki (serwer)**
+- [x] **19-08 Pojedynki (serwer)**
   Testy najpierw (`history.test.ts`): bilans pary z partii 2+ osób, remis miejsc nie daje punktu, solo, import i partie
   przerwane pominięte, zawężenie do gry, kolejność nicków nie zmienia wyniku. Kod: `duels(keys: string[], gameId?)`
   w `history.ts` na regułach `VERSUS` (`:296`), endpoint `GET /api/duels?nicks=a,b&game=id` w `index.ts` (do 6 nicków,

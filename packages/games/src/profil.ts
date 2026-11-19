@@ -62,6 +62,15 @@ export interface Profile {
   daily: { streak: number; total: number };
 }
 
+/** Pojedynek dwóch osób (`nickKey`, `a` < `b`): kto był wyżej w ukończonych partiach 2+ osób; `wins` w kolejności [a, b]. */
+export interface Duel {
+  a: string;
+  b: string;
+  wins: [number, number];
+  ties: number;
+  matches: number;
+}
+
 export interface ReportGame {
   gameId: string;
   matches: number;

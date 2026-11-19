@@ -1,5 +1,5 @@
 import { Client, type Room } from "@colyseus/sdk";
-import type { HistoryRow, Insights, Profile, RecordRow, Report, RoomView, SOLO_SOURCES } from "@kwadrans/games";
+import type { Duel, HistoryRow, Insights, Profile, RecordRow, Report, RoomView, SOLO_SOURCES } from "@kwadrans/games";
 
 type SoloSource = (typeof SOLO_SOURCES)[number];
 import { RESUME_WAIT_MS, resume } from "./resume.ts";
@@ -38,6 +38,12 @@ export type Daily = { gameId: string; rows: RecordRow[]; me: { streak: number; t
 
 export const fetchDaily = (nick?: string | null): Promise<Daily | null> =>
   fetch(`${serverUrl}/api/daily${nick ? `?nick=${encodeURIComponent(nick)}` : ""}`)
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null);
+
+/** Pojedynki osób z pokoju (nicki, do 6), opcjonalnie w jednej grze; null, gdy serwer nie odpowie. */
+export const fetchDuels = (nicks: string[], game?: string | null): Promise<Duel[] | null> =>
+  fetch(`${serverUrl}/api/duels?${new URLSearchParams([...nicks.map((n) => ["n", n]), ...(game ? [["game", game]] : [])])}`)
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null);
 

@@ -45,6 +45,12 @@ const server = new Server({
       const me = key ? dailyStreak(stats.dailyDays(key), day) : null;
       res.set("Access-Control-Allow-Origin", "*").json({ gameId: id, rows: stats.dailyRanking({ id, ...GAMES[id].record! }, midnight), me });
     });
+    // Pojedynki obecnych w pokoju: powtarzany `n` (nick może mieć przecinek, do 6), `game` zawęża do jednej znanej gry.
+    app.get("/api/duels", (req, res) => {
+      const keys = [req.query.n ?? []].flat().filter((n) => typeof n === "string").map((nick) => nickKey(nick)).filter(Boolean).slice(0, 6);
+      const game = typeof req.query.game === "string" && GAMES[req.query.game] ? req.query.game : undefined;
+      res.set("Access-Control-Allow-Origin", "*").json(stats.duels(keys, game));
+    });
     // Które z ostatnich pokoi gracza jeszcze istnieją i ile osób w nich siedzi: kod → liczba połączonych.
     app.get("/api/rooms", async (req, res) => {
       const codes = String(req.query.kody ?? "").split(",").filter(Boolean).slice(0, 3);
