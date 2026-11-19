@@ -79,7 +79,7 @@ function Judged({ points, circle: { cx, cy, r } }: { points: KoloPoint[]; circle
   );
 }
 
-function Preview({ color }: { color?: string }) {
+export function Preview({ color }: { color?: string }) {
   return (
     <svg viewBox="0 0 1 1" className="h-28">
         <circle

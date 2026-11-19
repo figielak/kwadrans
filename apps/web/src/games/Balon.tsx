@@ -23,7 +23,7 @@ const SIZE_MAX = 80;
 const poppedLabel = (n: number) => `${n} ${n === 1 ? "pęknięty" : n % 10 >= 2 && n % 10 <= 4 && (n < 12 || n > 14) ? "pęknięte" : "pękniętych"}`;
 
 /** Podgląd na ekranie instrukcji: mały balon i większy, który miga wokół niego. */
-function Preview({ color }: { color?: string }) {
+export function Preview({ color }: { color?: string }) {
   return (
     <>
       <span className="absolute top-1/2 left-1/2 aspect-square h-[70%] -translate-1/2 animate-[preview-half_3s_linear_infinite] rounded-full" style={{ backgroundColor: color }} />

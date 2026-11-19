@@ -51,7 +51,7 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
   `bg-surface-raised`. Najpierw zaktualizuj testy spójności z obszaru web-style, jeśli sprawdzają mono w `.label`.
   Accept: `pnpm typecheck && pnpm test`; kontrast `fg-muted` na `surface-raised` ≥ 4,5:1 (policzony i wpisany w Notes).
 
-- [ ] **19-03 Rejestr podglądów i pilot na 5 kaflach**
+- [x] **19-03 Rejestr podglądów i pilot na 5 kaflach**
   Wyeksportuj `Preview` z 25 plików `apps/web/src/games/*.tsx` (lista: `grep -n "function Preview"`) oraz podgląd gier
   z `Quiz.tsx`/`Szacowanie.tsx`; zbierz w jednym rejestrze `PREVIEWS: Record<gameId, Component>` (np. `games/previews.ts`),
   test, że każda gra z `MINI_GAME_IDS` ma wpis. Dodaj w `index.css` klasę `.still`, która zatrzymuje animacje potomków
@@ -59,7 +59,7 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
   na kaflach `MiniGameGrid` (`MiniGames.tsx:50-84`), podgląd w skali ~100 px, wybrany kafel bez `.still`.
   Accept: zrzut 360×640 listy z pilotem (Playwright, `/dev?n=2`); decyzja „klatka czy znak” dla 5 gier wpisana w Notes.
 
-- [ ] **19-04 Kafle z podglądem dla wszystkich mini-gier**
+- [x] **19-04 Kafle z podglądem dla wszystkich mini-gier**
   Rozszerz pilot na wszystkie 30 gier; nieczytelne klatki zostają przy ikonie z `ICONS`. Siatka 3-kolumnowa i podpis
   miejsca zostają; kafel ≥ 48 px wysokości, nazwa nie ucieka poza kafel na 360 px. Ten sam kafel na ekranie głównym
   (lista „Sam”) i w pokoju. Accept: zrzuty listy w pokoju i na ekranie głównym 360×640; `pnpm --filter web build`.
@@ -136,4 +136,5 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
 - Ryzyko: dwie zakładki tego samego nicku startujące wyzwanie naraz mogą obie dostać układ dnia; akceptowalne.
 - Ryzyko: restart serwera w trakcie dziennej próby daje nowe `rng`, ale stan po `setup` jest już zapisany, więc układ zostaje.
 - 19-02: `surface` #1c1c1f (fg-muted 5,02:1, fg 14,5:1), `surface-raised` #232327 (fg-muted 4,63:1, fg 13,4:1), `line` biel 12%, `surface-glass` 70%.
+- 19-03/04: pilot objął od razu 30 gier. `.still` to `animation-play-state: paused` (każdy krok przy swoim opóźnieniu = pierwsza klatka z instrukcji), nie `animation: none`: przy wyłączonej animacji Koło, Wieża, Balon i Stoper były puste. Pusta chwila 0 tylko w Kole i słaby Refleks: `STILL_AT` w `games/previews.tsx` (`.still-at`). Bez koloru gracza (ekran główny) podgląd dostaje `fg`. Wszystkie 30 klatek czytelne przy ~100 px, żadna gra nie została przy ikonie; Dziesiątki lekko przycięte po bokach. Zrzut listy w pokoju przeniesiony do 19-13.
 - Carry-over 06 (odbiory U03, U04, U09, U14, P11) zostaje przy fazie 06.

@@ -50,7 +50,7 @@ function Cut({ deg, ...rest }: { deg: number } & SVGProps<SVGLineElement>) {
 }
 
 /** Podgląd na ekranie instrukcji: tort z dwoma cięciami, trzecie miga na swoim miejscu. */
-function Preview() {
+export function Preview() {
   return (
     <svg viewBox="0 0 100 100" className="h-28">
       <circle cx={50} cy={50} r={RADIUS} className="fill-surface stroke-line" />

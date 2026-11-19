@@ -27,7 +27,7 @@ const REVEAL_MS = 1000;
 /** Podgląd na ekranie instrukcji: pola zapalają się po kolei. */
 const PREVIEW_ORDER = [0, 3, 1, 2];
 
-function Preview() {
+export function Preview() {
   return (
     <div className="grid grid-cols-2 gap-2">
       {PADS.map(({ color }, i) => (

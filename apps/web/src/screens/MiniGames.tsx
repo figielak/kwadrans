@@ -1,6 +1,7 @@
 import { Play, Shuffle, Trophy } from "@phosphor-icons/react";
 import { GAMES, MAX_PLAYERS, nickKey, type RecordRow, type RoomView, standing } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
+import { GamePreview, PREVIEWS } from "../games/previews.tsx";
 import { fetchRecords } from "../net.ts";
 import { BLURBS, ICONS, MINI_GAMES, StartBar, WishMarks, wishDots } from "./Lobby.tsx";
 import { formatBest, formatRecord, plural, RecordList } from "./Records.tsx";
@@ -67,7 +68,11 @@ export function MiniGameGrid({ records, nick, color, picked, disabled, wishes, o
               }`}
               onClick={() => onPick(id)}
             >
-              <TileIcon size={20} weight={picked === id ? "fill" : "regular"} aria-hidden />
+              {PREVIEWS[id] ? (
+                <GamePreview id={id} color={color} still={picked !== id} />
+              ) : (
+                <TileIcon size={20} weight={picked === id ? "fill" : "regular"} aria-hidden />
+              )}
               <span className="text-sm leading-tight">{GAMES[id].name}</span>
               {/* Podpis tylko przy rozegranej grze: własne miejsce w rekordach, w kolorze gracza, gdy to on prowadzi. */}
               {!!place && (

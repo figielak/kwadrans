@@ -32,7 +32,7 @@ const roundsLabel = (n: number) => `${n} ${n === 1 ? "runda" : n % 10 >= 2 && n 
 
 const CUP_SHAPE = "polygon(12% 0, 88% 0, 100% 100%, 0 100%)";
 
-function Preview({ color }: { color?: string }) {
+export function Preview({ color }: { color?: string }) {
   return (
     <div className="flex items-end gap-4">
       {CUPS.map((i) => (

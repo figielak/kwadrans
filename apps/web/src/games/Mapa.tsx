@@ -34,7 +34,7 @@ function Contour() {
 }
 
 /** Podgląd na ekranie instrukcji: kontur, na którym miga znacznik. */
-function Preview() {
+export function Preview() {
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="h-28" aria-hidden>
       <Contour />

@@ -13,6 +13,13 @@ interface Props {
 
 const ASK = "Które słowo ma błąd?";
 
+/** Podgląd na ekranie instrukcji i na kaflu gry. */
+export function Preview() {
+  return (
+    <QuizPreview prompt={<span className="text-sm text-fg-muted">{ASK}</span>} options={["rzeka", "chałas", "góra"]} correct={1} />
+  );
+}
+
 export function Literowka({ view, ...props }: Props) {
   return (
     <Quiz
@@ -22,7 +29,7 @@ export function Literowka({ view, ...props }: Props) {
       note="Punkty to trafienia minus błędy. Przy remisie wygrywa niższy średni czas."
       score="Trafienie to punkt, pomyłka zabiera punkt i blokuje na sekundę"
       task="Cztery słowa, jedno ma błąd ortograficzny: dotknij błędnego"
-      preview={<QuizPreview prompt={<span className="text-sm text-fg-muted">{ASK}</span>} options={["rzeka", "chałas", "góra"]} correct={1} />}
+      preview={<Preview />}
       question={(i) => {
         const { words, wrong } = view.trials[i % view.trials.length];
         return {

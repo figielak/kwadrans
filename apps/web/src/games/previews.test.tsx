@@ -23,6 +23,6 @@ describe("rejestr podglądów", () => {
 
   test(".still zatrzymuje animacje potomków na klatce bazowej", () => {
     const rule = css.match(/\.still[^{]*\{([^}]*)\}/)?.[1] ?? "";
-    expect(rule).toMatch(/animation: none/);
+    expect(rule).toMatch(/animation-play-state: paused/);
   });
 });

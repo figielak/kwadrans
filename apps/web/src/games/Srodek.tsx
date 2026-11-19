@@ -39,7 +39,7 @@ function Segment({ a, b }: { a: SrodekPoint; b: SrodekPoint }) {
 }
 
 /** Podgląd na ekranie instrukcji: odcinek, na którego środku miga punkt. */
-function Preview() {
+export function Preview() {
   return (
     <>
       <span className="relative h-0.5 w-40 -rotate-12 bg-fg before:absolute before:-top-1.5 before:left-0 before:h-3.5 before:w-0.5 before:bg-fg after:absolute after:-top-1.5 after:right-0 after:h-3.5 after:w-0.5 after:bg-fg" />

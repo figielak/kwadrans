@@ -23,7 +23,7 @@ const at = (year: number) => `${((year - MIN_YEAR) / (MAX_YEAR - MIN_YEAR)) * 10
 /** Podgląd na ekranie instrukcji: suwak przeskakuje, rok nad nim się zmienia. */
 const PREVIEW_YEARS = [1950, 1989];
 
-function Preview() {
+export function Preview() {
   return (
     <div className="flex w-3/5 flex-col gap-3">
       <div className="relative h-9">

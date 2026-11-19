@@ -91,7 +91,7 @@ function Results({ view, me, players, ranking, winner }: Omit<Props, "onMove">) 
 }
 
 /** Podgląd na ekranie instrukcji: pole co chwilę zmienia kolor. */
-function Preview() {
+export function Preview() {
   return (
     <>
       <span className="font-semibold text-fg-muted">Czekaj…</span>

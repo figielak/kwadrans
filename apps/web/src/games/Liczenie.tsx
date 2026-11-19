@@ -11,13 +11,20 @@ interface Props {
   onRound?: (msLeft: number | null) => void;
 }
 
+/** Podgląd na ekranie instrukcji i na kaflu gry. */
+export function Preview() {
+  return (
+    <QuizPreview prompt={<span className="font-mono tabular-nums text-3xl font-semibold">7 × 6</span>} options={[36, 42, 48, 54].map((n) => <span className="font-mono">{n}</span>)} correct={1} />
+  );
+}
+
 export function Liczenie({ view, ...props }: Props) {
   return (
     <Quiz
       {...props}
       view={view}
       task="Licz w pamięci i wybierz dobry wynik"
-      preview={<QuizPreview prompt={<span className="font-mono tabular-nums text-3xl font-semibold">7 × 6</span>} options={[36, 42, 48, 54].map((n) => <span className="font-mono">{n}</span>)} correct={1} />}
+      preview={<Preview />}
       question={(i) => {
         const p = view.problems[i % view.problems.length];
         return {

@@ -17,7 +17,7 @@ const COUNT_MS = 3000;
 const seconds = (ms: number) => (ms / 1000).toFixed(2).replace(".", ",");
 
 /** Podgląd na ekranie instrukcji: licznik biegnie, potem znika. */
-function Preview() {
+export function Preview() {
   return (
     <>
       {["1,00", "2,00", "3,00", "?,??"].map((text, i) => (

@@ -14,7 +14,7 @@ const PREVIEW_DOTS = [
   [12, 30], [22, 68], [30, 22], [38, 52], [44, 80], [52, 30], [58, 62], [66, 18], [72, 46], [78, 76], [86, 28], [90, 58],
 ];
 
-function Preview() {
+export function Preview() {
   return (
     <>
       {PREVIEW_DOTS.map(([x, y]) => (

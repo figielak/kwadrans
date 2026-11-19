@@ -437,6 +437,19 @@ body::before {
   animation-timing-function: ease-out;
 }
 
+/* Podgląd gry na kaflu stoi na pierwszej klatce z ekranu instrukcji (animacje zatrzymane w chwili 0, każdy krok przy swoim opóźnieniu): 30 ruchomych kafli migałoby i obciążało telefon. */
+.still *,
+.still *::before,
+.still *::after {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
+
+/* Gra z jedną animacją, której chwila 0 jest pusta (rysowanie koła), stoi w wybranej chwili (`STILL_AT` w previews.tsx). */
+.still-at * {
+  animation-delay: var(--still-at) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

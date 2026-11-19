@@ -35,7 +35,7 @@ const PREVIEW_DOTS = [
   [18, 30], [48, 66], [78, 34], [32, 72], [62, 24], [88, 70], [10, 66], [40, 36],
 ];
 
-function Preview({ color }: { color?: string }) {
+export function Preview({ color }: { color?: string }) {
   return (
     <>
       {PREVIEW_DOTS.map(([x, y], i) => (

@@ -57,7 +57,7 @@ function Pairs({ targets, guesses }: { targets: Hsb[]; guesses: Hsb[] }) {
 }
 
 /** Podgląd na ekranie instrukcji: wzór znika, potem pojawia się odtworzony kolor. */
-function Preview() {
+export function Preview() {
   return (
     <div className="flex gap-6 text-xs text-fg-muted">
       {(

@@ -16,7 +16,7 @@ type Phase = "intro" | "show" | "pick" | "sent";
 /** „1 błąd”, „2 błędy”, „5 błędów”. */
 
 /** Podgląd na ekranie instrukcji: kilka przedmiotów, z których część migają jako „z listy”. */
-function Preview({ color }: { color?: string }) {
+export function Preview({ color }: { color?: string }) {
   return (
     <div className="grid grid-cols-3 gap-1">
       {["🍎", "🥛", "🍞", "🧀", "🍌", "🍫"].map((emoji, i) => (
