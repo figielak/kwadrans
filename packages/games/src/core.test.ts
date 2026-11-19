@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { byHitsThenAverage, byScoreThenAverage, compareRecords, createRng, dailyGame, dailySeed, dailyStreak, initials, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing, withSum } from "./core.ts";
+import { byHitsThenAverage, byScoreThenAverage, compareRecords, createRng, dailyGame, dailySeed, dailyStreak, initials, tableRecord, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing, withSum } from "./core.ts";
 
 test("ten sam seed daje ten sam ciąg", () => {
   const a = createRng(42);
@@ -337,5 +337,34 @@ describe("dailyStreak", () => {
 
   test("jeden opuszczony dzień przed dziś: seria trwa (brak wybaczony)", () => {
     expect(dailyStreak(run(T - 3, T - 2), T)).toEqual({ streak: 2, total: 2 });
+  });
+});
+
+// 19-10: rekord stołu to najlepszy wynik wszech czasów wśród obecnych; tylko gdy różni się od lidera wszech czasów.
+describe("tableRecord", () => {
+  const order = { lower: true, tie: { lower: true } };
+  const rows = [
+    { nick: "Mistrz", best: 180, tie: null, played: 9 },
+    { nick: "Ola", best: 240, tie: 3, played: 4 },
+    { nick: "Ala", best: 240, tie: 2, played: 2 },
+    { nick: "Jan", best: 300, tie: null, played: 1 },
+  ];
+
+  test("najlepszy z obecnych z drugim kryterium, po nickKey", () => {
+    expect(tableRecord(rows, ["ola", "ala", "jan"], order)).toEqual(rows[2]);
+    expect(tableRecord(rows, ["OLA ", "jan"], order)?.nick).toBe("Ola");
+  });
+
+  test("nikt z obecnych nie grał: null", () => {
+    expect(tableRecord(rows, ["nikt"], order)).toBeNull();
+    expect(tableRecord([], ["ala"], order)).toBeNull();
+  });
+
+  test("lider wszech czasów siedzi przy stole: null, bo rekord już widać", () => {
+    expect(tableRecord(rows, ["mistrz", "ola"], order)).toBeNull();
+  });
+
+  test("wyższy lepszy", () => {
+    expect(tableRecord(rows, ["ala", "jan"], { lower: false })?.nick).toBe("Jan");
   });
 });
