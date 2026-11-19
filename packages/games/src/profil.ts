@@ -58,6 +58,8 @@ export interface Profile {
   rivals: { key: string; nick: string; matches: number; wins: number; losses: number; ties: number }[];
   evenings: { played: number; won: number };
   bestStreak: number;
+  /** Wyzwanie dnia: seria dni bez kary i wszystkie dni z rozpoczętą próbą z kafla (`dailyStreak`). */
+  daily: { streak: number; total: number };
 }
 
 export interface ReportGame {

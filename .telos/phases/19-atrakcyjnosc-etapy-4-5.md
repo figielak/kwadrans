@@ -81,7 +81,7 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
   W `Home.tsx:165-190` podpis kafla: „Twoja próba: …” po pierwszej próbie, kolejne to „Trening”.
   Accept: testy serwera; kafel wyzwania pokazuje wynik pierwszej próby po rozegraniu dwóch prób w `/dev`.
 
-- [ ] **19-07 Seria dni wyzwania**
+- [x] **19-07 Seria dni wyzwania**
   Testy najpierw: czysta `dailyStreak(days: number[], today: number) → { streak, total }` w `core.ts` według D-05
   (seria ciągła, jeden brak wybaczony, dwa braki w 7 dniach kończą, dziś jeszcze nie grane nie przerywa).
   Kod: dni gracza z historii (`source = 'daily' AND started = 1`, dzień po polskiej północy jak `dailyGame`),

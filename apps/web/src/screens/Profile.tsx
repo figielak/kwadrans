@@ -122,6 +122,14 @@ function ProfileView({ nick, own, dropped, onBack, onEditNick, onOpen }: {
               </div>
             ))}
           </dl>
+          {profile.daily?.total > 0 && (
+            <p className="px-1 text-sm text-fg-muted">
+              Wyzwanie dnia: {profile.daily.streak >= 2 && <span className="font-mono tabular-nums">seria {profile.daily.streak} dni · </span>}
+              <span className="font-mono tabular-nums">
+                łącznie {profile.daily.total} {profile.daily.total === 1 ? "dzień" : "dni"}
+              </span>
+            </p>
+          )}
 
           {profile.games.length > 0 && (
             <section className="flex flex-col gap-1" aria-labelledby="profile-games">

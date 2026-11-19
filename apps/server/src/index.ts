@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { matchMaker, Server } from "@colyseus/core";
 import { WebSocketTransport } from "@colyseus/ws-transport";
-import { dailyGame, GAMES, MINI_GAME_IDS, nickKey } from "@kwadrans/games";
+import { dailyGame, dailyStreak, GAMES, MINI_GAME_IDS, nickKey } from "@kwadrans/games";
 import express from "express";
 import { LobbyRoom, restoreRooms, saveRooms, stats } from "./LobbyRoom.ts";
 import { dailyDay } from "./history.ts";
@@ -37,10 +37,13 @@ const server = new Server({
       res.set("Access-Control-Allow-Origin", "*").json(stats.top({ id, ...GAMES[id].record! }));
     });
     // Wyzwanie dnia: gra na dziś i ranking pierwszych prób z kafla (wspólny układ) od północy (czas serwera, w kontenerze TZ=Europe/Warsaw).
-    app.get("/api/daily", (_req, res) => {
+    // `nick` dokłada serię dni tego gracza (`me`), bez niego `me` to null.
+    app.get("/api/daily", (req, res) => {
       const { midnight, day } = dailyDay();
       const id = dailyGame(day, MINI_GAME_IDS);
-      res.set("Access-Control-Allow-Origin", "*").json({ gameId: id, rows: stats.dailyRanking({ id, ...GAMES[id].record! }, midnight) });
+      const key = typeof req.query.nick === "string" ? nickKey(req.query.nick) : "";
+      const me = key ? dailyStreak(stats.dailyDays(key), day) : null;
+      res.set("Access-Control-Allow-Origin", "*").json({ gameId: id, rows: stats.dailyRanking({ id, ...GAMES[id].record! }, midnight), me });
     });
     // Które z ostatnich pokoi gracza jeszcze istnieją i ile osób w nich siedzi: kod → liczba połączonych.
     app.get("/api/rooms", async (req, res) => {

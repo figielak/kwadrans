@@ -37,3 +37,10 @@ export function resultOf(m: HistoryRow, format: (gameId: string, score: number) 
   if (m.place === null) return { text: "wyszedł", crown: false, muted: true, mono: false };
   return { text: `${m.place}. z ${m.players.length}`, crown: m.place === 1, muted: m.place !== 1, mono: true };
 }
+
+/** Seria dni przy kaflu wyzwania: od 2 dni, a po przerwie łączna liczba dni; bez słów o stracie serii. */
+export function dailyStreakText(me: { streak: number; total: number } | null): string {
+  if (!me) return "";
+  if (me.streak >= 2) return ` · seria ${me.streak} dni`;
+  return me.total >= 2 ? ` · łącznie ${me.total} dni` : "";
+}

@@ -33,8 +33,11 @@ export const fetchTopRecord = (gameId: string): Promise<unknown> =>
     .catch(() => false);
 
 /** Wyzwanie dnia: gra na dziś i dzisiejsze wyniki, od najlepszego; przy błędzie null (kafel się nie pokaże). */
-export const fetchDaily = (): Promise<{ gameId: string; rows: RecordRow[] } | null> =>
-  fetch(`${serverUrl}/api/daily`)
+/** Wyzwanie dnia: gra, ranking pierwszych prób i (z nickiem) seria dni gracza. */
+export type Daily = { gameId: string; rows: RecordRow[]; me: { streak: number; total: number } | null };
+
+export const fetchDaily = (nick?: string | null): Promise<Daily | null> =>
+  fetch(`${serverUrl}/api/daily${nick ? `?nick=${encodeURIComponent(nick)}` : ""}`)
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null);
 

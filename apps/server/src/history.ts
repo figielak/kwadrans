@@ -1,6 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 import {
-  addGame, compareRecords, eveningTable, GAMES, type Evening, type GameDetail, type HistoryRow, type Insights, type MatchEntry, type MatchKind, type MatchOutcome, type MatchSource,
+  addGame, compareRecords, dailyStreak, eveningTable, GAMES, type Evening, type GameDetail, type HistoryRow, type Insights, type MatchEntry, type MatchKind, type MatchOutcome, type MatchSource,
   nickKey, type PlayerStat, type Profile, type RecordOrder, type RecordRow, type Report, type ReportGame, type Signal, SIGNALS,
 } from "@kwadrans/games";
 
@@ -56,6 +56,11 @@ export function openHistory(db: DatabaseSync, transaction: (fn: () => void) => v
   const dailyRows = db.prepare(`
     SELECT p.nick_key, p.nick, p.score AS best, p.tie FROM matches m JOIN match_players p ON p.match_id = m.id
     WHERE m.game_id = ? AND m.daily = 1 AND m.started = 1 AND m.started_at >= ? ORDER BY m.id, p.seat`);
+  const dailyStarts = db.prepare(`
+    SELECT m.started_at AS at FROM matches m JOIN match_players p ON p.match_id = m.id
+    WHERE p.nick_key = ? AND m.source = 'daily' AND m.started = 1 ORDER BY m.started_at`);
+  /** Doby z rozpoczętą partią z kafla wyzwania (próba albo trening), rosnąco, bez powtórek. */
+  const dailyDays = (key: string) => [...new Set((dailyStarts.all(key) as { at: number }[]).map((r) => dailyDay(r.at).day))];
   const dailyAttempt = db.prepare(`
     SELECT 1 FROM matches m JOIN match_players p ON p.match_id = m.id
     WHERE p.nick_key = ? AND m.game_id = ? AND m.daily = 1 AND m.started = 1 AND m.started_at >= ? LIMIT 1`);
@@ -111,6 +116,8 @@ export function openHistory(db: DatabaseSync, transaction: (fn: () => void) => v
       return scored.sort((a, b) => compare(a, b) || a.i - b.i).map(({ i: _, ...row }) => row);
     },
 
+    dailyDays,
+
     /** Czy ten nick zaczął już dziś (od `since`) próbę wyzwania w tej grze; wtedy kolejna to trening z losowym układem. */
     dailyTaken(key: string, gameId: string, since: number): boolean {
       return dailyAttempt.get(key, gameId, since) !== undefined;
@@ -137,7 +144,7 @@ export function openHistory(db: DatabaseSync, transaction: (fn: () => void) => v
       }));
     },
 
-    profile(key: string): Profile | null {
+    profile(key: string, now = Date.now()): Profile | null {
       const last = db.prepare("SELECT nick FROM match_players WHERE nick_key = ? ORDER BY match_id DESC LIMIT 1").get(key) as { nick: string } | undefined;
       if (!last) return null;
       const span = db.prepare("SELECT MIN(m.started_at) AS first, MAX(m.started_at) AS last FROM match_players me JOIN matches m ON m.id = me.match_id WHERE me.nick_key = ?").get(key) as { first: number; last: number };
@@ -170,6 +177,7 @@ export function openHistory(db: DatabaseSync, transaction: (fn: () => void) => v
       return {
         nick: last.nick, firstAt: span.first, lastAt: span.last, matches: done.matches, days: done.days,
         favorite: games[0]?.gameId ?? null, games, rivals, evenings: evenings(key), bestStreak,
+        daily: dailyStreak(dailyDays(key), dailyDay(now).day),
       };
     },
 

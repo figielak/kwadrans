@@ -283,6 +283,25 @@ export function dailySeed(day: number, gameId: string): number {
   return hash >>> 0;
 }
 
+/**
+ * Seria dni wyzwania bez kary: idąc wstecz od dziś (albo od wczoraj, gdy dziś jeszcze nie grane), jeden brakujący dzień
+ * jest wybaczony, jeśli w poprzednich 7 dniach marszu nie było innego braku; drugi brak w 7 dniach kończy serię.
+ * `streak` to zagrane dni serii, `total` wszystkie zagrane dni do dziś. Dni to numery dób (jak w `dailyGame`).
+ */
+export function dailyStreak(days: readonly number[], today: number): { streak: number; total: number } {
+  const played = new Set(days.filter((d) => d <= today));
+  if (played.size === 0) return { streak: 0, total: 0 };
+  const first = Math.min(...played);
+  let streak = 0;
+  let lastMiss = Infinity;
+  for (let d = played.has(today) ? today : today - 1; d >= first; d--) {
+    if (played.has(d)) streak++;
+    else if (lastMiss - d < 7) break;
+    else lastMiss = d;
+  }
+  return { streak, total: played.size };
+}
+
 export const average = (times: number[]) => (times.length ? times.reduce((a, b) => a + b, 0) / times.length : Infinity);
 
 /** Średnia zaokrąglona do ms: ta sama w miejscach i w `record.tie`, więc ułamek ms nie rozstrzyga remisu. */
