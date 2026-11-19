@@ -36,7 +36,7 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
   skorygować na telefonie (bez zadania „próba z ludźmi”).
 
 ## Tasks
-- [ ] **19-01 Dokumenty platformy**
+- [x] **19-01 Dokumenty platformy**
   `KONCEPT.md` §1 (wyzwanie dnia: wspólny układ, pierwsza próba, trening, ranking tylko z wyzwania, seria dni; ekran główny
   pokazuje serię), §1 „Profil gracza” (seria i łączna liczba dni), §3 „Historia partii” (kolumny `daily`, `tie`),
   §3 reguły platformy (pojedynki w lobby i po partii, rekord stołu, „Dla was teraz”, kafle z podglądem).

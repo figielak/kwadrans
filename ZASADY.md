@@ -178,7 +178,8 @@ Ekran gry to jeden plik `apps/web/src/games/<Gra>.tsx`. Dostaje `view`, `me`, `p
   (`initials`) albo ikonę postaci, a nick w etykiecie.
 - Liczby, czasy i kody czcionką mono z `tabular-nums` (odczyty, liczniki, tabele, wyniki). Liczba w zwykłym zdaniu
   („Start automatycznie za 12 s”, opis turnieju) może zostać Satoshi. Ułamki przez `decimal`/`tenth` z `ui.tsx`
-  (przecinek, typograficzny minus, bez „−0,0”); brak wartości to „brak”. Podpis bloku to `.label`, mała akcja ma ikonę `bold`.
+  (przecinek, typograficzny minus, bez „−0,0”); brak wartości to „brak”. Podpis bloku to `.label` (Satoshi, zwykła wielkość liter;
+  mono tylko dla kodów, czasów i wyników), mała akcja ma ikonę `bold`. Kafle gier i plansze leżą na `surface-raised`, nie na `surface`.
   Własne progi kolorów Stopera i Przytrzymaj (100/500 ms) zostają: to bezwzględne ms odtwarzania czasu, a `grade` służy
   tabelom rund z progami w jednostkach danej gry.
 - Ikony z `@phosphor-icons/react`; ikona gry w lobby ma wagę `regular`.
