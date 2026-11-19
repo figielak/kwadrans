@@ -24,6 +24,7 @@ import { formatBest, formatGap, formatRecord, RecordPanel } from "./Records.tsx"
 import { heroResult, reducedMotion, shouldReveal } from "./results.ts";
 import { type GameDot, GameDots, HeroSlot, IntroContext, LiveBoard, LiveGameDots, Moment, ReactionBar, ReactionOverlay, ReactionToggle, EveningTable, ResultDetails, ResultHero, Screen, StickyBar, type Send, VoteCards } from "./ui.tsx";
 import { RulesButton } from "./HowToPlay.tsx";
+import { Duels } from "./Duels.tsx";
 import { ICONS } from "./Lobby.tsx";
 
 interface Props {
@@ -377,6 +378,9 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
 
               {/* Poza turniejem (tam jest jego tabela): punkty wieczoru z wszystkich partii w pokoju. */}
               {view.phase === "over" && !t && eveningTable}
+
+              {/* Bilans grającego z innymi w tej grze; obserwator i solo go nie mają. */}
+              {view.phase === "over" && seated && view.seats.length > 1 && <Duels view={view} me={me} gameId={view.gameId} />}
 
               {/* Solo nie ma rywali, więc i punktów: zamiast tabeli zera jedno zdanie o postępie. */}
               {view.phase === "over" && t && view.seats.length === 1 && (

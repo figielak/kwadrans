@@ -1,4 +1,4 @@
-import { type HistoryRow, nickKey } from "@kwadrans/games";
+import { type Duel, type HistoryRow, nickKey } from "@kwadrans/games";
 
 const MONTHS = ["stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca", "lipca", "sierpnia", "września", "października", "listopada", "grudnia"];
 const KIND: Record<HistoryRow["kind"], string | null> = { solo: "solo", room: null, tournament: "turniej", quick: "szybka seria" };
@@ -43,4 +43,18 @@ export function dailyStreakText(me: { streak: number; total: number } | null): s
   if (!me) return "";
   if (me.streak >= 2) return ` · seria ${me.streak} dni`;
   return me.total >= 2 ? ` · łącznie ${me.total} dni` : "";
+}
+
+/** Pojedynki gracza z obecnymi (`nicks`: klucz → pokazywany nick): wynik od jego strony, najwięcej wspólnych partii pierwsze. */
+export function duelLines(duels: Duel[], meKey: string, nicks: Record<string, string>) {
+  return duels
+    .filter((d) => d.matches > 0 && (d.a === meKey || d.b === meKey))
+    .map((d) => {
+      const mineFirst = d.a === meKey;
+      const key = mineFirst ? d.b : d.a;
+      return { key, nick: nicks[key], mine: d.wins[mineFirst ? 0 : 1], theirs: d.wins[mineFirst ? 1 : 0], matches: d.matches };
+    })
+    .filter((line) => line.nick !== undefined)
+    .sort((x, y) => y.matches - x.matches)
+    .map(({ matches: _, ...line }) => line);
 }

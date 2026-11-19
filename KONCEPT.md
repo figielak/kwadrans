@@ -243,7 +243,7 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
 - **Pojedynki**: bilans dwóch osób (`nickKey`) w ukończonych partiach 2+ osób, kto był wyżej, na tych samych regułach co bilans w profilu
   (remis miejsc bez punktu, bez solo i partii nieukończonych; wyniki sprzed historii też się liczą), opcjonalnie zawężony do jednej gry (`/api/duels?n=…&n=…&game=…`, do 6 nicków).
   Lobby pokazuje pod graczami jedną linię „Ty : Ola 7:4” dla obecnych, z którymi gracz ma historię (obserwator jej nie widzi); po partii i na ekranie gry
-  głównej bilans w tej grze. Dotknięcie nicku otwiera profil.
+  głównej bilans w tej grze; w pokoju to sam tekst (profil otwiera się z rankingów i podsumowania wieczoru).
 - Turniej ma ekran ustawień (`TournamentSetup` w `Setup.tsx`): `pickTournament` (gospodarz) ustawia liczbę gier, `markGame` (każdy) zaznacza jedną grę; obie kasują gotowość gości.
   W trakcie turnieju `gameId` to bieżąca gra, a `tournament` w `RoomView` niesie listę gier i punkty; „Dalej” między grami to wiadomość `rematch`.
 - **Reakcje**: sześć emotek (`REACTIONS`, wiadomość `react: { index }`) od każdego w pokoju, także obserwatora, w trakcie partii i po niej; serwer rozsyła `react: { id, index }` wszystkim, także nadawcy.

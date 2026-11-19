@@ -54,6 +54,7 @@ import {
 } from "@phosphor-icons/react";
 import { DEFAULT_LENGTH, GAMES, initials, type LobbyPlayer, MAX_PLAYERS, MINI_GAME_IDS, PLAYER_COLORS, QUICK_SERIES_LENGTH, type RoomView } from "@kwadrans/games";
 import { type ReactNode, useState } from "react";
+import { Duels } from "./Duels.tsx";
 import { Screen, type Send, shareRoom, StickyBar, TopBar } from "./ui.tsx";
 
 /** Gry główne z planszą; reszta, także nowe, trafia do „Towarzyskich”. */
@@ -113,6 +114,7 @@ export function Lobby({ view, me, dropped, send, onLeave, onMini }: Props) {
       {/* Sam w pokoju kod jest treścią ekranu (trzeba go przekazać); od dwóch osób zwija się do paska, a gry wchodzą w pierwszy ekran. */}
       {alone ? <Code code={view.code} onLeave={onLeave} /> : <TopBar code={view.code} onLeave={onLeave} />}
       <Players view={view} me={me} send={send} />
+      <Duels view={view} me={me} />
 
       {/* Gospodarz: kafle prowadzą do turnieju i listy mini-gier (zbiory, nie pojedyncze gry), gry główne otwierają ekran gry (Setup.tsx).
           Gość dotyka gier, żeby pokazać, w co chce grać (kropka jego koloru); decyduje gospodarz. */}

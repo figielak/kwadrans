@@ -95,7 +95,7 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
   w `history.ts` na regułach `VERSUS` (`:296`), endpoint `GET /api/duels?nicks=a,b&game=id` w `index.ts` (do 6 nicków,
   walidacja jak `/api/profile`), klient `fetchDuels` w `apps/web/src/net.ts`. Accept: testy serwera i `pnpm typecheck`.
 
-- [ ] **19-09 Pojedynki w lobby i po partii**
+- [x] **19-09 Pojedynki w lobby i po partii**
   Lobby (`Lobby.tsx`, okolice `Players` `:281`): pod rzędem awatarów jedna zwięzła linia „Ty : Ola 7:4 · Ty : Bartek 2:2”
   dla obecnych z historią (bez linii, gdy brak); obserwator jej nie widzi. Po partii (ekran wyników w `Game.tsx`/
   `MiniGame.tsx`, przy `EveningTable`) bilans w tej grze z rywalami, mniejszy od bohatera. Dotknięcie nicku otwiera
@@ -137,4 +137,5 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
 - Ryzyko: restart serwera w trakcie dziennej próby daje nowe `rng`, ale stan po `setup` jest już zapisany, więc układ zostaje.
 - 19-02: `surface` #1c1c1f (fg-muted 5,02:1, fg 14,5:1), `surface-raised` #232327 (fg-muted 4,63:1, fg 13,4:1), `line` biel 12%, `surface-glass` 70%.
 - 19-03/04: pilot objął od razu 30 gier. `.still` to `animation-play-state: paused` (każdy krok przy swoim opóźnieniu = pierwsza klatka z instrukcji), nie `animation: none`: przy wyłączonej animacji Koło, Wieża, Balon i Stoper były puste. Pusta chwila 0 tylko w Kole i słaby Refleks: `STILL_AT` w `games/previews.tsx` (`.still-at`). Bez koloru gracza (ekran główny) podgląd dostaje `fg`. Wszystkie 30 klatek czytelne przy ~100 px, żadna gra nie została przy ikonie; Dziesiątki lekko przycięte po bokach. Zrzut listy w pokoju przeniesiony do 19-13.
+- 19-09: w pokoju pojedynki bez przejścia do profilu (pokój nie ma ekranu profilu); zrzuty lobby 6 graczy i wyników przeniesione do 19-13. Serwer dev nie przeładował się sam po zmianie `index.ts` (`--watch` przegapił zapis): przed zrzutami restart serwera.
 - Carry-over 06 (odbiory U03, U04, U09, U14, P11) zostaje przy fazie 06.
