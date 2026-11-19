@@ -364,7 +364,8 @@ describe("tableRecord", () => {
     expect(tableRecord(rows, ["mistrz", "ola"], order)).toBeNull();
   });
 
-  test("wyższy lepszy", () => {
-    expect(tableRecord(rows, ["ala", "jan"], { lower: false })?.nick).toBe("Jan");
+  test("wyższy lepszy: lider to najwyższy wynik, przy równych wcześniejszy wiersz", () => {
+    expect(tableRecord(rows, ["ala", "jan"], { lower: false })).toBeNull();
+    expect(tableRecord(rows, ["ala", "ola"], { lower: false })?.nick).toBe("Ola");
   });
 });

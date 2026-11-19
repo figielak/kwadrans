@@ -208,6 +208,17 @@ export const compareRecords = (order: RecordOrder) => (a: Score, b: Score) =>
 const compareTie = (a: number | null, b: number | null, lower: boolean) =>
   a === null || b === null ? Number(a === null) - Number(b === null) : lower ? a - b : b - a;
 
+/**
+ * Rekord stołu: najlepszy wynik wszech czasów wśród obecnych (`keys`, dowolna pisownia nicków). null, gdy nikt z nich nie grał
+ * albo gdy to lider wszech czasów, bo jego rekord i tak widać obok.
+ */
+export function tableRecord(rows: RecordRow[], keys: string[], order: RecordOrder): RecordRow | null {
+  const present = new Set(keys.map(nickKey));
+  const sorted = [...rows].sort(compareRecords(order));
+  const best = sorted.find((r) => present.has(nickKey(r.nick)));
+  return !best || best === sorted[0] ? null : best;
+}
+
 /** Pozycja gracza w rankingu rekordów; `rows` od najlepszego (tak przychodzą z serwera). null, gdy gracz nie ma rekordu. */
 export function standing(rows: RecordRow[], nick: string, order: RecordOrder): RecordStanding | null {
   const key = nickKey(nick);

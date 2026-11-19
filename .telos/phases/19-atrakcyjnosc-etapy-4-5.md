@@ -101,7 +101,7 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
   `MiniGame.tsx`, przy `EveningTable`) bilans w tej grze z rywalami, mniejszy od bohatera. Dotknięcie nicku otwiera
   profil jak w `Evening.tsx`. Accept: zrzut 360×640 lobby z 6 graczami i ekranu wyników z 2 graczami bez przewijania w poziomie.
 
-- [ ] **19-10 Rekord stołu**
+- [x] **19-10 Rekord stołu**
   Testy najpierw: `tableRecord(rows, nickKeys, record)` w `core.ts` (najlepszy z obecnych przez `compareRecords`,
   `null` gdy nikt nie grał albo gdy to ten sam wiersz co rekord wszech czasów i siedzi jeden gracz).
   Kod: `RecordPanel` (`Records.tsx`) pokazuje „Rekord stołu: Ola 245 ms” obok miejsca wszech czasów, gdy różny od lidera;
