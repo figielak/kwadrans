@@ -64,7 +64,7 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
   miejsca zostają; kafel ≥ 48 px wysokości, nazwa nie ucieka poza kafel na 360 px. Ten sam kafel na ekranie głównym
   (lista „Sam”) i w pokoju. Accept: zrzuty listy w pokoju i na ekranie głównym 360×640; `pnpm --filter web build`.
 
-- [ ] **19-05 Wspólny układ wyzwania (serwer)**
+- [x] **19-05 Wspólny układ wyzwania (serwer)**
   Testy najpierw: `packages/games/src/core.test.ts` dla `dailySeed(day, gameId)` (deterministyczny, różny dla różnych gier
   i dni) i `apps/server/src/LobbyRoom.history.test.ts`: dwie pierwsze próby różnych nicków z `from: "daily"` mają ten sam
   stan po `setup`, druga próba tego samego nicku ma inny, próba porzucona po starcie zużywa dzień, rematch solo to trening.

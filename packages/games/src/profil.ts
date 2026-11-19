@@ -25,8 +25,10 @@ export interface MatchEntry {
   observers: number;
   outcome: MatchOutcome;
   reactions: number;
-  /** Wszyscy, którzy siedzieli przy stole na starcie, w kolejności miejsc przy stole. */
-  players: { nick: string; place: number | null; won: boolean; score: number | null; left: boolean; timeouts: number }[];
+  /** Próba z kafla wyzwania dnia ze wspólnym układem (pierwsza tego dnia); brak to zwykła partia. */
+  daily?: boolean;
+  /** Wszyscy, którzy siedzieli przy stole na starcie, w kolejności miejsc przy stole; `tie` to drugie kryterium rekordu. */
+  players: { nick: string; place: number | null; won: boolean; score: number | null; tie?: number | null; left: boolean; timeouts: number }[];
 }
 
 export interface HistoryRow {

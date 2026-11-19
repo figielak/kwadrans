@@ -270,6 +270,19 @@ export function shuffle<T>(items: readonly T[], rng: Rng): T[] {
 // ponytail: ostatnia gra cyklu może się powtórzyć jako pierwsza następnego (1 na liczbę gier); osobna poprawka, gdyby to raziło
 export const dailyGame = (day: number, ids: readonly string[]) => shuffle(ids, createRng(Math.floor(day / ids.length)))[day % ids.length];
 
+/**
+ * Ziarno wspólnego układu wyzwania dnia: ten sam dzień i gra dają ten sam `setup` u wszystkich (FNV-1a z „dzień:gra”).
+ * Tylko dla pierwszej próby z kafla wyzwania; reszta partii losuje jak zwykle.
+ */
+export function dailySeed(day: number, gameId: string): number {
+  let hash = 0x811c9dc5;
+  for (const char of `${day}:${gameId}`) {
+    hash ^= char.charCodeAt(0);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return hash >>> 0;
+}
+
 export const average = (times: number[]) => (times.length ? times.reduce((a, b) => a + b, 0) / times.length : Infinity);
 
 /** Średnia zaokrąglona do ms: ta sama w miejscach i w `record.tie`, więc ułamek ms nie rozstrzyga remisu. */

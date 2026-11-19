@@ -290,10 +290,17 @@ describe("wspólny układ wyzwania dnia", () => {
   });
 
   test("„Jeszcze raz”, lista i inna gra to nie wyzwanie", async () => {
+    // Dzień, w którym wyzwaniem jest Stoper: jego wynik kończy partię jednym ruchem, więc „Jeszcze raz” jest możliwe.
+    let at = new Date(2026, 10, 19, 12).getTime();
+    while (dailyGame(dailyDay(at).day, MINI_GAME_IDS) !== "stoper") at += 86_400_000;
+    vi.setSystemTime(at);
     const tile = await attempt("ewa-19");
+    expect(tile.match.daily).toBe(true);
     tile.send(0, "begin");
+    tile.send(0, "move", { type: "result", deviation: 100 });
     tile.send(0, "rematch");
     expect(stateOf(tile.room).daily).toBe(false);
+    expect(tile.entries().at(-1)).toMatchObject({ source: "daily", daily: true, started: true });
 
     expect((await attempt("franek-19", "list")).match.daily).toBe(false);
     const other = MINI_GAME_IDS.find((id) => id !== today())!;

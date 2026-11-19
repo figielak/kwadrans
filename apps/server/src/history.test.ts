@@ -404,6 +404,8 @@ describe("próba wyzwania dnia", () => {
       won INTEGER NOT NULL, score REAL, left_early INTEGER NOT NULL, timeouts INTEGER NOT NULL, PRIMARY KEY (match_id, seat))`);
     old.exec(`INSERT INTO matches VALUES (1, 'A', 'stoper', NULL, 'solo', 'daily', ${midnight + MIN}, ${midnight + 2 * MIN}, 1, 1, 0, 'completed', 0)`);
     old.exec("INSERT INTO match_players VALUES (1, 0, 'ala', 'Ala', 1, 0, 12, 0, 0)");
+    old.exec("CREATE TABLE results (game_id TEXT NOT NULL, nick TEXT NOT NULL, won INTEGER NOT NULL, at INTEGER NOT NULL)");
+    old.exec("CREATE TABLE scores (game_id TEXT NOT NULL, nick TEXT NOT NULL, score REAL NOT NULL, tie REAL, at INTEGER NOT NULL, detail TEXT)");
     old.exec("PRAGMA user_version = 3");
     old.close();
 

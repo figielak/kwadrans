@@ -15,6 +15,12 @@ export const localDay = (at: number) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
+/** Doba wyzwania dnia: lokalna północ (TZ procesu) i jej numer, ten sam dla `dailyGame` i `dailySeed`. */
+export const dailyDay = (now = Date.now()) => {
+  const midnight = new Date(now).setHours(0, 0, 0, 0);
+  return { midnight, day: Math.round(midnight / 86_400_000) };
+};
+
 export const median = (values: number[]) => {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
@@ -40,18 +46,26 @@ export function openHistory(db: DatabaseSync, transaction: (fn: () => void) => v
   db.exec(`CREATE TABLE IF NOT EXISTS game_signals (
     game_id TEXT NOT NULL, day TEXT NOT NULL, kind TEXT NOT NULL, n INTEGER NOT NULL, PRIMARY KEY (game_id, day, kind))`);
 
-  const insertMatch = db.prepare("INSERT INTO matches (room_key, game_id, mode, kind, source, started_at, ended_at, started, players, observers, outcome, reactions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-  const insertPlayer = db.prepare("INSERT INTO match_players VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  // 19: próba wyzwania dnia ze wspólnym układem i drugie kryterium rekordu (ranking dnia). Przed przygotowaniem zapisów,
+  // po kolumnach, a nie po user_version: świeża baza musi jeszcze przejść import wersji 3.
+  const has = (table: string, column: string) => (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).some((c) => c.name === column);
+  if (!has("matches", "daily")) db.exec("ALTER TABLE matches ADD COLUMN daily INTEGER NOT NULL DEFAULT 0");
+  if (!has("match_players", "tie")) db.exec("ALTER TABLE match_players ADD COLUMN tie REAL");
+  const insertMatch = db.prepare("INSERT INTO matches (room_key, game_id, mode, kind, source, started_at, ended_at, started, players, observers, outcome, reactions, daily) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  const insertPlayer = db.prepare("INSERT INTO match_players (match_id, seat, nick_key, nick, place, won, score, left_early, timeouts, tie) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  const dailyAttempt = db.prepare(`
+    SELECT 1 FROM matches m JOIN match_players p ON p.match_id = m.id
+    WHERE p.nick_key = ? AND m.game_id = ? AND m.daily = 1 AND m.started = 1 AND m.started_at >= ? LIMIT 1`);
   const upsertSignal = db.prepare("INSERT INTO game_signals VALUES (?, ?, ?, 1) ON CONFLICT (game_id, day, kind) DO UPDATE SET n = n + 1");
 
   const write = (entry: MatchEntry) => {
     const { lastInsertRowid } = insertMatch.run(
       entry.roomKey, entry.gameId, entry.mode, entry.kind, entry.source, entry.startedAt, entry.endedAt,
-      Number(entry.started), entry.players.length, entry.observers, entry.outcome, entry.reactions,
+      Number(entry.started), entry.players.length, entry.observers, entry.outcome, entry.reactions, Number(entry.daily ?? false),
     );
     entry.players.forEach((p, seat) => {
       const nick = p.nick.trim();
-      insertPlayer.run(lastInsertRowid, seat, nickKey(nick), nick, p.place, Number(p.won), p.score, Number(p.left), p.timeouts);
+      insertPlayer.run(lastInsertRowid, seat, nickKey(nick), nick, p.place, Number(p.won), p.score, Number(p.left), p.timeouts, p.tie ?? null);
     });
   };
 
@@ -79,6 +93,11 @@ export function openHistory(db: DatabaseSync, transaction: (fn: () => void) => v
   return {
     recordMatch(entry: MatchEntry) {
       transaction(() => write(entry));
+    },
+
+    /** Czy ten nick zaczął już dziś (od `since`) próbę wyzwania w tej grze; wtedy kolejna to trening z losowym układem. */
+    dailyTaken(key: string, gameId: string, since: number): boolean {
+      return dailyAttempt.get(key, gameId, since) !== undefined;
     },
 
     signal(gameId: string, kind: Signal, at = Date.now()) {
