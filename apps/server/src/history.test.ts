@@ -368,3 +368,53 @@ describe("szczegóły raportu (insights)", () => {
     void DAY;
   });
 });
+
+// 19-05: próba wyzwania dnia ze wspólnym układem; rozpoczęta zużywa dzień danego nicku w tej grze.
+describe("próba wyzwania dnia", () => {
+  const midnight = new Date(2026, 10, 10).getTime();
+  const solo = (nick: string, extra: Partial<MatchEntry> = {}) =>
+    match("stoper", [p(nick, null)], { kind: "solo", source: "daily", daily: true, ...extra });
+
+  it("rozpoczęta próba z układem dnia zajmuje dzień, bez względu na pisownię nicku", () => {
+    const stats = openStats(":memory:");
+    expect(stats.dailyTaken("ala", "stoper", midnight)).toBe(false);
+    stats.recordMatch(solo("Ala"));
+    expect(stats.dailyTaken("ala", "stoper", midnight)).toBe(true);
+    expect(stats.dailyTaken("ala", "refleks", midnight)).toBe(false);
+    expect(stats.dailyTaken("ola", "stoper", midnight)).toBe(false);
+  });
+
+  it("nie zajmują dnia: instrukcja bez startu, trening, próba z wczoraj", () => {
+    const stats = openStats(":memory:");
+    stats.recordMatch(solo("Ala", { started: false }));
+    stats.recordMatch(solo("Ala", { daily: false }));
+    stats.recordMatch(solo("Ala", { startedAt: midnight - 60 * MIN }));
+    expect(stats.dailyTaken("ala", "stoper", midnight)).toBe(false);
+  });
+
+  it("baza w wersji 3 dostaje kolumny daily i tie, stare partie zostają z daily 0", () => {
+    const path = `${process.env.TMPDIR ?? "/tmp"}/kwadrans-daily-${process.pid}-${Date.now()}.db`;
+    const old = new DatabaseSync(path);
+    old.exec(`CREATE TABLE matches (
+      id INTEGER PRIMARY KEY, room_key TEXT NOT NULL, game_id TEXT NOT NULL, mode TEXT, kind TEXT NOT NULL, source TEXT NOT NULL,
+      started_at INTEGER NOT NULL, ended_at INTEGER NOT NULL, started INTEGER NOT NULL, players INTEGER NOT NULL,
+      observers INTEGER NOT NULL, outcome TEXT NOT NULL, reactions INTEGER NOT NULL)`);
+    old.exec(`CREATE TABLE match_players (
+      match_id INTEGER NOT NULL, seat INTEGER NOT NULL, nick_key TEXT NOT NULL, nick TEXT NOT NULL, place INTEGER,
+      won INTEGER NOT NULL, score REAL, left_early INTEGER NOT NULL, timeouts INTEGER NOT NULL, PRIMARY KEY (match_id, seat))`);
+    old.exec(`INSERT INTO matches VALUES (1, 'A', 'stoper', NULL, 'solo', 'daily', ${midnight + MIN}, ${midnight + 2 * MIN}, 1, 1, 0, 'completed', 0)`);
+    old.exec("INSERT INTO match_players VALUES (1, 0, 'ala', 'Ala', 1, 0, 12, 0, 0)");
+    old.exec("PRAGMA user_version = 3");
+    old.close();
+
+    const stats = openStats(path);
+    const db = new DatabaseSync(path);
+    const columns = (table: string) => (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map((c) => c.name);
+    expect(columns("matches")).toContain("daily");
+    expect(columns("match_players")).toContain("tie");
+    expect(stats.history("ala")).toHaveLength(1);
+    expect(stats.dailyTaken("ala", "stoper", midnight)).toBe(false);
+    stats.recordMatch(solo("Ala"));
+    expect(stats.dailyTaken("ala", "stoper", midnight)).toBe(true);
+  });
+});

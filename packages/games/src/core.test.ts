@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { byHitsThenAverage, byScoreThenAverage, compareRecords, createRng, dailyGame, initials, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing, withSum } from "./core.ts";
+import { byHitsThenAverage, byScoreThenAverage, compareRecords, createRng, dailyGame, dailySeed, initials, nickKey, ranked, rankPlaces, rankResults, ROOM_CODE_ALPHABET, roomCode, shuffle, standing, withSum } from "./core.ts";
 
 test("ten sam seed daje ten sam ciąg", () => {
   const a = createRng(42);
@@ -283,5 +283,20 @@ describe("inicjały na kropkach graczy", () => {
     for (const label of initials(["Gracz 10", "Gracz 11", "Grzegorz Brzęczyszczykiewicz", "G", "👨‍👩‍👧👨‍👩‍👧👨‍👩‍👧", "g r a"])) {
       expect([...segmenter.segment(label)].length).toBeLessThanOrEqual(2);
     }
+  });
+});
+
+describe("dailySeed", () => {
+  test("ten sam dzień i gra dają to samo ziarno, liczba całkowita bez znaku", () => {
+    expect(dailySeed(20_400, "stoper")).toBe(dailySeed(20_400, "stoper"));
+    expect(Number.isInteger(dailySeed(20_400, "stoper"))).toBe(true);
+    expect(dailySeed(20_400, "stoper")).toBeGreaterThanOrEqual(0);
+    expect(dailySeed(20_400, "stoper")).toBeLessThan(2 ** 32);
+  });
+
+  test("różne dni i gry dają różne ziarna", () => {
+    const seeds = new Set<number>();
+    for (let day = 20_000; day < 20_030; day++) for (const id of ["stoper", "refleks", "w-pamieci"]) seeds.add(dailySeed(day, id));
+    expect(seeds.size).toBe(90);
   });
 });
