@@ -14,7 +14,7 @@ describe("Dla was teraz", () => {
       b: [row("Ola", 250), row("Ala", 262)],
       c: [row("Ala", 100), row("Ola", 200)],
     };
-    expect(forYouNow({ ...base, records })).toEqual([
+    expect(forYouNow({ ...base, records, played: ["c"] })).toEqual([
       { gameId: "a", reason: { kind: "new", nick: "Ola" } },
       { gameId: "b", reason: { kind: "lead", nick: "Ola", gap: 12, onTie: false } },
       { gameId: "d", reason: { kind: "fresh" } },

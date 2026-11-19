@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { GamePreview, PREVIEWS } from "../games/previews.tsx";
 import { fetchRecords } from "../net.ts";
 import { BLURBS, ICONS, MINI_GAMES, StartBar, WishMarks, wishDots } from "./Lobby.tsx";
-import { formatBest, formatRecord, plural, RecordList } from "./Records.tsx";
+import { forYouNow, type ForYouReason } from "./forYou.ts";
+import { formatBest, formatGap, formatRecord, plural, RecordList } from "./Records.tsx";
 import { PlayerDots, Screen, type Send, StickyBar, TopBar } from "./ui.tsx";
 
 interface Props {
@@ -89,6 +90,50 @@ export function MiniGameGrid({ records, nick, color, picked, disabled, wishes, o
   ));
 }
 
+const reasonText = (gameId: string, reason: ForYouReason) =>
+  reason.kind === "new" ? `Nowa dla ${reason.nick}` : reason.kind === "lead" ? `${reason.nick} prowadzi o ${formatGap(gameId, reason)}` : "Jeszcze nie dziś";
+
+/** „Dla was teraz”: do 3 większych kart nad listą (podgląd, nazwa, powód); dotknięcie działa jak kafel. */
+function ForYou({ view, records, picked, color, onPick }: { view: RoomView; records: Loaded; picked: string | null; color?: string; onPick: (gameId: string) => void }) {
+  if (!records || view.players.length < 2) return null;
+  const picks = forYouNow({
+    nicks: view.players.map((p) => p.nick),
+    played: view.evening.played,
+    current: view.gameId,
+    ids: SECTIONS.flatMap(([, ids]) => ids),
+    orders: Object.fromEntries(MINI_GAMES.flatMap((g) => (GAMES[g.id].record ? [[g.id, GAMES[g.id].record!]] : []))),
+    records,
+  });
+  if (picks.length === 0) return null;
+  return (
+    <section aria-labelledby="for-you">
+      <h3 id="for-you" className="mb-2 px-1 text-sm text-fg-muted">
+        Dla was teraz
+      </h3>
+      <ul className="flex flex-col gap-2">
+        {picks.map(({ gameId, reason }) => (
+          <li key={gameId}>
+            <button
+              type="button"
+              aria-pressed={picked === gameId}
+              className={`flex min-h-16 w-full items-center gap-3 rounded-inset border p-2 text-left transition-colors duration-180 ${
+                picked === gameId ? "border-accent bg-accent-soft" : "border-transparent bg-surface-raised hover:border-line-hover"
+              }`}
+              onClick={() => onPick(gameId)}
+            >
+              <GamePreview id={gameId} color={color} still={picked !== gameId} className="w-24 shrink-0" />
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="truncate leading-tight font-semibold">{GAMES[gameId].name}</span>
+                <span className="truncate text-sm text-fg-muted">{reasonText(gameId, reason)}</span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 /** Lista mini-gier: gospodarz wybiera jedną i daje start, gość widzi opis wybranej. Zasady mini-gier są narzucone z góry. */
 export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords }: Props) {
   const isHost = view.hostId === me;
@@ -143,6 +188,15 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
       </div>
 
       {browsing && <p className="px-1 text-sm text-fg-muted">Dotknij gry, w którą chcesz zagrać. Wybiera gospodarz.</p>}
+      {(isHost || browsing) && (
+        <ForYou
+          view={view}
+          records={records}
+          color={self?.color}
+          picked={isHost ? view.gameId : (myWish ?? null)}
+          onPick={(gameId) => (isHost ? send("pickGame", { gameId }) : send("wish", { id: myWish === gameId ? null : gameId }))}
+        />
+      )}
       {(isHost || browsing) && (
         <MiniGameGrid
           records={records}

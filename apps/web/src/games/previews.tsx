@@ -50,13 +50,13 @@ interface Props {
 }
 
 /** Podgląd gry w pudełku o proporcjach ramki z instrukcji, pomniejszony do kafla. Ozdoba: nazwa gry stoi obok. */
-export function GamePreview({ id, color, still, scale = 0.5, className = "" }: Props) {
+export function GamePreview({ id, color, still, scale = 0.5, className = "w-full" }: Props) {
   const Preview = PREVIEWS[id];
   if (!Preview) return null;
   const at = still ? STILL_AT[id] : undefined;
   return (
     <div
-      className={`relative aspect-[8/5] w-full overflow-hidden rounded-inset bg-bg ${still ? "still" : ""} ${at ? "still-at" : ""} ${className}`}
+      className={`relative aspect-[8/5] overflow-hidden rounded-inset bg-bg ${still ? "still" : ""} ${at ? "still-at" : ""} ${className}`}
       style={at ? ({ "--still-at": at } as CSSProperties) : undefined}
       aria-hidden
     >

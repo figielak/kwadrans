@@ -108,7 +108,7 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
   linia „Rekord: …” na `Intro` (`apps/web/src/games/ui.tsx`) i panel „Wybrana gra” w `MiniGames.tsx:150-170` też.
   Solo bez rekordu stołu. Accept: `pnpm test`; zrzut panelu po partii z 2 graczami.
 
-- [ ] **19-11 „Dla was teraz”**
+- [x] **19-11 „Dla was teraz”**
   Testy najpierw (`apps/web/src/screens/lists.test.ts` albo nowy plik): czysta `forYouNow(view, records, nick)` zwraca
   do 3 gier z powodem, w kolejności: „Nowa dla Bartka” (obecny bez wyniku), „Ola prowadzi o 12 ms” (mała różnica między
   dwoma obecnymi), „Jeszcze nie dziś” (spoza `view.evening.played`); bez powtórek, deterministycznie, pomija bieżącą grę.
