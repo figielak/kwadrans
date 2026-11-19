@@ -1075,11 +1075,13 @@ export class LobbyRoom extends Room {
         // Dwie osoby o tym samym nicku w jednej partii: druga nie znajdzie już miejsca, jak w rankingu wygranych.
         seatOf.delete(key);
         const score = id !== undefined && record ? record.score(match.state, id) : null;
+        const tie = id !== undefined && record?.tie ? record.tie.score(match.state, id) : null;
         return {
           nick: id !== undefined ? (this.players.get(id)?.nick ?? nick) : nick,
           place: id !== undefined ? (places?.[id] ?? null) : null,
           won: id !== undefined && id === winnerId && players >= 2,
           score: score !== null && Number.isFinite(score) ? score : null,
+          tie: tie !== null && Number.isFinite(tie) ? tie : null,
           left: id === undefined,
           timeouts: match.timeouts[key] ?? 0,
         };

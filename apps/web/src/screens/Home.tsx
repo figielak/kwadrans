@@ -182,7 +182,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
                     ? "Zdobądź pierwszy wynik dnia"
                     : today?.place === 1
                       ? `Prowadzisz: ${formatBest(daily.gameId, today.best)}`
-                      : `Lider ${daily.rows[0].nick} ${formatBest(daily.gameId, daily.rows[0].best)} · ty: ${today ? formatBest(daily.gameId, today.best) : "brak wyniku"}`}
+                      : `Lider ${daily.rows[0].nick} ${formatBest(daily.gameId, daily.rows[0].best)} · twoja próba: ${today ? formatBest(daily.gameId, today.best) : "brak"}`}
               </span>
             </span>
             <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line">

@@ -1,7 +1,7 @@
 import type { DatabaseSync } from "node:sqlite";
 import {
-  addGame, eveningTable, GAMES, type Evening, type GameDetail, type HistoryRow, type Insights, type MatchEntry, type MatchKind, type MatchOutcome, type MatchSource,
-  nickKey, type PlayerStat, type Profile, type Report, type ReportGame, type Signal, SIGNALS,
+  addGame, compareRecords, eveningTable, GAMES, type Evening, type GameDetail, type HistoryRow, type Insights, type MatchEntry, type MatchKind, type MatchOutcome, type MatchSource,
+  nickKey, type PlayerStat, type Profile, type RecordOrder, type RecordRow, type Report, type ReportGame, type Signal, SIGNALS,
 } from "@kwadrans/games";
 
 export { type MatchEntry, type MatchKind, type MatchOutcome, type MatchSource, type Signal, SOLO_SOURCES } from "@kwadrans/games";
@@ -53,6 +53,9 @@ export function openHistory(db: DatabaseSync, transaction: (fn: () => void) => v
   if (!has("match_players", "tie")) db.exec("ALTER TABLE match_players ADD COLUMN tie REAL");
   const insertMatch = db.prepare("INSERT INTO matches (room_key, game_id, mode, kind, source, started_at, ended_at, started, players, observers, outcome, reactions, daily) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
   const insertPlayer = db.prepare("INSERT INTO match_players (match_id, seat, nick_key, nick, place, won, score, left_early, timeouts, tie) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  const dailyRows = db.prepare(`
+    SELECT p.nick_key, p.nick, p.score AS best, p.tie FROM matches m JOIN match_players p ON p.match_id = m.id
+    WHERE m.game_id = ? AND m.daily = 1 AND m.started = 1 AND m.started_at >= ? ORDER BY m.id, p.seat`);
   const dailyAttempt = db.prepare(`
     SELECT 1 FROM matches m JOIN match_players p ON p.match_id = m.id
     WHERE p.nick_key = ? AND m.game_id = ? AND m.daily = 1 AND m.started = 1 AND m.started_at >= ? LIMIT 1`);
@@ -93,6 +96,19 @@ export function openHistory(db: DatabaseSync, transaction: (fn: () => void) => v
   return {
     recordMatch(entry: MatchEntry) {
       transaction(() => write(entry));
+    },
+
+    /**
+     * Ranking dnia: pierwsza rozpoczęta próba z kafla wyzwania każdego nicku (od `since`), tylko z wynikiem;
+     * porządek rekordu z drugim kryterium, a przy całkiem równych wcześniejsza próba.
+     */
+    dailyRanking(game: { id: string } & RecordOrder, since: number): RecordRow[] {
+      const rows = dailyRows.all(game.id, since) as { nick_key: string; nick: string; best: number | null; tie: number | null }[];
+      const first = new Map<string, (typeof rows)[number]>();
+      for (const r of rows) if (!first.has(r.nick_key)) first.set(r.nick_key, r);
+      const scored = [...first.values()].flatMap((r, i) => (r.best === null ? [] : [{ nick: r.nick, best: r.best, tie: r.tie, played: 1, i }]));
+      const compare = compareRecords(game);
+      return scored.sort((a, b) => compare(a, b) || a.i - b.i).map(({ i: _, ...row }) => row);
     },
 
     /** Czy ten nick zaczął już dziś (od `since`) próbę wyzwania w tej grze; wtedy kolejna to trening z losowym układem. */

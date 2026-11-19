@@ -36,11 +36,11 @@ const server = new Server({
       if (!MINI_GAME_IDS.includes(id)) return void res.sendStatus(404);
       res.set("Access-Control-Allow-Origin", "*").json(stats.top({ id, ...GAMES[id].record! }));
     });
-    // Wyzwanie dnia: gra na dziś i ranking wyników od północy (czas serwera, w kontenerze TZ=Europe/Warsaw).
+    // Wyzwanie dnia: gra na dziś i ranking pierwszych prób z kafla (wspólny układ) od północy (czas serwera, w kontenerze TZ=Europe/Warsaw).
     app.get("/api/daily", (_req, res) => {
       const { midnight, day } = dailyDay();
       const id = dailyGame(day, MINI_GAME_IDS);
-      res.set("Access-Control-Allow-Origin", "*").json({ gameId: id, rows: stats.records([{ id, ...GAMES[id].record! }], midnight)[id] });
+      res.set("Access-Control-Allow-Origin", "*").json({ gameId: id, rows: stats.dailyRanking({ id, ...GAMES[id].record! }, midnight) });
     });
     // Które z ostatnich pokoi gracza jeszcze istnieją i ile osób w nich siedzi: kod → liczba połączonych.
     app.get("/api/rooms", async (req, res) => {

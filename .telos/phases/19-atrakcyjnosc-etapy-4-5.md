@@ -73,7 +73,7 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
   ustaw `match.daily` i ziarno `setup`. `daily` zapisz w snapshot pokoju (`:483-527`) i w `MatchEntry`. Migracja z D-04.
   Accept: `pnpm --filter server exec vitest run` i `pnpm typecheck`.
 
-- [ ] **19-06 Ranking dnia z pierwszej próby**
+- [x] **19-06 Ranking dnia z pierwszej próby**
   Testy najpierw (`apps/server/src/history.test.ts`): ranking dnia bierze tylko `daily = 1` od północy, wynik i `tie`
   z `match_players`, porządek przez `compareRecords`, próba bez wyniku nie trafia do rankingu, trening się nie liczy.
   Kod: zapis `tie` w `match_players` przy końcu partii (`LobbyRoom.ts:1048` i `history.ts:43-49`), nowa funkcja rankingu
