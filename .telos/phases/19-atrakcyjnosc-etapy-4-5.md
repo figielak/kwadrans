@@ -121,7 +121,7 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
   i pojedynek w tej grze zamiast tekstu technicznego; `Setup.tsx` dla gier głównych dostaje linię pojedynku w tej grze.
   Bez zmian w `StartBar`. Accept: zrzut 360×640 u gospodarza i gościa; „Start” dalej mieści się w `StickyBar`.
 
-- [ ] **19-13 Odbiór techniczny i Co nowego**
+- [x] **19-13 Odbiór techniczny i Co nowego**
   Wpis na początku `CHANGELOG` w `apps/web/src/screens/Changelog.tsx` (nowość: druga liczba, data) językiem gracza.
   `pnpm typecheck && pnpm test`, `pnpm --filter web build`. Playwright na `/dev?n=1`, `?n=2`, `?n=6` i obserwator: lista
   mini-gier, „Dla was teraz”, lobby, wyniki, ekran główny; `prefers-reduced-motion` (podglądy stoją). Dwie próby wyzwania
@@ -138,5 +138,5 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
 - 19-02: `surface` #1c1c1f (fg-muted 5,02:1, fg 14,5:1), `surface-raised` #232327 (fg-muted 4,63:1, fg 13,4:1), `line` biel 12%, `surface-glass` 70%.
 - 19-03/04: pilot objął od razu 30 gier. `.still` to `animation-play-state: paused` (każdy krok przy swoim opóźnieniu = pierwsza klatka z instrukcji), nie `animation: none`: przy wyłączonej animacji Koło, Wieża, Balon i Stoper były puste. Pusta chwila 0 tylko w Kole i słaby Refleks: `STILL_AT` w `games/previews.tsx` (`.still-at`). Bez koloru gracza (ekran główny) podgląd dostaje `fg`. Wszystkie 30 klatek czytelne przy ~100 px, żadna gra nie została przy ikonie; Dziesiątki lekko przycięte po bokach. Zrzut listy w pokoju przeniesiony do 19-13.
 - 19-09: w pokoju pojedynki bez przejścia do profilu (pokój nie ma ekranu profilu); zrzuty lobby 6 graczy i wyników przeniesione do 19-13. Serwer dev nie przeładował się sam po zmianie `index.ts` (`--watch` przegapił zapis): przed zrzutami restart serwera.
-- 19-13 (2026-11-19): typy, testy (3020 + 337 + 721) i build PASS. Zrzuty 360×640 w `.playwright-mcp/19-13-*.png`: lobby 2 osób z linią „Ty : Gracz 2 10:14”, „Dla was teraz” przy 2 i 6 osobach („Nowa dla Gracz 5”), karta wybranej gry u gościa z animowanym podglądem i paskiem gotowości. Uwagi: bez rekordów przy stole „Jeszcze nie dziś” powtarza pierwsze gry listy; u gospodarza z wybraną grą przyklejony panel opisu zasłania pierwszy rząd siatki pod kartami (panel sprzed fazy). Wpis 1.5.0 w `CHANGELOG` czeka na decyzję użytkownika (edycja odrzucona).
+- 19-13 (2026-11-19): typy, testy (3020 + 337 + 721) i build PASS. Zrzuty 360×640 w `.playwright-mcp/19-13-*.png`: lobby 2 osób z linią „Ty : Gracz 2 10:14”, „Dla was teraz” przy 2 i 6 osobach („Nowa dla Gracz 5”), karta wybranej gry u gościa z animowanym podglądem i paskiem gotowości. Uwagi: bez rekordów przy stole „Jeszcze nie dziś” powtarza pierwsze gry listy; u gospodarza z wybraną grą przyklejony panel opisu zasłania pierwszy rząd siatki pod kartami (panel sprzed fazy). Wpis 1.5.0 w `CHANGELOG` dodany po decyzji użytkownika.
 - Carry-over 06 (odbiory U03, U04, U09, U14, P11) zostaje przy fazie 06.
