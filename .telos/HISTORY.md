@@ -21,6 +21,7 @@
      kinds: decision | phase | revert | remove | quick | profile | init
      ref: NN, NN-MM, ADR NNN, quick, telos
      Archive is installed first; after an interrupted write it may duplicate live Log rows. -->
+- 2026-11-19 phase 19: closed 19-atrakcyjnosc-etapy-4-5: 13/13 zadań, typy, 3020+337+722 testów i build PASS; zrzuty 360×640 lobby, Dla was teraz i karty gry; wpis 1.5.0 w Co nowego
 - 2026-11-18 phase 18: closed 18-licytacja: ZASADY-GIER §15, 39 testów zasad i pełny pnpm test (games 3006, server 321, web 671), kafel, karta Jak grać i ekran w lobby, odbiór 2 i 6 graczy z obserwatorem na 360×640
 - 2026-11-18 decision quick: Migracja do telos 0.2: config v2, blok w AGENTS.md, 8 obszarów w .telos/areas/, MAP bez numerów linii (limit 600), rozpiski faz 07-16 w formacie 0.1 w gicie pod 53da0f3
 - 2026-11-18 remove quick: Ręczne skróty w .telos/ (GAMES, AUDIT, PROPOSALS, LESSONS) dezaktualizowały się bez kotwicy; wiedza w .telos/areas/, archiwum 53da0f3
@@ -50,4 +51,3 @@
 - 2026-11-05 decision 05: P4-027: MoveContext {source} nadaje serwer; hint Kalamburów tylko z timeoutu (2026-10-29)
 - 2026-11-05 decision 05: P4-022: mini-gra ma jeden termin od końca instrukcji; wyniki rywali go nie odnawiają (2026-10-31)
 - 2026-11-05 decision 05: Losowanie trudności kompletami: Liczenie czwórki działań, Obrót szóstki, W pamięci floor(n/3) mnożeń, Balon 11-20 (P4-057..060, 2026-10-31)
-- 2026-11-05 decision 05: P4-061: Refleks i Stój! mierzą od pierwszej klatki z bodźcem (rAF) do e.timeStamp; Stoper i Wieża bez zmian (2026-10-31)

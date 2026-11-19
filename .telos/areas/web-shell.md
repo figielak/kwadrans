@@ -1,4 +1,4 @@
-<!-- telos-area: commit e618e97aeaa6c822f3aea64f167382f2c7b0fc48 · 2026-11-18 · paths: apps/web/src/App.tsx, apps/web/src/main.tsx, apps/web/src/Dev.tsx, apps/web/src/net.ts, apps/web/src/resume.ts, apps/web/src/resume.test.ts, apps/web/src/live.ts, apps/web/src/live.test.ts, apps/web/src/moments.ts, apps/web/src/moments.test.ts, apps/web/src/clock.ts, apps/web/src/clock.test.ts, apps/web/src/stimulus.ts, apps/web/src/stimulus.test.ts, apps/web/src/vibrate.ts, apps/web/src/vibrate.test.ts, apps/web/index.html, apps/web/package.json, apps/web/tsconfig.json, apps/web/vite.config.ts, apps/web/public/ -->
+<!-- telos-area: commit c63fb3e1abfbfd98b57e743183261d2d59a13136 · 2026-11-19 · paths: apps/web/src/App.tsx, apps/web/src/main.tsx, apps/web/src/Dev.tsx, apps/web/src/net.ts, apps/web/src/resume.ts, apps/web/src/resume.test.ts, apps/web/src/live.ts, apps/web/src/live.test.ts, apps/web/src/moments.ts, apps/web/src/moments.test.ts, apps/web/src/clock.ts, apps/web/src/clock.test.ts, apps/web/src/stimulus.ts, apps/web/src/stimulus.test.ts, apps/web/src/vibrate.ts, apps/web/src/vibrate.test.ts, apps/web/index.html, apps/web/package.json, apps/web/tsconfig.json, apps/web/vite.config.ts, apps/web/public/ -->
 # web-shell
 
 ## Purpose
@@ -8,6 +8,7 @@ channel, moments and reactions, vibration and timing probes.
 ## Entry points
 - `apps/web/src/main.tsx:12` — routes: `/dev` (dev only), `/statystyki`, otherwise `App`
 - `apps/web/src/App.tsx:16` — `App`: screen state, last room view for the evening summary
+- `apps/web/src/net.ts:39` `fetchDaily(nick?)` (type `Daily`), `:45` `fetchDuels`
 - `apps/web/src/net.ts:127-219` — `watchRoom`, `watchLive`, `watchReact`, `createRoom`, `joinRoom`, `resumeRoom`, error texts
 - `apps/web/src/resume.ts:18` — `resume` after a reload (`RESUME_TRIES`, `RESUME_WAIT_MS`)
 - `apps/web/src/Dev.tsx:7` — `/dev?n=4`: frames `/?dev=N`, each with its own token and nick

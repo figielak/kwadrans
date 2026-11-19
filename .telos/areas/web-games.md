@@ -1,4 +1,4 @@
-<!-- telos-area: commit e618e97aeaa6c822f3aea64f167382f2c7b0fc48 · 2026-11-18 · paths: apps/web/src/games/ -->
+<!-- telos-area: commit c63fb3e1abfbfd98b57e743183261d2d59a13136 · 2026-11-19 · paths: apps/web/src/games/ -->
 # web-games
 
 ## Purpose
@@ -9,6 +9,7 @@ Per-game UI: main game boards, the 30 mini games, shared quiz and estimation scr
 - `apps/web/src/games/Quiz.tsx` — Kolor liter, Liczenie, Inny element, Obrót, Literówka (Dziesiątki reuse its table)
 - `apps/web/src/games/Szacowanie.tsx` — Policz kropki and Kąt
 - `apps/web/src/games/KampusTour.tsx`, `apps/web/src/games/KampusSummary.tsx` — largest game screen and its summary
+- `apps/web/src/games/previews.tsx` — `PREVIEWS` registry (every mini game exports its `Preview`), `GamePreview` (`:53`), `STILL_AT` (`:40`); used by tiles, "Dla was teraz" and the selected-game card
 - Recent main-game screens to copy: `apps/web/src/games/Wyprawa.tsx`, `apps/web/src/games/Sabotaz.tsx`, `apps/web/src/games/KropkiIKreski.tsx`, `apps/web/src/games/Licytacja.tsx` (each with a `.test.tsx`)
 
 ## Invariants
@@ -24,10 +25,13 @@ Per-game UI: main game boards, the 30 mini games, shared quiz and estimation scr
 - Refleks and Stój! measure from the first frame with the stimulus (rAF) to `e.timeStamp`; Stoper and Wieża from their own start via `performance.now()` (P4-061).
 - Kampus Tour characters are Phosphor icons.
 
+- Tile preview is the real intro `Preview` scaled down, frozen by `.still` (`animation-play-state: paused`), not `animation: none`: with animation off Koło, Wieża, Balon and Stoper were empty (19-03). Koło and Refleks need a chosen frozen moment in `STILL_AT`.
+
 ## Rejected
 - Hand-drawn SVG figures for Kampus Tour characters — unreadable at 25 px.
 
 ## Pitfalls
 - Browser acceptance with many Playwright tabs: background tabs are throttled, so `bringToFront()` before each action; otherwise a click misses the 20 s limit and the timeout plays the card.
 - Action during an animation: the first tap ends the show without sending a move; a new server state replaces the show (05-14).
+- A test file that imports a screen pulling `net.ts` fails with `location is not defined`; keep pure helpers in `screens/profile.ts` or `forYou.ts`.
 - Mini games duplicate the intro, timeout and ranking skeleton; a fix in one does not reach the others.
