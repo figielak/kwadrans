@@ -1,4 +1,4 @@
-<!-- telos-area: commit e618e97aeaa6c822f3aea64f167382f2c7b0fc48 · 2026-11-18 · paths: apps/web/src/screens/ -->
+<!-- telos-area: commit 5ad5a2deadac889fdc2ba2d08bb98df35ce8ed1e · 2026-11-19 · paths: apps/web/src/screens/ -->
 # web-screens
 
 ## Purpose
@@ -13,11 +13,11 @@ Changelog, How to play, and shared UI pieces.
 - `apps/web/src/screens/howToPlay.ts:25` — `HOW_TO_PLAY` cards (Licytacja `:69`), a test keeps the set complete
 - `apps/web/src/screens/ui.tsx` — `EveningTable`, `VoteCards`, `ResultHero`, `ScoreTable`, `RoundTable`, `StickyBar`, `Intro`
 - `apps/web/src/screens/Records.tsx`, `apps/web/src/screens/Profile.tsx`, `apps/web/src/screens/Statystyki.tsx`, `apps/web/src/screens/Evening.tsx`
-- `apps/web/src/screens/Changelog.tsx` — `CHANGELOG` shown from the footer
+- `apps/web/src/screens/Changelog.tsx:5` — `CHANGELOG` shown from the footer; `VERSION` (`:46`) is the first entry
 
 ## Invariants
 - A new main game is wired in `Game.tsx` (score, simultaneous phases, mount), `Lobby.tsx` (`ICONS`, `BLURBS`) and `howToPlay.ts` (`ZASADY.md` §6).
-- A player-visible change gets one `CHANGELOG` entry before publishing to `master`.
+- A player-visible change gets one `CHANGELOG` entry before publishing to `master`; `Changelog.test.tsx` pins the newest version and the full version list, so a new entry needs that test moved to the new number in the same commit.
 - Only `/statystyki` has a wide layout; every other screen fits 360×640.
 
 ## Decisions
