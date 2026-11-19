@@ -25,7 +25,7 @@ const levelsLabel = (n: number) => `${n} ${n === 1 ? "piętro" : n % 10 >= 2 && 
 const percent = (width: number) => `${Math.round(width * 100)}%`;
 
 /** Podgląd na ekranie instrukcji: dwa klocki i trzeci, który miga nad nimi. */
-function Preview({ color }: { color?: string }) {
+export function Preview({ color }: { color?: string }) {
   return (
     <>
       <span className="absolute bottom-[18%] left-[30%] h-[18%] w-[40%]" style={{ backgroundColor: color }} />

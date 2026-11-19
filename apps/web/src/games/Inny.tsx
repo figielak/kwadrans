@@ -26,6 +26,19 @@ function Shape({ sides, angle, hue, light, size, className = "size-4/5" }: InnyS
 
 const SAMPLE: InnySymbol = { sides: 3, angle: 0, hue: 210, light: 60, size: 100 };
 
+/** Podgląd na ekranie instrukcji i na kaflu gry. */
+export function Preview() {
+  return (
+    <QuizPreview
+      prompt={null}
+      options={[0, 0, 40, 0].map((angle) => (
+        <Shape {...SAMPLE} angle={angle} className="block size-8" />
+      ))}
+      correct={2}
+    />
+  );
+}
+
 export function Inny({ view, ...props }: Props) {
   return (
     <Quiz
@@ -33,15 +46,7 @@ export function Inny({ view, ...props }: Props) {
       view={view}
       retry
       task="Jeden symbol różni się obrotem, odcieniem, rozmiarem albo kształtem: dotknij go. Siatka rośnie po każdym trafieniu"
-      preview={
-        <QuizPreview
-          prompt={null}
-          options={[0, 0, 40, 0].map((angle) => (
-            <Shape {...SAMPLE} angle={angle} className="block size-8" />
-          ))}
-          correct={2}
-        />
-      }
+      preview={<Preview />}
       question={(i) => {
         const { cols, rows, odd, base, other } = view.trials[i % view.trials.length];
         return {

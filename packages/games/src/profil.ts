@@ -25,8 +25,10 @@ export interface MatchEntry {
   observers: number;
   outcome: MatchOutcome;
   reactions: number;
-  /** Wszyscy, którzy siedzieli przy stole na starcie, w kolejności miejsc przy stole. */
-  players: { nick: string; place: number | null; won: boolean; score: number | null; left: boolean; timeouts: number }[];
+  /** Próba z kafla wyzwania dnia ze wspólnym układem (pierwsza tego dnia); brak to zwykła partia. */
+  daily?: boolean;
+  /** Wszyscy, którzy siedzieli przy stole na starcie, w kolejności miejsc przy stole; `tie` to drugie kryterium rekordu. */
+  players: { nick: string; place: number | null; won: boolean; score: number | null; tie?: number | null; left: boolean; timeouts: number }[];
 }
 
 export interface HistoryRow {
@@ -56,6 +58,17 @@ export interface Profile {
   rivals: { key: string; nick: string; matches: number; wins: number; losses: number; ties: number }[];
   evenings: { played: number; won: number };
   bestStreak: number;
+  /** Wyzwanie dnia: seria dni bez kary i wszystkie dni z rozpoczętą próbą z kafla (`dailyStreak`). */
+  daily: { streak: number; total: number };
+}
+
+/** Pojedynek dwóch osób (`nickKey`, `a` < `b`): kto był wyżej w ukończonych partiach 2+ osób; `wins` w kolejności [a, b]. */
+export interface Duel {
+  a: string;
+  b: string;
+  wins: [number, number];
+  ties: number;
+  matches: number;
 }
 
 export interface ReportGame {

@@ -29,16 +29,23 @@ describe("changelog", () => {
     for (const s of ["lobby", "wyrzucić", "przerwać", "Rekordy", "gospodarz", "aktualizację", "Odświeżenie"]) expect(t).toContain(s);
   });
 
-  test("najnowsza wersja 1.4.0 opisuje Licytację na ślepo", () => {
-    expect(VERSION).toBe("1.4.0");
-    expect(CHANGELOG[0].date).toBe("2026-11-18");
-    const t = CHANGELOG[0].changes.join(" ");
+  test("najnowsza wersja 1.5.0 opisuje wyzwanie dnia, serię, podglądy, propozycje, pojedynki i rekord stołu", () => {
+    expect(VERSION).toBe("1.5.0");
+    expect(CHANGELOG[0].date).toBe("2026-11-19");
+    const t = CHANGELOG[0].changes.join(" ").toLowerCase();
+    for (const s of ["wyzwanie dnia", "pierwsza próba", "trening", "seria dni", "podgląd", "dla was teraz", "pojedynki", "rekord stołu", "jaśniejsze"]) expect(t).toContain(s);
+    expect(CHANGELOG.map((e) => e.version)).toEqual(["1.5.0", "1.4.0", "1.3.0", "1.2.0", "1.1.0", "1.0.0"]);
+  });
+
+  test("wersja 1.4.0 opisuje Licytację na ślepo", () => {
+    const entry = CHANGELOG.find((e) => e.version === "1.4.0")!;
+    expect(entry.date).toBe("2026-11-18");
+    const t = entry.changes.join(" ");
     for (const s of ["Licytacja na ślepo", "2-6 osób", "znoszą", "następnej rundy"]) expect(t.toLowerCase()).toContain(s.toLowerCase());
-    expect(CHANGELOG.map((e) => e.version)).toEqual(["1.4.0", "1.3.0", "1.2.0", "1.1.0", "1.0.0"]);
   });
 
   test("wersja 1.3.0 opisuje profil gracza", () => {
-    const t = CHANGELOG[1].changes.join(" ");
+    const t = CHANGELOG.find((e) => e.version === "1.3.0")!.changes.join(" ");
     for (const s of ["Profil", "historię partii", "Nick zmienisz", "rekordach", "wieczoru"]) expect(t.toLowerCase()).toContain(s.toLowerCase());
   });
 

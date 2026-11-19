@@ -25,7 +25,7 @@ const GOAL = 0.85;
 const seconds = (ms: number) => (ms / 1000).toFixed(2).replace(".", ",");
 
 /** Podgląd na ekranie instrukcji: kulka jedzie ku zasłonie, potem zostaje sama zasłona z metą. */
-function Preview({ color }: { color?: string }) {
+export function Preview({ color }: { color?: string }) {
   return (
     <div className="relative h-12 w-44 overflow-hidden rounded-inset border border-line bg-surface">
       <span className="absolute top-1/2 right-[20%] left-[15%] h-px bg-line" />

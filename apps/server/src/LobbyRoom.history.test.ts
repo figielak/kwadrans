@@ -1,7 +1,8 @@
 import { type Client, CloseCode } from "@colyseus/core";
 import type { RoomView } from "@kwadrans/games";
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
-import type { MatchEntry } from "./history.ts";
+import { createRng, dailyGame, dailySeed, GAMES, MINI_GAME_IDS } from "@kwadrans/games";
+import { dailyDay, type MatchEntry } from "./history.ts";
 
 // 17: pokój zapisuje każdą partię do historii (profil, raport) i liczy sygnały gier.
 vi.mock("@colyseus/core", async (importOriginal) => {
@@ -36,7 +37,7 @@ afterEach(() => {
 });
 
 /** n grających i (gdy jest miejsce) jeden obserwator; nicki jak id sesji. */
-async function openRoom(n: number, options?: { solo?: string; from?: string }) {
+async function openRoom(n: number, options?: { solo?: string; from?: string; nick?: string }) {
   const room = new LobbyRoom();
   rooms.push(room);
   const handlers = new Map<string, (client: Client, raw: unknown) => void>();
@@ -52,7 +53,7 @@ async function openRoom(n: number, options?: { solo?: string; from?: string }) {
   const clients = Array.from({ length: total }, (_, i) => ({ sessionId: `p${i + 1}`, send: vi.fn() } as unknown as Client));
   for (const client of clients) {
     room.clients.push(client);
-    room.onJoin(client, {}, { nick: client.sessionId });
+    room.onJoin(client, {}, { nick: options?.nick ?? client.sessionId });
   }
   const send = (player: number, type: string, raw: unknown = {}) => handlers.get(type)!(clients[player], raw);
   const snapshot = (player = 0): RoomView => vi.mocked(clients[player].send).mock.calls.filter(([type]) => type === "room").at(-1)![1] as RoomView;
@@ -152,6 +153,9 @@ describe("historia partii z pokoju", () => {
     send(1, "move", { type: "result", deviation: 200 });
     expect(entries()[0]).toMatchObject({ gameId: "stoper", outcome: "completed", players: [{ nick: "p1", place: 1, won: true }, { nick: "p2", place: 2 }] });
     expect(entries()[0].players.every((p) => typeof p.score === "number")).toBe(true);
+    // Drugie kryterium trafia do historii zawsze, przy grze bez niego jako null (ranking dnia).
+    expect(entries()[0].players.every((p) => p.tie === null || typeof p.tie === "number")).toBe(true);
+    expect(entries()[0].players.every((p) => "tie" in p)).toBe(true);
   });
 
   test("turniej i szybka seria mają swój rodzaj", async () => {
@@ -236,5 +240,73 @@ describe("sygnały gier", () => {
     send(1, "howTo", { gameId: "stoper" });
     send(1, "howTo", { gameId: "nie-ma" });
     expect(signalled().filter((s) => s.endsWith("howTo"))).toEqual(["statki:howTo", "statki:howTo"]);
+  });
+});
+
+// 19-05: pierwsza rozpoczęta próba z kafla wyzwania ma wspólny układ dnia, kolejne to trening z losowym układem.
+describe("wspólny układ wyzwania dnia", () => {
+  const today = () => dailyGame(dailyDay().day, MINI_GAME_IDS);
+  const stateOf = (room: InstanceType<typeof LobbyRoom>) => (room as unknown as { match: { state: unknown; daily?: boolean } }).match;
+  const dailyState = (gameId: string) => GAMES[gameId].setup(["p1"], createRng(dailySeed(dailyDay().day, gameId)));
+
+  beforeEach(() => {
+    vi.setSystemTime(new Date(2026, 10, 19, 12));
+  });
+
+  /** Próba z kafla wyzwania: start po instrukcji i wyjście (porzucona po starcie). */
+  async function attempt(nick: string, from = "daily", gameId = today()) {
+    const ctx = await openRoom(1, { solo: gameId, from, nick });
+    const match = stateOf(ctx.room);
+    return { ...ctx, match };
+  }
+
+  test("pierwsze próby dwóch osób mają ten sam układ dnia", async () => {
+    const a = await attempt("ala-19");
+    const b = await attempt("bartek-19");
+    expect(a.match.state).toEqual(dailyState(today()));
+    expect(b.match.state).toEqual(a.match.state);
+    expect(a.match.daily).toBe(true);
+  });
+
+  test("ziarno dnia różni się między dniami i grami", () => {
+    const { day } = dailyDay();
+    expect(dailySeed(day, "stoper")).not.toBe(dailySeed(day + 1, "stoper"));
+    expect(dailySeed(day, "stoper")).not.toBe(dailySeed(day, "refleks"));
+  });
+
+  test("po rozpoczętej próbie kolejna tego dnia to trening z losowym układem", async () => {
+    const first = await attempt("celina-19");
+    first.send(0, "begin");
+    await first.room.onLeave(first.clients[0], CloseCode.CONSENTED);
+    expect(first.entries().at(-1)).toMatchObject({ source: "daily", started: true, daily: true });
+
+    const second = await attempt("celina-19");
+    expect(second.match.daily).toBe(false);
+    expect(second.match.state).not.toEqual(dailyState(today()));
+  });
+
+  test("wyjście z instrukcji nie zużywa dnia", async () => {
+    const first = await attempt("darek-19");
+    await first.room.onLeave(first.clients[0], CloseCode.CONSENTED);
+    const second = await attempt("darek-19");
+    expect(second.match.daily).toBe(true);
+  });
+
+  test("„Jeszcze raz”, lista i inna gra to nie wyzwanie", async () => {
+    // Dzień, w którym wyzwaniem jest Stoper: jego wynik kończy partię jednym ruchem, więc „Jeszcze raz” jest możliwe.
+    let at = new Date(2026, 10, 19, 12).getTime();
+    while (dailyGame(dailyDay(at).day, MINI_GAME_IDS) !== "stoper") at += 86_400_000;
+    vi.setSystemTime(at);
+    const tile = await attempt("ewa-19");
+    expect(tile.match.daily).toBe(true);
+    tile.send(0, "begin");
+    tile.send(0, "move", { type: "result", deviation: 100 });
+    tile.send(0, "rematch");
+    expect(stateOf(tile.room).daily).toBe(false);
+    expect(tile.entries().at(-1)).toMatchObject({ source: "daily", daily: true, started: true });
+
+    expect((await attempt("franek-19", "list")).match.daily).toBe(false);
+    const other = MINI_GAME_IDS.find((id) => id !== today())!;
+    expect((await attempt("gosia-19", "daily", other)).match.daily).toBe(false);
   });
 });

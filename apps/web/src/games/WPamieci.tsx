@@ -24,7 +24,7 @@ const roundsLabel = (n: number) => `${n} ${n === 1 ? "runda" : n % 10 >= 2 && n 
 const items = (round: WPamieciRound) => [String(round.start), ...round.ops.map(({ op, n }) => `${op}${n}`)];
 
 /** Podgląd na ekranie instrukcji: liczba, dwa działania i pytanie o wynik, po kolei. */
-function Preview() {
+export function Preview() {
   return (
     <>
       {["5", "+7", "×2", "= ?"].map((text, i) => (

@@ -1,9 +1,12 @@
 import { Play, Shuffle, Trophy } from "@phosphor-icons/react";
-import { GAMES, MAX_PLAYERS, nickKey, type RecordRow, type RoomView, standing } from "@kwadrans/games";
+import { GAMES, MAX_PLAYERS, nickKey, type RecordRow, type RoomView, standing, tableRecord } from "@kwadrans/games";
 import { useEffect, useRef, useState } from "react";
+import { GamePreview, PREVIEWS } from "../games/previews.tsx";
 import { fetchRecords } from "../net.ts";
 import { BLURBS, ICONS, MINI_GAMES, StartBar, WishMarks, wishDots } from "./Lobby.tsx";
-import { formatBest, formatRecord, plural, RecordList } from "./Records.tsx";
+import { Duels } from "./Duels.tsx";
+import { forYouNow, type ForYouReason } from "./forYou.ts";
+import { formatBest, formatGap, formatRecord, plural, RecordList } from "./Records.tsx";
 import { PlayerDots, Screen, type Send, StickyBar, TopBar } from "./ui.tsx";
 
 interface Props {
@@ -63,11 +66,15 @@ export function MiniGameGrid({ records, nick, color, picked, disabled, wishes, o
               disabled={disabled}
               data-game={id}
               className={`relative flex min-h-20 flex-col items-start gap-1 rounded-inset border p-2 text-left transition-colors duration-180 ${
-                picked === id ? "border-accent bg-accent-soft" : "border-transparent bg-surface hover:border-line-hover"
+                picked === id ? "border-accent bg-accent-soft" : "border-transparent bg-surface-raised hover:border-line-hover"
               }`}
               onClick={() => onPick(id)}
             >
-              <TileIcon size={20} weight={picked === id ? "fill" : "regular"} aria-hidden />
+              {PREVIEWS[id] ? (
+                <GamePreview id={id} color={color} still={picked !== id} />
+              ) : (
+                <TileIcon size={20} weight={picked === id ? "fill" : "regular"} aria-hidden />
+              )}
               <span className="text-sm leading-tight">{GAMES[id].name}</span>
               {/* Podpis tylko przy rozegranej grze: własne miejsce w rekordach, w kolorze gracza, gdy to on prowadzi. */}
               {!!place && (
@@ -84,6 +91,50 @@ export function MiniGameGrid({ records, nick, color, picked, disabled, wishes, o
   ));
 }
 
+const reasonText = (gameId: string, reason: ForYouReason) =>
+  reason.kind === "new" ? `Nowa dla ${reason.nick}` : reason.kind === "lead" ? `${reason.nick} prowadzi o ${formatGap(gameId, reason)}` : "Jeszcze nie dziś";
+
+/** „Dla was teraz”: do 3 większych kart nad listą (podgląd, nazwa, powód); dotknięcie działa jak kafel. */
+function ForYou({ view, records, picked, color, onPick }: { view: RoomView; records: Loaded; picked: string | null; color?: string; onPick: (gameId: string) => void }) {
+  if (!records || view.players.length < 2) return null;
+  const picks = forYouNow({
+    nicks: view.players.map((p) => p.nick),
+    played: view.evening.played,
+    current: view.gameId,
+    ids: SECTIONS.flatMap(([, ids]) => ids),
+    orders: Object.fromEntries(MINI_GAMES.flatMap((g) => (GAMES[g.id].record ? [[g.id, GAMES[g.id].record!]] : []))),
+    records,
+  });
+  if (picks.length === 0) return null;
+  return (
+    <section aria-labelledby="for-you">
+      <h3 id="for-you" className="mb-2 px-1 text-sm text-fg-muted">
+        Dla was teraz
+      </h3>
+      <ul className="flex flex-col gap-2">
+        {picks.map(({ gameId, reason }) => (
+          <li key={gameId}>
+            <button
+              type="button"
+              aria-pressed={picked === gameId}
+              className={`flex min-h-16 w-full items-center gap-3 rounded-inset border p-2 text-left transition-colors duration-180 ${
+                picked === gameId ? "border-accent bg-accent-soft" : "border-transparent bg-surface-raised hover:border-line-hover"
+              }`}
+              onClick={() => onPick(gameId)}
+            >
+              <GamePreview id={gameId} color={color} still={picked !== gameId} className="w-24 shrink-0" />
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="truncate leading-tight font-semibold">{GAMES[gameId].name}</span>
+                <span className="truncate text-sm text-fg-muted">{reasonText(gameId, reason)}</span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 /** Lista mini-gier: gospodarz wybiera jedną i daje start, gość widzi opis wybranej. Zasady mini-gier są narzucone z góry. */
 export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords }: Props) {
   const isHost = view.hostId === me;
@@ -96,6 +147,8 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
   }, []);
   const mine = (gameId: string) => records?.[gameId]?.find((r) => self && nickKey(r.nick) === nickKey(self.nick));
   const top = def && records?.[def.id]?.[0];
+  // Rekord stołu: najlepszy z obecnych, gdy nie jest rekordem gry (solo w pokoju go nie ma).
+  const atTable = def && records && view.players.length > 1 ? tableRecord(records[def.id] ?? [], view.players.map((p) => p.nick), def.record!) : null;
 
   const wishes = wishDots(view);
   const myWish = view.wishes[me];
@@ -139,6 +192,15 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
 
       {browsing && <p className="px-1 text-sm text-fg-muted">Dotknij gry, w którą chcesz zagrać. Wybiera gospodarz.</p>}
       {(isHost || browsing) && (
+        <ForYou
+          view={view}
+          records={records}
+          color={self?.color}
+          picked={isHost ? view.gameId : (myWish ?? null)}
+          onPick={(gameId) => (isHost ? send("pickGame", { gameId }) : send("wish", { id: myWish === gameId ? null : gameId }))}
+        />
+      )}
+      {(isHost || browsing) && (
         <MiniGameGrid
           records={records}
           nick={self?.nick ?? null}
@@ -151,13 +213,19 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
 
       {!isHost && def && (
         <>
-          <section className="tile">
-            <h2 className="label mb-3">Wybrana gra</h2>
-            <div className="flex items-center gap-3">
-              <DefIcon size={28} weight="fill" className="shrink-0" aria-hidden />
-              <p className="leading-tight">{def.name}</p>
+          <section className="tile flex flex-col gap-3">
+            <h2 className="label">Wybrana gra</h2>
+            {PREVIEWS[def.id] ? <GamePreview id={def.id} color={self?.color} scale={0.8} /> : <DefIcon size={28} weight="fill" aria-hidden />}
+            <div>
+              <p className="text-lg leading-tight font-semibold">{def.name}</p>
+              <p className="mt-1 text-sm text-fg-muted">{BLURBS[def.id]}</p>
             </div>
-            <p className="mt-3 text-sm text-fg-muted">{BLURBS[def.id]}</p>
+            {atTable && (
+              <p className="text-sm text-fg-muted">
+                Rekord stołu: {atTable.nick} <span className="font-mono text-fg tabular-nums">{formatRecord(def.id, atTable)}</span>
+              </p>
+            )}
+            <Duels view={view} me={me} gameId={def.id} />
           </section>
           <section className="tile flex flex-col gap-3">
             <h2 className="label">Rekordy · {def.name}</h2>
@@ -177,7 +245,11 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
         {isHost && def && (
           <div className="flex flex-col gap-1 pt-3">
             <div className="flex items-start gap-2.5">
-              <DefIcon size={24} weight="fill" className="shrink-0" aria-hidden />
+              {PREVIEWS[def.id] ? (
+                <GamePreview id={def.id} color={self?.color} className="w-16 shrink-0" />
+              ) : (
+                <DefIcon size={24} weight="fill" className="shrink-0" aria-hidden />
+              )}
               <div className="min-w-0">
                 <p className="font-semibold leading-tight">{def.name}</p>
                 <p className="text-sm text-fg-muted">{BLURBS[def.id]}</p>
@@ -190,6 +262,7 @@ export function MiniGames({ view, me, dropped, send, onLeave, onBack, onRecords 
                   ? "Nikt jeszcze nie grał"
                   : notLoaded(records)}
               {mine(def.id) && top !== mine(def.id) && ` · twój: ${formatBest(def.id, mine(def.id)!.best)}`}
+              {atTable && ` · stołu: ${formatRecord(def.id, atTable)} (${atTable.nick})`}
             </p>
           </div>
         )}

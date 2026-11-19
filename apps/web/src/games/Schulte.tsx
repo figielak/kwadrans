@@ -15,7 +15,7 @@ const LAST = SCHULTE_SIZE * SCHULTE_SIZE;
 const seconds = (ms: number) => tenth(ms / 1000);
 
 /** Podgląd na ekranie instrukcji: kolejne liczby podświetlają się po kolei. */
-function Preview() {
+export function Preview() {
   return (
     <div className="grid grid-cols-3 gap-1">
       {[5, 2, 8, 1, 9, 3, 7, 4, 6].map((n) => (

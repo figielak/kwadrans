@@ -24,7 +24,7 @@ Dev i deploy: `README.md`. Stan prac i plan: `.telos/ROADMAP.md`.
 - **Profil gracza**: publiczny, bez logowania, rozpoznawany po `nickKey` jak rankingi (`Profile.tsx`). Otwiera go kółko na ekranie głównym (własny, z „Zmień nick”),
   nick w rankingach na ekranie „Rekordy” i wiersz tabeli w podsumowaniu wieczoru; z listy „Z kim gra” przechodzi się do profilu rywala, „Wróć” cofa o jeden.
   Pokazuje: od kiedy gra i ile dni, ukończone partie, wygrane wieczory (pokoje z co najmniej dwiema ukończonymi partiami z innymi, mistrz po punktach jak w pokoju, remis na szczycie też),
-  najlepszą serię pierwszych miejsc, partie i wygrane per gra, miejsca w rekordach mini-gier, bilans z innymi (kto był wyżej w ukończonych partiach 2+ osób, do 10 osób)
+  najlepszą serię pierwszych miejsc, serię dni wyzwania i łączną liczbę dni z wyzwaniem, partie i wygrane per gra, miejsca w rekordach mini-gier, bilans z innymi (kto był wyżej w ukończonych partiach 2+ osób, do 10 osób)
   i historię partii stronami po 20, od najnowszej. Wyniki sprzed historii są zaimportowane jako partie bez czasu trwania (gry główne: zwycięzca pierwszy, reszta druga).
 - **Raport gier** (`/statystyki`): ukryta strona właściciela, bez linku z aplikacji i bez indeksowania. Jako jedyny ekran ma szeroki układ na laptopa (do 1400 px; na telefonie tabele przewijają się w panelu).
   Okres 7/30/90 dni albo całość. Liczby zbiorcze (partie, ukończone, gracze, nowi, wracający, dni, wieczory, czas gry), partie dzień po dniu (gry główne, mini-gry w pokoju, solo),
@@ -36,8 +36,14 @@ Dev i deploy: `README.md`. Stan prac i plan: `.telos/ROADMAP.md`.
   bez lobby, kodu, wyboru koloru i wpisu w ostatnich pokojach. Po partii „Jeszcze raz” albo „Wyjdź”; wyniki trafiają do tych samych rekordów.
   Pierwsza partia pokazuje instrukcję bez odliczania, a „Jeszcze raz” od razu uruchamia grę bez instrukcji, zawsze po decyzji gracza.
 - **Wyzwanie dnia**: jedna mini-gra dziennie, ta sama dla wszystkich (`dailyGame` w core.ts: lista tasowana raz na cykl, więc każda gra wypada raz na tyle dni, ile jest gier;
-  dzień zmienia się o polskiej północy, `TZ` w docker-compose). Ranking dnia to najlepsze dzisiejsze wyniki w tej grze z dowolnej partii
-  (solo, pokój, turniej), bez limitu prób i bez osobnej tabeli (`/api/daily`). Układ partii jest losowy jak zawsze.
+  dzień zmienia się o polskiej północy, `TZ` w docker-compose). Pierwsza rozpoczęta (po instrukcji) próba z kafla wyzwania danego `nickKey`
+  ma wspólny układ dnia: `setup` dostaje `createRng(dailySeed(dzień, gra))`, więc wszyscy grają to samo; ziarno dotyczy tylko `setup`.
+  Tylko ta próba trafia do rankingu dnia (`/api/daily`, wiersze `matches.daily = 1` od północy, porządek jak w rekordach). Próba porzucona po starcie
+  zużywa dzień bez wyniku, żeby nie dało się podejrzeć układu i zacząć od nowa. Kolejne próby tego dnia, także „Jeszcze raz”, to trening z losowym układem:
+  liczą się do rekordów wszech czasów, nie do rankingu dnia. Partie tej gry w pokoju i turnieju też nie wchodzą do rankingu dnia.
+  **Seria dni**: dni z rozpoczętą próbą z kafla wyzwania (dane od historii partii). Idąc wstecz od dziś (albo od wczoraj, gdy dziś jeszcze nie grał),
+  jeden brakujący dzień jest wybaczony, jeśli w poprzednich 7 dniach nie było innego braku; drugi brak w 7 dniach kończy serię (`dailyStreak` w core.ts).
+  Kafel wyzwania pokazuje serię od 2 dni, a po przerwie łączną liczbę dni z wyzwaniem; bez komunikatów o stracie serii.
   W rankingach gracza rozpoznaje `nickKey` (bez wielkości liter, polskich znaków i nadmiarowych spacji: „Ala” i „ala” to jedna osoba), pokazywana jest ostatnia pisownia.
 - **Koniec wieczoru**: własne wyjście z pokoju po co najmniej dwóch partiach (poza solo) pokazuje zamiast ekranu głównego podsumowanie (`Evening.tsx`): mistrz (przy remisie na szczycie współliderzy),
   tabela, 2-3 tytuły i „Udostępnij” z krótkim tekstem (`shareText`, bez kodu pokoju i grafiki; `navigator.share`, bez niego kopiowanie, bez schowka brak przycisku), potem „Na start”.
@@ -160,7 +166,7 @@ potem `def.places(state)`, a gdy obu brak, zwraca `null`. W trakcie partii i po 
 również zwraca `null`. Miejsca uwzględniają remisy, nie zmieniają zwycięzcy ani punktacji. Poza mini-grami `places` mają
 Memory, Kalambury, Państwa-miasta, Kampus Tour i Gomoku (pełna plansza bez wygranej: obaj na pierwszym miejscu).
 Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResults`, `rankPlaces`, `ranked`, `byCompletion` (ukończenie przed timeoutem), `shuffle`, `average`, `byHitsThenAverage`, `byScoreThenAverage`,
-`normalize`, `nickKey`, `initials` (inicjały na kropkach graczy), `standing`, `compareRecords`, `soloState`, `dailyGame`, `renameId` (przepisanie id gracza w stanie JSON), `withSum` (losowanie o stałej sumie, żeby każda partia miała tyle samo do zdobycia).
+`normalize`, `nickKey`, `initials` (inicjały na kropkach graczy), `standing`, `compareRecords`, `tableRecord`, `soloState`, `dailyGame`, `dailySeed`, `dailyStreak`, `renameId` (przepisanie id gracza w stanie JSON), `withSum` (losowanie o stałej sumie, żeby każda partia miała tyle samo do zdobycia).
 
 ### Reguły platformy (obowiązują każdą grę)
 
@@ -180,8 +186,9 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
   Liczba wpisów widoku nie rośnie od kolejnych partii tych samych osób i gier. Dotychczasowe `scores` i ranking wygranych pozostają.
 - **Historia partii** (`history.ts`, tabele `matches` i `match_players`, trzymane bezterminowo): każda partia, także solo, przerwana i walkower, w chwili końca:
   gra, tryb, rodzaj (solo, pokój, turniej, szybka seria), źródło (gospodarz, głosowanie, rewanż, turniej; solo: lista, losowa, wyzwanie dnia, rekordy, podane przez klienta jako etykieta),
-  początek i koniec, czy minęła instrukcja, obserwatorzy, wynik partii (`completed`, `walkover`, `aborted`, `stopped` po „Przerwij”), liczba reakcji, a dla każdego, kto siedział przy stole
-  na starcie: nick, miejsce (wychodzący bez miejsca), wygrana (tylko przy 2+ osobach), wynik rekordu mini-gry i liczba ruchów zegara. Zamknięcie pokoju przez serwer partii nie zapisuje.
+  początek i koniec, czy minęła instrukcja, obserwatorzy, wynik partii (`completed`, `walkover`, `aborted`, `stopped` po „Przerwij”), liczba reakcji, czy to próba wyzwania dnia
+  ze wspólnym układem (`daily`), a dla każdego, kto siedział przy stole na starcie: nick, miejsce (wychodzący bez miejsca), wygrana (tylko przy 2+ osobach),
+  wynik rekordu mini-gry z drugim kryterium (`tie`) i liczba ruchów zegara. Starsze wiersze mają `daily = 0` i `tie` puste. Zamknięcie pokoju przez serwer partii nie zapisuje.
   Obok anonimowe liczniki per gra i dzień (`game_signals`): wybór gry w lobby, porzucenie wyboru bez startu, pokazanie i wygrana w głosowaniu, otwarcie „Jak grać”
   (wiadomość `howTo`, raz na osobę i grę w pokoju). Błąd zapisu nie zmienia końca partii. `room_games` (pomiar bez nicków) zostaje osobno.
 - **Zapis pokoi**: stan pokoju żyje w pamięci, a jego kopia w tabeli `rooms` (jeden wiersz JSON na pokój, `snapshot` w `LobbyRoom.ts`).
@@ -227,6 +234,16 @@ Wspólne pomocnicze w `core.ts`: `createRng` (mulberry32), `roomCode`, `rankResu
   i ikonę „?” w nagłówku partii (także dla obserwatora), która otwiera okienko; karta nie otwiera się sama, a czas tury biegnie dalej. Kart nie mają mini-gry (mają `Intro`) ani Turniej.
 - Mini-gry mają osobny ekran z listą (`MiniGames.tsx`); otwiera go kafel u gospodarza (lokalnie, bez stanu w pokoju), a goście widzą go,
   gdy gospodarz wybierze grę. Mini-gry mają zasady narzucone z góry, bez trybów.
+  Kafel mini-gry pokazuje nieruchomą pierwszą klatkę jej podglądu (`Preview`, ta sama co na ekranie instrukcji), animuje się tylko wybrany; gra z nieczytelną klatką zostaje przy ikonie.
+  Tożsamości gry nie niesie kolor (kolor znaczy gracza). W pokoju z 2+ osobami nad listą stoi „Dla was teraz”: do 3 gier z powodem, w kolejności
+  „Nowa dla …” (ktoś obecny nie ma w niej wyniku), „… prowadzi o …” (mała różnica między dwiema obecnymi osobami), „Jeszcze nie dziś” (spoza `evening.played`);
+  bez bieżącej gry i bez powtórek, liczone u klienta. Dotknięcie działa jak kafel. Karta wybranej gry ma duży animowany podgląd, opis, rekord stołu i pojedynek w tej grze.
+- **Rekord stołu**: najlepszy wynik wszech czasów spośród osób obecnych w pokoju (po `nickKey`), z wierszy `/api/records`, liczony u klienta (`tableRecord` w core.ts).
+  Stoi obok rekordu wszech czasów w panelu po partii, na ekranie instrukcji i na karcie wybranej gry, tylko gdy różni się od lidera; solo go nie ma.
+- **Pojedynki**: bilans dwóch osób (`nickKey`) w ukończonych partiach 2+ osób, kto był wyżej, na tych samych regułach co bilans w profilu
+  (remis miejsc bez punktu, bez solo i partii nieukończonych; wyniki sprzed historii też się liczą), opcjonalnie zawężony do jednej gry (`/api/duels?n=…&n=…&game=…`, do 6 nicków).
+  Lobby pokazuje pod graczami jedną linię „Ty : Ola 7:4” dla obecnych, z którymi gracz ma historię (obserwator jej nie widzi); po partii i na ekranie gry
+  głównej bilans w tej grze; w pokoju to sam tekst (profil otwiera się z rankingów i podsumowania wieczoru).
 - Turniej ma ekran ustawień (`TournamentSetup` w `Setup.tsx`): `pickTournament` (gospodarz) ustawia liczbę gier, `markGame` (każdy) zaznacza jedną grę; obie kasują gotowość gości.
   W trakcie turnieju `gameId` to bieżąca gra, a `tournament` w `RoomView` niesie listę gier i punkty; „Dalej” między grami to wiadomość `rematch`.
 - **Reakcje**: sześć emotek (`REACTIONS`, wiadomość `react: { index }`) od każdego w pokoju, także obserwatora, w trakcie partii i po niej; serwer rozsyła `react: { id, index }` wszystkim, także nadawcy.
@@ -292,7 +309,7 @@ Prościej i bezpiecznie dla gier z ukrytymi informacjami.
 |---|---|
 | Język | TypeScript (wszędzie) |
 | Monorepo | pnpm workspaces |
-| Serwer / pokoje | Colyseus (Node.js) + Express (statyczny frontend, `/api/stats`, `/api/records`, `/api/records/:gameId/top`, `/api/daily`, `/api/rooms`, `/api/profile/:nick`, `/api/profile/:nick/history`, `/api/report`) |
+| Serwer / pokoje | Colyseus (Node.js) + Express (statyczny frontend, `/api/stats`, `/api/records`, `/api/records/:gameId/top`, `/api/daily`, `/api/duels`, `/api/rooms`, `/api/profile/:nick`, `/api/profile/:nick/history`, `/api/report`) |
 | Walidacja wiadomości | zod (tylko w `packages/games`) |
 | Frontend | Vite + React, Tailwind, animacje w CSS (`index.css`) |
 | Ikony | Phosphor Icons |

@@ -1,7 +1,7 @@
 import type { DatabaseSync } from "node:sqlite";
 import {
-  addGame, eveningTable, GAMES, type Evening, type GameDetail, type HistoryRow, type Insights, type MatchEntry, type MatchKind, type MatchOutcome, type MatchSource,
-  nickKey, type PlayerStat, type Profile, type Report, type ReportGame, type Signal, SIGNALS,
+  addGame, compareRecords, dailyStreak, type Duel, eveningTable, GAMES, type Evening, type GameDetail, type HistoryRow, type Insights, type MatchEntry, type MatchKind, type MatchOutcome, type MatchSource,
+  nickKey, type PlayerStat, type Profile, type RecordOrder, type RecordRow, type Report, type ReportGame, type Signal, SIGNALS,
 } from "@kwadrans/games";
 
 export { type MatchEntry, type MatchKind, type MatchOutcome, type MatchSource, type Signal, SOLO_SOURCES } from "@kwadrans/games";
@@ -13,6 +13,12 @@ const RIVALS = 10;
 export const localDay = (at: number) => {
   const d = new Date(at);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
+/** Doba wyzwania dnia: lokalna północ (TZ procesu) i jej numer, ten sam dla `dailyGame` i `dailySeed`. */
+export const dailyDay = (now = Date.now()) => {
+  const midnight = new Date(now).setHours(0, 0, 0, 0);
+  return { midnight, day: Math.round(midnight / 86_400_000) };
 };
 
 export const median = (values: number[]) => {
@@ -40,18 +46,34 @@ export function openHistory(db: DatabaseSync, transaction: (fn: () => void) => v
   db.exec(`CREATE TABLE IF NOT EXISTS game_signals (
     game_id TEXT NOT NULL, day TEXT NOT NULL, kind TEXT NOT NULL, n INTEGER NOT NULL, PRIMARY KEY (game_id, day, kind))`);
 
-  const insertMatch = db.prepare("INSERT INTO matches (room_key, game_id, mode, kind, source, started_at, ended_at, started, players, observers, outcome, reactions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-  const insertPlayer = db.prepare("INSERT INTO match_players VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  // 19: próba wyzwania dnia ze wspólnym układem i drugie kryterium rekordu (ranking dnia). Przed przygotowaniem zapisów,
+  // po kolumnach, a nie po user_version: świeża baza musi jeszcze przejść import wersji 3.
+  const has = (table: string, column: string) => (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).some((c) => c.name === column);
+  if (!has("matches", "daily")) db.exec("ALTER TABLE matches ADD COLUMN daily INTEGER NOT NULL DEFAULT 0");
+  if (!has("match_players", "tie")) db.exec("ALTER TABLE match_players ADD COLUMN tie REAL");
+  const insertMatch = db.prepare("INSERT INTO matches (room_key, game_id, mode, kind, source, started_at, ended_at, started, players, observers, outcome, reactions, daily) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  const insertPlayer = db.prepare("INSERT INTO match_players (match_id, seat, nick_key, nick, place, won, score, left_early, timeouts, tie) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  const dailyRows = db.prepare(`
+    SELECT p.nick_key, p.nick, p.score AS best, p.tie FROM matches m JOIN match_players p ON p.match_id = m.id
+    WHERE m.game_id = ? AND m.daily = 1 AND m.started = 1 AND m.started_at >= ? ORDER BY m.id, p.seat`);
+  const dailyStarts = db.prepare(`
+    SELECT m.started_at AS at FROM matches m JOIN match_players p ON p.match_id = m.id
+    WHERE p.nick_key = ? AND m.source = 'daily' AND m.started = 1 ORDER BY m.started_at`);
+  /** Doby z rozpoczętą partią z kafla wyzwania (próba albo trening), rosnąco, bez powtórek. */
+  const dailyDays = (key: string) => [...new Set((dailyStarts.all(key) as { at: number }[]).map((r) => dailyDay(r.at).day))];
+  const dailyAttempt = db.prepare(`
+    SELECT 1 FROM matches m JOIN match_players p ON p.match_id = m.id
+    WHERE p.nick_key = ? AND m.game_id = ? AND m.daily = 1 AND m.started = 1 AND m.started_at >= ? LIMIT 1`);
   const upsertSignal = db.prepare("INSERT INTO game_signals VALUES (?, ?, ?, 1) ON CONFLICT (game_id, day, kind) DO UPDATE SET n = n + 1");
 
   const write = (entry: MatchEntry) => {
     const { lastInsertRowid } = insertMatch.run(
       entry.roomKey, entry.gameId, entry.mode, entry.kind, entry.source, entry.startedAt, entry.endedAt,
-      Number(entry.started), entry.players.length, entry.observers, entry.outcome, entry.reactions,
+      Number(entry.started), entry.players.length, entry.observers, entry.outcome, entry.reactions, Number(entry.daily ?? false),
     );
     entry.players.forEach((p, seat) => {
       const nick = p.nick.trim();
-      insertPlayer.run(lastInsertRowid, seat, nickKey(nick), nick, p.place, Number(p.won), p.score, Number(p.left), p.timeouts);
+      insertPlayer.run(lastInsertRowid, seat, nickKey(nick), nick, p.place, Number(p.won), p.score, Number(p.left), p.timeouts, p.tie ?? null);
     });
   };
 
@@ -81,6 +103,42 @@ export function openHistory(db: DatabaseSync, transaction: (fn: () => void) => v
       transaction(() => write(entry));
     },
 
+    /**
+     * Ranking dnia: pierwsza rozpoczęta próba z kafla wyzwania każdego nicku (od `since`), tylko z wynikiem;
+     * porządek rekordu z drugim kryterium, a przy całkiem równych wcześniejsza próba.
+     */
+    dailyRanking(game: { id: string } & RecordOrder, since: number): RecordRow[] {
+      const rows = dailyRows.all(game.id, since) as { nick_key: string; nick: string; best: number | null; tie: number | null }[];
+      const first = new Map<string, (typeof rows)[number]>();
+      for (const r of rows) if (!first.has(r.nick_key)) first.set(r.nick_key, r);
+      const scored = [...first.values()].flatMap((r, i) => (r.best === null ? [] : [{ nick: r.nick, best: r.best, tie: r.tie, played: 1, i }]));
+      const compare = compareRecords(game);
+      return scored.sort((a, b) => compare(a, b) || a.i - b.i).map(({ i: _, ...row }) => row);
+    },
+
+    dailyDays,
+
+    /** Pojedynki każdej pary podanych osób (unikalne `nickKey`), na regułach bilansu z profilu; `gameId` zawęża do jednej gry. */
+    duels(keys: string[], gameId?: string): Duel[] {
+      const unique = [...new Set(keys)];
+      if (unique.length < 2) return [];
+      const marks = unique.map(() => "?").join();
+      const rows = db.prepare(`
+        SELECT a.nick_key AS a, b.nick_key AS b, COUNT(*) AS matches,
+          SUM(a.place < b.place) AS aw, SUM(a.place > b.place) AS bw, SUM(a.place = b.place) AS ties
+        FROM match_players a JOIN match_players b ON b.match_id = a.match_id AND a.nick_key < b.nick_key JOIN matches m ON m.id = a.match_id
+        WHERE ${VERSUS} AND a.place IS NOT NULL AND b.place IS NOT NULL AND a.nick_key IN (${marks}) AND b.nick_key IN (${marks})
+          ${gameId ? "AND m.game_id = ?" : ""}
+        GROUP BY a.nick_key, b.nick_key ORDER BY a.nick_key, b.nick_key`).all(...unique, ...unique, ...(gameId ? [gameId] : [])) as
+        { a: string; b: string; matches: number; aw: number; bw: number; ties: number }[];
+      return rows.map((r) => ({ a: r.a, b: r.b, wins: [r.aw, r.bw], ties: r.ties, matches: r.matches }));
+    },
+
+    /** Czy ten nick zaczął już dziś (od `since`) próbę wyzwania w tej grze; wtedy kolejna to trening z losowym układem. */
+    dailyTaken(key: string, gameId: string, since: number): boolean {
+      return dailyAttempt.get(key, gameId, since) !== undefined;
+    },
+
     signal(gameId: string, kind: Signal, at = Date.now()) {
       upsertSignal.run(gameId, localDay(at), kind);
     },
@@ -102,7 +160,7 @@ export function openHistory(db: DatabaseSync, transaction: (fn: () => void) => v
       }));
     },
 
-    profile(key: string): Profile | null {
+    profile(key: string, now = Date.now()): Profile | null {
       const last = db.prepare("SELECT nick FROM match_players WHERE nick_key = ? ORDER BY match_id DESC LIMIT 1").get(key) as { nick: string } | undefined;
       if (!last) return null;
       const span = db.prepare("SELECT MIN(m.started_at) AS first, MAX(m.started_at) AS last FROM match_players me JOIN matches m ON m.id = me.match_id WHERE me.nick_key = ?").get(key) as { first: number; last: number };
@@ -135,6 +193,7 @@ export function openHistory(db: DatabaseSync, transaction: (fn: () => void) => v
       return {
         nick: last.nick, firstAt: span.first, lastAt: span.last, matches: done.matches, days: done.days,
         favorite: games[0]?.gameId ?? null, games, rivals, evenings: evenings(key), bestStreak,
+        daily: dailyStreak(dailyDays(key), dailyDay(now).day),
       };
     },
 

@@ -15,7 +15,8 @@ Twardymi regułami pozostają te z `AGENTS.md` i `ZASADY.md` (m.in. pola dotykow
 
 Ciemny, cichy, techniczny. Telefon często leży obok, a wokół są inni ludzie, więc ekran nie świeci, nie miga i nie gra.
 Dozwolone są krótkie, jednorazowe reakcje na zdarzenia (np. `Moment`: nieklikalny komunikat u góry ekranu, około 1,2 s, najwyżej jeden na 3 s, w kolorze gracza, którego dotyczy). Pętli i stroboskopów nadal nie ma.
-Wygląd jest przedłużeniem figielak.dev: te same tokeny (1:1 z `../figielak.dev/src/styles/tokens.css`), ten sam krój, te same przyciski w kształcie pigułki.
+Wygląd jest przedłużeniem figielak.dev: te same tokeny tła, tekstu i akcentu (z `../figielak.dev/src/styles/tokens.css`), ten sam krój, te same przyciski w kształcie pigułki.
+Powierzchnie i obrys są tu jaśniejsze niż na figielak.dev (`surface`, `surface-raised`, `line`), bo plansze i kafle gier na prawie czarnym tle zlewały się w jedną płaszczyznę.
 
 Trzy rzeczy budują cały styl:
 
@@ -24,7 +25,7 @@ Trzy rzeczy budują cały styl:
    W Kalamburach to zawsze kolor rysującego.
 2. **Jedna główna akcja na ekran.** Akcent dostaje jeden wypełniony przycisk, czyli najważniejsza akcja platformy. Reszta to obrysy.
    Akcent w znaku aplikacji identyfikuje markę i nie jest drugą akcją.
-3. **Dwa kroje o dwóch rolach.** Satoshi mówi (nazwy, zdania, przyciski), Geist Mono liczy (kody, wyniki, czasy, podpisy sekcji).
+3. **Dwa kroje o dwóch rolach.** Satoshi mówi (nazwy, zdania, przyciski, podpisy sekcji), Geist Mono liczy (kody, wyniki, czasy).
 
 ## 2. Tokeny
 
@@ -33,10 +34,11 @@ Trzy rzeczy budują cały styl:
 | Token | Wartość | Rola |
 |---|---|---|
 | `bg` | `#0e0e10` | tło strony, wnętrze podglądu na ekranie instrukcji |
-| `surface` | `#161618` | pełne powierzchnie: pasek statystyk, karty rekordów |
+| `surface` | `#1c1c1f` | pełne powierzchnie: pasek statystyk, karty rekordów (`fg-muted` 5,0:1) |
+| `surface-raised` | `#232327` | kafle gier, plansze i karty „Dla was teraz”, czyli to, co się wybiera albo na czym się gra (`fg-muted` 4,6:1) |
 | `surface-inset` | `#111113` | pola formularza |
-| `surface-glass` | `rgb(22 22 24 / 0.55)` + blur 16 px | kafel `.tile`, przez który przebija poświata |
-| `line` | biel 8% | każdy obrys i separator |
+| `surface-glass` | `rgb(28 28 31 / 0.7)` + blur 16 px | kafel `.tile`, przez który przebija poświata |
+| `line` | biel 12% | każdy obrys i separator |
 | `line-hover` | biel 16% | obrys pola formularza i przycisku pod kursorem |
 | `fg` | `#ededef` | tekst |
 | `fg-muted` | `#8b8b92` | opisy, podpisy, ikony pomocnicze |
@@ -66,8 +68,8 @@ Kamienie Gomoku i karty Memory nie mają cienia ani poświaty: wystarcza obrys.
 | nazwa, zdanie, przycisk | Satoshi 16 px, przycisk 500, wyróżnienie 600 |
 | opis pod nazwą | Satoshi 14 px, `fg-muted` |
 | liczba w pasku statystyk | Geist Mono 18 px, 600, `tabular-nums` |
-| podpis sekcji `.label` | Geist Mono 11 px, wersaliki, odstęp liter 0,08em, `fg-muted` |
-| podpis na kaflu gry | Geist Mono 12 px, `fg-muted` |
+| podpis sekcji `.label` | Satoshi 13 px, 500, zwykła wielkość liter, `fg-muted` |
+| wynik na kaflu gry („2. miejsce”) | Geist Mono 12 px, `fg-muted` |
 
 Hierarchię robi kontrast kroju i jasności, nie rozmiar: większość ekranu to 14-16 px, a duże są tylko tytuł i kod pokoju.
 
@@ -103,7 +105,7 @@ Ten rozmiar kod ma tylko, gdy gracz jest sam w pokoju i musi go przekazać; gry 
 kółko 44 px w kolorze gracza z inicjałem (`initials`), pod nim skracany nick, korona w rogu kółka. Kolumny dzielą całą szerokość, przy wolnym miejscu ostatnia to przerywane kółko „Zaproś” (udostępnia link).
 Kolory są zwinięte: rozwija je dotknięcie własnego awatara (podpis „ty” z ołówkiem, obrys `fg` w trakcie), a wybór koloru zwija je z powrotem.
 Gospodarz dotyka cudzego awatara, żeby go wyrzucić: w tym samym miejscu pojawia się „Wyrzucić …?” z „Anuluj” i „Wyrzuć” (obrys, tekst `warning`). Rozłączony ma u gospodarza znaczek X w rogu kółka.
-Zestawy i gry mają kafle z pełnym tłem `surface` i ikoną w neutralnym kwadracie 36 px (tło `line`, bez koloru na grę). Gry dzielą się na „Planszowe” i „Towarzyskie”, w każdej grupie te, do których brakuje osób, stoją na końcu.
+Zestawy i gry mają kafle z pełnym tłem `surface-raised` i ikoną w neutralnym kwadracie 36 px (tło `line`, bez koloru na grę). Gry dzielą się na „Planszowe” i „Towarzyskie”, w każdej grupie te, do których brakuje osób, stoją na końcu.
 Gry, które nie zmieszczą tylu osób, nie mają kafli: to jedno zdanie pod listą („Nie dla 3 osób: Gomoku, Statki (tylko 2 os.)”).
 Na dole leży `StickyBar`, w tym samym miejscu co „Zagraj” na ekranie gry: u gospodarza wypełniona „Szybka seria”, jedyna główna akcja lobby, u gościa podpowiedź, kto wybiera grę.
 Ekran wybranej gry nie ma kafli: nazwa gry to tytuł `text-3xl` jak w Turnieju, a lista graczy leży wprost na tle. Nagłówek listy liczy gotowość gości („Gotowość 2/3”, sam gospodarz bez licznika), bo gospodarz niczego nie zgłasza i ma tylko koronę.
@@ -134,7 +136,8 @@ Do skopiowania: kolor gracza niesie stan (czyja tura, ile czasu), interfejs wok�
 
 ### 3.5 Siatka mini-gier (`MiniGameGrid` w `MiniGames.tsx`)
 
-Trzy kolumny małych kafli (10 px, min. 80 px wysokości, tło `surface` bez obrysu, bo 30 ramek rysowało szkielet zamiast listy; obrys pojawia się dopiero pod kursorem i przy zaznaczeniu): ikona, nazwa 14 px, a linia mono na dole tylko przy rozegranej grze („2. miejsce”). Pięć grup po sześć gier to dwa pełne rzędy, bez kafla samego w rzędzie.
+Trzy kolumny małych kafli (10 px, min. 80 px wysokości, tło `surface-raised` bez obrysu, bo 30 ramek rysowało szkielet zamiast listy; obrys pojawia się dopiero pod kursorem i przy zaznaczeniu): nieruchoma pierwsza klatka podglądu gry (klasa `.still`; gra z nieczytelną klatką ma ikonę), nazwa 14 px, a linia mono na dole tylko przy rozegranej grze („2. miejsce”). Animuje się tylko podgląd wybranego kafla. Pięć grup po sześć gier to dwa pełne rzędy, bez kafla samego w rzędzie.
+W pokoju z 2+ osobami nad grupami stoją do trzech większych kart „Dla was teraz” (podgląd, nazwa, powód jedną linią `fg-muted`); nie mają własnego koloru, wybrana dostaje obrys jak kafel.
 Grupy rozdziela zwykły wyciszony nagłówek (Satoshi 14 px, `fg-muted`), bez ramek. Pierwsze miejsce gracza świeci jego kolorem i jest jedynym kolorem w całej siatce.
 
 Do skopiowania: przy dużej liczbie elementów kolor zostaje dla wyjątków, a porządek robi siatka i stała pozycja podpisu.
@@ -204,9 +207,9 @@ Stan pusty mówi, czemu jest pusto: „Za krótka partia na ciekawostki.”, w t
 - **Liczby są mono.** Kod, wynik, czas, miejsce i licznik idą Geist Mono z `tabular-nums`, żeby nie skakały przy zmianie.
   Wyjątek: liczba w zdaniu narracji może zostać Satoshi (ZASADY §4). Jednostka wspólna dla kolumny idzie do nagłówka („pkt” w tabeli turnieju).
   Liczby nad polem gry to zawsze pasek `Stats`, tabela rund po partii to `RoundTable`, wyniki z kolumnami to `ScoreTable` (wszystkie w `ui.tsx`; Odcień z parami próbek to wyjątek).
-- **Podpis to `.label`.** Nagłówek nad blokiem (kaflem, sekcją ekranu) i etykieta liczby to małe wersaliki mono, nigdy pogrubiony Satoshi.
-  Wyjątek: grupy wewnątrz jednej listy (kategorie w siatce mini-gier, sekcje ekranu „Rekordy”) mają zwykły Satoshi 14 px `fg-muted`,
-  bo `.label` nad każdą grupą konkurowałby z podpisami mono na kaflach.
+- **Podpis to `.label`.** Nagłówek nad blokiem (kaflem, sekcją ekranu) i etykieta liczby to `.label`: Satoshi 13 px `fg-muted` w zwykłej wielkości liter,
+  bez wersalików i rozstrzelenia, nigdy pogrubiony Satoshi 16 px. Mono zostaje wyłącznie dla kodów, czasów i wyników.
+  Grupy wewnątrz jednej listy (kategorie w siatce mini-gier, sekcje ekranu „Rekordy”) mają zwykły Satoshi 14 px `fg-muted`.
 - **Zasady są pod ręką, nie na wierzchu.** „Jak grać” to zwinięte `<details>` w kaflu gry, pod opisem (`summary` min. 48 px, kreska `line` nad nim) i ikona „?” 48 px w nagłówku partii,
   która otwiera natywny `<dialog>` (tytuł z nazwą gry, X, tło zamyka, treść przewija się w środku). Nigdy nie otwiera się sama; sekcje `.label`, kolory z tokenów.
 - **Ruch tłumaczy, nie zdobi.** Poświata jest nieruchoma, animacja pokazuje tylko to, co się właśnie stało (szczegóły: `ZASADY.md`, sekcja 5).

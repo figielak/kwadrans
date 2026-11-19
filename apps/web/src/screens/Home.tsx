@@ -8,7 +8,8 @@ import { MiniGameGrid } from "./MiniGames.tsx";
 import { Profile } from "./Profile.tsx";
 import { formatBest, Records } from "./Records.tsx";
 import { Screen } from "./ui.tsx";
-import { codeFromUrl, createRoom, errorText, fetchDaily, fetchRecords, fetchRooms, forgetRecent, joinRoom, NO_ROOM, recentRooms, saveNick, savedNick } from "../net.ts";
+import { dailyStreakText } from "./profile.ts";
+import { codeFromUrl, createRoom, type Daily, errorText, fetchDaily, fetchRecords, fetchRooms, forgetRecent, joinRoom, NO_ROOM, recentRooms, saveNick, savedNick } from "../net.ts";
 
 /** Wklejony link `/?kod=ABCD` daje sam kod, nie litery z adresu. */
 const onlyCodeChars = (s: string) =>
@@ -63,12 +64,12 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
   const [recent, setRecent] = useState(recentRooms);
   /** Które z ostatnich pokoi jeszcze istnieją (kod → liczba graczy); dopóki serwer nie odpowie, sekcji nie ma. */
   const [alive, setAlive] = useState<Record<string, number>>({});
-  const [daily, setDaily] = useState<{ gameId: string; rows: RecordRow[] } | null>(null);
+  const [daily, setDaily] = useState<Daily | null>(null);
   /** Rekordy do podpowiedzi i kafli; undefined do odpowiedzi serwera, null, gdy nie odpowie. */
   const [records, setRecords] = useState<Record<string, RecordRow[]> | null>();
 
   useEffect(() => {
-    fetchDaily().then(setDaily);
+    fetchDaily(savedNick()).then(setDaily);
     fetchRecords().then(setRecords);
     // Wracać jest do czego tylko tam, gdzie byli inni gracze.
     const codes = recentRooms().filter((r) => r.players >= 2).map((r) => r.code);
@@ -173,7 +174,9 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
               <DailyIcon size={24} weight="fill" aria-hidden />
             </span>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5 leading-tight">
-              <span className="label">Wyzwanie dnia</span>
+              <span className="label truncate">
+                Wyzwanie dnia{dailyStreakText(daily.me)}
+              </span>
               <span className="truncate text-lg font-semibold">{GAMES[daily.gameId].name}</span>
               <span className="text-sm text-fg-muted">
                 {busy === "solo"
@@ -182,7 +185,7 @@ export function Home({ onRoom, notice: closedNotice }: { onRoom: (room: Room) =>
                     ? "Zdobądź pierwszy wynik dnia"
                     : today?.place === 1
                       ? `Prowadzisz: ${formatBest(daily.gameId, today.best)}`
-                      : `Lider ${daily.rows[0].nick} ${formatBest(daily.gameId, daily.rows[0].best)} · ty: ${today ? formatBest(daily.gameId, today.best) : "brak wyniku"}`}
+                      : `Lider ${daily.rows[0].nick} ${formatBest(daily.gameId, daily.rows[0].best)} · twoja próba: ${today ? formatBest(daily.gameId, today.best) : "brak"}`}
               </span>
             </span>
             <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line">

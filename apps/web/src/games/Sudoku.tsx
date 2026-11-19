@@ -14,7 +14,7 @@ interface Props {
 const seconds = (ms: number) => tenth(ms / 1000);
 
 /** Podgląd na ekranie instrukcji: trzy puste pola wypełniają się po kolei. */
-function Preview() {
+export function Preview() {
   const cells = [1, 0, 3, 4, 0, 4, 1, 2, 2, 1, 4, 0, 4, 3, 2, 1];
   const filled = [4, 11, 1];
   return (

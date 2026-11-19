@@ -2,6 +2,7 @@ import { Check, Minus, Play, Plus, Prohibit } from "@phosphor-icons/react";
 import { GAMES, MIN_LENGTH, type RoomView } from "@kwadrans/games";
 import { useState } from "react";
 import { BLURBS, ICONS, MINI_GAMES, Players, seats, StartBar } from "./Lobby.tsx";
+import { Duels } from "./Duels.tsx";
 import { RulesDetails } from "./HowToPlay.tsx";
 import { SECTIONS } from "./MiniGames.tsx";
 import { plural } from "./Records.tsx";
@@ -73,6 +74,7 @@ export function Setup({ view, me, dropped, send, onLeave }: Props) {
       )}
 
       <Players view={view} me={me} send={send} />
+      <Duels view={view} me={me} gameId={def.id} />
       <StartBar view={view} me={me} send={send} />
     </Screen>
   );

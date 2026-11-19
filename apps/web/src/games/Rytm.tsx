@@ -23,7 +23,7 @@ const BAR = 4;
 const bpm = (interval: number) => Math.round(60_000 / interval);
 
 /** Podgląd na ekranie instrukcji: kropka miga jak metronom. */
-function Preview() {
+export function Preview() {
   return <span className="size-12 animate-[preview-half_1s_linear_infinite] rounded-full bg-fg" />;
 }
 

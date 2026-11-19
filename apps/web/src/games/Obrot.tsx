@@ -34,6 +34,23 @@ const SAMPLE: ObrotCells[] = [
   [[0, 0], [0, 1], [1, 0], [2, 0]],
 ];
 
+/** Podgląd na ekranie instrukcji i na kaflu gry. */
+export function Preview() {
+  return (
+    <QuizPreview
+      prompt={
+        <div className="flex gap-4">
+          {SAMPLE.map((cells, i) => (
+            <Figure key={i} cells={cells} className="size-12" />
+          ))}
+        </div>
+      }
+      options={["Ta sama", "Lustro"]}
+      correct={0}
+    />
+  );
+}
+
 export function Obrot({ view, ...props }: Props) {
   return (
     <Quiz
@@ -43,19 +60,7 @@ export function Obrot({ view, ...props }: Props) {
       note="Punkty to trafienia minus błędy. Przy remisie wygrywa niższy średni czas."
       score="Trafienie to punkt, pomyłka zabiera punkt i blokuje na sekundę"
       task="Dwie figury z klocków: ta sama obrócona czy lustrzane odbicie?"
-      preview={
-        <QuizPreview
-          prompt={
-            <div className="flex gap-4">
-              {SAMPLE.map((cells, i) => (
-                <Figure key={i} cells={cells} className="size-12" />
-              ))}
-            </div>
-          }
-          options={["Ta sama", "Lustro"]}
-          correct={0}
-        />
-      }
+      preview={<Preview />}
       question={(i) => {
         const { a, b, mirror } = view.trials[i % view.trials.length];
         return {

@@ -24,7 +24,7 @@ type Phase = "intro" | "play" | "sent";
 const MIN_REACTION = 100;
 
 /** Podgląd na ekranie instrukcji: pole na zmianę zielone i czerwone. */
-function Preview() {
+export function Preview() {
   return (
     <>
       <span className="absolute inset-0 flex items-center justify-center bg-success font-semibold text-bg">Dotknij</span>

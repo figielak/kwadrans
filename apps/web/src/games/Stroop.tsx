@@ -14,23 +14,28 @@ interface Props {
   onRound?: (msLeft: number | null) => void;
 }
 
+/** Podgląd na ekranie instrukcji i na kaflu gry. */
+export function Preview() {
+  return (
+    <QuizPreview
+      prompt={
+        <span className="text-3xl font-bold tracking-wide" style={{ color: HUES[1] }}>
+          {STROOP_COLORS[3]}
+        </span>
+      }
+      options={STROOP_COLORS.slice(0, 3).map((name) => name.toLowerCase())}
+      correct={1}
+    />
+  );
+}
+
 export function Stroop({ view, ...props }: Props) {
   return (
     <Quiz
       {...props}
       view={view}
       task="Wybierz kolor liter, nie znaczenie słowa (zwykle się różnią)"
-      preview={
-        <QuizPreview
-          prompt={
-            <span className="text-3xl font-bold tracking-wide" style={{ color: HUES[1] }}>
-              {STROOP_COLORS[3]}
-            </span>
-          }
-          options={STROOP_COLORS.slice(0, 3).map((name) => name.toLowerCase())}
-          correct={1}
-        />
-      }
+      preview={<Preview />}
       question={(i) => {
         const { word, ink } = view.trials[i % view.trials.length];
         return {

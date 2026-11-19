@@ -19,7 +19,7 @@ interface Props {
 type Phase = "intro" | "play" | "wrong" | "sent";
 
 /** Podgląd na ekranie instrukcji: cztery liczby, para dająca 10 co chwilę się zaznacza. */
-function Preview() {
+export function Preview() {
   return (
     <div className="flex gap-2">
       {[3, 6, 7, 2].map((n, i) => (

@@ -208,6 +208,17 @@ export const compareRecords = (order: RecordOrder) => (a: Score, b: Score) =>
 const compareTie = (a: number | null, b: number | null, lower: boolean) =>
   a === null || b === null ? Number(a === null) - Number(b === null) : lower ? a - b : b - a;
 
+/**
+ * Rekord stołu: najlepszy wynik wszech czasów wśród obecnych (`keys`, dowolna pisownia nicków). null, gdy nikt z nich nie grał
+ * albo gdy to lider wszech czasów, bo jego rekord i tak widać obok.
+ */
+export function tableRecord(rows: RecordRow[], keys: string[], order: RecordOrder): RecordRow | null {
+  const present = new Set(keys.map(nickKey));
+  const sorted = [...rows].sort(compareRecords(order));
+  const best = sorted.find((r) => present.has(nickKey(r.nick)));
+  return !best || best === sorted[0] ? null : best;
+}
+
 /** Pozycja gracza w rankingu rekordów; `rows` od najlepszego (tak przychodzą z serwera). null, gdy gracz nie ma rekordu. */
 export function standing(rows: RecordRow[], nick: string, order: RecordOrder): RecordStanding | null {
   const key = nickKey(nick);
@@ -269,6 +280,38 @@ export function shuffle<T>(items: readonly T[], rng: Rng): T[] {
  */
 // ponytail: ostatnia gra cyklu może się powtórzyć jako pierwsza następnego (1 na liczbę gier); osobna poprawka, gdyby to raziło
 export const dailyGame = (day: number, ids: readonly string[]) => shuffle(ids, createRng(Math.floor(day / ids.length)))[day % ids.length];
+
+/**
+ * Ziarno wspólnego układu wyzwania dnia: ten sam dzień i gra dają ten sam `setup` u wszystkich (FNV-1a z „dzień:gra”).
+ * Tylko dla pierwszej próby z kafla wyzwania; reszta partii losuje jak zwykle.
+ */
+export function dailySeed(day: number, gameId: string): number {
+  let hash = 0x811c9dc5;
+  for (const char of `${day}:${gameId}`) {
+    hash ^= char.charCodeAt(0);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return hash >>> 0;
+}
+
+/**
+ * Seria dni wyzwania bez kary: idąc wstecz od dziś (albo od wczoraj, gdy dziś jeszcze nie grane), jeden brakujący dzień
+ * jest wybaczony, jeśli w poprzednich 7 dniach marszu nie było innego braku; drugi brak w 7 dniach kończy serię.
+ * `streak` to zagrane dni serii, `total` wszystkie zagrane dni do dziś. Dni to numery dób (jak w `dailyGame`).
+ */
+export function dailyStreak(days: readonly number[], today: number): { streak: number; total: number } {
+  const played = new Set(days.filter((d) => d <= today));
+  if (played.size === 0) return { streak: 0, total: 0 };
+  const first = Math.min(...played);
+  let streak = 0;
+  let lastMiss = Infinity;
+  for (let d = played.has(today) ? today : today - 1; d >= first; d--) {
+    if (played.has(d)) streak++;
+    else if (lastMiss - d < 7) break;
+    else lastMiss = d;
+  }
+  return { streak, total: played.size };
+}
 
 export const average = (times: number[]) => (times.length ? times.reduce((a, b) => a + b, 0) / times.length : Infinity);
 

@@ -1,6 +1,6 @@
 import type { Room } from "@colyseus/sdk";
 import { ArrowCounterClockwise, ArrowLeft, ArrowRight, Check, Play, Shuffle, SignOut, Timer, Trophy, UsersThree } from "@phosphor-icons/react";
-import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiIKreskiView, type KropkiView, type LabiryntView, type LicytacjaView, type MemoryView, MINI_GAME_IDS, nickKey, type PanstwaMiastaView, type PiecWRzedzieView, type PodrobkaView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, type SabotazView, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, type WyprawaView, winner as tournamentWinner } from "@kwadrans/games";
+import { BALON_BALLOONS, type BalonView, CHINCZYK_TRACK, type ChinczykView, GAMES, initials, isDone, KALAMBURY_HALF_SECONDS, type KalamburyView, type KampusTourView, type KatView, type KropkiIKreskiView, type KropkiView, type LabiryntView, type LicytacjaView, type MemoryView, MINI_GAME_IDS, nickKey, type PanstwaMiastaView, type PiecWRzedzieView, type PodrobkaView, QUIZ_DURATION_MS, type RecordRow, type RokView, type RoomView, ROK_ROUNDS, type SabotazView, SCHULTE_SIZE, type SchulteView, type SimonView, standing, standings, type StatkiView, tableRecord, tablePlaces, SUDOKU_BLANKS, type SudokuView, WIEZA_LEVELS, type WiezaView, type WyprawaView, winner as tournamentWinner } from "@kwadrans/games";
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Chinczyk } from "../games/Chinczyk.tsx";
 import { KampusTour } from "../games/KampusTour.tsx";
@@ -24,6 +24,7 @@ import { formatBest, formatGap, formatRecord, RecordPanel } from "./Records.tsx"
 import { heroResult, reducedMotion, shouldReveal } from "./results.ts";
 import { type GameDot, GameDots, HeroSlot, IntroContext, LiveBoard, LiveGameDots, Moment, ReactionBar, ReactionOverlay, ReactionToggle, EveningTable, ResultDetails, ResultHero, Screen, StickyBar, type Send, VoteCards } from "./ui.tsx";
 import { RulesButton } from "./HowToPlay.tsx";
+import { Duels } from "./Duels.tsx";
 import { ICONS } from "./Lobby.tsx";
 
 interface Props {
@@ -355,7 +356,7 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
     myColor: myColor ?? "",
     others: view.seats.filter((id) => id !== me).map((id) => ({ id, nick: nick(id), color: view.players.find((p) => p.id === id)?.color ?? "", began: game.began.includes(id) })),
     begin: () => send("begin"),
-    record: recordHint(def.id, records.before, nick(me)),
+    record: recordHint(def.id, records.before, nick(me), view.seats.map(nick)),
   };
 
   const eveningTable = <EveningTable evening={view.evening} present={view.players.map((p) => nickKey(p.nick))} meKey={nickKey(nick(me))} />;
@@ -374,9 +375,15 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
             underHero={!!hero}
                 />
               )}
+              {view.phase === "over" && def.record && game.result?.ranking && records.after && (
+                <TableRecord gameId={def.id} rows={records.after} present={view.players.map((p) => p.nick)} />
+              )}
 
               {/* Poza turniejem (tam jest jego tabela): punkty wieczoru z wszystkich partii w pokoju. */}
               {view.phase === "over" && !t && eveningTable}
+
+              {/* Bilans grającego z innymi w tej grze; obserwator i solo go nie mają. */}
+              {view.phase === "over" && seated && view.seats.length > 1 && <Duels view={view} me={me} gameId={view.gameId} />}
 
               {/* Solo nie ma rywali, więc i punktów: zamiast tabeli zera jedno zdanie o postępie. */}
               {view.phase === "over" && t && view.seats.length === 1 && (
@@ -723,12 +730,26 @@ export function Game({ room, view, me, dropped, send, onLeave }: Props) {
 const finite = (n: number | undefined) => (n !== undefined && Number.isFinite(n) ? n : null);
 
 /** „Rekord: 215 ms (Ola) · twój: 240 ms”: cel do pobicia na ekranie instrukcji. */
-function recordHint(gameId: string, rows: RecordRow[] | null, nick: string) {
+function recordHint(gameId: string, rows: RecordRow[] | null, nick: string, table: string[] = []) {
   if (!rows?.length) return undefined;
   const mine = standing(rows, nick, GAMES[gameId].record!);
   const top = `Rekord: ${formatRecord(gameId, rows[0])}`;
-  if (mine?.place === 1) return `${top} (twój)`;
-  return `${top} (${rows[0].nick})${mine ? ` · twój: ${formatRecord(gameId, mine)}` : ""}`;
+  // Rekord stołu tylko przy innych grających: solo nie ma stołu.
+  const best = table.length > 1 ? tableRecord(rows, table, GAMES[gameId].record!) : null;
+  const atTable = best ? ` · stołu: ${formatRecord(gameId, best)} (${best.nick})` : "";
+  if (mine?.place === 1) return `${top} (twój)${atTable}`;
+  return `${top} (${rows[0].nick})${atTable}${mine ? ` · twój: ${formatRecord(gameId, mine)}` : ""}`;
+}
+
+/** Rekord stołu po partii: najlepszy wynik wszech czasów wśród obecnych, gdy nie jest rekordem gry. */
+function TableRecord({ gameId, rows, present }: { gameId: string; rows: RecordRow[]; present: string[] }) {
+  const best = present.length > 1 ? tableRecord(rows, present, GAMES[gameId].record!) : null;
+  if (!best) return null;
+  return (
+    <p className="px-1 text-sm text-fg-muted">
+      Rekord stołu: {best.nick} <span className="font-mono text-fg tabular-nums">{formatRecord(gameId, best)}</span>
+    </p>
+  );
 }
 
 /** Wszyscy grają naraz: nie ma niczyjego „ruchu”, a licznik to limit partii. */

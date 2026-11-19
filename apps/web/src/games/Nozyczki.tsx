@@ -27,7 +27,7 @@ function line({ a, b }: NozyczkiCut) {
 }
 
 /** Podgląd na ekranie instrukcji: kształt, przez który miga linia cięcia. */
-function Preview() {
+export function Preview() {
   return (
     <svg viewBox="0 0 100 100" className="h-28">
       <path d="M22 48 C20 24 44 14 60 22 S88 40 78 62 S44 90 30 76 S23 60 22 48Z" className="fill-surface stroke-fg" strokeWidth={2} />

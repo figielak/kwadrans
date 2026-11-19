@@ -34,7 +34,7 @@ function Angle({ angle, rotation, arc, className = "" }: KatRound & { arc?: bool
 }
 
 /** Podgląd na ekranie instrukcji: kąt miga, potem pytanie o miarę. */
-function Preview() {
+export function Preview() {
   return (
     <>
       <Angle angle={65} rotation={-80} className="animate-[preview-half_3s_linear_infinite]" />

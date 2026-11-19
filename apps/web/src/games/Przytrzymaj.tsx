@@ -25,7 +25,7 @@ const seconds = (ms: number) => (ms / 1000).toFixed(2).replace(".", ",");
 const grade = (off: number) => (off <= PERFECT ? "text-success" : off <= CLOSE ? "" : "text-warning");
 
 /** Podgląd na ekranie instrukcji: pole świeci, potem palec trzyma tak samo długo. */
-function Preview() {
+export function Preview() {
   return (
     <>
       <span className="absolute size-20 animate-[preview-half_3s_linear_infinite] rounded-tile bg-fg" />

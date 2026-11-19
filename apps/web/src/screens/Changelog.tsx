@@ -4,6 +4,19 @@ import { Screen } from "./ui.tsx";
 /** Historia wersji strony, najnowsza na górze. Nowy wpis na początku listy to zarazem nowy numer wersji. */
 export const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "1.5.0",
+    date: "2026-11-19",
+    changes: [
+      "Wyzwanie dnia jest takie samo dla wszystkich: pierwsza próba ma wspólny układ i tylko ona trafia do rankingu dnia. Kolejne próby to trening z nowym układem",
+      "Seria dni z wyzwaniem: jeden opuszczony dzień w tygodniu jej nie przerywa. Serię i łączną liczbę dni widać na kafelku wyzwania i w profilu",
+      "Kafle mini-gier pokazują podgląd gry zamiast ikony, a wybrana gra rusza na nim jak na ekranie instrukcji",
+      "W pokoju nad listą mini-gier są propozycje „Dla was teraz”: gra, w którą ktoś jeszcze nie grał, wyrównany pojedynek o rekord i gry, których dziś nie było",
+      "Pojedynki: w lobby i po partii widać bilans z każdym przy stole („Ty : Ola 7:4”), a na ekranie gry bilans w tej grze",
+      "Rekord stołu: obok rekordu wszech czasów najlepszy wynik osób, które są teraz w pokoju",
+      "Jaśniejsze karty i kafle, a podpisy sekcji zwykłą czcionką zamiast wersalików",
+    ],
+  },
+  {
     version: "1.4.0",
     date: "2026-11-18",
     changes: [

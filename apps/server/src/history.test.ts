@@ -368,3 +368,155 @@ describe("szczegóły raportu (insights)", () => {
     void DAY;
   });
 });
+
+// 19-05: próba wyzwania dnia ze wspólnym układem; rozpoczęta zużywa dzień danego nicku w tej grze.
+describe("próba wyzwania dnia", () => {
+  const midnight = new Date(2026, 10, 10).getTime();
+  const solo = (nick: string, extra: Partial<MatchEntry> = {}) =>
+    match("stoper", [p(nick, null)], { kind: "solo", source: "daily", daily: true, ...extra });
+
+  it("rozpoczęta próba z układem dnia zajmuje dzień, bez względu na pisownię nicku", () => {
+    const stats = openStats(":memory:");
+    expect(stats.dailyTaken("ala", "stoper", midnight)).toBe(false);
+    stats.recordMatch(solo("Ala"));
+    expect(stats.dailyTaken("ala", "stoper", midnight)).toBe(true);
+    expect(stats.dailyTaken("ala", "refleks", midnight)).toBe(false);
+    expect(stats.dailyTaken("ola", "stoper", midnight)).toBe(false);
+  });
+
+  it("nie zajmują dnia: instrukcja bez startu, trening, próba z wczoraj", () => {
+    const stats = openStats(":memory:");
+    stats.recordMatch(solo("Ala", { started: false }));
+    stats.recordMatch(solo("Ala", { daily: false }));
+    stats.recordMatch(solo("Ala", { startedAt: midnight - 60 * MIN }));
+    expect(stats.dailyTaken("ala", "stoper", midnight)).toBe(false);
+  });
+
+  it("baza w wersji 3 dostaje kolumny daily i tie, stare partie zostają z daily 0", () => {
+    const path = `${process.env.TMPDIR ?? "/tmp"}/kwadrans-daily-${process.pid}-${Date.now()}.db`;
+    const old = new DatabaseSync(path);
+    old.exec(`CREATE TABLE matches (
+      id INTEGER PRIMARY KEY, room_key TEXT NOT NULL, game_id TEXT NOT NULL, mode TEXT, kind TEXT NOT NULL, source TEXT NOT NULL,
+      started_at INTEGER NOT NULL, ended_at INTEGER NOT NULL, started INTEGER NOT NULL, players INTEGER NOT NULL,
+      observers INTEGER NOT NULL, outcome TEXT NOT NULL, reactions INTEGER NOT NULL)`);
+    old.exec(`CREATE TABLE match_players (
+      match_id INTEGER NOT NULL, seat INTEGER NOT NULL, nick_key TEXT NOT NULL, nick TEXT NOT NULL, place INTEGER,
+      won INTEGER NOT NULL, score REAL, left_early INTEGER NOT NULL, timeouts INTEGER NOT NULL, PRIMARY KEY (match_id, seat))`);
+    old.exec(`INSERT INTO matches VALUES (1, 'A', 'stoper', NULL, 'solo', 'daily', ${midnight + MIN}, ${midnight + 2 * MIN}, 1, 1, 0, 'completed', 0)`);
+    old.exec("INSERT INTO match_players VALUES (1, 0, 'ala', 'Ala', 1, 0, 12, 0, 0)");
+    old.exec("CREATE TABLE results (game_id TEXT NOT NULL, nick TEXT NOT NULL, won INTEGER NOT NULL, at INTEGER NOT NULL)");
+    old.exec("CREATE TABLE scores (game_id TEXT NOT NULL, nick TEXT NOT NULL, score REAL NOT NULL, tie REAL, at INTEGER NOT NULL, detail TEXT)");
+    old.exec("PRAGMA user_version = 3");
+    old.close();
+
+    const stats = openStats(path);
+    const db = new DatabaseSync(path);
+    const columns = (table: string) => (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map((c) => c.name);
+    expect(columns("matches")).toContain("daily");
+    expect(columns("match_players")).toContain("tie");
+    expect(stats.history("ala")).toHaveLength(1);
+    expect(stats.dailyTaken("ala", "stoper", midnight)).toBe(false);
+    stats.recordMatch(solo("Ala"));
+    expect(stats.dailyTaken("ala", "stoper", midnight)).toBe(true);
+  });
+});
+
+// 19-06: ranking dnia to pierwsze próby z kafla wyzwania (wspólny układ), nie najlepsze wyniki z dowolnej partii.
+describe("ranking dnia", () => {
+  const midnight = new Date(2026, 10, 10).getTime();
+  const order = { id: "refleks", lower: true, tie: { lower: true } };
+  const attempt = (nick: string, score: number | null, tie: number | null, extra: Partial<MatchEntry> = {}) =>
+    match("refleks", [p(nick, score === null ? null : 1, { score, tie })], { kind: "solo", source: "daily", daily: true, ...extra });
+
+  it("tylko rozpoczęte próby dnia z wynikiem, od północy, w porządku rekordu z drugim kryterium", () => {
+    const stats = openStats(":memory:");
+    stats.recordMatch(attempt("Ala", 250, 3));
+    stats.recordMatch(attempt("Ola", 250, 2));
+    stats.recordMatch(attempt("Ewa", 240, null));
+    stats.recordMatch(attempt("Iza", null, null, { outcome: "aborted" }));
+    stats.recordMatch(attempt("Jan", 100, null, { started: false }));
+    stats.recordMatch(attempt("Kuba", 100, null, { startedAt: midnight - MIN }));
+    stats.recordMatch(attempt("Lena", 100, null, { daily: false }));
+    stats.recordMatch(match("refleks", [p("Marek", 1, { score: 100 })]));
+    expect(stats.dailyRanking(order, midnight)).toEqual([
+      { nick: "Ewa", best: 240, tie: null, played: 1 },
+      { nick: "Ola", best: 250, tie: 2, played: 1 },
+      { nick: "Ala", best: 250, tie: 3, played: 1 },
+    ]);
+  });
+
+  it("trening po próbie nie poprawia wyniku dnia", () => {
+    const stats = openStats(":memory:");
+    stats.recordMatch(attempt("Ala", 300, null));
+    stats.recordMatch(attempt("Ala", 200, null, { daily: false }));
+    expect(stats.dailyRanking(order, midnight)).toEqual([{ nick: "Ala", best: 300, tie: null, played: 1 }]);
+  });
+
+  it("wyższy wynik lepszy w grach na punkty", () => {
+    const stats = openStats(":memory:");
+    stats.recordMatch(attempt("Ala", 10, null));
+    stats.recordMatch(attempt("Ola", 12, null));
+    expect(stats.dailyRanking({ id: "refleks", lower: false }, midnight).map((r) => r.nick)).toEqual(["Ola", "Ala"]);
+  });
+});
+
+// 19-07: seria dni wyzwania liczy dni z rozpoczętą próbą z kafla (także treningiem), po lokalnej dobie.
+describe("seria dni wyzwania", () => {
+  const day = (offset: number, hour = 12) => new Date(2026, 10, 10 + offset, hour).getTime();
+  const solo = (nick: string, at: number, extra: Partial<MatchEntry> = {}) =>
+    match("stoper", [p(nick, null)], { kind: "solo", source: "daily", startedAt: at, endedAt: at + MIN, ...extra });
+
+  it("dni z rozpoczętą próbą z kafla wyzwania, bez instrukcji bez startu i bez innych źródeł", () => {
+    const stats = openStats(":memory:");
+    stats.recordMatch(solo("Ala", day(0, 9)));
+    stats.recordMatch(solo("Ala", day(0, 21)));
+    stats.recordMatch(solo("Ala", day(1, 0)));
+    stats.recordMatch(solo("Ala", day(2), { started: false }));
+    stats.recordMatch(solo("Ala", day(3), { source: "list" }));
+    const midnight = (offset: number) => Math.round(new Date(2026, 10, 10 + offset).getTime() / 86_400_000);
+    expect(stats.dailyDays("ala")).toEqual([midnight(0), midnight(1)]);
+  });
+
+  it("profil ma serię i łączną liczbę dni wyzwania", () => {
+    const stats = openStats(":memory:");
+    for (const offset of [0, 1, 2]) stats.recordMatch(solo("Ala", day(offset)));
+    expect(stats.profile("ala", day(2))!.daily).toEqual({ streak: 3, total: 3 });
+    expect(stats.profile("ala", day(30))!.daily).toEqual({ streak: 0, total: 3 });
+  });
+});
+
+// 19-08: pojedynek dwóch osób na regułach bilansu z profilu, opcjonalnie w jednej grze.
+describe("pojedynki", () => {
+  const seeded = () => {
+    const stats = openStats(":memory:");
+    stats.recordMatch(match("statki", [p("Ala", 1), p("Ola", 2)]));
+    stats.recordMatch(match("statki", [p("Ola", 1), p("ala", 2)]));
+    stats.recordMatch(match("chinczyk", [p("Ala", 1), p("Ola", 2), p("Iza", 3)]));
+    stats.recordMatch(match("memory", [p("Ala", 1), p("Ola", 1)]));
+    stats.recordMatch(match("statki", [p("Ala", 1), p("Ola", null, { left: true })], { outcome: "walkover" }));
+    stats.recordMatch(match("statki", [p("Ala", null), p("Ola", null)], { outcome: "aborted" }));
+    stats.recordMatch(match("stoper", [p("Ala", 1)], { kind: "solo" }));
+    return stats;
+  };
+
+  it("bilans każdej pary obecnych: kto był wyżej, remis miejsc osobno, partie nieukończone pominięte", () => {
+    expect(seeded().duels(["ala", "ola", "iza"])).toEqual([
+      { a: "ala", b: "iza", wins: [1, 0], ties: 0, matches: 1 },
+      { a: "ala", b: "ola", wins: [2, 1], ties: 1, matches: 4 },
+      { a: "iza", b: "ola", wins: [0, 1], ties: 0, matches: 1 },
+    ]);
+  });
+
+  it("kolejność nicków nie zmienia wyniku, gra zawęża", () => {
+    const stats = seeded();
+    expect(stats.duels(["ola", "ala"])).toEqual(stats.duels(["ala", "ola"]));
+    expect(stats.duels(["ala", "ola"], "statki")).toEqual([{ a: "ala", b: "ola", wins: [1, 1], ties: 0, matches: 2 }]);
+  });
+
+  it("bez wspólnych partii albo z jednym nickiem: pusto", () => {
+    const stats = seeded();
+    expect(stats.duels(["ala", "nikt"])).toEqual([]);
+    expect(stats.duels(["ala"])).toEqual([]);
+    expect(stats.duels([])).toEqual([]);
+  });
+});

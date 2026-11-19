@@ -11,6 +11,8 @@ import {
   COUNTDOWN_SECONDS,
   create,
   createRng,
+  dailyGame,
+  dailySeed,
   type Evening,
   eveningTable,
   GAMES,
@@ -45,7 +47,7 @@ import {
   type Tournament,
   winner,
 } from "@kwadrans/games";
-import { type MatchKind, type MatchOutcome, type MatchSource, type Signal, SOLO_SOURCES } from "./history.ts";
+import { dailyDay, type MatchKind, type MatchOutcome, type MatchSource, type Signal, SOLO_SOURCES } from "./history.ts";
 import { openStats } from "./stats.ts";
 
 const RECONNECT_SECONDS = 10 * 60; // telefon śpi między turami
@@ -166,6 +168,8 @@ interface MatchLog {
   /** Ruchy zegara po nickKey (id sesji zmienia się przy powrocie kodem). */
   timeouts: Record<string, number>;
   reactions: number;
+  /** Próba z kafla wyzwania dnia ze wspólnym układem (pierwsza tego dnia u tego nicku); w starszym zapisie brak. */
+  daily?: boolean;
 }
 
 interface Match extends MatchLog {
@@ -876,11 +880,13 @@ export class LobbyRoom extends Room {
   private startMatch(def: GameDefinition<unknown, unknown>, introSeconds = INTRO_SECONDS, skipIntro = false, source: MatchSource = "host") {
     const rng = newRng();
     const nicks = this.seats.map((id) => this.players.get(id)?.nick ?? "?");
+    const daily = this.dailyAttempt(def.id, source, nicks);
     this.picked = null;
     this.match = {
-      def, state: def.setup(this.seats, rng, this.mode ?? undefined), rng, result: null, players: this.seats.length, nicks,
-      startedAt: Date.now(), source, kind: this.matchKind(), observers: this.players.size - this.seats.length,
-      started: def.minPlayers > 1, timeouts: {}, reactions: 0,
+      // Ziarno dnia tylko dla `setup`: układ jest wspólny, a ruchy losują dalej z rng partii.
+      def, state: def.setup(this.seats, daily ? createRng(dailySeed(dailyDay().day, def.id)) : rng, this.mode ?? undefined), rng, result: null,
+      players: this.seats.length, nicks, startedAt: Date.now(), source, kind: this.matchKind(), observers: this.players.size - this.seats.length,
+      started: def.minPlayers > 1, timeouts: {}, reactions: 0, daily,
     };
     this.phase = "playing";
     this.began.clear();
@@ -894,6 +900,21 @@ export class LobbyRoom extends Room {
     if (!this.intro) return this.startTurnTimer();
     if (this.seats.length === 1) return;
     this.arm("intro", introSeconds * 1000);
+  }
+
+  /**
+   * Pierwsza próba z kafla wyzwania dnia: solo, źródło `daily`, dzisiejsza gra i ten nick nie zaczął jej jeszcze dziś.
+   * Błąd bazy daje zwykłą partię (trening), nigdy drugiej próby do rankingu.
+   */
+  private dailyAttempt(gameId: string, source: MatchSource, nicks: string[]) {
+    if (!this.solo || source !== "daily" || nicks.length !== 1) return false;
+    const { midnight, day } = dailyDay();
+    if (dailyGame(day, MINI_GAME_IDS) !== gameId) return false;
+    let taken = true;
+    this.guarded("próba wyzwania dnia", () => {
+      taken = stats.dailyTaken(nickKey(nicks[0]), gameId, midnight);
+    });
+    return !taken;
   }
 
   private disarm() {
@@ -1047,17 +1068,20 @@ export class LobbyRoom extends Room {
     this.guarded("zapis historii", () => stats.recordMatch({
       roomKey: this.roomKey, gameId: this.gameId!, mode: this.mode, kind: match.kind, source: match.source,
       startedAt: match.startedAt, endedAt: Date.now(), started: match.started, observers: match.observers, outcome, reactions: match.reactions,
+      daily: match.daily ?? false,
       players: nicks.map((nick) => {
         const key = nickKey(nick);
         const id = seatOf.get(key);
         // Dwie osoby o tym samym nicku w jednej partii: druga nie znajdzie już miejsca, jak w rankingu wygranych.
         seatOf.delete(key);
         const score = id !== undefined && record ? record.score(match.state, id) : null;
+        const tie = id !== undefined && record?.tie ? record.tie.score(match.state, id) : null;
         return {
           nick: id !== undefined ? (this.players.get(id)?.nick ?? nick) : nick,
           place: id !== undefined ? (places?.[id] ?? null) : null,
           won: id !== undefined && id === winnerId && players >= 2,
           score: score !== null && Number.isFinite(score) ? score : null,
+          tie: tie !== null && Number.isFinite(tie) ? tie : null,
           left: id === undefined,
           timeouts: match.timeouts[key] ?? 0,
         };

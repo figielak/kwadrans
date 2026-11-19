@@ -1,9 +1,10 @@
 import { fileURLToPath } from "node:url";
 import { matchMaker, Server } from "@colyseus/core";
 import { WebSocketTransport } from "@colyseus/ws-transport";
-import { dailyGame, GAMES, MINI_GAME_IDS, nickKey } from "@kwadrans/games";
+import { dailyGame, dailyStreak, GAMES, MINI_GAME_IDS, nickKey } from "@kwadrans/games";
 import express from "express";
 import { LobbyRoom, restoreRooms, saveRooms, stats } from "./LobbyRoom.ts";
+import { dailyDay } from "./history.ts";
 
 const port = Number(process.env.PORT ?? 2567);
 const webDist = fileURLToPath(new URL("../../web/dist", import.meta.url));
@@ -35,11 +36,20 @@ const server = new Server({
       if (!MINI_GAME_IDS.includes(id)) return void res.sendStatus(404);
       res.set("Access-Control-Allow-Origin", "*").json(stats.top({ id, ...GAMES[id].record! }));
     });
-    // Wyzwanie dnia: gra na dziś i ranking wyników od północy (czas serwera, w kontenerze TZ=Europe/Warsaw).
-    app.get("/api/daily", (_req, res) => {
-      const midnight = new Date().setHours(0, 0, 0, 0);
-      const id = dailyGame(Math.round(midnight / 86_400_000), MINI_GAME_IDS);
-      res.set("Access-Control-Allow-Origin", "*").json({ gameId: id, rows: stats.records([{ id, ...GAMES[id].record! }], midnight)[id] });
+    // Wyzwanie dnia: gra na dziś i ranking pierwszych prób z kafla (wspólny układ) od północy (czas serwera, w kontenerze TZ=Europe/Warsaw).
+    // `nick` dokłada serię dni tego gracza (`me`), bez niego `me` to null.
+    app.get("/api/daily", (req, res) => {
+      const { midnight, day } = dailyDay();
+      const id = dailyGame(day, MINI_GAME_IDS);
+      const key = typeof req.query.nick === "string" ? nickKey(req.query.nick) : "";
+      const me = key ? dailyStreak(stats.dailyDays(key), day) : null;
+      res.set("Access-Control-Allow-Origin", "*").json({ gameId: id, rows: stats.dailyRanking({ id, ...GAMES[id].record! }, midnight), me });
+    });
+    // Pojedynki obecnych w pokoju: powtarzany `n` (nick może mieć przecinek, do 6), `game` zawęża do jednej znanej gry.
+    app.get("/api/duels", (req, res) => {
+      const keys = [req.query.n ?? []].flat().filter((n) => typeof n === "string").map((nick) => nickKey(nick)).filter(Boolean).slice(0, 6);
+      const game = typeof req.query.game === "string" && GAMES[req.query.game] ? req.query.game : undefined;
+      res.set("Access-Control-Allow-Origin", "*").json(stats.duels(keys, game));
     });
     // Które z ostatnich pokoi gracza jeszcze istnieją i ile osób w nich siedzi: kod → liczba połączonych.
     app.get("/api/rooms", async (req, res) => {
