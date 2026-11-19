@@ -21,6 +21,26 @@ describe("akcja gracza", () => {
   });
 });
 
+describe("jaśniejsze powierzchnie i etykiety (19-02)", () => {
+  const rule = (selector: string) => css.match(new RegExp(`\\${selector} \\{([^}]*)\\}`))?.[1] ?? "";
+
+  test(".label w Satoshi, bez wersalików i rozstrzelenia", () => {
+    const label = rule(".label");
+    expect(label).toContain("var(--font-sans)");
+    expect(label).not.toMatch(/font-mono|text-transform|letter-spacing/);
+  });
+
+  test("surface-raised w @theme i w tabeli DESIGN §2", () => {
+    expect(css).toMatch(/--color-surface-raised: #[0-9a-f]{6};/);
+    expect(design).toContain("| `surface-raised` |");
+  });
+
+  test("kafle gier na surface-raised", () => {
+    expect(read("screens/MiniGames.tsx")).toContain("bg-surface-raised");
+    expect(read("screens/Lobby.tsx")).toContain("bg-surface-raised");
+  });
+});
+
 describe("tokeny w swoich rolach", () => {
   test("bez bieli i czerni spoza tokenów", () => {
     expect(css).not.toMatch(/#fff\b|#000\b/);
