@@ -116,7 +116,7 @@ bez przewijania w poziomie i z polami ≥ 48 px; wpis w `CHANGELOG`.
   tylko w pokoju z 2+ osobami; dotknięcie działa jak kafel (gospodarz wybiera, gość zgłasza życzenie).
   Accept: zrzut 360×640 z 2 i 6 graczami: karty i pierwszy rząd listy widoczne bez przewijania na 640 px.
 
-- [ ] **19-12 Karta wybranej gry**
+- [x] **19-12 Karta wybranej gry**
   Panel „Wybrana gra” w `MiniGames.tsx:150-170`: duży animowany podgląd z rejestru, nazwa, opis z `BLURBS`, rekord stołu
   i pojedynek w tej grze zamiast tekstu technicznego; `Setup.tsx` dla gier głównych dostaje linię pojedynku w tej grze.
   Bez zmian w `StartBar`. Accept: zrzut 360×640 u gospodarza i gościa; „Start” dalej mieści się w `StickyBar`.
